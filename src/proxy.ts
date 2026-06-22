@@ -1,10 +1,11 @@
-import { NextFetchEvent } from "next/server";
-import middleware, { NextRequestWithAuth } from "next-auth/middleware";
+import { withAuth } from 'next-auth/middleware'
 
-export default function proxy(req: NextRequestWithAuth, event: NextFetchEvent) {
-  return middleware(req, event);
-}
+export default withAuth({
+  callbacks: {
+    authorized: ({ token }) => token?.role === 'admin',
+  },
+})
 
 export const config = {
-  matcher: ["/admin/:path*"],
-};
+  matcher: ['/admin/:path*'],
+}
