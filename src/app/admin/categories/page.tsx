@@ -10,6 +10,16 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -54,6 +64,7 @@ export default function AdminCategories() {
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<Category | null>(null)
   
   const [newCategory, setNewCategory] = useState({
     name: '',
@@ -225,7 +236,7 @@ export default function AdminCategories() {
     }
   }
 
-  const handleDelete = async (category: Category) => {
+  const handleDelete = (category: Category) => {
     if (isDemoMode) {
       toast({
         title: 'Demo Mode Warning',
@@ -244,10 +255,10 @@ export default function AdminCategories() {
       return
     }
 
-    if (!confirm(`Are you sure you want to delete the category "${category.name}"?`)) {
-      return
-    }
+    setDeleteCategoryTarget(category)
+  }
 
+  const executeDeleteCategory = async (category: Category) => {
     try {
       const res = await fetch(`/api/categories/${category.id || category._id}`, {
         method: 'DELETE'
@@ -259,6 +270,7 @@ export default function AdminCategories() {
           description: 'Category has been deleted successfully.'
         })
         fetchCategories()
+        setDeleteCategoryTarget(null)
       } else {
         const err = await res.json()
         toast({
@@ -546,6 +558,32 @@ export default function AdminCategories() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={!!deleteCategoryTarget} onOpenChange={(open) => !open && setDeleteCategoryTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the category
+              {" "}<span className="font-semibold text-foreground">"{deleteCategoryTarget?.name}"</span> and all of its associated definitions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteCategoryTarget) {
+                  executeDeleteCategory(deleteCategoryTarget)
+                }
+              }}
+            >
+              Delete Category
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

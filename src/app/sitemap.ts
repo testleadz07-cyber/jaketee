@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       productsList = dbProducts.map((p) => ({
         id: String(p._id),
+        slug: p.slug,
         updatedAt: p.updatedAt || new Date(),
       }))
 
@@ -49,6 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (productsList.length === 0) {
     productsList = getStaticProducts().map((p) => ({
       id: p.id || p._id,
+      slug: p.slug || p.id,
       updatedAt: new Date(),
     }))
   }
@@ -61,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic product routes
   const productRoutes = productsList.map((product) => ({
-    url: `${baseUrl}/product/${product.id}`,
+    url: `${baseUrl}/product/${product.slug || product.id}`,
     lastModified: new Date(product.updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.7,

@@ -5,24 +5,24 @@ import { findStaticProduct } from '@/lib/static-data'
 import mongoose from 'mongoose'
 
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
   children: React.ReactNode
 }
 
 export async function generateMetadata(
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
-  const { id } = await params
+  const { slug } = await params
   let product: any = null
 
   try {
     const db = await connectDB()
     if (db) {
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        product = await Product.findById(id).populate('categoryId', 'name slug').lean()
+      if (mongoose.Types.ObjectId.isValid(slug)) {
+        product = await Product.findById(slug).populate('categoryId', 'name slug').lean()
       }
       if (!product) {
-        product = await Product.findOne({ slug: id }).populate('categoryId', 'name slug').lean()
+        product = await Product.findOne({ slug: slug }).populate('categoryId', 'name slug').lean()
       }
     }
   } catch (error) {
@@ -30,7 +30,7 @@ export async function generateMetadata(
   }
 
   if (!product) {
-    product = findStaticProduct(id)
+    product = findStaticProduct(slug)
   }
 
   if (!product) {

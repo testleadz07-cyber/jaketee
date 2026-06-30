@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, notFound } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,6 @@ import {
   ShoppingBag,
   Star,
   Check,
-  ChevronLeft,
   Minus,
   Plus,
   ShoppingCart,
@@ -58,32 +57,37 @@ interface Product {
 
 export default function ProductDetail() {
   const params = useParams()
-  const productId = params.id as string
+  const slug = params.slug as string
   const { data: session } = useSession()
-
-  const isInWishlist = useWishlistStore((state) => state.isInWishlist(productId))
-  const addToWishlist = useWishlistStore((state) => state.addItem)
-  const removeFromWishlist = useWishlistStore((state) => state.removeItem)
 
   const [product, setProduct] = useState<Product & { averageRating?: number; reviewCount?: number; stockCount?: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [overrideImage, setOverrideImage] = useState<string | null>(null)
   const [selectedVariants, setSelectedVariants] = useState<
     Record<string, string>
   >({})
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
 
+  const isInWishlist = useWishlistStore((state) => state.isInWishlist(product?.id || ''))
+  const addToWishlist = useWishlistStore((state) => state.addItem)
+  const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const addItem = useCartStore((state) => state.addItem)
 
   useEffect(() => {
     fetchProduct()
-  }, [productId])
+  }, [slug])
 
   const fetchProduct = async () => {
     setLoading(true)
+    setOverrideImage(null)
     try {
-      const res = await fetch(`/api/products/${productId}`)
+      const res = await fetch(`/api/products/${slug}`)
+      if (!res.ok) {
+        setProduct(null)
+        return
+      }
       const data = await res.json()
       setProduct(data)
 
@@ -101,13 +105,15 @@ export default function ProductDetail() {
       }
     } catch (error) {
       console.error('Error fetching product:', error)
+      setProduct(null)
     } finally {
       setLoading(false)
     }
   }
 
   const groupVariants = (variants: Product['variants']) => {
-    return variants.reduce((acc, variant) => {
+    const list = variants || []
+    return list.reduce((acc, variant) => {
       if (!acc[variant.name]) {
         acc[variant.name] = []
       }
@@ -117,7 +123,7 @@ export default function ProductDetail() {
   }
 
   const getSelectedVariantPriceAdjust = () => {
-    if (!product) return 0
+    if (!product || !product.variants) return 0
     let total = 0
     Object.values(selectedVariants).forEach((value) => {
       const variant = product.variants.find(
@@ -169,21 +175,13 @@ export default function ProductDetail() {
       productId: product.id,
       name: product.name,
       price: getPrice(),
-      image: product.images[0]?.url || '/placeholder.png',
+      image: product.images?.[0]?.url || '/placeholder.png',
       variants,
       quantity,
     })
 
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2000)
-  }
-
-  const isVariantAvailable = (variantName: string, variantValue: string) => {
-    if (!product) return true
-    const variant = product.variants.find(
-      (v) => v.name === variantName && v.value === variantValue
-    )
-    return variant?.inStock !== false
   }
 
   if (loading) {
@@ -198,14 +196,7 @@ export default function ProductDetail() {
   }
 
   if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">Product not found</p>
-        </div>
-      </div>
-    )
+    notFound()
   }
 
   const groupedVariants = groupVariants(product.variants)
@@ -235,8 +226,8 @@ export default function ProductDetail() {
                 className="relative aspect-square overflow-hidden rounded-2xl bg-muted"
               >
                 <Image
-                  src={product.images[selectedImage]?.url || '/placeholder.png'}
-                  alt={product.images[selectedImage]?.alt || product.name}
+                  src={overrideImage || (product.images?.[selectedImage]?.url || '/placeholder.png')}
+                  alt={product.images?.[selectedImage]?.alt || product.name || 'Product Image'}
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover"
@@ -255,12 +246,15 @@ export default function ProductDetail() {
                 )}
               </motion.div>
 
-              {product.images.length > 1 && (
+              {(product.images?.length || 0) > 1 && (
                 <div className="grid grid-cols-4 gap-3">
-                  {product.images.map((image, index) => (
+                  {product.images?.map((image, index) => (
                     <button
                       key={image.id || `image-${index}`}
-                      onClick={() => setSelectedImage(index)}
+                      onClick={() => {
+                        setSelectedImage(index)
+                        setOverrideImage(null)
+                      }}
                       className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
                         selectedImage === index
                           ? 'border-primary scale-105'
@@ -289,10 +283,10 @@ export default function ProductDetail() {
             >
               <div>
                 <Link
-                  href={`/?category=${product.category.slug}`}
+                  href={`/?category=${product.category?.slug}`}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  {product.category.name}
+                  {product.category?.name}
                 </Link>
                 <h1 className="text-3xl md:text-4xl font-bold mt-2 mb-3">
                   {product.name}
@@ -371,6 +365,9 @@ export default function ProductDetail() {
                                       ...prev,
                                       [variantName]: variant.value,
                                     }))
+                                    if (variant.image) {
+                                      setOverrideImage(variant.image)
+                                    }
                                   }
                                 }}
                                 disabled={!isAvailable}
@@ -469,7 +466,7 @@ export default function ProductDetail() {
                           productId: product.id,
                           name: product.name,
                           price: product.price,
-                          image: product.images[0]?.url || '',
+                          image: product.images?.[0]?.url || '',
                           slug: product.slug,
                         }, (session?.user as any)?.id)
                       }

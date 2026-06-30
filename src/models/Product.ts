@@ -11,6 +11,7 @@ export interface IProductVariant {
   value: string
   priceAdjust: number
   inStock: boolean
+  image?: string
 }
 
 export interface IProduct extends Document {
@@ -38,7 +39,13 @@ const ProductImageSchema = new Schema<IProductImage>(
 )
 
 const ProductVariantSchema = new Schema<IProductVariant>(
-  { name: { type: String, required: true }, value: { type: String, required: true }, priceAdjust: { type: Number, default: 0 }, inStock: { type: Boolean, default: true } },
+  {
+    name: { type: String, required: true },
+    value: { type: String, required: true },
+    priceAdjust: { type: Number, default: 0 },
+    inStock: { type: Boolean, default: true },
+    image: { type: String },
+  },
   { _id: false }
 )
 

@@ -42,7 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
       : 0
 
   return (
-    <Link href={`/product/${product.id}`}>
+    <Link href={`/product/${product.slug}`}>
       <motion.div
         whileHover={{ y: -8 }}
         transition={{ duration: 0.3 }}

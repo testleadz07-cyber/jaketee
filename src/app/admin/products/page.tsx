@@ -10,6 +10,16 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Plus,
   Search,
   Edit,
@@ -52,6 +62,8 @@ export default function AdminProducts() {
   // Selection states
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -101,7 +113,7 @@ export default function AdminProducts() {
     }
   }
 
-  const handleDeleteSingle = async (product: Product) => {
+  const handleDeleteSingle = (product: Product) => {
     if (isDemoMode) {
       toast({
         title: 'Demo Mode Warning',
@@ -110,11 +122,10 @@ export default function AdminProducts() {
       })
       return
     }
+    setDeleteTarget(product)
+  }
 
-    if (!confirm(`Are you sure you want to delete "${product.name}"?`)) {
-      return
-    }
-
+  const executeDeleteSingle = async (product: Product) => {
     try {
       const res = await fetch(`/api/products/${product.id || product._id}`, {
         method: 'DELETE'
@@ -126,6 +137,7 @@ export default function AdminProducts() {
           description: 'The product was successfully deleted.'
         })
         fetchProducts()
+        setDeleteTarget(null)
       } else {
         const err = await res.json()
         toast({
@@ -143,7 +155,7 @@ export default function AdminProducts() {
     }
   }
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (isDemoMode) {
       toast({
         title: 'Demo Mode Warning',
@@ -154,11 +166,10 @@ export default function AdminProducts() {
     }
 
     if (selectedIds.length === 0) return
+    setIsBulkDeleteOpen(true)
+  }
 
-    if (!confirm(`Are you sure you want to delete all ${selectedIds.length} selected products?`)) {
-      return
-    }
-
+  const executeBulkDelete = async () => {
     setIsSubmitting(true)
     try {
       const res = await fetch('/api/products/bulk-delete', {
@@ -174,11 +185,12 @@ export default function AdminProducts() {
         })
         setSelectedIds([])
         fetchProducts()
+        setIsBulkDeleteOpen(false)
       } else {
         const err = await res.json()
         toast({
           title: 'Bulk Deletion Failed',
-          description: err.error || 'Failed to delete products.',
+          description: err.error || 'Failed to bulk delete products.',
           variant: 'destructive'
         })
       }
@@ -437,6 +449,57 @@ export default function AdminProducts() {
           </div>
         </div>
       )}
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the product
+              {" "}<span className="font-semibold text-foreground">"{deleteTarget?.name}"</span> and remove its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget) {
+                  executeDeleteSingle(deleteTarget)
+                  setDeleteTarget(null)
+                }
+              }}
+            >
+              Delete Product
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Alert Dialog */}
+      <AlertDialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the{" "}
+              <span className="font-semibold text-foreground">{selectedIds.length} selected products</span> and remove all of their data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                executeBulkDelete()
+                setIsBulkDeleteOpen(false)
+              }}
+            >
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
