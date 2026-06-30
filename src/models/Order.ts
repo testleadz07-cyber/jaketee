@@ -19,8 +19,10 @@ export interface IOrder extends Document {
   shipping: number
   tax: number
   total: number
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
-  paymentMethod: 'paypal'
+  promoCode?: string
+  discountAmount?: number
+  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
+  paymentMethod: 'paypal' | 'stripe'
   paymentId?: string
   shippingAddress: {
     name: string
@@ -32,6 +34,10 @@ export interface IOrder extends Document {
     phone?: string
   }
   notes?: string
+  trackingNumber?: string
+  carrier?: 'UPS' | 'FedEx' | 'USPS' | 'DHL' | 'Other'
+  estimatedDelivery?: Date
+  statusHistory: Array<{ status: string; timestamp: Date; note?: string }>
   createdAt: Date
   updatedAt: Date
 }
@@ -44,6 +50,15 @@ const OrderItemSchema = new Schema<IOrderItem>(
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
     variants: [{ name: String, value: String }],
+  },
+  { _id: false }
+)
+
+const StatusHistorySchema = new Schema(
+  {
+    status: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    note: { type: String },
   },
   { _id: false }
 )
@@ -72,11 +87,21 @@ const OrderSchema = new Schema<IOrder>(
     shipping: { type: Number, default: 0 },
     tax: { type: Number, default: 0 },
     total: { type: Number, required: true },
-    status: { type: String, enum: ['pending', 'paid', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
-    paymentMethod: { type: String, enum: ['paypal'], default: 'paypal' },
+    promoCode: { type: String },
+    discountAmount: { type: Number, default: 0 },
+    status: {
+      type: String,
+      enum: ['pending', 'paid', 'shipped', 'in_transit', 'delivered', 'cancelled'],
+      default: 'pending',
+    },
+    paymentMethod: { type: String, enum: ['paypal', 'stripe'], default: 'paypal' },
     paymentId: { type: String },
     shippingAddress: ShippingAddressSchema,
     notes: { type: String },
+    trackingNumber: { type: String },
+    carrier: { type: String, enum: ['UPS', 'FedEx', 'USPS', 'DHL', 'Other'] },
+    estimatedDelivery: { type: Date },
+    statusHistory: { type: [StatusHistorySchema], default: [] },
   },
   { timestamps: true }
 )

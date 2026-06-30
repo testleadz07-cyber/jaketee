@@ -1,7 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/header'
@@ -13,11 +17,50 @@ import {
   ShoppingBag,
   ChevronLeft,
   Shield,
+  Send,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 
 export default function ReturnsPage() {
+  const [form, setForm] = useState({ orderId: '', name: '', email: '', reason: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    if (!form.orderId.trim() || !form.reason.trim()) {
+      setError('Order number and reason are required.')
+      return
+    }
+    if (form.reason.trim().length < 10) {
+      setError('Please provide a more detailed reason (at least 10 characters).')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/admin/refunds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: form.orderId, reason: form.reason, userName: form.name, userEmail: form.email })
+      })
+      if (res.ok) {
+        setSubmitted(true)
+        setForm({ orderId: '', name: '', email: '', reason: '' })
+      } else {
+        const data = await res.json()
+        setError(data.error || 'Failed to submit. Please try again.')
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
       <Header showBack backHref="/" />
@@ -253,6 +296,92 @@ export default function ReturnsPage() {
                 Please allow additional time for your bank or credit card company to post the refund
                 to your account (typically 3-5 business days).
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Submit Request Form */}
+          <Card className="border-2" id="request-form">
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Send className="h-6 w-6 text-primary" />
+                Submit a Return or Refund Request
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {submitted ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center py-8 text-center gap-4"
+                >
+                  <CheckCircle2 className="h-14 w-14 text-emerald-500" />
+                  <div>
+                    <p className="font-bold text-lg">Request Submitted!</p>
+                    <p className="text-muted-foreground text-sm mt-1">We have received your return/refund request and will review it within 1-2 business days.</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setSubmitted(false)}>Submit Another Request</Button>
+                </motion.div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="orderId">Order Number *</Label>
+                      <Input
+                        id="orderId"
+                        placeholder="e.g. LX-2024-001"
+                        value={form.orderId}
+                        onChange={e => setForm(f => ({ ...f, orderId: e.target.value }))}
+                        required
+                        disabled={submitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="returnName">Your Name</Label>
+                      <Input
+                        id="returnName"
+                        placeholder="Full name (optional)"
+                        value={form.name}
+                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="returnEmail">Email Address</Label>
+                    <Input
+                      id="returnEmail"
+                      type="email"
+                      placeholder="your@email.com (optional)"
+                      value={form.email}
+                      onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                      disabled={submitting}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="returnReason">Reason for Return *</Label>
+                    <Textarea
+                      id="returnReason"
+                      rows={4}
+                      placeholder="Please describe why you would like to return or exchange this item..."
+                      value={form.reason}
+                      onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
+                      required
+                      disabled={submitting}
+                    />
+                    <p className="text-xs text-muted-foreground">{form.reason.length} / 10 minimum characters</p>
+                  </div>
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      {error}
+                    </div>
+                  )}
+                  <Button type="submit" disabled={submitting} className="gap-2 w-full sm:w-auto">
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    Submit Request
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
 

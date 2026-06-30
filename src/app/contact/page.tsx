@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
 import {
   Mail,
   Phone,
@@ -254,12 +255,7 @@ export default function ContactPage() {
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Luxe Store. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const productId = searchParams.get('productId')
+    const ratingParam = searchParams.get('rating')
 
     if (!productId) {
       return NextResponse.json({ error: 'ProductId is required' }, { status: 400 })
@@ -20,7 +21,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const reviews = await Review.find({ productId })
+    // Public listing only ever shows approved reviews
+    const query: Record<string, any> = { productId, status: 'approved' }
+
+    if (ratingParam) {
+      const ratingNum = Number(ratingParam)
+      if (!Number.isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5) {
+        query.rating = ratingNum
+      }
+    }
+
+    const reviews = await Review.find(query)
       .sort({ createdAt: -1 })
       .lean()
 
@@ -47,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { productId, rating, title, comment } = body
+    const { productId, rating, title, comment, images, videos } = body
 
     if (!productId || !rating || !comment) {
       return NextResponse.json({ error: 'ProductId, rating, and comment are required' }, { status: 400 })
@@ -80,11 +91,14 @@ export async function POST(request: NextRequest) {
       title,
       comment,
       isVerified: false, // Default false, admin can verify later
+      images: Array.isArray(images) ? images.filter((u: any) => typeof u === 'string') : [],
+      videos: Array.isArray(videos) ? videos.filter((u: any) => typeof u === 'string') : [],
+      status: 'pending', // New reviews require admin moderation before they appear publicly
     })
 
-    // Recalculate average rating and review count
+    // Recalculate average rating and review count (approved reviews only)
     const stats = await Review.aggregate([
-      { $match: { productId: new mongoose.Types.ObjectId(productId) } },
+      { $match: { productId: new mongoose.Types.ObjectId(productId), status: 'approved' } },
       {
         $group: {
           _id: '$productId',

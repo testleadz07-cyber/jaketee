@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
@@ -16,9 +16,14 @@ import {
   Loader2,
   ListCollapse,
   Layers,
-  ArrowUpRight
+  ArrowUpRight,
+  TableProperties,
+  Tags,
+  RotateCcw,
+  AlertOctagon
 } from 'lucide-react'
 import Link from 'next/link'
+import { useToast } from '@/hooks/use-toast'
 import {
   AreaChart,
   Area,
@@ -55,9 +60,13 @@ interface Stats {
 export default function AdminDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { toast } = useToast()
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeGateway, setActiveGateway] = useState<string>('both')
+  const [isSettingsSaving, setIsSettingsSaving] = useState(false)
+  const fetchGuard = useRef(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -66,10 +75,58 @@ export default function AdminDashboard() {
   }, [status, router])
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && !fetchGuard.current) {
+      fetchGuard.current = true
       fetchStats()
+      fetchGatewaySettings()
     }
   }, [status])
+
+  const fetchGatewaySettings = async () => {
+    try {
+      const res = await fetch('/api/admin/settings')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.payment_gateway) {
+          setActiveGateway(data.payment_gateway)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error)
+    }
+  }
+
+  const handleUpdateGateway = async (gatewayValue: string) => {
+    setIsSettingsSaving(true)
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'payment_gateway', value: gatewayValue }),
+      })
+      if (res.ok) {
+        setActiveGateway(gatewayValue)
+        toast({
+          title: 'Settings Updated',
+          description: `Payment gateway configured to: ${gatewayValue.toUpperCase()}`,
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to update gateway configurations.',
+          variant: 'destructive',
+        })
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to communicate with server.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSettingsSaving(false)
+    }
+  }
 
   const fetchStats = async () => {
     try {
@@ -180,6 +237,21 @@ export default function AdminDashboard() {
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm">Orders</Button>
           </Link>
+          <Link href="/admin/reviews">
+            <Button variant="ghost" size="sm">Reviews</Button>
+          </Link>
+          <Link href="/admin/discounts">
+            <Button variant="ghost" size="sm">Discounts</Button>
+          </Link>
+          <Link href="/admin/bulk-editor">
+            <Button variant="ghost" size="sm">Bulk Editor</Button>
+          </Link>
+          <Link href="/admin/tags">
+            <Button variant="ghost" size="sm">Tags</Button>
+          </Link>
+          <Link href="/admin/refunds">
+            <Button variant="ghost" size="sm">Refunds</Button>
+          </Link>
         </div>
       </nav>
 
@@ -230,6 +302,123 @@ export default function AdminDashboard() {
               <p className="text-[10px] text-muted-foreground mt-1">Customer profiles created</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Payment Gateway Settings Card */}
+        <Card className="border-2 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">Payment Gateway Options</CardTitle>
+            <CardDescription>Configure which checkout payment methods are active for your store</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Active Payment Gateways</p>
+              <p className="text-xs text-muted-foreground">Select between Stripe Checkout (Credit Cards), PayPal payments, or both active simultaneously.</p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant={activeGateway === 'paypal' ? 'default' : 'outline'}
+                onClick={() => handleUpdateGateway('paypal')}
+                disabled={isSettingsSaving}
+                size="sm"
+              >
+                PayPal Only
+              </Button>
+              <Button
+                variant={activeGateway === 'stripe' ? 'default' : 'outline'}
+                onClick={() => handleUpdateGateway('stripe')}
+                disabled={isSettingsSaving}
+                size="sm"
+              >
+                Stripe Only
+              </Button>
+              <Button
+                variant={activeGateway === 'both' ? 'default' : 'outline'}
+                onClick={() => handleUpdateGateway('both')}
+                disabled={isSettingsSaving}
+                size="sm"
+              >
+                Both Active
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Settings Section */}
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold tracking-tight">Quick Settings</h2>
+            <p className="text-sm text-muted-foreground">Jump directly to inventory &amp; store management tools</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link href="/admin/bulk-editor" className="group">
+              <Card className="border-2 shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 group-hover:bg-blue-100 transition-colors">
+                      <TableProperties className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Bulk Product Editor</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Edit stock, pricing &amp; visibility for all products at once</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/tags" className="group">
+              <Card className="border-2 shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-violet-50 border border-violet-100 group-hover:bg-violet-100 transition-colors">
+                      <Tags className="h-5 w-5 text-violet-600" />
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Tags &amp; Collections</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Manage product tags like &quot;New Arrival&quot; or &quot;Summer Sale&quot;</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/refunds" className="group">
+              <Card className="border-2 shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-100 group-hover:bg-rose-100 transition-colors">
+                      <RotateCcw className="h-5 w-5 text-rose-600" />
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Refund &amp; Returns</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Review and process customer return requests</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/products" className="group">
+              <Card className="border-2 shadow-sm hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100 group-hover:bg-amber-100 transition-colors">
+                      <AlertOctagon className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Low-Stock Alerts</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">View products flagged for low inventory levels</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </div>
 
         {/* Charts Grid */}

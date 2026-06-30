@@ -12,6 +12,9 @@ import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { ReviewsSection } from '@/components/reviews-section'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
+import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
+import { Footer } from '@/components/footer'
 import {
   ShoppingBag,
   Star,
@@ -52,6 +55,7 @@ interface Product {
     value: string
     priceAdjust: number
     inStock: boolean
+    image?: string | null
   }>
 }
 
@@ -499,16 +503,16 @@ export default function ProductDetail() {
             </motion.div>
           </div>
 
+          <div className="mt-12 space-y-12 border-t pt-12">
+            <FrequentlyBoughtTogether currentProduct={product} />
+            <YouMayAlsoLike currentProduct={product} />
+          </div>
+
           <ReviewsSection productId={product.id} onReviewSubmitted={fetchProduct} />
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Luxe Store. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

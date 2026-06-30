@@ -32,12 +32,14 @@ interface Order {
   _id: string
   orderNumber: string
   createdAt: string
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
+  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
   total: number
   subtotal: number
   shipping: number
   tax: number
   items: OrderItem[]
+  trackingNumber?: string
+  carrier?: string
   shippingAddress: {
     name: string
     street: string
@@ -228,6 +230,8 @@ export default function ProfilePage() {
         return 'bg-emerald-100 text-emerald-800 border-emerald-200'
       case 'shipped':
         return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'in_transit':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
       case 'delivered':
         return 'bg-indigo-100 text-indigo-800 border-indigo-200'
       case 'cancelled':
@@ -454,7 +458,7 @@ export default function ProfilePage() {
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="font-semibold text-lg">{order.orderNumber}</span>
                               <Badge className={getStatusColor(order.status)}>
-                                {order.status.toUpperCase()}
+                                {order.status.replace('_', ' ').toUpperCase()}
                               </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground">
@@ -468,6 +472,12 @@ export default function ProfilePage() {
                               <p className="text-xs text-muted-foreground">Total Amount</p>
                               <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
                             </div>
+                            <Link href={`/profile/orders/${order._id}`} onClick={(e) => e.stopPropagation()}>
+                              <Button variant="outline" size="sm" className="gap-1.5">
+                                <Package className="h-3.5 w-3.5" />
+                                Track Order
+                              </Button>
+                            </Link>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                               {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </Button>

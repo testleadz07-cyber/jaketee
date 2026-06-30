@@ -29,6 +29,7 @@ export interface IProduct extends Document {
   isFeatured: boolean
   inStock: boolean
   stockCount?: number
+  tags: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -64,6 +65,7 @@ const ProductSchema = new Schema<IProduct>(
     isFeatured: { type: Boolean, default: false },
     inStock: { type: Boolean, default: true },
     stockCount: { type: Number, default: 100 },
+    tags: { type: [String], default: [] },
   },
   { timestamps: true }
 )

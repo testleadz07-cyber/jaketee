@@ -1,10 +1,14 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { CartDrawer } from '@/components/cart-drawer'
-import { ShoppingBag, User, LogOut, LayoutDashboard, UserCheck, Heart } from 'lucide-react'
+import { ShoppingBag, User, LogOut, LayoutDashboard, UserCheck, Heart, Search, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
   DropdownMenu,
@@ -21,8 +25,133 @@ interface HeaderProps {
   backHref?: string
 }
 
+interface SearchSuggestion {
+  id: string
+  name: string
+  slug: string
+  thumbnail: string
+  price: number
+  compareAtPrice: number | null
+}
+
 export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
   const { data: session, status } = useSession()
+  const router = useRouter()
+  const [query, setQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+  const mobileSearchContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setSuggestions([])
+      setIsSearching(false)
+      return
+    }
+
+    setIsSearching(true)
+    const timeoutId = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/products/search-autocomplete?q=${encodeURIComponent(query.trim())}`)
+        const data = await res.json()
+        setSuggestions(Array.isArray(data) ? data : [])
+      } catch (error) {
+        console.error('Autocomplete search failed:', error)
+        setSuggestions([])
+      } finally {
+        setIsSearching(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [query])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+      if (
+        mobileSearchContainerRef.current &&
+        !mobileSearchContainerRef.current.contains(event.target as Node)
+      ) {
+        setMobileSearchOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelectSuggestion = (slug: string) => {
+    setIsOpen(false)
+    setMobileSearchOpen(false)
+    setQuery('')
+    setSuggestions([])
+    router.push(`/product/${slug}`)
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!query.trim()) return
+    setIsOpen(false)
+    setMobileSearchOpen(false)
+    router.push(`/?search=${encodeURIComponent(query.trim())}`)
+  }
+
+  const showDropdown = (isOpen || mobileSearchOpen) && query.trim().length >= 2
+
+  const renderSuggestionsList = () => (
+    <>
+      {isSearching ? (
+        <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Searching...
+        </div>
+      ) : suggestions.length > 0 ? (
+        <ul className="py-1">
+          {suggestions.map((product) => (
+            <li key={product.id}>
+              <button
+                type="button"
+                onClick={() => handleSelectSuggestion(product.slug)}
+                className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-accent"
+              >
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                  <Image
+                    src={product.thumbnail}
+                    alt={product.name}
+                    fill
+                    sizes="40px"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-sm font-medium">{product.name}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-semibold text-primary">
+                      ${product.price.toFixed(2)}
+                    </span>
+                    {product.compareAtPrice && (
+                      <span className="text-xs text-muted-foreground line-through">
+                        ${product.compareAtPrice.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+          No products found for &ldquo;{query}&rdquo;
+        </div>
+      )}
+    </>
+  )
 
   const getInitials = (name: string) => {
     return name
@@ -58,7 +187,44 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
             </Link>
           </div>
 
+          <div ref={searchContainerRef} className="relative hidden flex-1 max-w-sm md:block">
+            <form onSubmit={handleSearchSubmit}>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search products..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setIsOpen(true)}
+                className="pl-9"
+              />
+            </form>
+
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-y-auto rounded-md border bg-popover shadow-lg"
+                >
+                  {renderSuggestionsList()}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileSearchOpen((prev) => !prev)}
+              aria-label="Toggle search"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
             <CartDrawer />
 
             {status === 'authenticated' && session?.user ? (
@@ -119,6 +285,37 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
             )}
           </div>
         </div>
+
+        <AnimatePresence>
+          {mobileSearchOpen && (
+            <motion.div
+              ref={mobileSearchContainerRef}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative mt-3 overflow-visible md:hidden"
+            >
+              <form onSubmit={handleSearchSubmit}>
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search products..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  autoFocus
+                  className="pl-9"
+                />
+              </form>
+
+              {showDropdown && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-y-auto rounded-md border bg-popover shadow-lg">
+                  {renderSuggestionsList()}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   )

@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/header'
 import { ProductCard } from '@/components/product-card'
+import { Footer } from '@/components/footer'
 import { Search, Sparkles, ShoppingBag, Filter } from 'lucide-react'
 import Link from 'next/link'
 
@@ -266,93 +267,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <ShoppingBag className="h-6 w-6 text-primary" />
-                <span className="text-lg font-bold">LUXE STORE</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Your destination for premium fashion and activewear. Quality meets elegance.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Categories</h3>
-              <div className="flex flex-col gap-2">
-                {categories.map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/?category=${category.slug}`}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Information</h3>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/contact"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Contact Us
-                </Link>
-                <Link
-                  href="/shipping"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Shipping Info
-                </Link>
-                <Link
-                  href="/returns"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Returns
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Customer Service</h3>
-              <p className="text-sm text-muted-foreground mb-2">
-                support@luxestore.com
-              </p>
-              <p className="text-sm text-muted-foreground mb-2">
-                +1 (555) 123-4567
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Mon-Fri: 9AM - 6PM EST
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-            <div className="flex flex-wrap justify-center gap-4 mb-2">
-              <Link
-                href="/login"
-                className="hover:text-primary transition-colors"
-              >
-                Admin Panel
-              </Link>
-              <span>•</span>
-              <Link
-                href="/contact"
-                className="hover:text-primary transition-colors"
-              >
-                Contact Us
-              </Link>
-            </div>
-            © 2024 Luxe Store. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

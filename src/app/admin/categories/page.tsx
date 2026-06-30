@@ -358,6 +358,21 @@ export default function AdminCategories() {
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm">Orders</Button>
           </Link>
+          <Link href="/admin/reviews">
+            <Button variant="ghost" size="sm">Reviews</Button>
+          </Link>
+          <Link href="/admin/discounts">
+            <Button variant="ghost" size="sm">Discounts</Button>
+          </Link>
+          <Link href="/admin/bulk-editor">
+            <Button variant="ghost" size="sm">Bulk Editor</Button>
+          </Link>
+          <Link href="/admin/tags">
+            <Button variant="ghost" size="sm">Tags</Button>
+          </Link>
+          <Link href="/admin/refunds">
+            <Button variant="ghost" size="sm">Refunds</Button>
+          </Link>
         </div>
       </nav>
 

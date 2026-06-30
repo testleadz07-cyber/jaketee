@@ -40,7 +40,7 @@ interface Order {
   id?: string
   orderNumber: string
   createdAt: string
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
+  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
   total: number
   subtotal: number
   shipping: number
@@ -49,6 +49,9 @@ interface Order {
   userName: string
   userEmail: string
   paymentId?: string
+  trackingNumber?: string
+  carrier?: 'UPS' | 'FedEx' | 'USPS' | 'DHL' | 'Other'
+  estimatedDelivery?: string
   shippingAddress: {
     name: string
     street: string
@@ -77,6 +80,10 @@ export default function AdminOrders() {
   
   // Update submission status
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+
+  // Tracking info form state, keyed by order id
+  const [trackingForms, setTrackingForms] = useState<Record<string, { trackingNumber: string; carrier: string; estimatedDelivery: string }>>({})
+  const [savingTrackingId, setSavingTrackingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -169,6 +176,76 @@ export default function AdminOrders() {
     }
   }
 
+  const getTrackingForm = (order: Order) => {
+    const orderId = order._id || order.id || ''
+    return (
+      trackingForms[orderId] || {
+        trackingNumber: order.trackingNumber || '',
+        carrier: order.carrier || '',
+        estimatedDelivery: order.estimatedDelivery ? order.estimatedDelivery.slice(0, 10) : '',
+      }
+    )
+  }
+
+  const updateTrackingForm = (orderId: string, field: 'trackingNumber' | 'carrier' | 'estimatedDelivery', value: string) => {
+    setTrackingForms(prev => ({
+      ...prev,
+      [orderId]: {
+        ...(prev[orderId] || { trackingNumber: '', carrier: '', estimatedDelivery: '' }),
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleSaveTracking = async (order: Order) => {
+    const orderId = order._id || order.id || ''
+    if (isDemoMode) {
+      toast({
+        title: 'Demo Mode Warning',
+        description: 'Updating tracking info is disabled when database is not connected.',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    const form = getTrackingForm(order)
+    setSavingTrackingId(orderId)
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingNumber: form.trackingNumber || undefined,
+          carrier: form.carrier || undefined,
+          estimatedDelivery: form.estimatedDelivery || undefined,
+        })
+      })
+
+      if (res.ok) {
+        toast({
+          title: 'Tracking Info Updated',
+          description: 'Carrier and tracking number saved for this order.'
+        })
+        fetchOrders()
+      } else {
+        const err = await res.json()
+        toast({
+          title: 'Update Failed',
+          description: err.error || 'Failed to update tracking info.',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive'
+      })
+    } finally {
+      setSavingTrackingId(null)
+    }
+  }
+
   const getStatusBadge = (orderStatus: string) => {
     switch (orderStatus.toLowerCase()) {
       case 'pending':
@@ -177,6 +254,8 @@ export default function AdminOrders() {
         return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">PAID</Badge>
       case 'shipped':
         return <Badge className="bg-blue-100 text-blue-800 border-blue-200">SHIPPED</Badge>
+      case 'in_transit':
+        return <Badge className="bg-purple-100 text-purple-800 border-purple-200">IN TRANSIT</Badge>
       case 'delivered':
         return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">DELIVERED</Badge>
       case 'cancelled':
@@ -215,7 +294,7 @@ export default function AdminOrders() {
     )
   }
 
-  const tabsList = ['all', 'pending', 'paid', 'shipped', 'delivered', 'cancelled']
+  const tabsList = ['all', 'pending', 'paid', 'shipped', 'in_transit', 'delivered', 'cancelled']
 
   return (
     <div className="min-h-screen bg-muted/10 flex flex-col">
@@ -263,6 +342,21 @@ export default function AdminOrders() {
           <Link href="/admin/orders">
             <Button variant="secondary" size="sm">Orders</Button>
           </Link>
+          <Link href="/admin/reviews">
+            <Button variant="ghost" size="sm">Reviews</Button>
+          </Link>
+          <Link href="/admin/discounts">
+            <Button variant="ghost" size="sm">Discounts</Button>
+          </Link>
+          <Link href="/admin/bulk-editor">
+            <Button variant="ghost" size="sm">Bulk Editor</Button>
+          </Link>
+          <Link href="/admin/tags">
+            <Button variant="ghost" size="sm">Tags</Button>
+          </Link>
+          <Link href="/admin/refunds">
+            <Button variant="ghost" size="sm">Refunds</Button>
+          </Link>
         </div>
       </nav>
 
@@ -296,7 +390,7 @@ export default function AdminOrders() {
                   : 'border-transparent hover:bg-muted text-muted-foreground hover:text-foreground'
               }`}
             >
-              {tab}
+              {tab === 'in_transit' ? 'In Transit' : tab}
             </button>
           ))}
         </div>
@@ -359,12 +453,72 @@ export default function AdminOrders() {
                               className="bg-background border-2 rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                               <option value="pending">Pending Payment</option>
-                              <option value="paid">Paid</option>
+                              <option value="paid">Paid (Order Placed)</option>
                               <option value="shipped">Shipped</option>
+                              <option value="in_transit">In Transit</option>
                               <option value="delivered">Delivered</option>
                               <option value="cancelled">Cancelled</option>
                             </select>
                             {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-primary ml-2" />}
+                          </div>
+                        </div>
+
+                        {/* Carrier & Tracking Info */}
+                        <div className="bg-muted/50 p-4 rounded-xl border border-border/50 space-y-3">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                            <Truck className="h-4 w-4" /> Carrier & Tracking Information
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-xs text-muted-foreground">Carrier</label>
+                              <select
+                                value={getTrackingForm(order).carrier}
+                                disabled={isDemoMode}
+                                onChange={(e) => updateTrackingForm(orderId, 'carrier', e.target.value)}
+                                className="w-full bg-background border-2 rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
+                              >
+                                <option value="">Select carrier</option>
+                                <option value="UPS">UPS</option>
+                                <option value="FedEx">FedEx</option>
+                                <option value="USPS">USPS</option>
+                                <option value="DHL">DHL</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs text-muted-foreground">Tracking Number</label>
+                              <input
+                                type="text"
+                                value={getTrackingForm(order).trackingNumber}
+                                disabled={isDemoMode}
+                                onChange={(e) => updateTrackingForm(orderId, 'trackingNumber', e.target.value)}
+                                placeholder="e.g. 1Z999AA10123456784"
+                                className="w-full bg-background border-2 rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs text-muted-foreground">Estimated Delivery</label>
+                              <input
+                                type="date"
+                                value={getTrackingForm(order).estimatedDelivery}
+                                disabled={isDemoMode}
+                                onChange={(e) => updateTrackingForm(orderId, 'estimatedDelivery', e.target.value)}
+                                className="w-full bg-background border-2 rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={isDemoMode || savingTrackingId === orderId}
+                              onClick={() => handleSaveTracking(order)}
+                            >
+                              {savingTrackingId === orderId ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : null}
+                              Save Tracking Info
+                            </Button>
                           </div>
                         </div>
 

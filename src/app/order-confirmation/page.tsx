@@ -44,18 +44,48 @@ function ConfirmationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session } = useSession()
-  const orderId = searchParams.get('id')
+  const orderId = searchParams.get('id') || searchParams.get('orderId')
+  const sessionId = searchParams.get('session_id')
   
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
+  const [verifyingPayment, setVerifyingPayment] = useState(false)
+  const [verificationError, setVerificationError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!orderId) {
       router.push('/')
       return
     }
-    fetchOrderDetails()
-  }, [orderId])
+    if (sessionId) {
+      verifyStripePayment()
+    } else {
+      fetchOrderDetails()
+    }
+  }, [orderId, sessionId])
+
+  const verifyStripePayment = async () => {
+    setVerifyingPayment(true)
+    try {
+      const res = await fetch('/api/payments/stripe/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, orderId }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setOrder(data.order)
+      } else {
+        const err = await res.json()
+        setVerificationError(err.error || 'Failed to verify credit card payment.')
+      }
+    } catch (error) {
+      setVerificationError('An unexpected error occurred during payment verification.')
+    } finally {
+      setVerifyingPayment(false)
+      setLoading(false)
+    }
+  }
 
   const fetchOrderDetails = async () => {
     try {
@@ -87,6 +117,33 @@ function ConfirmationContent() {
     date.setDate(date.getDate() + 5)
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
     return date.toLocaleDateString(undefined, options)
+  }
+
+  if (verifyingPayment) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 bg-card border rounded-2xl">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground font-semibold">Verifying your credit card payment...</p>
+        <p className="text-xs text-muted-foreground mt-2">Please do not close or refresh this page</p>
+      </div>
+    )
+  }
+
+  if (verificationError) {
+    return (
+      <Card className="border-2 text-center py-16">
+        <CardContent className="flex flex-col items-center justify-center">
+          <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Payment Verification Failed</h3>
+          <p className="text-muted-foreground mb-6 max-w-sm">
+            {verificationError}
+          </p>
+          <Link href="/">
+            <Button>Return to catalog</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (loading) {

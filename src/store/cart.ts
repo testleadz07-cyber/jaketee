@@ -14,20 +14,34 @@ export interface CartItem {
   }>
 }
 
+export interface AppliedPromo {
+  code: string
+  discountType: 'percentage' | 'fixed' | 'free_shipping'
+  discountValue: number
+  minOrderValue: number
+  discountAmount: number
+  freeShipping: boolean
+}
+
 interface CartStore {
   items: CartItem[]
+  appliedPromo: AppliedPromo | null
   addItem: (item: Omit<CartItem, 'id' | 'quantity'> & { quantity?: number }) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
+  setAppliedPromo: (promo: AppliedPromo | null) => void
+  clearAppliedPromo: () => void
+  getDiscountedTotalPrice: () => number
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      appliedPromo: null,
 
       addItem: (item) =>
         set((state) => {
@@ -75,7 +89,7 @@ export const useCartStore = create<CartStore>()(
                 ),
         })),
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], appliedPromo: null }),
 
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0)
@@ -86,6 +100,35 @@ export const useCartStore = create<CartStore>()(
           (total, item) => total + item.price * item.quantity,
           0
         )
+      },
+
+      setAppliedPromo: (promo) => set({ appliedPromo: promo }),
+
+      clearAppliedPromo: () => set({ appliedPromo: null }),
+
+      getDiscountedTotalPrice: () => {
+        const subtotal = get().getTotalPrice()
+        const promo = get().appliedPromo
+        if (!promo) return subtotal
+        
+        // Dynamic re-verification of the discount amount locally
+        if (subtotal < promo.minOrderValue) {
+          // If subtotal drops below minimum required, the promo is no longer active
+          return subtotal
+        }
+
+        let amount = 0
+        if (promo.discountType === 'percentage') {
+          amount = (subtotal * promo.discountValue) / 100
+        } else if (promo.discountType === 'fixed') {
+          amount = promo.discountValue
+        }
+
+        if (amount > subtotal) {
+          amount = subtotal
+        }
+
+        return Number((subtotal - amount).toFixed(2))
       },
     }),
     {

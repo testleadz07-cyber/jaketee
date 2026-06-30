@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
+import Discount from '@/models/Discount'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { items, subtotal, shipping, tax, total, shippingAddress, paymentId, status } = body
+    const { items, subtotal, shipping, tax, total, shippingAddress, paymentId, status, promoCode, discountAmount } = body
 
     if (!items || items.length === 0 || !total || !shippingAddress) {
       return NextResponse.json({ error: 'Missing required order fields' }, { status: 400 })
@@ -30,6 +31,36 @@ export async function POST(request: NextRequest) {
 
     const orderNumber = `LX-${Date.now()}`
 
+    // Double check coupon validations if db is connected and code exists
+    let verifiedDiscountAmount = discountAmount || 0
+    if (promoCode) {
+      try {
+        const discount = await Discount.findOne({ code: promoCode.toUpperCase().trim() })
+        if (discount && discount.isActive) {
+          const now = new Date()
+          const startValid = !discount.startDate || now >= new Date(discount.startDate)
+          const endValid = !discount.endDate || now <= new Date(discount.endDate)
+          const usageValid = discount.usageLimit === null || discount.usageLimit === undefined || discount.usageCount < discount.usageLimit
+          const minOrderValid = subtotal >= discount.minOrderValue
+
+          if (startValid && endValid && usageValid && minOrderValid) {
+            let calculated = 0
+            if (discount.discountType === 'percentage') {
+              calculated = (subtotal * discount.discountValue) / 100
+            } else if (discount.discountType === 'fixed') {
+              calculated = discount.discountValue
+            }
+            if (calculated > subtotal) {
+              calculated = subtotal
+            }
+            verifiedDiscountAmount = Number(calculated.toFixed(2))
+          }
+        }
+      } catch (err) {
+        console.error('Failed to verify coupon in order creation API:', err)
+      }
+    }
+
     const order = await Order.create({
       orderNumber,
       userId,
@@ -39,11 +70,26 @@ export async function POST(request: NextRequest) {
       subtotal,
       shipping: shipping || 0,
       tax: tax || 0,
+      promoCode: promoCode ? promoCode.toUpperCase().trim() : undefined,
+      discountAmount: verifiedDiscountAmount,
       total,
       status: status || 'pending',
       paymentId,
       shippingAddress,
+      statusHistory: [{ status: status || 'pending', timestamp: new Date() }],
     })
+
+    // If order is completed/paid, increment the coupon usage count
+    if (order.status === 'paid' && order.promoCode) {
+      try {
+        await Discount.findOneAndUpdate(
+          { code: order.promoCode },
+          { $inc: { usageCount: 1 } }
+        )
+      } catch (err) {
+        console.error('Failed to increment coupon usageCount on order creation:', err)
+      }
+    }
 
     // Send confirmation email asynchronously
     try {

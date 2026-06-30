@@ -9,7 +9,8 @@ cloudinary.config({
 
 export async function uploadImage(
   file: File | Buffer,
-  folder: string = 'luxestore'
+  folder: string = 'luxestore',
+  resourceType: 'image' | 'video' | 'auto' = 'image'
 ): Promise<{ url: string; publicId: string } | null> {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY
@@ -29,7 +30,7 @@ export async function uploadImage(
 
   return new Promise((resolve) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder },
+      { folder, resource_type: resourceType },
       (error, result) => {
         if (error) {
           console.error('Cloudinary upload error:', error)

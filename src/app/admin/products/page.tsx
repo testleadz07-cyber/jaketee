@@ -42,6 +42,8 @@ interface Product {
   price: number
   inStock: boolean
   isFeatured: boolean
+  stockCount?: number
+  tags?: string[]
   category?: {
     name: string
     slug: string
@@ -282,6 +284,21 @@ export default function AdminProducts() {
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm">Orders</Button>
           </Link>
+          <Link href="/admin/reviews">
+            <Button variant="ghost" size="sm">Reviews</Button>
+          </Link>
+          <Link href="/admin/discounts">
+            <Button variant="ghost" size="sm">Discounts</Button>
+          </Link>
+          <Link href="/admin/bulk-editor">
+            <Button variant="ghost" size="sm">Bulk Editor</Button>
+          </Link>
+          <Link href="/admin/tags">
+            <Button variant="ghost" size="sm">Tags</Button>
+          </Link>
+          <Link href="/admin/refunds">
+            <Button variant="ghost" size="sm">Refunds</Button>
+          </Link>
         </div>
       </nav>
 
@@ -376,14 +393,21 @@ export default function AdminProducts() {
                             <span>•</span>
                             <span>{product.category?.name || 'Uncategorized'}</span>
                           </div>
-                          <div className="flex gap-1.5 mt-2">
+                          <div className="flex gap-1.5 mt-2 flex-wrap">
                             {product.isFeatured && (
                               <Badge variant="outline" className="bg-primary/10 border-primary/20 text-[10px] text-primary">Featured</Badge>
                             )}
                             <Badge variant={product.inStock ? 'default' : 'destructive'} className="text-[10px]">
                               {product.inStock ? 'In Stock' : 'Out of Stock'}
                             </Badge>
+                            {product.stockCount !== undefined && product.stockCount <= 5 && (
+                              <Badge className="text-[10px] bg-red-600 hover:bg-red-600 text-white border-red-700 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                Low Stock ({product.stockCount})
+                              </Badge>
+                            )}
                           </div>
+
                         </div>
                       </div>
 

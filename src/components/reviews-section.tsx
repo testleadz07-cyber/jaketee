@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Star, Loader2, MessageSquare, ShieldAlert } from 'lucide-react'
+import { Star, Loader2, MessageSquare, ShieldAlert, Upload, X, ImageIcon, VideoIcon } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface Review {
@@ -18,6 +18,8 @@ interface Review {
   title?: string
   comment: string
   createdAt: string
+  images?: string[]
+  videos?: string[]
 }
 
 interface ReviewsSectionProps {
@@ -30,8 +32,12 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
   const { toast } = useToast()
 
   const [reviews, setReviews] = useState<Review[]>([])
+  const [allReviews, setAllReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+
+  // Star-rating filter (0 = show all)
+  const [ratingFilter, setRatingFilter] = useState(0)
 
   // Form states
   const [rating, setRating] = useState(5)
@@ -39,23 +45,127 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
   const [title, setTitle] = useState('')
   const [comment, setComment] = useState('')
 
+  // Media upload states
+  const [reviewImages, setReviewImages] = useState<string[]>([])
+  const [reviewVideos, setReviewVideos] = useState<string[]>([])
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
+  const mediaInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     fetchReviews()
-  }, [productId])
+  }, [productId, ratingFilter])
 
   const fetchReviews = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/reviews?productId=${productId}`)
+      const qs = ratingFilter > 0 ? `&rating=${ratingFilter}` : ''
+      const res = await fetch(`/api/reviews?productId=${productId}${qs}`)
+      let data: Review[] = []
       if (res.ok) {
-        const data = await res.json()
+        data = await res.json()
         setReviews(data)
+      }
+
+      // Keep an unfiltered copy around to compute the overall rating summary,
+      // independent of whichever star filter is currently active.
+      if (ratingFilter === 0) {
+        setAllReviews(data)
+      } else {
+        const allRes = await fetch(`/api/reviews?productId=${productId}`)
+        if (allRes.ok) {
+          setAllReviews(await allRes.json())
+        }
       }
     } catch (error) {
       console.error('Error fetching reviews:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleMediaFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploadingMedia(true)
+    let succeeded = 0
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const isImage = file.type.startsWith('image/')
+      const isVideo = file.type.startsWith('video/')
+
+      if (!isImage && !isVideo) {
+        toast({
+          title: 'Invalid file type',
+          description: `File "${file.name}" must be an image or video.`,
+          variant: 'destructive',
+        })
+        continue
+      }
+
+      const maxSize = isVideo ? 25 * 1024 * 1024 : 5 * 1024 * 1024
+      if (file.size > maxSize) {
+        toast({
+          title: 'File too large',
+          description: `"${file.name}" exceeds the ${isVideo ? '25MB' : '5MB'} size limit.`,
+          variant: 'destructive',
+        })
+        continue
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', isVideo ? 'video' : 'image')
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        const data = await res.json()
+
+        if (res.ok) {
+          if (isVideo) {
+            setReviewVideos((prev) => [...prev, data.url])
+          } else {
+            setReviewImages((prev) => [...prev, data.url])
+          }
+          succeeded++
+        } else {
+          toast({
+            title: 'Upload failed',
+            description: data.error || `Failed to upload "${file.name}".`,
+            variant: 'destructive',
+          })
+        }
+      } catch (error) {
+        toast({
+          title: 'Upload failed',
+          description: `An error occurred uploading "${file.name}".`,
+          variant: 'destructive',
+        })
+      }
+    }
+
+    setIsUploadingMedia(false)
+    if (succeeded > 0) {
+      toast({
+        title: 'Media uploaded',
+        description: `Added ${succeeded} file(s) to your review.`,
+      })
+    }
+    if (mediaInputRef.current) {
+      mediaInputRef.current.value = ''
+    }
+  }
+
+  const removeReviewImage = (index: number) => {
+    setReviewImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const removeReviewVideo = (index: number) => {
+    setReviewVideos((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,17 +189,21 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
           rating,
           title,
           comment,
+          images: reviewImages,
+          videos: reviewVideos,
         }),
       })
 
       if (res.ok) {
         toast({
           title: 'Review submitted',
-          description: 'Thank you for your feedback!',
+          description: 'Thank you for your feedback! It will appear once approved by our team.',
         })
         setTitle('')
         setComment('')
         setRating(5)
+        setReviewImages([])
+        setReviewVideos([])
         fetchReviews()
         if (onReviewSubmitted) {
           onReviewSubmitted()
@@ -113,9 +227,14 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
     }
   }
 
-  const averageRating = reviews.length
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+  const averageRating = allReviews.length
+    ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
     : 0
+
+  const ratingCounts = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: allReviews.filter((r) => r.rating === star).length,
+  }))
 
   return (
     <div className="space-y-8 mt-12 border-t pt-12">
@@ -127,7 +246,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
           </p>
         </div>
 
-        {reviews.length > 0 && (
+        {allReviews.length > 0 && (
           <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-xl border border-muted-foreground/10">
             <div className="text-center">
               <p className="text-3xl font-extrabold text-primary">{averageRating.toFixed(1)}</p>
@@ -146,11 +265,40 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                   />
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">{reviews.length} reviews</p>
+              <p className="text-xs text-muted-foreground">{allReviews.length} reviews</p>
             </div>
           </div>
         )}
       </div>
+
+      {allReviews.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground mr-1">Filter by rating:</span>
+          <Button
+            type="button"
+            variant={ratingFilter === 0 ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setRatingFilter(0)}
+          >
+            All ({allReviews.length})
+          </Button>
+          {ratingCounts.map(({ star, count }) => (
+            <Button
+              key={star}
+              type="button"
+              variant={ratingFilter === star ? 'default' : 'outline'}
+              size="sm"
+              disabled={count === 0}
+              onClick={() => setRatingFilter(star)}
+              className="gap-1"
+            >
+              {star}
+              <Star className="h-3.5 w-3.5 fill-current" />
+              <span className="text-xs opacity-70">({count})</span>
+            </Button>
+          ))}
+        </div>
+      )}
 
       <Separator />
 
@@ -164,9 +312,13 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
         ) : reviews.length === 0 ? (
           <div className="text-center py-12 bg-muted/10 rounded-xl border-2 border-dashed">
             <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg">No reviews yet</h3>
+            <h3 className="font-semibold text-lg">
+              {ratingFilter > 0 ? `No ${ratingFilter}-star reviews yet` : 'No reviews yet'}
+            </h3>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1">
-              Be the first to review this product and share your experience with other customers.
+              {ratingFilter > 0
+                ? 'Try a different star rating filter or view all reviews.'
+                : 'Be the first to review this product and share your experience with other customers.'}
             </p>
           </div>
         ) : (
@@ -202,6 +354,36 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                   {review.title && <p className="font-bold text-sm">{review.title}</p>}
                   <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
                 </div>
+
+                {((review.images && review.images.length > 0) || (review.videos && review.videos.length > 0)) && (
+                  <div className="flex flex-wrap gap-2">
+                    {review.images?.map((url, idx) => (
+                      <a
+                        key={`img-${idx}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted border block"
+                      >
+                        <img src={url} alt={`Review photo ${idx + 1}`} className="object-cover w-full h-full" />
+                      </a>
+                    ))}
+                    {review.videos?.map((url, idx) => (
+                      <a
+                        key={`vid-${idx}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted border flex items-center justify-center"
+                      >
+                        <video src={url} className="object-cover w-full h-full" muted />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <VideoIcon className="h-5 w-5 text-white" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
 
                 {index < reviews.length - 1 && <Separator className="pt-4" />}
               </div>
@@ -264,6 +446,67 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                 onChange={(e) => setComment(e.target.value)}
                 required
                 disabled={submitting}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Add Photos / Videos (Optional)</Label>
+              <div className="flex flex-wrap gap-3">
+                {reviewImages.map((url, idx) => (
+                  <div key={`img-${idx}`} className="relative h-16 w-16 rounded-lg overflow-hidden border bg-muted group">
+                    <img src={url} alt={`Upload ${idx + 1}`} className="object-cover w-full h-full" />
+                    <button
+                      type="button"
+                      onClick={() => removeReviewImage(idx)}
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >
+                      <X className="h-4 w-4 text-white" />
+                    </button>
+                  </div>
+                ))}
+                {reviewVideos.map((url, idx) => (
+                  <div key={`vid-${idx}`} className="relative h-16 w-16 rounded-lg overflow-hidden border bg-muted group">
+                    <video src={url} className="object-cover w-full h-full" muted />
+                    <div className="absolute top-0.5 left-0.5 bg-black/60 rounded-full p-0.5">
+                      <VideoIcon className="h-3 w-3 text-white" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeReviewVideo(idx)}
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >
+                      <X className="h-4 w-4 text-white" />
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => mediaInputRef.current?.click()}
+                  disabled={isUploadingMedia || submitting}
+                  className="h-16 w-16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/5 transition-all disabled:opacity-50"
+                >
+                  {isUploadingMedia ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Add</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <ImageIcon className="h-3 w-3" /> Images up to 5MB &middot; <VideoIcon className="h-3 w-3" /> Videos up to 25MB
+              </p>
+              <input
+                type="file"
+                ref={mediaInputRef}
+                onChange={handleMediaFileChange}
+                accept="image/*,video/*"
+                multiple
+                className="hidden"
+                disabled={isUploadingMedia || submitting}
               />
             </div>
 
