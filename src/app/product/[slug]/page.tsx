@@ -10,10 +10,13 @@ import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/header'
 import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
+import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import { ReviewsSection } from '@/components/reviews-section'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
+import { SizeGuide } from '@/components/size-guide'
 import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
+import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
 import {
   ShoppingBag,
@@ -78,10 +81,26 @@ export default function ProductDetail() {
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const addItem = useCartStore((state) => state.addItem)
+  const addRecentlyViewed = useRecentlyViewedStore((state) => state.addItem)
 
   useEffect(() => {
     fetchProduct()
   }, [slug])
+
+  useEffect(() => {
+    if (!product) return
+    addRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      images: product.images,
+      category: product.category,
+      isFeatured: product.isFeatured,
+    })
+  }, [product?.id])
 
   const fetchProduct = async () => {
     setLoading(true)
@@ -351,9 +370,17 @@ export default function ProductDetail() {
                   {Object.entries(groupedVariants).map(
                     ([variantName, variants]) => (
                       <div key={variantName}>
-                        <label className="text-sm font-medium mb-2 block">
-                          {variantName}
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium block">
+                            {variantName}
+                          </label>
+                          {variantName.toLowerCase() === 'size' && (
+                            <SizeGuide
+                              categorySlug={product.category?.slug}
+                              sizeValues={variants.map((v) => v.value)}
+                            />
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-2">
                           {variants.map((variant) => {
                             const isSelected =
@@ -506,6 +533,7 @@ export default function ProductDetail() {
           <div className="mt-12 space-y-12 border-t pt-12">
             <FrequentlyBoughtTogether currentProduct={product} />
             <YouMayAlsoLike currentProduct={product} />
+            <RecentlyViewed excludeProductId={product.id} />
           </div>
 
           <ReviewsSection productId={product.id} onReviewSubmitted={fetchProduct} />

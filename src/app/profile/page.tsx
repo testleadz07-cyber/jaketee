@@ -9,11 +9,21 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
-import { User, ShoppingBag, Heart, Loader2, ChevronDown, ChevronUp, Package, ShieldCheck, Mail, Phone, Calendar, MapPin, DollarSign, Trash2, ShoppingCart } from 'lucide-react'
+import { User, ShoppingBag, Heart, Loader2, ChevronDown, ChevronUp, Package, ShieldCheck, Mail, Phone, Calendar, MapPin, DollarSign, Trash2, ShoppingCart, Download, Plus, Pencil, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useWishlistStore } from '@/store/wishlist'
 import { useCartStore } from '@/store/cart'
@@ -50,6 +60,30 @@ interface Order {
   }
 }
 
+interface Address {
+  label: string
+  name: string
+  street: string
+  city: string
+  state: string
+  zip: string
+  country: string
+  phone?: string
+  isDefault: boolean
+}
+
+const emptyAddressForm: Address = {
+  label: 'Home',
+  name: '',
+  street: '',
+  city: '',
+  state: '',
+  zip: '',
+  country: 'United States',
+  phone: '',
+  isDefault: false,
+}
+
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -64,6 +98,13 @@ export default function ProfilePage() {
 
   const [orders, setOrders] = useState<Order[]>([])
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
+
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false)
+  const [editingAddressIndex, setEditingAddressIndex] = useState<number | null>(null)
+  const [addressForm, setAddressForm] = useState<Address>(emptyAddressForm)
+  const [isSavingAddress, setIsSavingAddress] = useState(false)
 
   const [isProfileLoading, setIsProfileLoading] = useState(false)
   const [isPasswordLoading, setIsPasswordLoading] = useState(false)
@@ -85,7 +126,7 @@ export default function ProfilePage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       const tabParam = params.get('tab')
-      if (tabParam === 'wishlist' || tabParam === 'orders' || tabParam === 'profile') {
+      if (tabParam === 'wishlist' || tabParam === 'orders' || tabParam === 'profile' || tabParam === 'addresses') {
         setActiveTab(tabParam)
       }
     }
@@ -108,9 +149,107 @@ export default function ProfilePage() {
         const data = await res.json()
         setName(data.name || '')
         setPhone(data.phone || '')
+        setAddresses(Array.isArray(data.addresses) ? data.addresses : [])
       }
     } catch (error) {
       console.error('Error fetching profile:', error)
+    }
+  }
+
+  const persistAddresses = async (nextAddresses: Address[]) => {
+    setIsSavingAddress(true)
+    try {
+      const res = await fetch('/api/users/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addresses: nextAddresses }),
+      })
+      if (res.ok) {
+        setAddresses(nextAddresses)
+        return true
+      } else {
+        const data = await res.json()
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to save address',
+          variant: 'destructive',
+        })
+        return false
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An error occurred. Please try again.',
+        variant: 'destructive',
+      })
+      return false
+    } finally {
+      setIsSavingAddress(false)
+    }
+  }
+
+  const openAddAddressDialog = () => {
+    setEditingAddressIndex(null)
+    setAddressForm({ ...emptyAddressForm, name: name || '', isDefault: addresses.length === 0 })
+    setIsAddressDialogOpen(true)
+  }
+
+  const openEditAddressDialog = (index: number) => {
+    setEditingAddressIndex(index)
+    setAddressForm({ ...addresses[index] })
+    setIsAddressDialogOpen(true)
+  }
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!addressForm.name || !addressForm.street || !addressForm.city || !addressForm.state || !addressForm.zip) {
+      toast({
+        title: 'Missing Fields',
+        description: 'Please fill in name, street, city, state, and ZIP code.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    let nextAddresses: Address[]
+    if (editingAddressIndex !== null) {
+      nextAddresses = addresses.map((addr, idx) => (idx === editingAddressIndex ? addressForm : addr))
+    } else {
+      nextAddresses = [...addresses, addressForm]
+    }
+
+    // Only one default address at a time
+    if (addressForm.isDefault) {
+      nextAddresses = nextAddresses.map((addr, idx) => ({
+        ...addr,
+        isDefault: editingAddressIndex !== null ? idx === editingAddressIndex : idx === nextAddresses.length - 1,
+      }))
+    }
+
+    const success = await persistAddresses(nextAddresses)
+    if (success) {
+      toast({
+        title: 'Success',
+        description: editingAddressIndex !== null ? 'Address updated' : 'Address saved',
+      })
+      setIsAddressDialogOpen(false)
+    }
+  }
+
+  const handleDeleteAddress = async (index: number) => {
+    const nextAddresses = addresses.filter((_, idx) => idx !== index)
+    const success = await persistAddresses(nextAddresses)
+    if (success) {
+      toast({ title: 'Address removed' })
+    }
+  }
+
+  const handleSetDefaultAddress = async (index: number) => {
+    const nextAddresses = addresses.map((addr, idx) => ({ ...addr, isDefault: idx === index }))
+    const success = await persistAddresses(nextAddresses)
+    if (success) {
+      toast({ title: 'Default address updated' })
     }
   }
 
@@ -222,6 +361,34 @@ export default function ProfilePage() {
     }))
   }
 
+  const handleDownloadInvoice = async (order: Order, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    if (downloadingInvoiceId) return
+    setDownloadingInvoiceId(order._id)
+    try {
+      const res = await fetch(`/api/orders/${order._id}/invoice`)
+      if (!res.ok) throw new Error('Failed to generate invoice')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice-${order.orderNumber}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Invoice download error:', err)
+      toast({
+        title: 'Download failed',
+        description: 'Could not generate the invoice. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setDownloadingInvoiceId(null)
+    }
+  }
+
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'pending':
@@ -283,8 +450,9 @@ export default function ProfilePage() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-3 max-w-md w-full border-b">
+            <TabsList className="grid grid-cols-4 max-w-lg w-full border-b">
               <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="addresses">Addresses</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
               <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
             </TabsList>
@@ -370,9 +538,8 @@ export default function ProfilePage() {
                     <form onSubmit={handleChangePassword} className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="current-password">Current Password</Label>
-                        <Input
+                        <PasswordInput
                           id="current-password"
-                          type="password"
                           placeholder="••••••••"
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
@@ -383,9 +550,8 @@ export default function ProfilePage() {
 
                       <div className="space-y-2">
                         <Label htmlFor="new-password">New Password</Label>
-                        <Input
+                        <PasswordInput
                           id="new-password"
-                          type="password"
                           placeholder="••••••••"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
@@ -396,9 +562,8 @@ export default function ProfilePage() {
 
                       <div className="space-y-2">
                         <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                        <Input
+                        <PasswordInput
                           id="confirm-new-password"
-                          type="password"
                           placeholder="••••••••"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -421,6 +586,91 @@ export default function ProfilePage() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            {/* Addresses Tab */}
+            <TabsContent value="addresses" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Saved Addresses</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Save addresses here to reuse them at checkout without retyping.
+                  </p>
+                </div>
+                <Button onClick={openAddAddressDialog} size="sm" className="gap-1.5">
+                  <Plus className="h-4 w-4" />
+                  Add Address
+                </Button>
+              </div>
+
+              {addresses.length === 0 ? (
+                <Card className="border-2 text-center py-16">
+                  <CardContent className="flex flex-col items-center justify-center">
+                    <MapPin className="h-16 w-16 text-muted-foreground opacity-60 mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No saved addresses</h3>
+                    <p className="text-muted-foreground mb-6 max-w-sm">
+                      Add a shipping address to reuse it next time you check out.
+                    </p>
+                    <Button onClick={openAddAddressDialog}>Add Your First Address</Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {addresses.map((address, index) => (
+                    <Card key={index} className={`border-2 ${address.isDefault ? 'border-primary' : ''}`}>
+                      <CardContent className="p-5 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+                              {address.label || 'Address'}
+                            </Badge>
+                            {address.isDefault && (
+                              <Badge className="text-[10px] gap-1 bg-primary/10 text-primary border-primary/20">
+                                <Star className="h-3 w-3 fill-primary" />
+                                Default
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditAddressDialog(index)}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => handleDeleteAddress(index)}
+                              disabled={isSavingAddress}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="text-sm space-y-0.5">
+                          <p className="font-semibold">{address.name}</p>
+                          <p className="text-muted-foreground">{address.street}</p>
+                          <p className="text-muted-foreground">
+                            {address.city}, {address.state} {address.zip}
+                          </p>
+                          <p className="text-muted-foreground">{address.country}</p>
+                          {address.phone && <p className="text-muted-foreground">{address.phone}</p>}
+                        </div>
+                        {!address.isDefault && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs"
+                            onClick={() => handleSetDefaultAddress(index)}
+                            disabled={isSavingAddress}
+                          >
+                            Set as Default
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             {/* Orders Tab */}
@@ -472,6 +722,20 @@ export default function ProfilePage() {
                               <p className="text-xs text-muted-foreground">Total Amount</p>
                               <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
                             </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5"
+                              onClick={(e) => handleDownloadInvoice(order, e)}
+                              disabled={downloadingInvoiceId === order._id}
+                            >
+                              {downloadingInvoiceId === order._id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Download className="h-3.5 w-3.5" />
+                              )}
+                              <span className="hidden sm:inline">Invoice</span>
+                            </Button>
                             <Link href={`/profile/orders/${order._id}`} onClick={(e) => e.stopPropagation()}>
                               <Button variant="outline" size="sm" className="gap-1.5">
                                 <Package className="h-3.5 w-3.5" />
@@ -570,6 +834,20 @@ export default function ProfilePage() {
                                         <span>Total</span>
                                         <span>${order.total.toFixed(2)}</span>
                                       </div>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full gap-1.5 mt-2"
+                                        onClick={(e) => handleDownloadInvoice(order, e)}
+                                        disabled={downloadingInvoiceId === order._id}
+                                      >
+                                        {downloadingInvoiceId === order._id ? (
+                                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                          <Download className="h-3.5 w-3.5" />
+                                        )}
+                                        Download Invoice / Receipt
+                                      </Button>
                                     </div>
                                   </div>
                                 </div>
@@ -657,6 +935,127 @@ export default function ProfilePage() {
           </Tabs>
         </motion.div>
       </main>
+
+      {/* Add / Edit Address Dialog */}
+      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingAddressIndex !== null ? 'Edit Address' : 'Add New Address'}</DialogTitle>
+            <DialogDescription>
+              This address will be saved to your profile so you can reuse it at checkout.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveAddress} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="address-label">Label</Label>
+                <Input
+                  id="address-label"
+                  placeholder="Home, Work, etc."
+                  value={addressForm.label}
+                  onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address-name">Recipient Name</Label>
+                <Input
+                  id="address-name"
+                  value={addressForm.name}
+                  onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address-street">Street Address</Label>
+              <Input
+                id="address-street"
+                value={addressForm.street}
+                onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="address-city">City</Label>
+                <Input
+                  id="address-city"
+                  value={addressForm.city}
+                  onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address-state">State</Label>
+                <Input
+                  id="address-state"
+                  value={addressForm.state}
+                  onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address-zip">ZIP Code</Label>
+                <Input
+                  id="address-zip"
+                  value={addressForm.zip}
+                  onChange={(e) => setAddressForm({ ...addressForm, zip: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="address-country">Country</Label>
+                <Input
+                  id="address-country"
+                  value={addressForm.country}
+                  onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address-phone">Phone Number</Label>
+                <Input
+                  id="address-phone"
+                  value={addressForm.phone}
+                  onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="address-default"
+                checked={addressForm.isDefault}
+                onCheckedChange={(checked) => setAddressForm({ ...addressForm, isDefault: checked === true })}
+              />
+              <Label htmlFor="address-default" className="text-sm font-normal cursor-pointer">
+                Set as default address
+              </Label>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAddressDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSavingAddress}>
+                {isSavingAddress ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Address'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <footer className="border-t bg-background mt-auto">
         <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">

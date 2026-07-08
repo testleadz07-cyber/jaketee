@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
 import { NewsletterPopup } from "@/components/newsletter-popup";
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
+import { SupportChatWidget } from "@/components/support-chat-widget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +39,31 @@ export const metadata: Metadata = {
   },
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://luxestore.com";
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "LUXE STORE",
+  url: SITE_URL,
+  logo: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "LUXE STORE",
+  url: SITE_URL,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/?search={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,9 +75,19 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
         suppressHydrationWarning
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <Providers>
           {children}
           <NewsletterPopup />
+          <CookieConsentBanner />
+          <SupportChatWidget />
           <Toaster />
         </Providers>
       </body>

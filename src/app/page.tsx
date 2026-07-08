@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/header'
 import { ProductCard } from '@/components/product-card'
+import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
 import { Search, Sparkles, ShoppingBag, Filter } from 'lucide-react'
 import Link from 'next/link'
@@ -266,6 +267,10 @@ export default function Home() {
           </motion.div>
         )}
       </main>
+
+      <div className="container mx-auto px-4 pb-12">
+        <RecentlyViewed limit={8} />
+      </div>
 
       <Footer />
     </div>

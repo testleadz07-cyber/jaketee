@@ -11,10 +11,23 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useCartStore } from '@/store/cart'
 import { useToast } from '@/hooks/use-toast'
-import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, CheckCircle2, X, Tag } from 'lucide-react'
+import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, CheckCircle2, X, Tag, MapPin, Plus, Check } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+
+interface SavedAddress {
+  label: string
+  name: string
+  street: string
+  city: string
+  state: string
+  zip: string
+  country: string
+  phone?: string
+  isDefault: boolean
+}
 
 declare global {
   interface Window {
@@ -47,11 +60,20 @@ export default function CheckoutPage() {
   const [shippingZip, setShippingZip] = useState('')
   const [shippingCountry, setShippingCountry] = useState('United States')
 
+  // Saved address book (logged-in users only)
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState<number | 'new' | null>(null)
+  const [saveNewAddress, setSaveNewAddress] = useState(false)
+  const [isSavingAddress, setIsSavingAddress] = useState(false)
+
   // Payment states
   const [paypalClientId, setPaypalClientId] = useState('')
   const [isPaypalLoading, setIsPaypalLoading] = useState(true)
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const paypalButtonRendered = useRef(false)
+  // Mongo _id of the pending Order created alongside the PayPal order, so
+  // the capture step and confirmation redirect can reference the same record.
+  const paypalDbOrderIdRef = useRef<string | null>(null)
   const [activeGateway, setActiveGateway] = useState('both')
   const [stripePublishableKey, setStripePublishableKey] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe'>('paypal')
@@ -131,21 +153,78 @@ export default function CheckoutPage() {
       if (res.ok) {
         const user = await res.json()
         if (user.phone) setShippingPhone(user.phone)
-        
+
         // Find default or first address
         if (user.addresses && user.addresses.length > 0) {
-          const defaultAddress = user.addresses.find((a: any) => a.isDefault) || user.addresses[0]
-          setShippingName(defaultAddress.name || user.name)
-          setShippingStreet(defaultAddress.street || '')
-          setShippingCity(defaultAddress.city || '')
-          setShippingState(defaultAddress.state || '')
-          setShippingZip(defaultAddress.zip || '')
-          setShippingCountry(defaultAddress.country || 'United States')
-          if (defaultAddress.phone) setShippingPhone(defaultAddress.phone)
+          setSavedAddresses(user.addresses)
+          const defaultIndex = user.addresses.findIndex((a: any) => a.isDefault)
+          const indexToUse = defaultIndex >= 0 ? defaultIndex : 0
+          applyAddress(user.addresses[indexToUse], user.name)
+          setSelectedAddressIndex(indexToUse)
+        } else {
+          setSelectedAddressIndex('new')
         }
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
+    }
+  }
+
+  // Fill the shipping form fields from a saved address
+  const applyAddress = (address: SavedAddress, fallbackName?: string) => {
+    setShippingName(address.name || fallbackName || '')
+    setShippingStreet(address.street || '')
+    setShippingCity(address.city || '')
+    setShippingState(address.state || '')
+    setShippingZip(address.zip || '')
+    setShippingCountry(address.country || 'United States')
+    if (address.phone) setShippingPhone(address.phone)
+  }
+
+  const handleSelectAddress = (index: number | 'new') => {
+    setSelectedAddressIndex(index)
+    if (index === 'new') {
+      setShippingName(session?.user?.name || '')
+      setShippingStreet('')
+      setShippingCity('')
+      setShippingState('')
+      setShippingZip('')
+      setShippingCountry('United States')
+      setSaveNewAddress(false)
+    } else {
+      applyAddress(savedAddresses[index])
+    }
+  }
+
+  // Persist a newly entered address to the user's profile address book
+  const saveAddressToProfile = async (address: {
+    name: string
+    street: string
+    city: string
+    state: string
+    zip: string
+    country: string
+    phone: string
+  }) => {
+    if (!session?.user) return
+    setIsSavingAddress(true)
+    try {
+      const newAddress: SavedAddress = {
+        label: 'Home',
+        ...address,
+        isDefault: savedAddresses.length === 0,
+      }
+      const nextAddresses = [...savedAddresses, newAddress]
+      await fetch('/api/users/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addresses: nextAddresses }),
+      })
+      setSavedAddresses(nextAddresses)
+    } catch (error) {
+      console.error('Error saving address to profile:', error)
+    } finally {
+      setIsSavingAddress(false)
     }
   }
 
@@ -203,15 +282,38 @@ export default function CheckoutPage() {
         },
         createOrder: async () => {
           try {
+            // Create the pending order in our DB up front (not just the
+            // PayPal order) so payment confirmation doesn't rely solely on
+            // this browser tab completing the flow - see /api/webhooks/paypal.
             const res = await fetch('/api/payments/create-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
+              body: JSON.stringify({
                 amount: getDiscountedTotalPrice(),
-                promoCode: appliedPromo?.code
+                subtotal: getTotalPrice(),
+                discountAmount: appliedPromo ? Number((getTotalPrice() - getDiscountedTotalPrice()).toFixed(2)) : 0,
+                promoCode: appliedPromo?.code,
+                items: items.map(item => ({
+                  productId: item.productId,
+                  name: item.name,
+                  image: item.image,
+                  price: item.price,
+                  quantity: item.quantity,
+                  variants: item.variants
+                })),
+                shippingAddress: {
+                  name: shippingName,
+                  street: shippingStreet,
+                  city: shippingCity,
+                  state: shippingState,
+                  zip: shippingZip,
+                  country: shippingCountry,
+                  phone: shippingPhone
+                },
               }),
             })
             const data = await res.json()
+            paypalDbOrderIdRef.current = data.orderId || null
             return data.id
           } catch (error) {
             console.error('Error creating PayPal order:', error)
@@ -223,13 +325,23 @@ export default function CheckoutPage() {
             const res = await fetch('/api/payments/capture', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ orderId: data.orderID }),
+              body: JSON.stringify({ orderId: data.orderID, dbOrderId: paypalDbOrderIdRef.current }),
             })
-            
+
             const captureData = await res.json()
-            
+
             if (captureData.status === 'COMPLETED') {
-              handleOrderSubmit(captureData.id)
+              if (paypalDbOrderIdRef.current) {
+                // The order was already created (and marked paid) by
+                // /api/payments/create-order + /api/payments/capture above,
+                // so just clear the cart and go to the confirmation page.
+                clearCart()
+                router.push(`/order-confirmation?id=${paypalDbOrderIdRef.current}`)
+                setIsSubmittingOrder(false)
+              } else {
+                // Fallback: no DB order was created up front for some reason.
+                handleOrderSubmit(captureData.id)
+              }
             } else {
               toast({
                 title: 'Payment Failed',
@@ -386,7 +498,7 @@ export default function CheckoutPage() {
     }
   }
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     // Sync values from refs if browser autofill didn't trigger state changes
     const nameVal = shippingName || nameRef.current?.value || ''
     const streetVal = shippingStreet || streetRef.current?.value || ''
@@ -422,6 +534,18 @@ export default function CheckoutPage() {
       setShippingPhone(phoneVal)
       setShippingCountry(countryVal)
 
+      if (session?.user && selectedAddressIndex === 'new' && saveNewAddress) {
+        await saveAddressToProfile({
+          name: nameVal,
+          street: streetVal,
+          city: cityVal,
+          state: stateVal,
+          zip: zipVal,
+          country: countryVal,
+          phone: phoneVal,
+        })
+      }
+
       setStep(2)
     } else if (step === 2) {
       setStep(3)
@@ -433,6 +557,7 @@ export default function CheckoutPage() {
     // Reset paypal rendered state if moving back from payment
     if (step === 3) {
       paypalButtonRendered.current = false
+      paypalDbOrderIdRef.current = null
     }
   }
 
@@ -492,6 +617,50 @@ export default function CheckoutPage() {
                       <CardDescription>Enter the delivery address for your order</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      {/* Saved address picker (logged-in users with an address book) */}
+                      {session?.user && savedAddresses.length > 0 && (
+                        <div className="space-y-2 pb-2">
+                          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Choose an address</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {savedAddresses.map((address, index) => (
+                              <button
+                                type="button"
+                                key={index}
+                                onClick={() => handleSelectAddress(index)}
+                                className={`text-left p-3 rounded-lg border-2 transition-colors text-xs relative ${
+                                  selectedAddressIndex === index
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/50'
+                                }`}
+                              >
+                                {selectedAddressIndex === index && (
+                                  <Check className="h-3.5 w-3.5 text-primary absolute top-2 right-2" />
+                                )}
+                                <p className="font-semibold flex items-center gap-1">
+                                  <MapPin className="h-3 w-3 text-primary" />
+                                  {address.label || 'Address'}
+                                  {address.isDefault && <span className="text-[10px] text-muted-foreground">(Default)</span>}
+                                </p>
+                                <p className="mt-1 text-muted-foreground">{address.name}</p>
+                                <p className="text-muted-foreground">{address.street}, {address.city}, {address.state} {address.zip}</p>
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => handleSelectAddress('new')}
+                              className={`text-left p-3 rounded-lg border-2 border-dashed transition-colors text-xs flex items-center gap-2 ${
+                                selectedAddressIndex === 'new'
+                                  ? 'border-primary bg-primary/5 text-primary font-semibold'
+                                  : 'border-border hover:border-primary/50 text-muted-foreground'
+                              }`}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              Use a new address
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="shippingName">Recipient Name</Label>
@@ -576,8 +745,28 @@ export default function CheckoutPage() {
                         />
                       </div>
 
-                      <Button className="w-full mt-4" onClick={handleNextStep}>
-                        Review Order details
+                      {session?.user && selectedAddressIndex === 'new' && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <Checkbox
+                            id="save-new-address"
+                            checked={saveNewAddress}
+                            onCheckedChange={(checked) => setSaveNewAddress(checked === true)}
+                          />
+                          <Label htmlFor="save-new-address" className="text-sm font-normal cursor-pointer">
+                            Save this address to my profile for next time
+                          </Label>
+                        </div>
+                      )}
+
+                      <Button className="w-full mt-4" onClick={handleNextStep} disabled={isSavingAddress}>
+                        {isSavingAddress ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving address...
+                          </>
+                        ) : (
+                          'Review Order details'
+                        )}
                       </Button>
                     </CardContent>
                   </Card>
@@ -633,6 +822,18 @@ export default function CheckoutPage() {
                         <p className="text-muted-foreground">{shippingCity}, {shippingState} {shippingZip}</p>
                         <p className="text-muted-foreground">{shippingCountry}</p>
                       </div>
+
+                      <p className="text-xs text-muted-foreground text-center">
+                        By placing this order, you agree to our{' '}
+                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          Terms of Service
+                        </a>{' '}
+                        and{' '}
+                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          Privacy Policy
+                        </a>
+                        .
+                      </p>
 
                       <div className="flex gap-4">
                         <Button variant="outline" className="flex-1" onClick={handlePrevStep}>

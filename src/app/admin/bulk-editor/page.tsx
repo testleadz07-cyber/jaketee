@@ -195,6 +195,7 @@ export default function BulkEditorPage() {
           <Link href="/admin/bulk-editor"><Button variant="secondary" size="sm">Bulk Editor</Button></Link>
           <Link href="/admin/tags"><Button variant="ghost" size="sm">Tags</Button></Link>
           <Link href="/admin/refunds"><Button variant="ghost" size="sm">Refunds</Button></Link>
+          <Link href="/admin/blog"><Button variant="ghost" size="sm">Blog</Button></Link>
         </div>
       </nav>
 

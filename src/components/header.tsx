@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CartDrawer } from '@/components/cart-drawer'
-import { ShoppingBag, User, LogOut, LayoutDashboard, UserCheck, Heart, Search, Loader2 } from 'lucide-react'
+import { ShoppingBag, User, LogOut, LayoutDashboard, UserCheck, Heart, Search, Loader2, Package } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 interface HeaderProps {
   showBack?: boolean
@@ -225,6 +226,7 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
             >
               <Search className="h-5 w-5" />
             </Button>
+            <ThemeToggle />
             <CartDrawer />
 
             {status === 'authenticated' && session?.user ? (
@@ -258,6 +260,12 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
                       <span>My Wishlist</span>
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/track-order" className="cursor-pointer w-full flex items-center">
+                      <Package className="mr-2 h-4 w-4" />
+                      <span>Track an Order</span>
+                    </Link>
+                  </DropdownMenuItem>
                   {(session.user as any).role === 'admin' && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin/dashboard" className="cursor-pointer w-full flex items-center">
@@ -279,9 +287,16 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
             ) : status === 'loading' ? (
               <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
             ) : (
-              <Link href="/login">
-                <Button size="sm">Sign In</Button>
-              </Link>
+              <>
+                <Link href="/track-order" className="hidden sm:block">
+                  <Button variant="ghost" size="icon" aria-label="Track an order" title="Track an order">
+                    <Package className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button size="sm">Sign In</Button>
+                </Link>
+              </>
             )}
           </div>
         </div>

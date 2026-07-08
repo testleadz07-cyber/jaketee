@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { comparePassword } from '@/lib/auth'
+import { isLoginLocked, recordFailedLogin, resetLoginAttempts } from '@/lib/rate-limit'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,20 +18,37 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Please provide email and password')
         }
 
+        const email = credentials.email
+
+        // Per-account lockout guards against credential stuffing / brute
+        // force from rotating IPs (middleware only rate-limits per IP).
+        const lockStatus = isLoginLocked(email)
+        if (lockStatus.locked) {
+          throw new Error('Too many failed login attempts. Please try again later.')
+        }
+
         const db = await connectDB()
         if (db) {
-          const user = await User.findOne({ email: credentials.email })
-          if (!user) throw new Error('Invalid email or password')
-          const isValid = await comparePassword(credentials.password, user.password)
-          if (!isValid) throw new Error('Invalid email or password')
+          const user = await User.findOne({ email })
+          const isValid = user ? await comparePassword(credentials.password, user.password) : false
+          if (!user || !isValid) {
+            recordFailedLogin(email)
+            throw new Error('Invalid email or password')
+          }
+          if (user.isActive === false) {
+            throw new Error('This account has been disabled. Please contact support.')
+          }
+          resetLoginAttempts(email)
           return { id: String(user._id), email: user.email, name: user.name, role: user.role }
         }
 
         // Fallback: hardcoded admin (no DB)
-        if (credentials.email === 'admin@luxestore.com' && credentials.password === 'admin123') {
+        if (email === 'admin@luxestore.com' && credentials.password === 'admin123') {
+          resetLoginAttempts(email)
           return { id: '1', email: 'admin@luxestore.com', name: 'Admin User', role: 'admin' }
         }
 
+        recordFailedLogin(email)
         throw new Error('Invalid email or password')
       },
     }),

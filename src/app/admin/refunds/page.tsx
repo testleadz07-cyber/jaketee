@@ -174,6 +174,7 @@ export default function AdminRefundsPage() {
           <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
           <Link href="/admin/tags"><Button variant="ghost" size="sm">Tags</Button></Link>
           <Link href="/admin/refunds"><Button variant="secondary" size="sm">Refunds</Button></Link>
+          <Link href="/admin/blog"><Button variant="ghost" size="sm">Blog</Button></Link>
         </div>
       </nav>
 

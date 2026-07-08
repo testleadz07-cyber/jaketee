@@ -29,6 +29,7 @@ This document tracks the features currently missing, simulated, or requiring imp
   - [x] Customer photo/video uploads in product review submissions.
   - [x] Filter reviews by star rating.
 - [x] **Product Search Auto-Complete**: Live search suggestions in the header dropdown as the user types (with thumbnail and price matches).
+- [x] **Recently Viewed Products**: Browsing-history feature (localStorage-backed) to nudge return visits.
 
 ## 📈 5. SEO, Analytics & Tracking
 - [ ] **JSON-LD Schema Markup**: Structured data integration on `product/[slug]` templates to enable search engines to display rich snippets (price, stock status, ratings) directly in search results.

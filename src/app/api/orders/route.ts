@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Discount from '@/models/Discount'
+import AbandonedCart from '@/models/AbandonedCart'
+import Product from '@/models/Product'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
@@ -61,23 +63,71 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const order = await Order.create({
-      orderNumber,
-      userId,
-      userEmail,
-      userName,
-      items,
-      subtotal,
-      shipping: shipping || 0,
-      tax: tax || 0,
-      promoCode: promoCode ? promoCode.toUpperCase().trim() : undefined,
-      discountAmount: verifiedDiscountAmount,
-      total,
-      status: status || 'pending',
-      paymentId,
-      shippingAddress,
-      statusHistory: [{ status: status || 'pending', timestamp: new Date() }],
-    })
+    // Reserve stock atomically per line item before the order is created.
+    // Each decrement is conditioned on stockCount >= quantity so concurrent
+    // requests can't both succeed against the same last unit. If any item
+    // can't be reserved, roll back the decrements already applied and bail.
+    const decrementedItems: { productId: string; quantity: number }[] = []
+    for (const item of items) {
+      const quantity = Number(item.quantity) || 0
+      if (!item.productId || quantity <= 0) {
+        for (const d of decrementedItems) {
+          await Product.findByIdAndUpdate(d.productId, { $inc: { stockCount: d.quantity } })
+        }
+        return NextResponse.json({ error: 'Invalid order item' }, { status: 400 })
+      }
+
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: item.productId, stockCount: { $gte: quantity } },
+        { $inc: { stockCount: -quantity } },
+        { new: true }
+      )
+
+      if (!updatedProduct) {
+        // Not enough stock (or product missing) — roll back everything
+        // reserved so far in this request.
+        for (const d of decrementedItems) {
+          await Product.findByIdAndUpdate(d.productId, { $inc: { stockCount: d.quantity } })
+        }
+        return NextResponse.json(
+          { error: `Insufficient stock for "${item.name || item.productId}"` },
+          { status: 409 }
+        )
+      }
+
+      decrementedItems.push({ productId: item.productId, quantity })
+
+      if (updatedProduct.stockCount <= 0 && updatedProduct.inStock) {
+        await Product.findByIdAndUpdate(item.productId, { inStock: false })
+      }
+    }
+
+    let order
+    try {
+      order = await Order.create({
+        orderNumber,
+        userId,
+        userEmail,
+        userName,
+        items,
+        subtotal,
+        shipping: shipping || 0,
+        tax: tax || 0,
+        promoCode: promoCode ? promoCode.toUpperCase().trim() : undefined,
+        discountAmount: verifiedDiscountAmount,
+        total,
+        status: status || 'pending',
+        paymentId,
+        shippingAddress,
+        statusHistory: [{ status: status || 'pending', timestamp: new Date() }],
+      })
+    } catch (err) {
+      // Order creation failed after stock was reserved — release it back.
+      for (const d of decrementedItems) {
+        await Product.findByIdAndUpdate(d.productId, { $inc: { stockCount: d.quantity } })
+      }
+      throw err
+    }
 
     // If order is completed/paid, increment the coupon usage count
     if (order.status === 'paid' && order.promoCode) {
@@ -89,6 +139,15 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         console.error('Failed to increment coupon usageCount on order creation:', err)
       }
+    }
+
+    // A placed order means the cart converted — remove any abandoned-cart
+    // snapshot so the recovery cron never emails this user about a cart
+    // they already checked out.
+    try {
+      await AbandonedCart.deleteOne({ userId })
+    } catch (err) {
+      console.error('Failed to clear abandoned cart record after order creation:', err)
     }
 
     // Send confirmation email asynchronously

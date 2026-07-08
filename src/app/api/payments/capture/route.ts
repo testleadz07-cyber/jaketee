@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { connectDB } from '@/lib/mongodb'
+import Order from '@/models/Order'
+import Discount from '@/models/Discount'
+import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
 
 async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID
@@ -35,6 +39,67 @@ async function getPayPalAccessToken() {
   }
 }
 
+// NOTE: This endpoint is a client-triggered convenience path so the browser
+// can show a confirmation immediately after the PayPal popup closes. It is
+// NOT the source of truth - the PayPal webhook at /api/webhooks/paypal is,
+// since it fires from PayPal's servers even if the customer closes the tab
+// before this request finishes. Both paths are idempotent and safe to run
+// in either order.
+async function markOrderPaid(dbOrderId: string, paypalCaptureId: string) {
+  const db = await connectDB()
+  if (!db) return
+
+  const order = await Order.findById(dbOrderId)
+  if (!order || order.status === 'paid') return
+
+  order.status = 'paid'
+  order.paymentId = paypalCaptureId
+  order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via PayPal capture response' })
+  await order.save()
+
+  if (order.promoCode) {
+    try {
+      await Discount.findOneAndUpdate({ code: order.promoCode }, { $inc: { usageCount: 1 } })
+    } catch (err) {
+      console.error('Error incrementing discount count on PayPal capture:', err)
+    }
+  }
+
+  try {
+    const emailItems = order.items.map((item: any) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      variant: item.variants && item.variants.length > 0
+        ? item.variants[0]
+        : { name: 'Standard', value: 'Default' },
+    }))
+
+    const emailHtml = orderConfirmationTemplate({
+      orderNumber: order.orderNumber,
+      userName: order.userName,
+      items: emailItems,
+      total: order.total,
+      shippingAddress: {
+        name: order.shippingAddress.name,
+        street: order.shippingAddress.street,
+        city: order.shippingAddress.city,
+        state: order.shippingAddress.state,
+        zip: order.shippingAddress.zip,
+        country: order.shippingAddress.country,
+      },
+    })
+
+    await sendEmail({
+      to: order.userEmail,
+      subject: `LUXE STORE - Order Confirmation #${order.orderNumber}`,
+      html: emailHtml,
+    })
+  } catch (emailError) {
+    console.error('Nodemailer order confirmation failed to send (PayPal capture):', emailError)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -43,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { orderId } = body
+    const { orderId, dbOrderId } = body
 
     if (!orderId) {
       return NextResponse.json({ error: 'OrderId is required' }, { status: 400 })
@@ -51,9 +116,13 @@ export async function POST(request: NextRequest) {
 
     // Check if it's a mock order id
     if (orderId.startsWith('mock-order-')) {
+      const mockCaptureId = `mock-capture-${Date.now()}`
+      if (dbOrderId) {
+        await markOrderPaid(dbOrderId, mockCaptureId)
+      }
       return NextResponse.json({
         status: 'COMPLETED',
-        id: `mock-capture-${Date.now()}`,
+        id: mockCaptureId,
       })
     }
 
@@ -73,6 +142,9 @@ export async function POST(request: NextRequest) {
 
       if (res.ok) {
         const data = await res.json()
+        if (data.status === 'COMPLETED' && dbOrderId) {
+          await markOrderPaid(dbOrderId, data.id)
+        }
         return NextResponse.json({
           status: data.status,
           id: data.id,
@@ -84,11 +156,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Mock fallback
+    // Mock fallback (PayPal not configured on this server)
+    const mockCaptureId = `mock-capture-${Date.now()}`
+    if (dbOrderId) {
+      await markOrderPaid(dbOrderId, mockCaptureId)
+    }
     console.log('PayPal not configured. Returning mock capture status.')
     return NextResponse.json({
       status: 'COMPLETED',
-      id: `mock-capture-${Date.now()}`,
+      id: mockCaptureId,
     })
   } catch (error: any) {
     console.error('Capture payment error:', error)

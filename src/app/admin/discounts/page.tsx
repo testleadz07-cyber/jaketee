@@ -365,6 +365,9 @@ export default function AdminDiscounts() {
           <Link href="/admin/orders">
             <Button variant="ghost" size="sm">Orders</Button>
           </Link>
+          <Link href="/admin/users">
+            <Button variant="ghost" size="sm">Users</Button>
+          </Link>
           <Link href="/admin/reviews">
             <Button variant="ghost" size="sm">Reviews</Button>
           </Link>
@@ -379,6 +382,9 @@ export default function AdminDiscounts() {
           </Link>
           <Link href="/admin/refunds">
             <Button variant="ghost" size="sm">Refunds</Button>
+          </Link>
+          <Link href="/admin/blog">
+            <Button variant="ghost" size="sm">Blog</Button>
           </Link>
         </div>
       </nav>

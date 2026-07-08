@@ -8,7 +8,7 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { ShoppingBag, CheckCircle, Package, ArrowRight, Calendar, MapPin, CreditCard } from 'lucide-react'
+import { ShoppingBag, CheckCircle, Package, ArrowRight, Calendar, MapPin, CreditCard, Download } from 'lucide-react'
 import Link from 'next/link'
 
 interface OrderItem {
@@ -51,6 +51,7 @@ function ConfirmationContent() {
   const [loading, setLoading] = useState(true)
   const [verifyingPayment, setVerifyingPayment] = useState(false)
   const [verificationError, setVerificationError] = useState<string | null>(null)
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false)
 
   useEffect(() => {
     if (!orderId) {
@@ -108,6 +109,28 @@ function ConfirmationContent() {
       console.error('Error fetching order details:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownloadInvoice = async () => {
+    if (!order || downloadingInvoice) return
+    setDownloadingInvoice(true)
+    try {
+      const res = await fetch(`/api/orders/${order._id}/invoice`)
+      if (!res.ok) throw new Error('Failed to generate invoice')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice-${order.orderNumber}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Invoice download error:', err)
+    } finally {
+      setDownloadingInvoice(false)
     }
   }
 
@@ -303,10 +326,30 @@ function ConfirmationContent() {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>
-        {session?.user && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full sm:w-auto"
+          onClick={handleDownloadInvoice}
+          disabled={downloadingInvoice}
+        >
+          {downloadingInvoice ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-5 w-5" />
+          )}
+          Download Invoice
+        </Button>
+        {session?.user ? (
           <Link href="/profile?tab=orders" className="w-full sm:w-auto">
             <Button size="lg" variant="outline" className="w-full">
               View Order History
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/track-order" className="w-full sm:w-auto">
+            <Button size="lg" variant="outline" className="w-full">
+              Track This Order Later
             </Button>
           </Link>
         )}

@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string
   password: string
   role: 'admin' | 'customer'
+  isActive: boolean
   phone?: string
   avatar?: string
   addresses: Array<{
@@ -18,6 +19,8 @@ export interface IUser extends Document {
     phone?: string
     isDefault: boolean
   }>
+  resetPasswordToken?: string
+  resetPasswordExpires?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -43,9 +46,12 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
+    isActive: { type: Boolean, default: true },
     phone: { type: String },
     avatar: { type: String },
     addresses: [AddressSchema],
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
   },
   { timestamps: true }
 )

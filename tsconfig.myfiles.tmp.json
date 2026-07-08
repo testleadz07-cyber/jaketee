@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": false,
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": [
+    "src/models/AbandonedCart.ts",
+    "src/app/api/cart/sync/route.ts",
+    "src/app/api/cron/abandoned-cart/route.ts",
+    "src/lib/email.ts",
+    "src/components/cart-sync.tsx",
+    "src/models/Order.ts",
+    "src/lib/mongodb.ts",
+    "src/components/providers.tsx"
+  ]
+}

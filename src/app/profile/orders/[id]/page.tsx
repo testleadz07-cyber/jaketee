@@ -20,6 +20,7 @@ import {
   Circle,
   ExternalLink,
   ClipboardList,
+  Download,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -113,6 +114,7 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -141,6 +143,30 @@ export default function OrderTrackingPage() {
       setError('An unexpected error occurred while loading this order.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownloadInvoice = async () => {
+    if (!order || downloadingInvoice) return
+    setDownloadingInvoice(true)
+    try {
+      const res = await fetch(`/api/orders/${orderId}/invoice`)
+      if (!res.ok) {
+        throw new Error('Failed to generate invoice')
+      }
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice-${order.orderNumber}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Invoice download error:', err)
+    } finally {
+      setDownloadingInvoice(false)
     }
   }
 
@@ -204,17 +230,33 @@ export default function OrderTrackingPage() {
                 {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
-            <Badge
-              className={
-                isCancelled
-                  ? 'bg-rose-100 text-rose-800 border-rose-200'
-                  : order.status === 'delivered'
-                  ? 'bg-indigo-100 text-indigo-800 border-indigo-200'
-                  : 'bg-blue-100 text-blue-800 border-blue-200'
-              }
-            >
-              {order.status.replace('_', ' ').toUpperCase()}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge
+                className={
+                  isCancelled
+                    ? 'bg-rose-100 text-rose-800 border-rose-200'
+                    : order.status === 'delivered'
+                    ? 'bg-indigo-100 text-indigo-800 border-indigo-200'
+                    : 'bg-blue-100 text-blue-800 border-blue-200'
+                }
+              >
+                {order.status.replace('_', ' ').toUpperCase()}
+              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={handleDownloadInvoice}
+                disabled={downloadingInvoice}
+              >
+                {downloadingInvoice ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5" />
+                )}
+                Download Invoice
+              </Button>
+            </div>
           </div>
 
           {/* Tracking Stepper */}
@@ -454,6 +496,20 @@ export default function OrderTrackingPage() {
                     <span>Total</span>
                     <span>${order.total.toFixed(2)}</span>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5 mt-2"
+                    onClick={handleDownloadInvoice}
+                    disabled={downloadingInvoice}
+                  >
+                    {downloadingInvoice ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Download className="h-3.5 w-3.5" />
+                    )}
+                    Download Invoice / Receipt
+                  </Button>
                 </CardContent>
               </Card>
             </div>

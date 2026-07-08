@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { getStaticCategories } from '@/lib/static-data'
+import { openCookiePreferences } from '@/lib/cookie-consent'
 
 interface Category {
   id: string
@@ -114,6 +115,18 @@ export function Footer() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Customer Care</h3>
             <div className="flex flex-col gap-2.5">
               <Link
+                href="/blog"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
+              >
+                Blog
+              </Link>
+              <Link
+                href="/faq"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
+              >
+                FAQ
+              </Link>
+              <Link
                 href="/contact"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
               >
@@ -124,6 +137,12 @@ export function Footer() {
                 className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
               >
                 Shipping Info
+              </Link>
+              <Link
+                href="/track-order"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
+              >
+                Track Your Order
               </Link>
               <Link
                 href="/returns"
@@ -170,7 +189,27 @@ export function Footer() {
 
         {/* Bottom Banner */}
         <div className="mt-12 pt-8 border-t border-muted text-center text-xs text-muted-foreground space-y-4">
-          <div className="flex justify-center gap-6">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            <Link href="/privacy-policy" className="hover:text-primary transition-colors">
+              Privacy Policy
+            </Link>
+            <span>•</span>
+            <Link href="/terms-of-service" className="hover:text-primary transition-colors">
+              Terms of Service
+            </Link>
+            <span>•</span>
+            <Link href="/cookie-policy" className="hover:text-primary transition-colors">
+              Cookie Policy
+            </Link>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => openCookiePreferences()}
+              className="hover:text-primary transition-colors underline-offset-2 hover:underline"
+            >
+              Cookie Preferences
+            </button>
+            <span>•</span>
             <Link href="/login" className="hover:text-primary transition-colors">
               Admin Panel
             </Link>

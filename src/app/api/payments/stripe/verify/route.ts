@@ -7,6 +7,12 @@ import Discount from '@/models/Discount'
 import Stripe from 'stripe'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
 
+// NOTE: This endpoint is a client-triggered convenience path for fast
+// confirmation on the order-confirmation page. It is NOT the source of
+// truth - the Stripe webhook at /api/webhooks/stripe is, since it fires
+// from Stripe's servers even if the customer never makes it back here
+// (closed tab, dropped connection, failed redirect, etc). Both paths are
+// idempotent and safe to run in either order.
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

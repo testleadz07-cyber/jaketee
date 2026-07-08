@@ -112,7 +112,7 @@ export function CartDrawer() {
           )}
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="max-h-[95vh]">
+      <DrawerContent className="max-h-[90vh] flex flex-col">
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
@@ -123,7 +123,7 @@ export function CartDrawer() {
           </DrawerDescription>
         </DrawerHeader>
 
-        <ScrollArea className="flex-1 px-4">
+        <ScrollArea className="flex-1 min-h-0 px-4">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
@@ -203,7 +203,7 @@ export function CartDrawer() {
 
         <Separator />
 
-        <DrawerFooter className="flex-col gap-4">
+        <DrawerFooter className="flex-col gap-4 shrink-0 max-h-[45vh] overflow-y-auto">
           {items.length > 0 && (
             <>
               {/* Promo input or display */}
