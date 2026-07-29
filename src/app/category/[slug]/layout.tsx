@@ -1,11 +1,11 @@
 import { permanentRedirect, notFound } from 'next/navigation'
 import { resolveSlugPath } from '@/lib/route-resolver'
-import { buildProductUrl } from '@/lib/categories'
+import { buildCategoryUrl } from '@/lib/categories'
 
-// Legacy URL - products now live at their nested category path (e.g.
-// /varsity-jackets/wool-leather/product-slug). Redirect (308) to the
+// Legacy URL - categories now live at their nested root-level path (e.g.
+// /varsity-jackets or /varsity-jackets/wool-leather). Redirect (308) to the
 // canonical URL so old links keep working without splitting SEO signal.
-export default async function LegacyProductLayout({
+export default async function LegacyCategoryLayout({
   params,
 }: {
   params: Promise<{ slug: string }>
@@ -16,8 +16,8 @@ export default async function LegacyProductLayout({
   if (resolution.type === 'redirect') {
     permanentRedirect(resolution.to)
   }
-  if (resolution.type === 'product') {
-    permanentRedirect(buildProductUrl(resolution.product))
+  if (resolution.type === 'category') {
+    permanentRedirect(buildCategoryUrl(resolution.ancestorChain))
   }
 
   notFound()

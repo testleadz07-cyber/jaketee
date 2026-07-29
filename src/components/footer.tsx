@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { getStaticCategories } from '@/lib/static-data'
 import { openCookiePreferences } from '@/lib/cookie-consent'
+import { buildCategoryUrl } from '@/lib/categories'
 
 interface Category {
   id: string
   name: string
   slug: string
+  parentId?: string | null
 }
 
 export function Footer() {
@@ -98,10 +100,10 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Categories</h3>
             <div className="flex flex-col gap-2.5">
-              {categories.slice(0, 5).map((category) => (
+              {categories.filter((category) => !category.parentId).slice(0, 5).map((category) => (
                 <Link
                   key={category.id}
-                  href={`/?category=${category.slug}`}
+                  href={buildCategoryUrl([category])}
                   className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
                 >
                   {category.name}

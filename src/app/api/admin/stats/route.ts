@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       const totalProducts = await Product.countDocuments()
       const totalOrders = await Order.countDocuments()
       const customerCount = await User.countDocuments({ role: 'customer' })
-      
+
       const orders = await Order.find({}).lean()
       const totalRevenue = orders
         .filter(o => o.status !== 'cancelled')

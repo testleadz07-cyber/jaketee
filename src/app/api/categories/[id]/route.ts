@@ -4,6 +4,7 @@ import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { resolveDescendantIds, type CategoryNode } from '@/lib/categories'
 
 export async function PUT(
   request: NextRequest,
@@ -22,15 +23,41 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { name, slug, description, image } = body
+    const { name, slug, description, image, parentId } = body
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 })
     }
 
+    const resolvedParentId = parentId && parentId !== 'none' ? parentId : null
+
+    if (resolvedParentId) {
+      if (resolvedParentId === id) {
+        return NextResponse.json({ error: 'A category cannot be its own parent' }, { status: 400 })
+      }
+
+      const parent = await Category.findById(resolvedParentId)
+      if (!parent) {
+        return NextResponse.json({ error: 'Parent category not found' }, { status: 400 })
+      }
+
+      const all = await Category.find({}, '_id parentId').lean()
+      const nodes: CategoryNode[] = all.map((c: any) => ({
+        _id: String(c._id),
+        parentId: c.parentId ? String(c.parentId) : null,
+      }))
+      const ownDescendants = resolveDescendantIds(nodes, id)
+      if (ownDescendants.includes(resolvedParentId)) {
+        return NextResponse.json(
+          { error: 'Cannot set parent to a descendant of this category' },
+          { status: 400 }
+        )
+      }
+    }
+
     const category = await Category.findByIdAndUpdate(
       id,
-      { name, slug, description, image },
+      { name, slug, description, image, parentId: resolvedParentId },
       { new: true }
     ).lean()
 
@@ -38,7 +65,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ ...category, id: String(category._id) })
+    return NextResponse.json({ ...category, id: String((category as any)._id) })
   } catch (error: any) {
     if (error.code === 11000) {
       return NextResponse.json({ error: 'Category with this name or slug already exists' }, { status: 409 })
@@ -61,6 +88,15 @@ export async function DELETE(
     const db = await connectDB()
     if (!db) {
       return NextResponse.json({ error: 'Database not connected' }, { status: 503 })
+    }
+
+    // Check if category has subcategories - must be deleted bottom-up
+    const childCount = await Category.countDocuments({ parentId: id })
+    if (childCount > 0) {
+      return NextResponse.json(
+        { error: 'Cannot delete category because it has subcategories. Delete or reassign those first.' },
+        { status: 400 }
+      )
     }
 
     // Check if category is linked to any products

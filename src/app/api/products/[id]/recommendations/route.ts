@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
+import Category from '@/models/Category'
 import mongoose from 'mongoose'
 import { findStaticProduct, getStaticProducts } from '@/lib/static-data'
+import { resolveAncestorChain } from '@/lib/categories'
 
 export async function GET(
   request: NextRequest,
@@ -37,12 +39,28 @@ export async function GET(
     let relatedProducts: any[] = []
 
     if (db) {
+      const allCategories = await Category.find().lean()
+      const categoryChainNodes = allCategories.map((c: any) => ({
+        _id: String(c._id),
+        parentId: c.parentId ? String(c.parentId) : null,
+        name: c.name,
+        slug: c.slug,
+      }))
+      const mapProduct = (p: any) => ({
+        ...p,
+        id: String(p._id),
+        category: p.categoryId ? { _id: String(p.categoryId._id), name: p.categoryId.name, slug: p.categoryId.slug } : null,
+        categoryPath: p.categoryId
+          ? resolveAncestorChain(categoryChainNodes, String(p.categoryId._id)).map((c) => ({ name: c.name, slug: c.slug }))
+          : [],
+      })
+
       // Fetch in-stock products in the same category (excluding current)
       const query: any = {
         inStock: true,
         _id: { $ne: new mongoose.Types.ObjectId(baseProductId) }
       }
-      
+
       if (baseProduct.categoryId) {
         query.categoryId = baseProduct.categoryId
       }
@@ -52,17 +70,13 @@ export async function GET(
         .limit(8)
         .lean()
 
-      relatedProducts = relatedProducts.map((p) => ({
-        ...p,
-        id: String(p._id),
-        category: p.categoryId ? { _id: String(p.categoryId._id), name: p.categoryId.name, slug: p.categoryId.slug } : null,
-      }))
+      relatedProducts = relatedProducts.map(mapProduct)
 
       // If we don't have enough, backfill with featured products from other categories
       if (relatedProducts.length < 3) {
         const extra = await Product.find({
           inStock: true,
-          _id: { 
+          _id: {
             $ne: new mongoose.Types.ObjectId(baseProductId),
             $nin: relatedProducts.map(p => new mongoose.Types.ObjectId(p.id))
           }
@@ -71,13 +85,7 @@ export async function GET(
           .limit(5 - relatedProducts.length)
           .lean()
 
-        const mappedExtra = extra.map((p) => ({
-          ...p,
-          id: String(p._id),
-          category: p.categoryId ? { _id: String(p.categoryId._id), name: p.categoryId.name, slug: p.categoryId.slug } : null,
-        }))
-
-        relatedProducts = [...relatedProducts, ...mappedExtra]
+        relatedProducts = [...relatedProducts, ...extra.map(mapProduct)]
       }
     } else {
       // Fallback using static data

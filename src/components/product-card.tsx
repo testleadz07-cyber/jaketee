@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useWishlistStore } from '@/store/wishlist'
+import { buildProductUrl } from '@/lib/categories'
 
 interface ProductCardProps {
   product: {
@@ -23,6 +24,7 @@ interface ProductCardProps {
       name: string
       slug: string
     }
+    categoryPath?: Array<{ name: string; slug: string }>
     isFeatured: boolean
   }
 }
@@ -42,7 +44,7 @@ export function ProductCard({ product }: ProductCardProps) {
       : 0
 
   return (
-    <Link href={`/product/${product.slug}`}>
+    <Link href={buildProductUrl(product)}>
       <motion.div
         whileHover={{ y: -8 }}
         transition={{ duration: 0.3 }}

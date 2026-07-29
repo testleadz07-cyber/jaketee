@@ -3,10 +3,11 @@ import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
 import Category from '@/models/Category'
 import { getStaticProducts, getStaticCategories } from '@/lib/static-data'
+import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://luxestore.com'
-  
+
   // Static routes
   const staticRoutes = [
     '',
@@ -23,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   let productsList: any[] = []
-  let categoriesList: any[] = []
+  let categoriesList: Array<{ _id: string; name: string; slug: string; parentId?: string | null; updatedAt: Date }> = []
 
   try {
     const db = await connectDB()
@@ -31,15 +32,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const dbProducts = await Product.find({}).lean()
       const dbCategories = await Category.find({}).lean()
 
-      productsList = dbProducts.map((p) => ({
-        id: String(p._id),
-        slug: p.slug,
-        updatedAt: p.updatedAt || new Date(),
+      categoriesList = dbCategories.map((c: any) => ({
+        _id: String(c._id),
+        name: c.name,
+        slug: c.slug,
+        parentId: c.parentId ? String(c.parentId) : null,
+        updatedAt: new Date(),
       }))
 
-      categoriesList = dbCategories.map((c) => ({
-        slug: c.slug,
-        updatedAt: new Date(),
+      productsList = dbProducts.map((p: any) => ({
+        id: String(p._id),
+        slug: p.slug,
+        categoryId: p.categoryId ? String(p.categoryId) : null,
+        updatedAt: p.updatedAt || new Date(),
       }))
     }
   } catch (error) {
@@ -47,35 +52,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Fallback to static data if no DB or empty
+  if (categoriesList.length === 0) {
+    categoriesList = getStaticCategories().map((c: any) => ({
+      _id: String(c._id ?? c.id),
+      name: c.name,
+      slug: c.slug,
+      parentId: c.parentId ? String(c.parentId) : null,
+      updatedAt: new Date(),
+    }))
+  }
   if (productsList.length === 0) {
-    productsList = getStaticProducts().map((p) => ({
+    productsList = getStaticProducts().map((p: any) => ({
       id: p.id || p._id,
       slug: p.slug || p.id,
-      updatedAt: new Date(),
-    }))
-  }
-  if (categoriesList.length === 0) {
-    categoriesList = getStaticCategories().map((c) => ({
-      slug: c.slug,
+      categoryId: p.categoryId ? String(p.categoryId) : null,
       updatedAt: new Date(),
     }))
   }
 
-  // Dynamic product routes
-  const productRoutes = productsList.map((product) => ({
-    url: `${baseUrl}/product/${product.slug || product.id}`,
-    lastModified: new Date(product.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }))
+  // Dynamic category routes - nested (root-level) URLs, e.g. /varsity-jackets
+  // or /varsity-jackets/wool-leather.
+  const categoryRoutes = categoriesList.map((category) => {
+    const chain = resolveAncestorChain(categoriesList, category._id)
+    return {
+      url: `${baseUrl}${buildCategoryUrl(chain)}`,
+      lastModified: category.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    }
+  })
 
-  // Dynamic category routes
-  const categoryRoutes = categoriesList.map((category) => ({
-    url: `${baseUrl}/?category=${category.slug}`,
-    lastModified: new Date(category.updatedAt),
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }))
+  // Dynamic product routes - nested under their full category path, e.g.
+  // /bomber-jackets/product-name or /varsity-jackets/wool-leather/product-name.
+  const productRoutes = productsList.map((product) => {
+    const chain = product.categoryId ? resolveAncestorChain(categoriesList, product.categoryId) : []
+    return {
+      url: `${baseUrl}${buildProductUrl({ slug: product.slug || product.id, categoryPath: chain })}`,
+      lastModified: new Date(product.updatedAt),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }
+  })
 
   return [...staticRoutes, ...productRoutes, ...categoryRoutes]
 }

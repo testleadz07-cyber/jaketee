@@ -5,6 +5,7 @@ export const CATEGORIES = [
     name: 'Tops',
     slug: 'tops',
     description: 'Premium tops, t-shirts, blouses, and more',
+    parentId: null as string | null,
   },
   {
     _id: '2',
@@ -12,6 +13,7 @@ export const CATEGORIES = [
     name: 'Bottoms',
     slug: 'bottoms',
     description: 'Stylish pants, jeans, shorts, and skirts',
+    parentId: null as string | null,
   },
   {
     _id: '3',
@@ -19,6 +21,7 @@ export const CATEGORIES = [
     name: 'Activewear',
     slug: 'activewear',
     description: 'Performance athletic wear for every activity',
+    parentId: null as string | null,
   },
   {
     _id: '4',
@@ -26,6 +29,7 @@ export const CATEGORIES = [
     name: 'Outerwear',
     slug: 'outerwear',
     description: 'Jackets, coats, and hoodies for all seasons',
+    parentId: null as string | null,
   },
   {
     _id: '5',
@@ -33,6 +37,7 @@ export const CATEGORIES = [
     name: 'Footwear',
     slug: 'footwear',
     description: 'Sneakers, boots, and athletic shoes',
+    parentId: null as string | null,
   },
   {
     _id: '6',
@@ -40,5 +45,6 @@ export const CATEGORIES = [
     name: 'Accessories',
     slug: 'accessories',
     description: 'Bags, hats, belts, and fashion accessories',
+    parentId: null as string | null,
   },
 ]

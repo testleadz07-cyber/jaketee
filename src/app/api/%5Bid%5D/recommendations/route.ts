@@ -42,7 +42,7 @@ export async function GET(
         inStock: true,
         _id: { $ne: new mongoose.Types.ObjectId(baseProductId) }
       }
-      
+
       if (baseProduct.categoryId) {
         query.categoryId = baseProduct.categoryId
       }
@@ -62,7 +62,7 @@ export async function GET(
       if (relatedProducts.length < 3) {
         const extra = await Product.find({
           inStock: true,
-          _id: { 
+          _id: {
             $ne: new mongoose.Types.ObjectId(baseProductId),
             $nin: relatedProducts.map(p => new mongoose.Types.ObjectId(p.id))
           }
@@ -99,7 +99,7 @@ export async function GET(
     // youMayAlsoLike get the rest (or up to 6 items)
     const frequentlyBoughtTogether = relatedProducts.slice(0, 2)
     const youMayAlsoLike = relatedProducts.slice(1, 7) // Overlapping slightly is fine, or we can use slice(2) to make them unique. Let's make them unique.
-    const youMayAlsoLikeUnique = relatedProducts.slice(2).length > 0 
+    const youMayAlsoLikeUnique = relatedProducts.slice(2).length > 0
       ? relatedProducts.slice(1, 7) // If we have enough, show a nice variety
       : relatedProducts
 

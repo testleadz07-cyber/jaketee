@@ -39,6 +39,7 @@ interface Category {
   id: string
   name: string
   slug: string
+  parentId?: string | null
   _count: {
     products: number
   }
@@ -198,7 +199,7 @@ export default function Home() {
               >
                 All Products
               </Badge>
-              {categories.map((category) => (
+              {categories.filter((category) => !category.parentId).map((category) => (
                 <Badge
                   key={category.id}
                   variant={

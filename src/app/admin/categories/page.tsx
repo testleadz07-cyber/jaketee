@@ -8,7 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import { resolveDescendantIds, resolveAncestorChain, type CategoryNode } from '@/lib/categories'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,12 +37,14 @@ import {
 } from '@/components/ui/dialog'
 import {
   ChevronLeft,
+  ChevronRight,
   LogOut,
   Plus,
   Trash2,
   Edit2,
   Loader2,
   FolderOpen,
+  FolderTree,
   AlertTriangle
 } from 'lucide-react'
 import Link from 'next/link'
@@ -46,6 +56,7 @@ interface Category {
   slug: string
   description?: string
   image?: string
+  parentId?: string | null
   _count?: {
     products: number
   }
@@ -60,24 +71,30 @@ export default function AdminCategories() {
   const [loading, setLoading] = useState(true)
   const [isDemoMode, setIsDemoMode] = useState(false)
 
+  // Drill-down navigation: null = viewing top-level categories. Set to a
+  // category id to browse its direct subcategories only.
+  const [currentParentId, setCurrentParentId] = useState<string | null>(null)
+
   // Dialog states
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<Category | null>(null)
-  
+
   const [newCategory, setNewCategory] = useState({
     name: '',
     slug: '',
     description: '',
-    image: ''
+    image: '',
+    parentId: 'none'
   })
 
   const [editForm, setEditForm] = useState({
     name: '',
     slug: '',
     description: '',
-    image: ''
+    image: '',
+    parentId: 'none'
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -131,6 +148,13 @@ export default function AdminCategories() {
     }
   }
 
+  // Opens the Add dialog with the parent implicitly set to whatever level
+  // is currently being browsed — no dropdown-hunting required.
+  const openAddDialog = () => {
+    setNewCategory({ name: '', slug: '', description: '', image: '', parentId: currentParentId || 'none' })
+    setIsAddOpen(true)
+  }
+
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isDemoMode) {
@@ -147,7 +171,10 @@ export default function AdminCategories() {
       const res = await fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCategory)
+        body: JSON.stringify({
+          ...newCategory,
+          parentId: newCategory.parentId === 'none' ? null : newCategory.parentId
+        })
       })
 
       if (res.ok) {
@@ -155,7 +182,6 @@ export default function AdminCategories() {
           title: 'Category Created',
           description: 'New category has been added successfully.'
         })
-        setNewCategory({ name: '', slug: '', description: '', image: '' })
         setIsAddOpen(false)
         fetchCategories()
       } else {
@@ -183,7 +209,8 @@ export default function AdminCategories() {
       name: category.name,
       slug: category.slug,
       description: category.description || '',
-      image: category.image || ''
+      image: category.image || '',
+      parentId: category.parentId || 'none'
     })
     setIsEditOpen(true)
   }
@@ -206,7 +233,10 @@ export default function AdminCategories() {
       const res = await fetch(`/api/categories/${editingCategory.id || editingCategory._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify({
+          ...editForm,
+          parentId: editForm.parentId === 'none' ? null : editForm.parentId
+        })
       })
 
       if (res.ok) {
@@ -255,6 +285,16 @@ export default function AdminCategories() {
       return
     }
 
+    const hasChildren = categories.some((c) => c.parentId === (category.id || category._id))
+    if (hasChildren) {
+      toast({
+        title: 'Cannot Delete Category',
+        description: 'This category has subcategories. Delete or reassign those first.',
+        variant: 'destructive'
+      })
+      return
+    }
+
     setDeleteCategoryTarget(category)
   }
 
@@ -287,6 +327,30 @@ export default function AdminCategories() {
       })
     }
   }
+
+  // --- Drill-down helpers -----------------------------------------------
+  const categoryNodes: CategoryNode[] = categories.map((c) => ({
+    _id: c.id || c._id || '',
+    parentId: c.parentId || null,
+  }))
+
+  // Only the direct children of whatever level is currently being browsed.
+  const visibleCategories = categories.filter((c) => (c.parentId || null) === currentParentId)
+
+  const subcategoryCount = (categoryId: string) =>
+    categories.filter((c) => c.parentId === categoryId).length
+
+  // Ancestor chain (root -> current), used both for the breadcrumb bar and
+  // for the "creating under X" hint in the Add dialog.
+  const chainInput = categories.map((c) => ({ ...c, _id: c.id || c._id || '' }))
+  const breadcrumbChain = currentParentId
+    ? resolveAncestorChain(chainInput, currentParentId)
+    : []
+  const currentCategory = breadcrumbChain[breadcrumbChain.length - 1] || null
+
+  const editExcludedIds = editingCategory
+    ? new Set(resolveDescendantIds(categoryNodes, editingCategory.id || editingCategory._id || ''))
+    : new Set<string>()
 
   if (status === 'loading' || loading) {
     return (
@@ -396,67 +460,130 @@ export default function AdminCategories() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">Categories</h2>
-            <p className="text-muted-foreground text-sm">Create and modify product categories</p>
+            <p className="text-muted-foreground text-sm">
+              Browse one level at a time — click a category to manage its subcategories.
+            </p>
           </div>
-          <Button onClick={() => setIsAddOpen(true)} disabled={isDemoMode} className="gap-1">
-            <Plus className="h-4 w-4" /> Add Category
+          <Button onClick={openAddDialog} disabled={isDemoMode} className="gap-1">
+            <Plus className="h-4 w-4" />
+            {currentCategory ? `Add Subcategory` : 'Add Category'}
           </Button>
         </div>
 
-        {/* Categories Grid */}
+        {/* Breadcrumb / drill-down trail */}
+        <div className="flex items-center flex-wrap gap-1 text-sm">
+          <button
+            type="button"
+            onClick={() => setCurrentParentId(null)}
+            className={`px-2 py-1 rounded-md transition-colors ${
+              !currentCategory ? 'font-semibold text-foreground' : 'text-muted-foreground hover:text-primary'
+            }`}
+          >
+            All Categories
+          </button>
+          {breadcrumbChain.map((ancestor, index) => {
+            const isLast = index === breadcrumbChain.length - 1
+            return (
+              <span key={ancestor.id || ancestor._id} className="flex items-center gap-1">
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                <button
+                  type="button"
+                  onClick={() => setCurrentParentId(ancestor.id || ancestor._id || null)}
+                  className={`px-2 py-1 rounded-md transition-colors ${
+                    isLast ? 'font-semibold text-foreground' : 'text-muted-foreground hover:text-primary'
+                  }`}
+                >
+                  {ancestor.name}
+                </button>
+              </span>
+            )
+          })}
+        </div>
+
+        {currentCategory?.description && (
+          <p className="text-sm text-muted-foreground">{currentCategory.description}</p>
+        )}
+
+        {/* Categories Grid — only the current level's direct children */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.length > 0 ? (
-            categories.map((category) => (
-              <Card key={category.id || category._id} className="border-2 flex flex-col h-full bg-card hover:border-primary transition-all duration-300">
-                {category.image && (
-                  <div className="relative h-40 bg-muted overflow-hidden border-b">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                )}
-                <CardHeader className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg font-bold">{category.name}</CardTitle>
-                    <span className="text-xs font-semibold px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full">
-                      {category._count?.products || 0} products
-                    </span>
-                  </div>
-                  <CardDescription className="font-mono text-xs mt-1">/{category.slug}</CardDescription>
-                  {category.description && (
-                    <p className="text-muted-foreground text-sm leading-relaxed mt-2 line-clamp-3">
-                      {category.description}
-                    </p>
+          {visibleCategories.length > 0 ? (
+            visibleCategories.map((category) => {
+              const catId = category.id || category._id || ''
+              const childCount = subcategoryCount(catId)
+              return (
+                <Card
+                  key={catId}
+                  className="border-2 flex flex-col h-full bg-card hover:border-primary transition-all duration-300"
+                >
+                  {category.image && (
+                    <div className="relative h-40 bg-muted overflow-hidden border-b">
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
                   )}
-                </CardHeader>
-                <CardContent className="border-t pt-4 flex gap-2 justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1 text-xs"
-                    onClick={() => handleEditOpen(category)}
-                    disabled={isDemoMode}
-                  >
-                    <Edit2 className="h-3.5 w-3.5" /> Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => handleDelete(category)}
-                    disabled={isDemoMode}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Delete
-                  </Button>
-                </CardContent>
-              </Card>
-            ))
+                  <CardHeader className="flex-1">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg font-bold">{category.name}</CardTitle>
+                      <span className="text-xs font-semibold px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full whitespace-nowrap">
+                        {category._count?.products || 0} products
+                      </span>
+                    </div>
+                    <CardDescription className="font-mono text-xs mt-1">/{category.slug}</CardDescription>
+                    {category.description && (
+                      <p className="text-muted-foreground text-sm leading-relaxed mt-2 line-clamp-3">
+                        {category.description}
+                      </p>
+                    )}
+                  </CardHeader>
+                  <CardContent className="border-t pt-4 flex flex-col gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="gap-1 text-xs w-full justify-between"
+                      onClick={() => setCurrentParentId(catId)}
+                    >
+                      <span className="flex items-center gap-1">
+                        <FolderTree className="h-3.5 w-3.5" />
+                        {childCount > 0 ? `${childCount} Subcategories` : 'View Subcategories'}
+                      </span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Button>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1 text-xs"
+                        onClick={() => handleEditOpen(category)}
+                        disabled={isDemoMode}
+                      >
+                        <Edit2 className="h-3.5 w-3.5" /> Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => handleDelete(category)}
+                        disabled={isDemoMode}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })
           ) : (
             <div className="col-span-full py-12 text-center border rounded-xl bg-card border-dashed">
               <FolderOpen className="h-12 w-12 text-muted-foreground opacity-60 mx-auto mb-4" />
-              <p className="text-muted-foreground font-medium">No categories found</p>
+              <p className="text-muted-foreground font-medium">
+                {currentCategory ? 'No subcategories yet' : 'No categories found'}
+              </p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Click "{currentCategory ? 'Add Subcategory' : 'Add Category'}" to create one.
+              </p>
             </div>
           )}
         </div>
@@ -466,10 +593,17 @@ export default function AdminCategories() {
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Category</DialogTitle>
+            <DialogTitle>{currentCategory ? 'Add Subcategory' : 'Add Category'}</DialogTitle>
             <DialogDescription>Create a new category for products in the catalog.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="space-y-4">
+            <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
+              {currentCategory ? (
+                <>Will be created as a subcategory under <span className="font-medium text-foreground">{currentCategory.name}</span></>
+              ) : (
+                <>Will be created as a top-level category</>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="add-name">Name</Label>
               <Input
@@ -548,6 +682,34 @@ export default function AdminCategories() {
                 placeholder="e.g. activewear"
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-parent">Parent Category</Label>
+              <Select
+                value={editForm.parentId}
+                onValueChange={(val) => setEditForm(prev => ({ ...prev, parentId: val }))}
+              >
+                <SelectTrigger id="edit-parent">
+                  <SelectValue placeholder="None (top-level)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None (top-level)</SelectItem>
+                  {categories
+                    .filter((cat) => {
+                      const catId = cat.id || cat._id || ''
+                      const selfId = editingCategory?.id || editingCategory?._id || ''
+                      return catId !== selfId && !editExcludedIds.has(catId)
+                    })
+                    .map((cat) => (
+                      <SelectItem key={cat.id || cat._id} value={cat.id || cat._id || ''}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Only needed if you want to move this category elsewhere in the tree.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-desc">Description</Label>

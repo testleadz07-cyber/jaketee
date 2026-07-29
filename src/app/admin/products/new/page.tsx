@@ -13,11 +13,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { ImageUpload } from '@/components/image-upload'
+import { orderCategoriesForDisplay } from '@/lib/categories'
 
 interface Category {
   id: string
   name: string
   slug: string
+  parentId?: string | null
 }
 
 interface VariantInput {
@@ -90,6 +92,12 @@ export default function NewProduct() {
         .catch(() => setLoading(false))
     }
   }, [status, router])
+
+  // Depth-first, indented ordering so the category dropdown reads as a tree
+  // instead of a flat, ambiguous list once subcategories exist.
+  const orderedCategories = orderCategoriesForDisplay(
+    categories.map((c) => ({ ...c, _id: c.id }))
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -276,8 +284,9 @@ export default function NewProduct() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((cat) => (
+                      {orderedCategories.map(({ category: cat, depth }) => (
                         <SelectItem key={cat.id} value={cat.id}>
+                          {depth > 0 ? '  '.repeat(depth) + '↳ ' : ''}
                           {cat.name}
                         </SelectItem>
                       ))}
