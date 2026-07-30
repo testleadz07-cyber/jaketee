@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Subscriber from '@/models/Subscriber'
+import { createNotification } from '@/lib/notifications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +26,13 @@ export async function POST(request: NextRequest) {
       }
 
       await Subscriber.create({ email: trimmedEmail })
+
+      await createNotification({
+        type: 'newsletter_signup',
+        title: 'New newsletter subscriber',
+        message: trimmedEmail,
+      })
+
       return NextResponse.json({ message: 'Successfully subscribed to the newsletter!' }, { status: 201 })
     }
 

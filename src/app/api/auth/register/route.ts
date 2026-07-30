@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { hashPassword } from '@/lib/auth'
+import { createNotification } from '@/lib/notifications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +37,13 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       role: 'customer',
+    })
+
+    await createNotification({
+      type: 'user_registered',
+      title: 'New user registered',
+      message: `${name} (${email}) just created an account.`,
+      link: `/admin/users/${user._id}`,
     })
 
     const { password: _, ...userWithoutPassword } = user.toObject()

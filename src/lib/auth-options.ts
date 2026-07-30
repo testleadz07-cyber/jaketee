@@ -5,6 +5,10 @@ import User from '@/models/User'
 import { comparePassword } from '@/lib/auth'
 import { isLoginLocked, recordFailedLogin, resetLoginAttempts } from '@/lib/rate-limit'
 
+// Temporary in-memory bridge: signIn event → jwt callback
+// Keyed by userId (string). Cleaned up after the jwt callback reads it.
+const pendingSessionIds = new Map<string, string>()
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -20,8 +24,6 @@ export const authOptions: NextAuthOptions = {
 
         const email = credentials.email
 
-        // Per-account lockout guards against credential stuffing / brute
-        // force from rotating IPs (middleware only rate-limits per IP).
         const lockStatus = isLoginLocked(email)
         if (lockStatus.locked) {
           throw new Error('Too many failed login attempts. Please try again later.')
@@ -60,15 +62,76 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role
         token.userId = (user as any).id
+
+        // Pick up the LoginSession id created in the signIn event
+        const userId = (user as any).id as string
+        if (userId && pendingSessionIds.has(userId)) {
+          token.loginSessionId = pendingSessionIds.get(userId)
+          pendingSessionIds.delete(userId)
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (session?.user) {
-        (session.user as any).role = token.role;
-        (session.user as any).id = token.userId;
+        (session.user as any).role = token.role
+        ;(session.user as any).id = token.userId
+        ;(session.user as any).loginSessionId = token.loginSessionId
       }
       return session
+    },
+  },
+  events: {
+    async signIn({ user, account }) {
+      try {
+        const { connectDB } = await import('@/lib/mongodb')
+        const Activity = (await import('@/models/Activity')).default
+        const LoginSession = (await import('@/models/LoginSession')).default
+        await connectDB()
+
+        // Log activity (existing behaviour)
+        await Activity.create({
+          userId: user.id,
+          action: 'login',
+          details: { method: account?.provider || 'credentials' },
+          ip: 'server-side',
+          country: 'Unknown (Login Event)',
+        })
+
+        // Create a new LoginSession document
+        const newSession = await LoginSession.create({
+          userId: user.id,
+          loginAt: new Date(),
+          lastSeenAt: new Date(),
+          ip: 'server-side',
+          country: 'Unknown',
+        })
+
+        // Bridge the session id to the jwt callback via in-memory map
+        pendingSessionIds.set(String(user.id), String(newSession._id))
+      } catch (err) {
+        console.error('Failed to log login event / create session:', err)
+      }
+    },
+
+    async signOut({ token }) {
+      try {
+        const sessionId = (token as any)?.loginSessionId
+        if (!sessionId) return
+        const { connectDB } = await import('@/lib/mongodb')
+        const LoginSession = (await import('@/models/LoginSession')).default
+        await connectDB()
+
+        const session = await LoginSession.findById(sessionId)
+        if (session && !session.logoutAt) {
+          session.logoutAt = new Date()
+          const loginAt = session.loginAt instanceof Date ? session.loginAt : new Date(session.loginAt)
+          session.durationSeconds = Math.round((session.logoutAt.getTime() - loginAt.getTime()) / 1000)
+          await session.save()
+        }
+      } catch (err) {
+        console.error('Failed to close login session on signOut:', err)
+      }
     },
   },
 }

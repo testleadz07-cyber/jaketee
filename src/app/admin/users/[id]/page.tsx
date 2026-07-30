@@ -41,6 +41,11 @@ import {
   KeyRound,
   Plus,
   MapPin,
+  Globe,
+  Clock,
+  Monitor,
+  Smartphone,
+  Activity,
 } from 'lucide-react'
 
 interface UserOrderRow {
@@ -64,6 +69,16 @@ interface AddressForm {
   isDefault: boolean
 }
 
+interface UserActivityRow {
+  id: string
+  action: string
+  details: Record<string, any> | null
+  ip: string | null
+  userAgent: string | null
+  country: string
+  createdAt: string
+}
+
 interface UserDetail {
   id: string
   name: string
@@ -77,6 +92,76 @@ interface UserDetail {
   orderCount: number
   totalSpent: number
   orders: UserOrderRow[]
+  activities: UserActivityRow[]
+  country: string
+}
+
+interface UserLoginSession {
+  id: string
+  loginAt: string
+  logoutAt: string | null
+  lastSeenAt: string
+  durationSeconds: number | null
+  ip: string | null
+  country: string
+  userAgent: string | null
+  isActive: boolean
+}
+
+interface SessionSummary {
+  totalSessions: number
+  totalTimeSeconds: number
+  avgDurationSeconds: number
+  lastLogin: string | null
+}
+
+const formatActionName = (action: string) => {
+  switch (action) {
+    case 'login': return 'Logged In'
+    case 'view_product': return 'Viewed Product'
+    case 'view_category': return 'Viewed Category'
+    case 'add_to_cart': return 'Added to Cart'
+    case 'search': return 'Searched'
+    case 'place_order': return 'Placed Order'
+    default: return action.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+  }
+}
+
+function formatDuration(seconds: number | null | undefined): string {
+  if (!seconds || seconds <= 0) return '—'
+  if (seconds < 60) return `${seconds}s`
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  return `${h}h ${m}m`
+}
+
+function parseDevice(ua: string | null): 'mobile' | 'desktop' {
+  if (!ua) return 'desktop'
+  return /iphone|ipad|android|mobile/i.test(ua) ? 'mobile' : 'desktop'
+}
+
+const renderActivityDetails = (activity: UserActivityRow) => {
+  const details = activity.details
+  if (!details) return null
+  switch (activity.action) {
+    case 'view_product':
+      return <span className="text-xs text-muted-foreground">Product: <span className="font-semibold">{details.name || details.productId}</span></span>
+    case 'view_category':
+      return <span className="text-xs text-muted-foreground">Category: <span className="font-semibold">{details.name || details.slug}</span></span>
+    case 'add_to_cart':
+      return (
+        <span className="text-xs text-muted-foreground">
+          {details.name} (Qty: {details.quantity || 1}) - ${details.price?.toFixed(2)}
+        </span>
+      )
+    case 'search':
+      return <span className="text-xs text-muted-foreground">Query: &ldquo;<span className="italic">{details.query}</span>&rdquo;</span>
+    case 'place_order':
+      return <span className="text-xs text-muted-foreground">Order #<span className="font-semibold">{details.orderNumber}</span> - ${details.total?.toFixed(2)}</span>
+    default:
+      return <span className="text-xs text-muted-foreground">{JSON.stringify(details)}</span>
+  }
 }
 
 const emptyAddress: AddressForm = {
@@ -103,6 +188,14 @@ export default function AdminUserDetailPage() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [resettingPassword, setResettingPassword] = useState(false)
+
+  // Sessions state
+  const [sessions, setSessions] = useState<UserLoginSession[]>([])
+  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null)
+  const [sessionsPage, setSessionsPage] = useState(1)
+  const [sessionsPages, setSessionsPages] = useState(1)
+  const [sessionsTotal, setSessionsTotal] = useState(0)
+  const [sessionsLoading, setSessionsLoading] = useState(false)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -152,9 +245,30 @@ export default function AdminUserDetailPage() {
     }
   }, [userId, router, toast])
 
+  const fetchSessions = useCallback(async (pg = 1) => {
+    setSessionsLoading(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/sessions?page=${pg}`)
+      if (res.ok) {
+        const data = await res.json()
+        setSessions(data.sessions || [])
+        setSessionSummary(data.summary || null)
+        setSessionsPages(data.pages || 1)
+        setSessionsTotal(data.total || 0)
+      }
+    } catch (e) {
+      console.error('Error fetching sessions:', e)
+    } finally {
+      setSessionsLoading(false)
+    }
+  }, [userId])
+
   useEffect(() => {
-    if (status === 'authenticated' && userId) fetchUser()
-  }, [status, userId, fetchUser])
+    if (status === 'authenticated' && userId) {
+      fetchUser()
+      fetchSessions(1)
+    }
+  }, [status, userId, fetchUser, fetchSessions])
 
   const handleSave = async () => {
     for (const addr of addresses) {
@@ -283,7 +397,15 @@ export default function AdminUserDetailPage() {
           </Link>
           <div>
             <h1 className="text-xl font-bold tracking-tight">{user.name}</h1>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+            <p className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+              <span>{user.email}</span>
+              {user.country && user.country !== 'Unknown' && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-200">
+                  <Globe className="h-3 w-3" />
+                  {user.country}
+                </span>
+              )}
+            </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Badge variant={user.role === 'admin' ? 'default' : 'outline'}>{user.role}</Badge>
@@ -296,7 +418,7 @@ export default function AdminUserDetailPage() {
 
       <main className="container mx-auto px-4 py-8 flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Summary cards */}
-        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="border-2">
             <CardContent className="p-4 flex items-center gap-3">
               <Calendar className="h-5 w-5 text-primary" />
@@ -321,6 +443,33 @@ export default function AdminUserDetailPage() {
               <div>
                 <p className="text-xs text-muted-foreground">Total Spent</p>
                 <p className="font-semibold text-sm">${user.totalSpent.toFixed(2)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Activity className="h-5 w-5 text-violet-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Sessions</p>
+                <p className="font-semibold text-sm">{sessionSummary?.totalSessions ?? '—'}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Clock className="h-5 w-5 text-amber-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Time on Site</p>
+                <p className="font-semibold text-sm">{formatDuration(sessionSummary?.totalTimeSeconds)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2">
+            <CardContent className="p-4 flex items-center gap-3">
+              <Clock className="h-5 w-5 text-emerald-500" />
+              <div>
+                <p className="text-xs text-muted-foreground">Avg Session</p>
+                <p className="font-semibold text-sm">{formatDuration(sessionSummary?.avgDurationSeconds)}</p>
               </div>
             </CardContent>
           </Card>
@@ -551,6 +700,151 @@ export default function AdminUserDetailPage() {
                 Address changes are saved together with the account details above — click{' '}
                 <span className="font-medium text-foreground">Save Changes</span> to apply them.
               </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-1.5">
+                <Globe className="h-4 w-4" /> Activity History
+              </CardTitle>
+              <CardDescription>Recent actions performed by this user.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {!user.activities || user.activities.length === 0 ? (
+                <p className="text-sm text-muted-foreground px-6 pb-6 pt-2">No recorded activity yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Details</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>IP Address</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {user.activities.map((activity) => (
+                        <TableRow key={activity.id}>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {new Date(activity.createdAt).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="font-medium text-sm whitespace-nowrap">
+                            <Badge variant="secondary" className="capitalize">
+                              {formatActionName(activity.action)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate">
+                            {renderActivityDetails(activity)}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {activity.country}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground font-mono whitespace-nowrap">
+                            {activity.ip || 'N/A'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Login Sessions */}
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4" /> Login Sessions
+              </CardTitle>
+              <CardDescription>
+                Full session history with duration, device, and location. Total: {sessionsTotal} sessions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {sessionsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                </div>
+              ) : sessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground px-6 pb-6 pt-2">
+                  No session records yet. They appear after the user logs in with session tracking active.
+                </p>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Login Time</TableHead>
+                          <TableHead>Duration</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Device</TableHead>
+                          <TableHead>Country</TableHead>
+                          <TableHead>IP</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {sessions.map((s) => {
+                          const device = parseDevice(s.userAgent)
+                          return (
+                            <TableRow key={s.id}>
+                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                                {new Date(s.loginAt).toLocaleString()}
+                              </TableCell>
+                              <TableCell className="font-semibold whitespace-nowrap">
+                                {formatDuration(s.durationSeconds)}
+                              </TableCell>
+                              <TableCell>
+                                {s.isActive ? (
+                                  <Badge className="bg-emerald-100 text-emerald-800 text-xs">Active</Badge>
+                                ) : s.logoutAt ? (
+                                  <Badge variant="outline" className="text-xs">Ended</Badge>
+                                ) : (
+                                  <Badge variant="secondary" className="text-xs">Idle</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                                {device === 'mobile' ? (
+                                  <span className="inline-flex items-center gap-1"><Smartphone className="h-3 w-3" /> Mobile</span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1"><Monitor className="h-3 w-3" /> Desktop</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.country}</TableCell>
+                              <TableCell className="text-xs font-mono text-muted-foreground whitespace-nowrap">{s.ip || '—'}</TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {sessionsPages > 1 && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t">
+                      <p className="text-xs text-muted-foreground">Page {sessionsPage} of {sessionsPages}</p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline" size="sm"
+                          disabled={sessionsPage <= 1}
+                          onClick={() => { const p = sessionsPage - 1; setSessionsPage(p); fetchSessions(p) }}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline" size="sm"
+                          disabled={sessionsPage >= sessionsPages}
+                          onClick={() => { const p = sessionsPage + 1; setSessionsPage(p); fetchSessions(p) }}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

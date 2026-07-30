@@ -6,6 +6,7 @@ import { Providers } from "@/components/providers";
 import { NewsletterPopup } from "@/components/newsletter-popup";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { SupportChatWidget } from "@/components/support-chat-widget";
+import { SessionTracker } from "@/components/SessionTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +18,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://luxestore.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "LUXE STORE - Premium Fashion & Activewear",
   description: "Discover premium fashion, activewear, and outdoor apparel. Quality meets elegance at Luxe Store.",
   keywords: ["Luxe Store", "Fashion", "Activewear", "Outdoor", "Clothing", "Apparel", "Sportswear"],
@@ -38,8 +42,6 @@ export const metadata: Metadata = {
     description: "Discover premium fashion, activewear, and outdoor apparel",
   },
 };
-
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://luxestore.com";
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -88,6 +90,7 @@ export default function RootLayout({
           <NewsletterPopup />
           <CookieConsentBanner />
           <SupportChatWidget />
+          <SessionTracker />
           <Toaster />
         </Providers>
       </body>

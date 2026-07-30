@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -16,8 +16,9 @@ import { Header } from '@/components/header'
 import { ProductCard } from '@/components/product-card'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
-import { Search, Sparkles, ShoppingBag, Filter } from 'lucide-react'
+import { Search, Sparkles, ShoppingBag, Filter, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
+import { buildCategoryUrl } from '@/lib/categories'
 
 interface Product {
   id: string
@@ -50,15 +51,29 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    if (typeof window === 'undefined') return 'all'
+    return new URLSearchParams(window.location.search).get('category') || 'all'
+  })
   const [sortBy, setSortBy] = useState('featured')
+  const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null)
+  const [openCategoryId, setOpenCategoryId] = useState<string | null>(null)
+  const categoryContainerRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const catParam = params.get('category')
-    if (catParam) setSelectedCategory(catParam)
+    if (!openCategoryId) return
+    const handleClickOutside = (e: MouseEvent) => {
+      const container = categoryContainerRefs.current[openCategoryId]
+      if (container && !container.contains(e.target as Node)) {
+        setOpenCategoryId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [openCategoryId])
+
+  useEffect(() => {
     fetchCategories()
-    fetchProducts()
   }, [])
 
   useEffect(() => {
@@ -199,18 +214,66 @@ export default function Home() {
               >
                 All Products
               </Badge>
-              {categories.filter((category) => !category.parentId).map((category) => (
-                <Badge
-                  key={category.id}
-                  variant={
-                    selectedCategory === category.slug ? 'default' : 'outline'
-                  }
-                  className="cursor-pointer transition-all hover:scale-105"
-                  onClick={() => setSelectedCategory(category.slug)}
-                >
-                  {category.name} ({category._count.products})
-                </Badge>
-              ))}
+              {categories.filter((category) => !category.parentId).map((category) => {
+                const subcategories = categories.filter((c) => c.parentId === category.id)
+                const isOpen = hoveredCategoryId === category.id || openCategoryId === category.id
+                return (
+                  <div
+                    key={category.id}
+                    ref={(el) => { categoryContainerRefs.current[category.id] = el }}
+                    className="relative"
+                    onMouseEnter={() => setHoveredCategoryId(category.id)}
+                    onMouseLeave={() => setHoveredCategoryId(null)}
+                  >
+                    <div className="flex items-center">
+                      <Badge
+                        variant={
+                          selectedCategory === category.slug ? 'default' : 'outline'
+                        }
+                        className="cursor-pointer transition-all hover:scale-105"
+                        onClick={() => setSelectedCategory(category.slug)}
+                      >
+                        {category.name} ({category._count.products})
+                      </Badge>
+
+                      {subcategories.length > 0 && (
+                        <button
+                          type="button"
+                          aria-label={`Show ${category.name} subcategories`}
+                          aria-expanded={isOpen}
+                          className="ml-0.5 rounded-full p-1 hover:bg-muted"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setOpenCategoryId((prev) => (prev === category.id ? null : category.id))
+                          }}
+                        >
+                          <ChevronDown
+                            className={`h-3 w-3 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                      )}
+                    </div>
+
+                    {subcategories.length > 0 && isOpen && (
+                      <div className="absolute left-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border bg-popover p-1 shadow-md">
+                        {subcategories.map((sub) => (
+                          <Link
+                            key={sub.id}
+                            href={buildCategoryUrl([
+                              { slug: category.slug },
+                              { slug: sub.slug },
+                            ])}
+                            className="block rounded-md px-3 py-2 text-sm hover:bg-muted whitespace-nowrap"
+                            onClick={() => setOpenCategoryId(null)}
+                          >
+                            {sub.name} ({sub._count.products})
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
 
             <div className="flex items-center gap-2">

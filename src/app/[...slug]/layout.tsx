@@ -3,6 +3,8 @@ import { permanentRedirect, notFound } from 'next/navigation'
 import { resolveSlugPath } from '@/lib/route-resolver'
 import { ProductDetailView } from '@/components/product-detail-view'
 import { CategoryDetailView } from '@/components/category-detail-view'
+import { connectDB } from '@/lib/mongodb'
+import Review from '@/models/Review'
 
 interface Props {
   params: Promise<{ slug: string[] }>
@@ -106,6 +108,34 @@ export default async function CatchAllLayout({ params }: Props) {
         '@type': 'AggregateRating',
         ratingValue: Number(product.averageRating || 0).toFixed(1),
         reviewCount: product.reviewCount,
+      }
+
+      try {
+        const db = await connectDB()
+        if (db) {
+          const productId = product._id || product.id
+          const recentReviews = await Review.find({ productId, status: 'approved' })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .lean()
+
+          if (recentReviews.length > 0) {
+            productJsonLd.review = recentReviews.map((r: any) => ({
+              '@type': 'Review',
+              author: { '@type': 'Person', name: r.userName },
+              datePublished: new Date(r.createdAt).toISOString(),
+              reviewBody: r.comment,
+              reviewRating: {
+                '@type': 'Rating',
+                ratingValue: r.rating,
+                bestRating: 5,
+                worstRating: 1,
+              },
+            }))
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching reviews for product JSON-LD:', error)
       }
     }
 

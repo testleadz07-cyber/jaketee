@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
@@ -55,12 +56,26 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         setError(data.error || 'Registration failed')
-      } else {
-        router.push('/login?success=true')
+        setIsLoading(false)
+        return
       }
+
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        // Account was created but auto sign-in failed - fall back to login page.
+        router.push('/login?success=true')
+        return
+      }
+
+      router.push('/')
+      router.refresh()
     } catch (error) {
       setError('An error occurred. Please try again.')
-    } finally {
       setIsLoading(false)
     }
   }

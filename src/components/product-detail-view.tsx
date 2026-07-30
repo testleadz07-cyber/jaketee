@@ -19,6 +19,7 @@ import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
 import { buildCategoryUrl } from '@/lib/categories'
+import { logUserActivity } from '@/lib/activity'
 import {
   ShoppingBag,
   Star,
@@ -100,10 +101,14 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
       description: product.description,
       price: product.price,
       compareAtPrice: product.compareAtPrice,
-      images: product.images,
+      images: (product.images || []).map((img) => ({
+        url: img.url,
+        alt: img.alt || '',
+      })),
       category: product.category,
       isFeatured: product.isFeatured,
     })
+    logUserActivity('view_product', { productId: product.id, name: product.name })
   }, [product?.id])
 
   const fetchProduct = async () => {
@@ -197,14 +202,23 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
 
     const variantCombination = getSelectedVariantCombination()
     const variants = variantCombination || [{ name: 'Standard', value: 'Default' }]
+    const price = getPrice()
 
     addItem({
       productId: product.id,
       name: product.name,
-      price: getPrice(),
+      price,
       image: product.images?.[0]?.url || '/placeholder.png',
       variants,
       quantity,
+    })
+
+    logUserActivity('add_to_cart', {
+      productId: product.id,
+      name: product.name,
+      price,
+      quantity,
+      variants,
     })
 
     setAddedToCart(true)

@@ -170,6 +170,8 @@ export default function TagsPage() {
           <Link href="/admin/products"><Button variant="ghost" size="sm">Products</Button></Link>
           <Link href="/admin/categories"><Button variant="ghost" size="sm">Categories</Button></Link>
           <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
+          <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
+          <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
           <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
           <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
           <Link href="/admin/tags"><Button variant="secondary" size="sm">Tags</Button></Link>

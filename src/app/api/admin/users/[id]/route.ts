@@ -43,6 +43,17 @@ export async function GET(
     const orderCount = orders.length
     const totalSpent = orders.reduce((sum: number, o: any) => sum + (o.total || 0), 0)
 
+    const Activity = (await import('@/models/Activity')).default
+    const activities = await Activity.find({ userId: id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean()
+
+    const lastWithCountry = (activities || []).find(
+      (act: any) => act.country && act.country !== 'Unknown' && act.country !== 'Localhost'
+    )
+    const resolvedCountry = lastWithCountry?.country || 'Unknown'
+
     return NextResponse.json({
       id: String((user as any)._id),
       name: (user as any).name,
@@ -63,6 +74,16 @@ export async function GET(
         createdAt: o.createdAt,
         itemCount: (o.items || []).length,
       })),
+      activities: (activities || []).map((act: any) => ({
+        id: String(act._id),
+        action: act.action,
+        details: act.details || null,
+        ip: act.ip || null,
+        userAgent: act.userAgent || null,
+        country: act.country || 'Unknown',
+        createdAt: act.createdAt,
+      })),
+      country: resolvedCountry,
     })
   } catch (error: any) {
     console.error('Admin user detail fetch error:', error)

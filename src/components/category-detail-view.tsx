@@ -66,6 +66,12 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
         const prodData = await prodRes.json()
         if (cancelled) return
         setProducts(prodData)
+
+        if (current) {
+          import('@/lib/activity').then(({ logUserActivity }) => {
+            logUserActivity('view_category', { categoryId: current.id, name: current.name, slug })
+          })
+        }
       } catch (error) {
         console.error('Error loading category page:', error)
       } finally {

@@ -121,6 +121,41 @@ export async function POST(request: NextRequest) {
         shippingAddress,
         statusHistory: [{ status: status || 'pending', timestamp: new Date() }],
       })
+
+      // Log place_order activity
+      try {
+        const Activity = (await import('@/models/Activity')).default
+        const xForwardedFor = request.headers.get('x-forwarded-for')
+        const ip = xForwardedFor
+          ? xForwardedFor.split(',')[0].trim()
+          : request.headers.get('x-real-ip') || '127.0.0.1'
+
+        let country = 'Unknown'
+        if (ip && ip !== '127.0.0.1' && ip !== '::1' && !ip.startsWith('192.168.') && !ip.startsWith('10.') && !ip.startsWith('172.')) {
+          try {
+            const geoRes = await fetch(`https://ipapi.co/${ip}/json/`, { signal: AbortSignal.timeout(2000) })
+            if (geoRes.ok) {
+              const geoData = await geoRes.json()
+              if (geoData && geoData.country_name) {
+                country = geoData.country_name
+              }
+            }
+          } catch {}
+        } else if (ip === '127.0.0.1' || ip === '::1') {
+          country = 'Localhost'
+        }
+
+        await Activity.create({
+          userId,
+          action: 'place_order',
+          details: { orderNumber: order.orderNumber, total: order.total },
+          ip,
+          userAgent: request.headers.get('user-agent') || undefined,
+          country,
+        })
+      } catch (activityErr) {
+        console.error('Failed to log order placement activity:', activityErr)
+      }
     } catch (err) {
       // Order creation failed after stock was reserved — release it back.
       for (const d of decrementedItems) {

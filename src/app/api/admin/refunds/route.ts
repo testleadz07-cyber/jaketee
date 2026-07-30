@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import RefundRequest from '@/models/RefundRequest'
+import { createNotification } from '@/lib/notifications'
 
 // Ensure DB connection helper
 async function ensureDB() {
@@ -52,6 +53,14 @@ export async function POST(request: Request) {
       ...(userName?.trim() ? { userName: (userName as string).trim() } : {}),
       ...(userEmail?.trim() ? { userEmail: (userEmail as string).trim() } : {}),
     })
+
+    await createNotification({
+      type: 'refund_request',
+      title: 'New refund/return request',
+      message: `Order ${refund.orderId}${refund.userName ? ` from ${refund.userName}` : ''}`,
+      link: '/admin/refunds',
+    })
+
     return NextResponse.json({ success: true, id: refund._id }, { status: 201 })
   } catch (error) {
     console.error('POST /api/admin/refunds error:', error)

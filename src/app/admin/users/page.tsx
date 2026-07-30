@@ -248,6 +248,9 @@ export default function AdminUsersPage() {
           <Link href="/admin/categories"><Button variant="ghost" size="sm">Categories</Button></Link>
           <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
           <Link href="/admin/users"><Button variant="secondary" size="sm">Users</Button></Link>
+          <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
+          <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
+          <Link href="/admin/analytics"><Button variant="ghost" size="sm">Analytics</Button></Link>
           <Link href="/admin/reviews"><Button variant="ghost" size="sm">Reviews</Button></Link>
           <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
           <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
@@ -332,8 +335,12 @@ export default function AdminUsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
+                 {users.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => router.push(`/admin/users/${user.id}`)}
+                  >
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                     <TableCell>
@@ -357,7 +364,7 @@ export default function AdminUsersPage() {
                     <TableCell className="text-muted-foreground text-xs">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         <Link href={`/admin/users/${user.id}`}>
                           <Button variant="ghost" size="icon" title="View details">

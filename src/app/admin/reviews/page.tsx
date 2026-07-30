@@ -221,6 +221,12 @@ export default function AdminReviewsPage() {
           <Link href="/admin/users">
             <Button variant="ghost" size="sm">Users</Button>
           </Link>
+          <Link href="/admin/guest-activity">
+            <Button variant="ghost" size="sm">Guest Activity</Button>
+          </Link>
+          <Link href="/admin/notifications">
+            <Button variant="ghost" size="sm">Notifications</Button>
+          </Link>
           <Link href="/admin/reviews">
             <Button variant="secondary" size="sm">Reviews</Button>
           </Link>

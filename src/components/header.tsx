@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { buildProductUrl } from '@/lib/categories'
 
 interface HeaderProps {
   showBack?: boolean
@@ -33,6 +34,7 @@ interface SearchSuggestion {
   thumbnail: string
   price: number
   compareAtPrice: number | null
+  categoryPath?: Array<{ name: string; slug: string }>
 }
 
 export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
@@ -86,12 +88,12 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleSelectSuggestion = (slug: string) => {
+  const handleSelectSuggestion = (product: SearchSuggestion) => {
     setIsOpen(false)
     setMobileSearchOpen(false)
     setQuery('')
     setSuggestions([])
-    router.push(`/product/${slug}`)
+    router.push(buildProductUrl({ slug: product.slug, categoryPath: product.categoryPath }))
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -99,6 +101,9 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
     if (!query.trim()) return
     setIsOpen(false)
     setMobileSearchOpen(false)
+    import('@/lib/activity').then(({ logUserActivity }) => {
+      logUserActivity('search', { query: query.trim() })
+    })
     router.push(`/?search=${encodeURIComponent(query.trim())}`)
   }
 
@@ -117,7 +122,7 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
             <li key={product.id}>
               <button
                 type="button"
-                onClick={() => handleSelectSuggestion(product.slug)}
+                onClick={() => handleSelectSuggestion(product)}
                 className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-accent"
               >
                 <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-muted">

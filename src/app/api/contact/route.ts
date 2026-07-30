@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail, contactFormTemplate } from '@/lib/email'
+import { createNotification } from '@/lib/notifications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,6 +41,13 @@ export async function POST(request: NextRequest) {
       to: email,
       subject: 'LUXE STORE - Inquiry Received',
       html: customerReplyHtml,
+    })
+
+    await createNotification({
+      type: 'contact_form',
+      title: 'New contact form submission',
+      message: `${name}: ${subject}`,
+      metadata: { name, email, subject, message },
     })
 
     return NextResponse.json({ success: true })

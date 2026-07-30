@@ -16,18 +16,25 @@ export async function GET() {
         _id: String(c._id),
         parentId: c.parentId ? String(c.parentId) : null,
       }))
-      const categoriesWithCount = await Promise.all(
-        categories.map(async (cat: any) => {
-          const descendantIds = resolveDescendantIds(nodes, String(cat._id))
-          const count = await Product.countDocuments({ categoryId: { $in: descendantIds }, inStock: true })
-          return {
-            ...cat,
-            id: String(cat._id),
-            parentId: cat.parentId ? String(cat.parentId) : null,
-            _count: { products: count },
-          }
-        })
+
+      const counts = await Product.aggregate([
+        { $match: { inStock: true } },
+        { $group: { _id: '$categoryId', count: { $sum: 1 } } },
+      ])
+      const countByCategoryId = new Map<string, number>(
+        counts.map((c: any) => [String(c._id), c.count as number])
       )
+
+      const categoriesWithCount = categories.map((cat: any) => {
+        const descendantIds = resolveDescendantIds(nodes, String(cat._id))
+        const count = descendantIds.reduce((sum, id) => sum + (countByCategoryId.get(id) || 0), 0)
+        return {
+          ...cat,
+          id: String(cat._id),
+          parentId: cat.parentId ? String(cat.parentId) : null,
+          _count: { products: count },
+        }
+      })
       return NextResponse.json(categoriesWithCount)
     }
     return NextResponse.json(getStaticCategoriesWithCount())

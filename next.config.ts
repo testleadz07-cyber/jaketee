@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: false,
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -16,6 +15,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "z-cdn.chatglm.cn",
       },
     ],
   },
@@ -59,7 +62,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://images.unsplash.com https://res.cloudinary.com",
+              "img-src 'self' data: blob: https://images.unsplash.com https://res.cloudinary.com https://z-cdn.chatglm.cn",
               "font-src 'self' data:",
               "connect-src 'self'",
               "frame-ancestors 'self'",
