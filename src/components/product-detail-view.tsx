@@ -18,8 +18,9 @@ import { SizeGuide } from '@/components/size-guide'
 import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
-import { buildCategoryUrl } from '@/lib/categories'
+import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { JacketCustomizer } from '@/components/jacket-customizer'
 import {
   ShoppingBag,
   Star,
@@ -63,6 +64,8 @@ interface Product {
     inStock: boolean
     image?: string | null
   }>
+  embroidery?: { available: boolean; fee: number; maxChars: number }
+  measurementFields?: string[]
 }
 
 interface ProductDetailViewProps {
@@ -115,7 +118,7 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
     setLoading(true)
     setOverrideImage(null)
     try {
-      const res = await fetch(`/api/products/${slug}`)
+      const res = await fetch(`/api/products/${slug}`, { cache: 'no-store' })
       if (!res.ok) {
         setProduct(null)
         return
@@ -148,6 +151,9 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
     return list.reduce((acc, variant) => {
       if (!acc[variant.name]) {
         acc[variant.name] = []
+      }
+      if (acc[variant.name].some((v) => v.value === variant.value)) {
+        return acc
       }
       acc[variant.name].push(variant)
       return acc
@@ -197,12 +203,16 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
     return Math.round(((compareAt - price) / compareAt) * 100)
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (
+    extraVariants: Array<{ name: string; value: string }> = [],
+    extraFee: number = 0
+  ) => {
     if (!product) return
 
     const variantCombination = getSelectedVariantCombination()
-    const variants = variantCombination || [{ name: 'Standard', value: 'Default' }]
-    const price = getPrice()
+    const combined = [...(variantCombination || []), ...extraVariants]
+    const variants = combined.length > 0 ? combined : [{ name: 'Standard', value: 'Default' }]
+    const price = getPrice() + extraFee
 
     addItem({
       productId: product.id,
@@ -248,6 +258,39 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
       ? [product.category]
       : []
   const categoryHref = categoryPath.length > 0 ? buildCategoryUrl(categoryPath) : '/'
+  const isJacket = isJacketCategoryPath(categoryPath)
+
+  const handleSelectCustomizerVariant = (groupName: string, value: string, image?: string | null) => {
+    setSelectedVariants((prev) => ({ ...prev, [groupName]: value }))
+    if (image) setOverrideImage(image)
+  }
+
+  const wishlistButton = (
+    <Button
+      variant="outline"
+      size="icon"
+      className="h-14 w-14 rounded-xl flex-shrink-0 border-2"
+      onClick={async () => {
+        if (isInWishlist) {
+          await removeFromWishlist(product.id, (session?.user as any)?.id)
+        } else {
+          await addToWishlist({
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.images?.[0]?.url || '',
+            slug: product.slug,
+          }, (session?.user as any)?.id)
+        }
+      }}
+    >
+      <Heart
+        className={`h-6 w-6 transition-all duration-300 ${
+          isInWishlist ? 'fill-rose-500 text-rose-500 scale-110' : 'text-muted-foreground'
+        }`}
+      />
+    </Button>
+  )
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -391,8 +434,23 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
                 {product.description}
               </p>
 
+              {isJacket && (
+                <JacketCustomizer
+                  product={product}
+                  selectedVariants={selectedVariants}
+                  onSelectVariant={handleSelectCustomizerVariant}
+                  basePrice={getPrice()}
+                  quantity={quantity}
+                  onQuantityChange={setQuantity}
+                  addedToCart={addedToCart}
+                  inStock={product.inStock}
+                  onAddToCart={handleAddToCart}
+                  wishlistButton={wishlistButton}
+                />
+              )}
+
               {/* Variants */}
-              {Object.keys(groupedVariants).length > 0 && (
+              {!isJacket && Object.keys(groupedVariants).length > 0 && (
                 <div className="space-y-4">
                   {Object.entries(groupedVariants).map(
                     ([variantName, variants]) => (
@@ -409,14 +467,14 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {variants.map((variant) => {
+                          {variants.map((variant, idx) => {
                             const isSelected =
                               selectedVariants[variantName] === variant.value
                             const isAvailable = variant.inStock
 
                             return (
                               <button
-                                key={variant.id || `${variantName}-${variant.value}`}
+                                key={variant.id || `${variantName}-${variant.value}-${idx}`}
                                 onClick={() => {
                                   if (isAvailable) {
                                     setSelectedVariants((prev) => ({
@@ -451,93 +509,72 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
               <Separator />
 
               {/* Quantity and Add to Cart */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium">Quantity:</span>
-                  <div className="flex items-center gap-2">
+              {!isJacket && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium">Quantity:</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          setQuantity(Math.max(1, quantity - 1))
+                        }
+                        disabled={quantity <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-12 text-center text-lg font-semibold">
+                        {quantity}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setQuantity(quantity + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
                     <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        setQuantity(Math.max(1, quantity - 1))
-                      }
-                      disabled={quantity <= 1}
+                      size="lg"
+                      className="flex-1 h-14 text-lg"
+                      onClick={() => handleAddToCart()}
+                      disabled={!product.inStock}
                     >
-                      <Minus className="h-4 w-4" />
+                      <AnimatePresence mode="wait">
+                        {addedToCart ? (
+                          <motion.div
+                            key="added"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="flex items-center gap-2"
+                          >
+                            <Check className="h-5 w-5" />
+                            Added to Cart!
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="add"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="flex items-center gap-2"
+                          >
+                            <ShoppingCart className="h-5 w-5" />
+                            Add to Cart -
+                            ${(getPrice() * quantity).toFixed(2)}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </Button>
-                    <span className="w-12 text-center text-lg font-semibold">
-                      {quantity}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    {wishlistButton}
                   </div>
                 </div>
-
-                <div className="flex gap-4">
-                  <Button
-                    size="lg"
-                    className="flex-1 h-14 text-lg"
-                    onClick={handleAddToCart}
-                    disabled={!product.inStock}
-                  >
-                    <AnimatePresence mode="wait">
-                      {addedToCart ? (
-                        <motion.div
-                          key="added"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          className="flex items-center gap-2"
-                        >
-                          <Check className="h-5 w-5" />
-                          Added to Cart!
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="add"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          className="flex items-center gap-2"
-                        >
-                          <ShoppingCart className="h-5 w-5" />
-                          Add to Cart -
-                          ${(getPrice() * quantity).toFixed(2)}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-14 w-14 rounded-xl flex-shrink-0 border-2"
-                    onClick={async () => {
-                      if (isInWishlist) {
-                        await removeFromWishlist(product.id, (session?.user as any)?.id)
-                      } else {
-                        await addToWishlist({
-                          productId: product.id,
-                          name: product.name,
-                          price: product.price,
-                          image: product.images?.[0]?.url || '',
-                          slug: product.slug,
-                        }, (session?.user as any)?.id)
-                      }
-                    }}
-                  >
-                    <Heart
-                      className={`h-6 w-6 transition-all duration-300 ${
-                        isInWishlist ? 'fill-rose-500 text-rose-500 scale-110' : 'text-muted-foreground'
-                      }`}
-                    />
-                  </Button>
-                </div>
-              </div>
+              )}
 
               {/* Features */}
               <div className="grid grid-cols-3 gap-4 pt-4">

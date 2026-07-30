@@ -219,7 +219,9 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
       if (!acc[variant.name]) {
         acc[variant.name] = []
       }
-      acc[variant.name].push(variant)
+      if (!acc[variant.name].some((v: any) => v.value === variant.value)) {
+        acc[variant.name].push(variant)
+      }
       return acc
     }, {} as Record<string, any[]>)
   }
@@ -241,7 +243,7 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
         </div>
         
         <div className="relative h-28 w-28 overflow-hidden rounded-xl bg-muted flex-shrink-0 border-2 mt-4 sm:mt-0">
-          <img src={product.images?.[0]?.url || ''} alt={product.name} className="object-cover w-full h-full" />
+          <img src={product.images?.[0]?.url || '/placeholder.png'} alt={product.name} className="object-cover w-full h-full" />
         </div>
 
         <div className="flex-1 space-y-2 text-center sm:text-left">
@@ -259,8 +261,8 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
                 onChange={(e) => handleVariantChange(prodId, name, e.target.value)}
                 className="text-xs bg-muted/50 border border-muted focus:border-primary rounded px-2 py-0.5"
               >
-                {grouped[name].map(v => (
-                  <option key={v.value} value={v.value} disabled={!v.inStock}>
+                {grouped[name].map((v, idx) => (
+                  <option key={v.id || `${name}-${v.value}-${idx}`} value={v.value} disabled={!v.inStock}>
                     {v.value} {v.priceAdjust > 0 ? `(+$${v.priceAdjust})` : ''} {!v.inStock ? '(Out of Stock)' : ''}
                   </option>
                 ))}

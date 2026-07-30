@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Discount from '@/models/Discount'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
+import { decrementStockForOrder } from '@/lib/inventory'
 
 // This endpoint is the SOURCE OF TRUTH for Stripe payment confirmation.
 // Unlike /api/payments/stripe/verify (which only runs if the customer's
@@ -99,6 +100,8 @@ async function markOrderPaid(checkoutSession: Stripe.Checkout.Session) {
   order.paymentId = checkoutSession.id
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via Stripe webhook' })
   await order.save()
+
+  await decrementStockForOrder(order.items)
 
   if (order.promoCode) {
     try {

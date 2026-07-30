@@ -10,10 +10,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { ImageUpload } from '@/components/image-upload'
-import { orderCategoriesForDisplay } from '@/lib/categories'
+import {
+  orderCategoriesForDisplay,
+  resolveAncestorChain,
+  isJacketCategoryPath,
+  isVarsityJacketPath,
+  DEFAULT_VARSITY_EMBROIDERY,
+  DEFAULT_VARSITY_MEASUREMENT_FIELDS,
+} from '@/lib/categories'
 
 interface Category {
   id: string
@@ -54,7 +62,42 @@ const VARIANT_SUGGESTIONS: Record<string, Array<{ name: string; label: string; v
   'accessories': [
     { name: 'Material', label: 'Materials', values: ['Leather', 'Canvas', 'Nylon'] },
     { name: 'Color', label: 'Colors', values: ['Black', 'Brown', 'Tan'] }
-  ]
+  ],
+  'varsity-jackets': [
+    { name: 'Style', label: 'Styles', values: ['Hooded', 'Retro', 'Satin'] },
+    { name: 'Material', label: 'Materials', values: ['Wool & Leather', 'All Wool', 'Faux Leather', 'All Leather'] },
+    { name: 'Color', label: 'Colors', values: ['Black', 'Navy', 'Cream'] },
+    { name: 'Lining', label: 'Linings', values: ['Fleece', 'Satin', 'Cotton Twill'] },
+    { name: 'Size', label: 'Sizes', values: ['S', 'M', 'L', 'XL'] },
+  ],
+  'bomber-jackets': [
+    { name: 'Material', label: 'Materials', values: ['Nylon', 'Leather', 'Cotton'] },
+    { name: 'Color', label: 'Colors', values: ['Black', 'Olive', 'Navy'] },
+    { name: 'Size', label: 'Sizes', values: ['S', 'M', 'L', 'XL'] },
+  ],
+  'coach-jackets': [
+    { name: 'Material', label: 'Materials', values: ['Nylon', 'Cotton Twill'] },
+    { name: 'Color', label: 'Colors', values: ['Black', 'Khaki', 'Navy'] },
+    { name: 'Size', label: 'Sizes', values: ['S', 'M', 'L', 'XL'] },
+  ],
+  'denim-jackets': [
+    { name: 'Color', label: 'Washes', values: ['Light Wash', 'Dark Wash', 'Black'] },
+    { name: 'Size', label: 'Sizes', values: ['S', 'M', 'L', 'XL'] },
+  ],
+  'fleece-hoodies': [
+    { name: 'Color', label: 'Colors', values: ['Black', 'Gray', 'Navy'] },
+    { name: 'Size', label: 'Sizes', values: ['S', 'M', 'L', 'XL'] },
+  ],
+  'leather-jackets': [
+    { name: 'Material', label: 'Materials', values: ['Genuine Leather', 'Faux Leather'] },
+    { name: 'Color', label: 'Colors', values: ['Black', 'Brown'] },
+    { name: 'Size', label: 'Sizes', values: ['S', 'M', 'L', 'XL'] },
+  ],
+  'puffer-jackets': [
+    { name: 'Material', label: 'Materials', values: ['Down', 'Synthetic Fill'] },
+    { name: 'Color', label: 'Colors', values: ['Black', 'Navy', 'Olive'] },
+    { name: 'Size', label: 'Sizes', values: ['S', 'M', 'L', 'XL'] },
+  ],
 }
 
 export default function NewProduct() {
@@ -74,6 +117,9 @@ export default function NewProduct() {
 
   const [categories, setCategories] = useState<Category[]>([])
   const [variants, setVariants] = useState<VariantInput[]>([])
+  const [embroidery, setEmbroidery] = useState({ available: false, fee: 0, maxChars: 20 })
+  const [measurementFields, setMeasurementFields] = useState<string[]>([])
+  const [measurementInput, setMeasurementInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
@@ -95,9 +141,12 @@ export default function NewProduct() {
 
   // Depth-first, indented ordering so the category dropdown reads as a tree
   // instead of a flat, ambiguous list once subcategories exist.
-  const orderedCategories = orderCategoriesForDisplay(
-    categories.map((c) => ({ ...c, _id: c.id }))
-  )
+  const categoryNodes = categories.map((c) => ({ ...c, _id: c.id }))
+  const orderedCategories = orderCategoriesForDisplay(categoryNodes)
+
+  const isJacketCategory = formData.categoryId
+    ? isJacketCategoryPath(resolveAncestorChain(categoryNodes, formData.categoryId))
+    : false
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -127,6 +176,8 @@ export default function NewProduct() {
         inStock: v.inStock,
         image: v.image && v.image !== 'no_image' ? v.image : null
       })),
+      embroidery: isJacketCategory && embroidery.available ? embroidery : undefined,
+      measurementFields: isJacketCategory ? measurementFields : [],
       isFeatured: formData.isFeatured,
       inStock: formData.inStock,
     }
@@ -276,6 +327,17 @@ export default function NewProduct() {
                       } else {
                         setVariants([])
                       }
+
+                      // Varsity Jackets (and its subcategories) get the full
+                      // customization builder enabled by default.
+                      const chain = resolveAncestorChain(categoryNodes, value)
+                      if (isVarsityJacketPath(chain)) {
+                        setEmbroidery(DEFAULT_VARSITY_EMBROIDERY)
+                        setMeasurementFields(DEFAULT_VARSITY_MEASUREMENT_FIELDS)
+                      } else {
+                        setEmbroidery({ available: false, fee: 0, maxChars: 20 })
+                        setMeasurementFields([])
+                      }
                     }}
                     required
                     disabled={submitting}
@@ -327,12 +389,17 @@ export default function NewProduct() {
                                 size="sm"
                                 className="h-7 text-xs px-2.5 bg-background border hover:bg-muted"
                                 onClick={() => {
-                                  const newRows = sug.values.map(val => ({
-                                    name: sug.name,
-                                    value: val,
-                                    priceAdjust: 0,
-                                    inStock: true
-                                  }))
+                                  const existing = new Set(
+                                    variants.filter(v => v.name === sug.name).map(v => v.value)
+                                  )
+                                  const newRows = sug.values
+                                    .filter(val => !existing.has(val))
+                                    .map(val => ({
+                                      name: sug.name,
+                                      value: val,
+                                      priceAdjust: 0,
+                                      inStock: true
+                                    }))
                                   setVariants([...variants, ...newRows])
                                 }}
                                 disabled={submitting}
@@ -446,6 +513,113 @@ export default function NewProduct() {
                     </div>
                   )
                 })()}
+
+                {isJacketCategory && (
+                  <div className="space-y-4 p-4 bg-muted/30 border rounded-xl">
+                    <Label className="text-sm font-semibold">Jacket Customization</Label>
+
+                    <div className="space-y-2 p-3 bg-background rounded-lg border">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="embroidery-available"
+                          checked={embroidery.available}
+                          onCheckedChange={(checked) => setEmbroidery({ ...embroidery, available: checked as boolean })}
+                          disabled={submitting}
+                        />
+                        <Label htmlFor="embroidery-available" className="cursor-pointer text-sm font-medium">
+                          Allow Embroidery / Monogram
+                        </Label>
+                      </div>
+                      {embroidery.available && (
+                        <div className="grid grid-cols-2 gap-3 pt-1">
+                          <div className="space-y-1">
+                            <Label htmlFor="embroidery-fee" className="text-xs text-muted-foreground">Fee ($)</Label>
+                            <Input
+                              id="embroidery-fee"
+                              type="number"
+                              step="0.01"
+                              value={embroidery.fee}
+                              onChange={(e) => setEmbroidery({ ...embroidery, fee: parseFloat(e.target.value) || 0 })}
+                              onFocus={(e) => e.target.select()}
+                              className="h-8 text-xs"
+                              disabled={submitting}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor="embroidery-maxchars" className="text-xs text-muted-foreground">Max Characters</Label>
+                            <Input
+                              id="embroidery-maxchars"
+                              type="number"
+                              value={embroidery.maxChars}
+                              onChange={(e) => setEmbroidery({ ...embroidery, maxChars: parseInt(e.target.value) || 20 })}
+                              onFocus={(e) => e.target.select()}
+                              className="h-8 text-xs"
+                              disabled={submitting}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 p-3 bg-background rounded-lg border">
+                      <Label className="text-sm font-medium">Made-to-Measure Fields</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Body measurements customers can enter instead of a standard size (e.g. Chest, Shoulder, Sleeve Length).
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Field name (e.g. Chest)"
+                          value={measurementInput}
+                          onChange={(e) => setMeasurementInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const label = measurementInput.trim()
+                              if (label && !measurementFields.includes(label)) {
+                                setMeasurementFields([...measurementFields, label])
+                              }
+                              setMeasurementInput('')
+                            }
+                          }}
+                          className="h-8 text-xs"
+                          disabled={submitting}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const label = measurementInput.trim()
+                            if (label && !measurementFields.includes(label)) {
+                              setMeasurementFields([...measurementFields, label])
+                            }
+                            setMeasurementInput('')
+                          }}
+                          disabled={submitting}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                      {measurementFields.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {measurementFields.map((field) => (
+                            <Badge key={field} variant="secondary" className="gap-1.5">
+                              {field}
+                              <button
+                                type="button"
+                                onClick={() => setMeasurementFields(measurementFields.filter((f) => f !== field))}
+                                disabled={submitting}
+                                className="hover:text-destructive"
+                              >
+                                ✕
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <ImageUpload

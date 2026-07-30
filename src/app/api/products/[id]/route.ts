@@ -50,7 +50,7 @@ export async function GET(
       category: product.categoryId ? { _id: String((product.categoryId as any)._id), name: (product.categoryId as any).name, slug: (product.categoryId as any).slug } : null,
       categoryPath,
     }
-    return NextResponse.json(mapped)
+    return NextResponse.json(mapped, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error: any) {
     console.error('Error fetching product:', error)
     return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 })
@@ -82,6 +82,8 @@ export async function PUT(
       categoryId: body.categoryId,
       images: body.images || [],
       variants: body.variants || [],
+      embroidery: body.embroidery || undefined,
+      measurementFields: body.measurementFields || [],
       isFeatured: body.isFeatured,
       inStock: body.inStock,
       stockCount: body.stockCount || 100,

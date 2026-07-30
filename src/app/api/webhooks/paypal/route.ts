@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Discount from '@/models/Discount'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
+import { decrementStockForOrder } from '@/lib/inventory'
 
 // This endpoint is the SOURCE OF TRUTH for PayPal payment confirmation.
 // Unlike /api/payments/capture (which only runs if the customer's browser
@@ -164,6 +165,8 @@ async function markOrderPaid(resource: any) {
   order.paymentId = resource.id
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via PayPal webhook' })
   await order.save()
+
+  await decrementStockForOrder(order.items)
 
   if (order.promoCode) {
     try {

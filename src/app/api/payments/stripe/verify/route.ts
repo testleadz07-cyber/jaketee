@@ -6,6 +6,7 @@ import Order from '@/models/Order'
 import Discount from '@/models/Discount'
 import Stripe from 'stripe'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
+import { decrementStockForOrder } from '@/lib/inventory'
 
 // NOTE: This endpoint is a client-triggered convenience path for fast
 // confirmation on the order-confirmation page. It is NOT the source of
@@ -59,6 +60,8 @@ export async function POST(request: NextRequest) {
       // 3. Update order status in MongoDB to paid
       order.status = 'paid'
       await order.save()
+
+      await decrementStockForOrder(order.items)
 
       // Increment coupon usage count if applicable
       if (order.promoCode) {

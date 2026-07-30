@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, slug, description, price, compareAtPrice, categoryId, images, variants, isFeatured, inStock } = body
+    const { name, slug, description, price, compareAtPrice, categoryId, images, variants, embroidery, measurementFields, isFeatured, inStock } = body
 
     if (!name || !slug || !price || !categoryId) {
       return NextResponse.json({ error: 'Name, slug, price, and categoryId are required' }, { status: 400 })
@@ -114,6 +114,8 @@ export async function POST(request: NextRequest) {
       categoryId,
       images: images || [],
       variants: variants || [],
+      embroidery: embroidery || undefined,
+      measurementFields: measurementFields || [],
       isFeatured: isFeatured || false,
       inStock: inStock !== false,
       stockCount: 100,

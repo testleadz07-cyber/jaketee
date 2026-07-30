@@ -14,6 +14,12 @@ export interface IProductVariant {
   image?: string
 }
 
+export interface IProductEmbroidery {
+  available: boolean
+  fee: number
+  maxChars: number
+}
+
 export interface IProduct extends Document {
   name: string
   slug: string
@@ -24,6 +30,8 @@ export interface IProduct extends Document {
   category?: { _id: string; name: string; slug: string }
   images: IProductImage[]
   variants: IProductVariant[]
+  embroidery?: IProductEmbroidery
+  measurementFields?: string[]
   averageRating: number
   reviewCount: number
   isFeatured: boolean
@@ -50,6 +58,15 @@ const ProductVariantSchema = new Schema<IProductVariant>(
   { _id: false }
 )
 
+const ProductEmbroiderySchema = new Schema<IProductEmbroidery>(
+  {
+    available: { type: Boolean, default: false },
+    fee: { type: Number, default: 0 },
+    maxChars: { type: Number, default: 20 },
+  },
+  { _id: false }
+)
+
 const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true },
@@ -60,6 +77,8 @@ const ProductSchema = new Schema<IProduct>(
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
     images: [ProductImageSchema],
     variants: [ProductVariantSchema],
+    embroidery: { type: ProductEmbroiderySchema },
+    measurementFields: { type: [String], default: [] },
     averageRating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     isFeatured: { type: Boolean, default: false },

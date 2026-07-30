@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Discount from '@/models/Discount'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
+import { decrementStockForOrder } from '@/lib/inventory'
 
 async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID
@@ -56,6 +57,8 @@ async function markOrderPaid(dbOrderId: string, paypalCaptureId: string) {
   order.paymentId = paypalCaptureId
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via PayPal capture response' })
   await order.save()
+
+  await decrementStockForOrder(order.items)
 
   if (order.promoCode) {
     try {

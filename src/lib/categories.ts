@@ -90,6 +90,42 @@ export interface CategoryPathSegment {
 }
 
 /**
+ * Jacket-type top-level category slugs (independent categories, not children
+ * of a "Jackets" parent - see fix-jackets-category-structure.ts). Used to scope
+ * the jacket customization builder to only these categories and their
+ * subcategories.
+ */
+export const JACKET_CATEGORY_SLUGS = [
+  'varsity-jackets',
+  'bomber-jackets',
+  'coach-jackets',
+  'denim-jackets',
+  'fleece-hoodies',
+  'leather-jackets',
+  'puffer-jackets',
+]
+
+/**
+ * True if the given root->leaf category ancestor chain is under one of the
+ * jacket-type categories (i.e. the chain's first/root segment is a jacket type).
+ */
+export function isJacketCategoryPath(categoryPath: CategoryPathSegment[]): boolean {
+  return categoryPath.length > 0 && JACKET_CATEGORY_SLUGS.includes(categoryPath[0].slug)
+}
+
+/**
+ * True if the given root->leaf category ancestor chain is Varsity Jackets or one
+ * of its material/style subcategories - the "hero" jacket type that gets the full
+ * default customization builder (embroidery + made-to-measure) out of the box.
+ */
+export function isVarsityJacketPath(categoryPath: CategoryPathSegment[]): boolean {
+  return categoryPath.length > 0 && categoryPath[0].slug === 'varsity-jackets'
+}
+
+export const DEFAULT_VARSITY_EMBROIDERY = { available: true, fee: 15, maxChars: 20 }
+export const DEFAULT_VARSITY_MEASUREMENT_FIELDS = ['Chest', 'Shoulder', 'Sleeve Length', 'Body Length']
+
+/**
  * Root-level nested category URL, e.g. /varsity-jackets or
  * /varsity-jackets/wool-leather - built from an ancestor chain (as returned
  * by resolveAncestorChain).
