@@ -178,6 +178,8 @@ function AdminNav({ email }: { email: string }) {
           <Link href="/admin/users"><Button variant="ghost" size="sm">Users</Button></Link>
           <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
           <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/analytics"><Button variant="secondary" size="sm">Analytics</Button></Link>
           <Link href="/admin/reviews"><Button variant="ghost" size="sm">Reviews</Button></Link>
           <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>

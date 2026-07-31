@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -795,7 +796,7 @@ export default function CheckoutPage() {
                         {mounted && items.map((item) => (
                           <div key={item.id} className="flex gap-4 items-center bg-muted/10 p-3 rounded-lg border">
                             <div className="relative h-16 w-16 overflow-hidden rounded bg-muted flex-shrink-0">
-                              <img src={item.image} alt={item.name} className="object-cover w-full h-full" />
+                              <Image src={item.image || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold truncate text-sm">{item.name}</p>

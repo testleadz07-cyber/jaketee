@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -193,6 +194,8 @@ export default function BulkEditorPage() {
           <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
           <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
           <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
           <Link href="/admin/bulk-editor"><Button variant="secondary" size="sm">Bulk Editor</Button></Link>
           <Link href="/admin/tags"><Button variant="ghost" size="sm">Tags</Button></Link>
@@ -270,8 +273,8 @@ export default function BulkEditorPage() {
                       <tr key={id} className={`transition-colors ${isDirty ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : 'hover:bg-muted/20'}`}>
                         <td className="p-3 pl-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 border">
-                              <img src={product.images[0]?.url || ''} alt={product.name} className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLImageElement).src = '' }} />
+                            <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 border">
+                              <Image src={product.images[0]?.url || '/placeholder.png'} alt={product.name} fill sizes="40px" className="object-cover" />
                             </div>
                             <span className="font-medium truncate max-w-[160px]" title={product.name}>{product.name}</span>
                           </div>

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { hashPassword, comparePassword } from '@/lib/auth'
+import { sendEmail, passwordChangedTemplate } from '@/lib/email'
 
 export async function GET() {
   try {
@@ -66,6 +67,17 @@ export async function PUT(request: NextRequest) {
     }
 
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password').lean()
+
+    if (newPassword && user) {
+      sendEmail({
+        to: (user as any).email,
+        subject: 'Your LUXE STORE password was changed',
+        html: passwordChangedTemplate({ userName: (user as any).name }),
+      }).then((result) => {
+        if (!result.success) console.error('Failed to send password-changed email:', result.message)
+      })
+    }
+
     return NextResponse.json(user)
   } catch (error: any) {
     console.error('Profile update error:', error)

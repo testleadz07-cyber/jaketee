@@ -21,11 +21,27 @@ export async function GET(request: Request) {
   }
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status') as 'pending' | 'approved' | 'rejected' | null
+  const search = searchParams.get('search')?.trim()
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20))
   try {
     await ensureDB()
-    const filter = status ? { status } : {}
-    const requests = await RefundRequest.find(filter).sort({ createdAt: -1 }).lean()
-    return NextResponse.json({ requests })
+    const filter: Record<string, any> = status ? { status } : {}
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      filter.$or = [
+        { orderId: { $regex: escaped, $options: 'i' } },
+        { userName: { $regex: escaped, $options: 'i' } },
+        { userEmail: { $regex: escaped, $options: 'i' } },
+      ]
+    }
+    const total = await RefundRequest.countDocuments(filter)
+    const requests = await RefundRequest.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+    return NextResponse.json({ requests, total, page, pages: Math.max(1, Math.ceil(total / limit)) })
   } catch (error) {
     console.error('GET /api/admin/refunds error:', error)
     return NextResponse.json({ error: 'Failed to fetch refund requests' }, { status: 500 })

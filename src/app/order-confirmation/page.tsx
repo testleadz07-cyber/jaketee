@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
+import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
@@ -233,7 +234,7 @@ function ConfirmationContent() {
                 {order.items.map((item, idx) => (
                   <div key={idx} className="flex gap-4 items-center bg-muted/10 p-3 rounded-lg border text-sm">
                     <div className="relative h-16 w-16 overflow-hidden rounded bg-muted flex-shrink-0">
-                      <img src={item.image} alt={item.name} className="object-cover w-full h-full" />
+                      <Image src={item.image || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate">{item.name}</p>

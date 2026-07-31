@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -29,6 +29,7 @@ import {
   Inbox,
   Eye,
   X,
+  ExternalLink,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -78,9 +79,14 @@ export default function AdminBlog() {
 
   const [posts, setPosts] = useState<BlogPostListItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchInput, setSearchInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [deleteTarget, setDeleteTarget] = useState<BlogPostListItem | null>(null)
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const limit = 20
 
   const [categories, setCategories] = useState<BlogCategory[]>([])
   const [newCategoryName, setNewCategoryName] = useState('')
@@ -93,25 +99,47 @@ export default function AdminBlog() {
   }, [status, router])
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchPosts()
-      fetchCategories()
-    }
-  }, [status])
+    const t = setTimeout(() => {
+      setPage(1)
+      setSearchQuery(searchInput)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
-  const fetchPosts = async () => {
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter])
+
+  const fetchPosts = useCallback(async () => {
+    setLoading(true)
     try {
-      const res = await fetch('/api/admin/blog')
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (statusFilter !== 'all') params.set('status', statusFilter)
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
+
+      const res = await fetch(`/api/admin/blog?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setPosts(data)
+        setTotal(Number(res.headers.get('X-Total-Count') || data.length))
+        setPages(Number(res.headers.get('X-Pages') || 1))
       }
     } catch (error) {
       console.error('Error fetching blog posts:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, statusFilter, searchQuery])
+
+  useEffect(() => {
+    if (status === 'authenticated') fetchPosts()
+  }, [status, fetchPosts])
+
+  useEffect(() => {
+    if (status === 'authenticated') fetchCategories()
+  }, [status])
 
   const fetchCategories = async () => {
     try {
@@ -193,11 +221,7 @@ export default function AdminBlog() {
     }
   }
 
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || post.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  const filteredPosts = posts
 
   if (status === 'loading' || loading) {
     return (
@@ -274,6 +298,8 @@ export default function AdminBlog() {
           <Link href="/admin/notifications">
             <Button variant="ghost" size="sm">Notifications</Button>
           </Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/reviews">
             <Button variant="ghost" size="sm">Reviews</Button>
           </Link>
@@ -362,8 +388,8 @@ export default function AdminBlog() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search posts by title..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -384,7 +410,7 @@ export default function AdminBlog() {
         {/* Posts List Card */}
         <Card className="border-2 shadow-sm">
           <CardHeader className="pb-4 border-b">
-            <CardTitle className="text-lg">Posts ({filteredPosts.length})</CardTitle>
+            <CardTitle className="text-lg">Posts ({total})</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
@@ -417,6 +443,11 @@ export default function AdminBlog() {
                     </div>
 
                     <div className="flex gap-2 flex-shrink-0">
+                      <Link href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="View Post">
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </Link>
                       <Link href={`/admin/blog/${post.id}`}>
                         <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="Edit Post">
                           <Edit className="h-4 w-4" />
@@ -443,6 +474,20 @@ export default function AdminBlog() {
             </div>
           </CardContent>
         </Card>
+
+        {pages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-muted-foreground">Page {page} of {pages} ({total} posts)</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Delete Confirmation Alert Dialog */}

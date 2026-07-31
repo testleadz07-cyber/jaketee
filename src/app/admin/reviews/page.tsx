@@ -2,8 +2,10 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
@@ -18,6 +20,7 @@ import {
   MessageSquare,
   ImageIcon,
   VideoIcon,
+  Search,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -57,6 +60,12 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const limit = 20
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -65,27 +74,43 @@ export default function AdminReviewsPage() {
   }, [status, router])
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchReviews()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, activeTab])
+    const t = setTimeout(() => {
+      setPage(1)
+      setSearchQuery(searchInput)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
-  const fetchReviews = async () => {
+  useEffect(() => {
+    setPage(1)
+  }, [activeTab])
+
+  const fetchReviews = useCallback(async () => {
     setLoading(true)
     try {
-      const qs = activeTab !== 'all' ? `?status=${activeTab}` : ''
-      const res = await fetch(`/api/admin/reviews${qs}`)
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (activeTab !== 'all') params.set('status', activeTab)
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
+
+      const res = await fetch(`/api/admin/reviews?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setReviews(data)
+        setTotal(Number(res.headers.get('X-Total-Count') || data.length))
+        setPages(Number(res.headers.get('X-Pages') || 1))
       }
     } catch (error) {
       console.error('Error fetching reviews:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, activeTab, searchQuery])
+
+  useEffect(() => {
+    if (status === 'authenticated') fetchReviews()
+  }, [status, fetchReviews])
 
   const handleUpdateStatus = async (id: string, newStatus: 'approved' | 'rejected') => {
     setUpdatingId(id)
@@ -227,6 +252,8 @@ export default function AdminReviewsPage() {
           <Link href="/admin/notifications">
             <Button variant="ghost" size="sm">Notifications</Button>
           </Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/reviews">
             <Button variant="secondary" size="sm">Reviews</Button>
           </Link>
@@ -255,18 +282,29 @@ export default function AdminReviewsPage() {
           <p className="text-sm text-muted-foreground">Approve, reject, or delete customer reviews before they go live on product pages.</p>
         </div>
 
-        {/* Status Tabs */}
-        <div className="flex gap-2 overflow-x-auto">
-          {STATUS_TABS.map((tab) => (
-            <Button
-              key={tab.key}
-              variant={activeTab === tab.key ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </Button>
-          ))}
+        {/* Search & Status Tabs */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by title, comment, or reviewer..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto">
+            {STATUS_TABS.map((tab) => (
+              <Button
+                key={tab.key}
+                variant={activeTab === tab.key ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.label}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -322,7 +360,7 @@ export default function AdminReviewsPage() {
                     <Link href={`/products/${review.product.slug}`} target="_blank">
                       <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-muted flex-shrink-0 border">
                         {review.product.image ? (
-                          <img src={review.product.image} alt={review.product.name} className="object-cover w-full h-full" />
+                          <Image src={review.product.image} alt={review.product.name} fill sizes="56px" className="object-cover" />
                         ) : null}
                       </div>
                     </Link>
@@ -345,7 +383,7 @@ export default function AdminReviewsPage() {
                           rel="noopener noreferrer"
                           className="relative h-20 w-20 rounded-lg overflow-hidden bg-muted border block"
                         >
-                          <img src={url} alt={`Review media ${idx + 1}`} className="object-cover w-full h-full" />
+                          <Image src={url} alt={`Review media ${idx + 1}`} fill sizes="80px" className="object-cover" />
                           <div className="absolute top-1 left-1 bg-black/60 rounded-full p-0.5">
                             <ImageIcon className="h-3 w-3 text-white" />
                           </div>
@@ -405,6 +443,20 @@ export default function AdminReviewsPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {pages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-muted-foreground">Page {page} of {pages} ({total} reviews)</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>
+                Next
+              </Button>
+            </div>
           </div>
         )}
       </main>

@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 import {
   Bold,
   Italic,
@@ -21,6 +22,7 @@ import {
   Undo,
   Redo,
   Code,
+  Loader2,
 } from 'lucide-react'
 
 interface RichTextEditorProps {
@@ -31,6 +33,9 @@ interface RichTextEditorProps {
 
 export function RichTextEditor({ content, onChange, placeholder = 'Write your post...' }: RichTextEditorProps) {
   const isInternalUpdate = useRef(false)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const { toast } = useToast()
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -80,10 +85,64 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your po
   }
 
   const addImage = () => {
-    const url = window.prompt('Enter image URL')
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run()
+    imageInputRef.current?.click()
+  }
+
+  const handleImageFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploadingImage(true)
+    let succeeded = 0
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid file type',
+          description: `File "${file.name}" is not an image.`,
+          variant: 'destructive',
+        })
+        continue
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: `Image "${file.name}" exceeds the 5MB size limit.`,
+          variant: 'destructive',
+        })
+        continue
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        const data = await res.json()
+        const url = res.ok ? data.url : URL.createObjectURL(file)
+        editor.chain().focus().setImage({ src: url }).run()
+        succeeded++
+        if (!res.ok) {
+          toast({
+            title: 'Upload warning',
+            description: data.error || `Failed to upload "${file.name}" online. Using local preview fallback.`,
+            variant: 'destructive',
+          })
+        }
+      } catch (error) {
+        const url = URL.createObjectURL(file)
+        editor.chain().focus().setImage({ src: url }).run()
+        succeeded++
+      }
     }
+
+    setIsUploadingImage(false)
+    if (succeeded > 0) {
+      toast({ title: 'Image(s) added', description: `Inserted ${succeeded} image(s) into the post.` })
+    }
+    if (imageInputRef.current) imageInputRef.current.value = ''
   }
 
   const ToolbarButton = ({
@@ -185,9 +244,17 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your po
         <ToolbarButton label="Add link" active={editor.isActive('link')} onClick={setLink}>
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton label="Add image" onClick={addImage}>
-          <ImageIcon className="h-4 w-4" />
+        <ToolbarButton label="Add image" onClick={addImage} disabled={isUploadingImage}>
+          {isUploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
         </ToolbarButton>
+        <input
+          type="file"
+          ref={imageInputRef}
+          onChange={handleImageFilesSelected}
+          accept="image/*"
+          multiple
+          className="hidden"
+        />
         <div className="mx-1 h-5 w-px bg-border" />
         <ToolbarButton
           label="Undo"

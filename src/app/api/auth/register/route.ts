@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { hashPassword } from '@/lib/auth'
 import { createNotification } from '@/lib/notifications'
+import { sendEmail, welcomeEmailTemplate } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,6 +45,15 @@ export async function POST(request: NextRequest) {
       title: 'New user registered',
       message: `${name} (${email}) just created an account.`,
       link: `/admin/users/${user._id}`,
+    })
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${request.nextUrl.protocol}//${request.nextUrl.host}`
+    sendEmail({
+      to: user.email,
+      subject: 'Welcome to LUXE STORE',
+      html: welcomeEmailTemplate({ userName: user.name, shopUrl: appUrl }),
+    }).then((result) => {
+      if (!result.success) console.error('Failed to send welcome email:', result.message)
     })
 
     const { password: _, ...userWithoutPassword } = user.toObject()

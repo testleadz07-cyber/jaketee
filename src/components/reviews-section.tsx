@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -365,7 +366,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                         rel="noopener noreferrer"
                         className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted border block"
                       >
-                        <img src={url} alt={`Review photo ${idx + 1}`} className="object-cover w-full h-full" />
+                        <Image src={url} alt={`Review photo ${idx + 1}`} fill sizes="64px" className="object-cover" />
                       </a>
                     ))}
                     {review.videos?.map((url, idx) => (
@@ -454,7 +455,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
               <div className="flex flex-wrap gap-3">
                 {reviewImages.map((url, idx) => (
                   <div key={`img-${idx}`} className="relative h-16 w-16 rounded-lg overflow-hidden border bg-muted group">
-                    <img src={url} alt={`Upload ${idx + 1}`} className="object-cover w-full h-full" />
+                    <Image src={url} alt={`Upload ${idx + 1}`} fill sizes="64px" className="object-cover" />
                     <button
                       type="button"
                       onClick={() => removeReviewImage(idx)}

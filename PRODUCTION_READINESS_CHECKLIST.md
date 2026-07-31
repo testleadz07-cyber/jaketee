@@ -68,6 +68,16 @@ Legend: `[x]` confirmed implemented · `[ ]` missing/needs work · `[~]` partial
       for support/staff-level accounts
 - [ ] No admin audit log (who changed a product/order/discount, and when)
 - [x] Webhook-verified payment confirmation for both Stripe and PayPal (not just client redirect)
+- [x] **Inventory decrements on payment confirmation** — fixed a gap where real
+      checkout orders (PayPal and Stripe) never touched `Product.stockCount` at
+      all (only the largely-unused `/api/orders` fallback route did). Added
+      `src/lib/inventory.ts` (`decrementStockForOrder`), wired into all 4 places
+      an order transitions to `'paid'` (PayPal capture + webhook, Stripe verify
+      + webhook), reusing each route's existing idempotency guard so it fires
+      exactly once per order. Decrements on payment confirmation rather than
+      order creation, since there's no expiry/cleanup job for abandoned
+      `pending` orders that reserving stock earlier would require. Verified via
+      `scripts/verify-stock-decrement.ts` (self-cleaning, run against a real DB).
 
 ## Housekeeping (from earlier codebase review — kept here for tracking)
 - [ ] Prune ~39 unused dependencies (`zod`, `sharp`, `date-fns`, `next-intl`, `uuid`,
@@ -279,15 +289,38 @@ the rest stay flat single-level categories.
       entry points, **not** nested category pages (matches Clothaa's nav structure)
 
 ### 8.2 Customization builder (jackets only)
-- [ ] Multi-step builder scoped to Jackets category products: style → material
-      (leather/suede/wool/vegan leather) → color → lining → optional embroidery/monogram
-- [ ] Live preview of selected options before add-to-cart
-- [ ] Dynamic price calculation: base price + material upcharge + lining upcharge +
-      embroidery/monogram fee, stacked per selection
-- [ ] **Made-to-measure option** — custom body-measurement form (chest, shoulder,
-      sleeve length, body length, etc.) offered as an alternative to standard size chart,
-      specifically for jackets (thejacketmaker's standout feature vs. Clothaa)
-- [ ] "Design Your Own Jacket" entry point on the Jackets category page
+- [x] Multi-step builder scoped to Jackets category products: style → material
+      → color → lining → optional embroidery/monogram → sizing → review, built
+      as `src/components/jacket-customizer.tsx`, rendered from
+      `product-detail-view.tsx` only when the product resolves under a jacket
+      category (`isJacketCategoryPath` in `src/lib/categories.ts`) — every other
+      product keeps the original flat variant UI, unaffected
+- [x] Live preview — selecting a Color option with an uploaded image swaps the
+      main product photo (reuses the pre-existing `variant.image` +
+      `setOverrideImage` mechanism). **Limitation:** only Color selection
+      triggers a photo swap today; Style/Material/Lining do not change the
+      image. No true composited/rendered preview.
+- [x] Dynamic price calculation: base price + summed variant `priceAdjust`
+      (style/material/color/lining) + monogram fee, shown live at every step
+      and in the final "Add to Cart" total
+- [x] **Made-to-measure option** — admin defines `measurementFields: string[]`
+      per product (e.g. Chest, Shoulder, Sleeve Length); customer toggles
+      between Standard Size and Made-to-Measure on the Sizing step, entering a
+      number per field. Stored as `{name: 'Measurement: <Field>', value}`
+      entries alongside the rest of the selections — flows through cart →
+      checkout → `Order.items[].variants` with zero schema changes, and
+      already displays correctly on the admin Orders page.
+- [x] Admin editor (`/admin/products/new` and `/admin/products/[id]`) has a
+      "Jacket Customization" panel (embroidery toggle + fee + max chars,
+      add/remove measurement-field chips) shown only for Jackets-category
+      products, plus Style/Material/Lining "Quick Suggestions" — currently only
+      populated for **Varsity Jackets** (the "hero" type per the original spec);
+      the other 6 jacket types only get Color/Size suggestions. Varsity Jackets
+      (and its subcategories) also get embroidery + a default measurement-field
+      set auto-populated on category selection.
+- [ ] "Design Your Own Jacket" entry point on the Jackets category page — not
+      built; the builder only exists on individual product pages today, no
+      standalone landing-page CTA
 
 ### 8.3 Order & fulfillment (jackets only)
 - [ ] Extended order status stages for custom/made-to-measure jacket orders (Design

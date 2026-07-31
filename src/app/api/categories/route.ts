@@ -9,8 +9,19 @@ import { authOptions } from '@/lib/auth-options'
 
 export async function GET() {
   try {
-    const db = await connectDB()
-    if (db) {
+    const staticCategories = getStaticCategoriesWithCount()
+    if (!staticCategories || staticCategories.length === 0) {
+      throw new Error('Static categories file returned no data')
+    }
+    return NextResponse.json(staticCategories)
+  } catch (staticError: any) {
+    console.error('Error rendering categories from static file, falling back to database:', staticError)
+    try {
+      const db = await connectDB()
+      if (!db) {
+        return NextResponse.json(getStaticCategoriesWithCount())
+      }
+
       const categories = await Category.find().lean()
       const nodes: CategoryNode[] = categories.map((c: any) => ({
         _id: String(c._id),
@@ -36,11 +47,10 @@ export async function GET() {
         }
       })
       return NextResponse.json(categoriesWithCount)
+    } catch (dbError: any) {
+      console.error('Error fetching categories from database:', dbError)
+      return NextResponse.json(getStaticCategoriesWithCount())
     }
-    return NextResponse.json(getStaticCategoriesWithCount())
-  } catch (error: any) {
-    console.error('Error fetching categories:', error)
-    return NextResponse.json(getStaticCategoriesWithCount())
   }
 }
 

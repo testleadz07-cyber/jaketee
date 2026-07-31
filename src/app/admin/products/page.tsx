@@ -2,12 +2,19 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import {
   AlertDialog,
@@ -60,6 +67,13 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const limit = 20
 
   // Selection states
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -74,17 +88,34 @@ export default function AdminProducts() {
   }, [status, router])
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchProducts()
-    }
-  }, [status])
+    // Debounce free-text search before it hits the server.
+    const t = setTimeout(() => {
+      setPage(1)
+      setSearchQuery(searchInput)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    setPage(1)
+  }, [categoryFilter])
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true)
     try {
-      const res = await fetch('/api/products?all=true')
+      const params = new URLSearchParams()
+      params.set('all', 'true')
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
+      if (categoryFilter !== 'all') params.set('category', categoryFilter)
+
+      const res = await fetch(`/api/products?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setProducts(data)
+        setTotal(Number(res.headers.get('X-Total-Count') || data.length))
+        setPages(Number(res.headers.get('X-Pages') || 1))
         // Detect fallback mock data
         const first = data[0]
         if (first && first._id && !first.id) {
@@ -96,7 +127,20 @@ export default function AdminProducts() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, searchQuery, categoryFilter])
+
+  useEffect(() => {
+    if (status === 'authenticated') fetchProducts()
+  }, [status, fetchProducts])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetch('/api/categories')
+        .then((res) => res.json())
+        .then((data) => setCategories(Array.isArray(data) ? data : []))
+        .catch(() => setCategories([]))
+    }
+  }, [status])
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -207,9 +251,7 @@ export default function AdminProducts() {
     }
   }
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredProducts = products
 
   if (status === 'loading' || loading) {
     return (
@@ -293,6 +335,8 @@ export default function AdminProducts() {
           <Link href="/admin/notifications">
             <Button variant="ghost" size="sm">Notifications</Button>
           </Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/reviews">
             <Button variant="ghost" size="sm">Reviews</Button>
           </Link>
@@ -339,14 +383,27 @@ export default function AdminProducts() {
 
         {/* Search & Bulk Action Summary */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products by name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products by name..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 p-2 px-4 rounded-lg bg-primary/5 border border-primary/20 text-sm">
@@ -367,7 +424,7 @@ export default function AdminProducts() {
                 onCheckedChange={handleSelectAll}
                 aria-label="Select all"
               />
-              <CardTitle className="text-lg">Product Catalog ({filteredProducts.length})</CardTitle>
+              <CardTitle className="text-lg">Product Catalog ({total})</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -452,6 +509,20 @@ export default function AdminProducts() {
             </div>
           </CardContent>
         </Card>
+
+        {pages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-muted-foreground">Page {page} of {pages} ({total} products)</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Floating Bulk Action Bar */}

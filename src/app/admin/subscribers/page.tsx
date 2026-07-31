@@ -7,13 +7,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Table,
   TableBody,
   TableCell,
@@ -21,102 +14,124 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useToast } from '@/hooks/use-toast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   ChevronLeft,
   LogOut,
   Loader2,
-  Users as UsersIcon,
+  Mail,
   Search,
+  Download,
+  Trash2,
 } from 'lucide-react'
 
-interface GuestActivityRow {
+interface SubscriberRow {
   id: string
-  guestId: string
-  action: string
-  details?: Record<string, any>
-  ip?: string
-  userAgent?: string
-  country?: string
-  createdAt: string
+  email: string
+  subscribedAt: string
 }
 
-const renderActivityDetails = (activity: GuestActivityRow) => {
-  const details = activity.details
-  if (!details) return null
-  switch (activity.action) {
-    case 'view_product':
-      return <span className="text-xs text-muted-foreground">Product: <span className="font-semibold">{details.name || details.productId}</span></span>
-    case 'view_category':
-      return <span className="text-xs text-muted-foreground">Category: <span className="font-semibold">{details.name || details.slug}</span></span>
-    case 'add_to_cart':
-      return (
-        <span className="text-xs text-muted-foreground">
-          {details.name} (Qty: {details.quantity || 1}) - ${details.price?.toFixed(2)}
-        </span>
-      )
-    case 'search':
-      return <span className="text-xs text-muted-foreground">Query: &ldquo;<span className="italic">{details.query}</span>&rdquo;</span>
-    default:
-      return <span className="text-xs text-muted-foreground">{JSON.stringify(details)}</span>
-  }
-}
-
-const formatActionName = (action: string) =>
-  action.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-
-export default function AdminGuestActivityPage() {
+export default function AdminSubscribersPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { toast } = useToast()
 
-  const [activities, setActivities] = useState<GuestActivityRow[]>([])
-  const [actions, setActions] = useState<string[]>([])
+  const [subscribers, setSubscribers] = useState<SubscriberRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [actionFilter, setActionFilter] = useState('all')
-  const [countryFilter, setCountryFilter] = useState('')
-  const [guestIdFilter, setGuestIdFilter] = useState('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [deleteTarget, setDeleteTarget] = useState<SubscriberRow | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
   }, [status, router])
 
-  const fetchActivity = useCallback(async () => {
+  const fetchSubscribers = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
       params.set('page', String(page))
-      if (actionFilter !== 'all') params.set('action', actionFilter)
-      if (countryFilter.trim()) params.set('country', countryFilter.trim())
-      if (guestIdFilter.trim()) params.set('guestId', guestIdFilter.trim())
-      if (from) params.set('from', from)
-      if (to) params.set('to', to)
+      if (search.trim()) params.set('search', search.trim())
 
-      const res = await fetch(`/api/admin/guest-activity?${params.toString()}`)
+      const res = await fetch(`/api/admin/subscribers?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
-        setActivities(data.activities || [])
+        setSubscribers(data.subscribers || [])
         setPages(data.pages || 1)
         setTotal(data.total || 0)
-        setActions(data.actions || [])
       }
     } catch (error) {
-      console.error('Error fetching guest activity:', error)
+      console.error('Error fetching subscribers:', error)
     } finally {
       setLoading(false)
     }
-  }, [page, actionFilter, countryFilter, guestIdFilter, from, to])
+  }, [page, search])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchActivity()
-  }, [status, fetchActivity])
+    if (status === 'authenticated') fetchSubscribers()
+  }, [status, fetchSubscribers])
 
   useEffect(() => {
     setPage(1)
-  }, [actionFilter, countryFilter, guestIdFilter, from, to])
+  }, [search])
+
+  const handleDelete = async (subscriber: SubscriberRow) => {
+    try {
+      const res = await fetch(`/api/admin/subscribers?id=${subscriber.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        toast({ title: 'Subscriber removed', description: `${subscriber.email} was unsubscribed.` })
+        fetchSubscribers()
+      } else {
+        const err = await res.json()
+        toast({ title: 'Error', description: err.error || 'Failed to remove subscriber.', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'An unexpected error occurred.', variant: 'destructive' })
+    } finally {
+      setDeleteTarget(null)
+    }
+  }
+
+  const handleExportCsv = async () => {
+    try {
+      const res = await fetch('/api/admin/subscribers?limit=200&page=1')
+      const first = await res.json()
+      const totalCount: number = first.total || 0
+      const limit = 200
+      const totalPages = Math.max(1, Math.ceil(totalCount / limit))
+
+      let all: SubscriberRow[] = first.subscribers || []
+      for (let p = 2; p <= totalPages; p++) {
+        const r = await fetch(`/api/admin/subscribers?limit=${limit}&page=${p}`)
+        const d = await r.json()
+        all = all.concat(d.subscribers || [])
+      }
+
+      const rows = [['Email', 'Subscribed At'], ...all.map((s) => [s.email, new Date(s.subscribedAt).toISOString()])]
+      const csv = rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `newsletter-subscribers-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast({ title: 'Error', description: 'Failed to export subscribers.', variant: 'destructive' })
+    }
+  }
 
   if (status === 'loading') {
     return (
@@ -174,11 +189,10 @@ export default function AdminGuestActivityPage() {
           <Link href="/admin/categories"><Button variant="ghost" size="sm">Categories</Button></Link>
           <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
           <Link href="/admin/users"><Button variant="ghost" size="sm">Users</Button></Link>
-          <Link href="/admin/guest-activity"><Button variant="secondary" size="sm">Guest Activity</Button></Link>
+          <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
           <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
-          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/subscribers"><Button variant="secondary" size="sm">Subscribers</Button></Link>
           <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
-          <Link href="/admin/analytics"><Button variant="ghost" size="sm">Analytics</Button></Link>
           <Link href="/admin/reviews"><Button variant="ghost" size="sm">Reviews</Button></Link>
           <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
           <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
@@ -190,97 +204,66 @@ export default function AdminGuestActivityPage() {
 
       {/* Main Body */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight">Guest Activity</h2>
-          <p className="text-sm text-muted-foreground">
-            Browsing activity from anonymous (not logged in) visitors, identified by a per-browser guest ID.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Newsletter Subscribers</h2>
+            <p className="text-sm text-muted-foreground">
+              Everyone who signed up for the newsletter ({total} total).
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleExportCsv} className="gap-1.5">
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-          <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="Action" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Actions</SelectItem>
-              {actions.map((a) => (
-                <SelectItem key={a} value={a}>{formatActionName(a)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="relative flex-1 min-w-[180px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Filter by country..."
-              value={countryFilter}
-              onChange={(e) => setCountryFilter(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Filter by guest ID..."
-            value={guestIdFilter}
-            onChange={(e) => setGuestIdFilter(e.target.value)}
-            className="w-full sm:w-56"
-          />
-          <Input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="w-full sm:w-40"
-          />
-          <Input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="w-full sm:w-40"
+            placeholder="Search by email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
           />
         </div>
 
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-            <span className="text-sm text-muted-foreground">Loading guest activity...</span>
+            <span className="text-sm text-muted-foreground">Loading subscribers...</span>
           </div>
-        ) : activities.length === 0 ? (
+        ) : subscribers.length === 0 ? (
           <div className="text-center py-16 border-2 rounded-xl">
-            <UsersIcon className="h-12 w-12 text-muted-foreground opacity-50 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg">No guest activity found</h3>
-            <p className="text-sm text-muted-foreground">Try adjusting your filters.</p>
+            <Mail className="h-12 w-12 text-muted-foreground opacity-50 mx-auto mb-3" />
+            <h3 className="font-semibold text-lg">No subscribers found</h3>
+            <p className="text-sm text-muted-foreground">Try adjusting your search.</p>
           </div>
         ) : (
           <div className="border-2 rounded-xl overflow-hidden bg-background">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Guest ID</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Country</TableHead>
-                  <TableHead>IP</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Subscribed</TableHead>
+                  <TableHead className="w-16" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activities.map((activity) => (
-                  <TableRow key={activity.id}>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(activity.createdAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
-                      {activity.guestId.slice(0, 8)}&hellip;
-                    </TableCell>
-                    <TableCell className="text-sm font-medium">
-                      {formatActionName(activity.action)}
-                    </TableCell>
-                    <TableCell>{renderActivityDetails(activity)}</TableCell>
+                {subscribers.map((s) => (
+                  <TableRow key={s.id}>
+                    <TableCell className="font-medium">{s.email}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {activity.country || 'Unknown'}
+                      {new Date(s.subscribedAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {activity.ip || 'N/A'}
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setDeleteTarget(s)}
+                        title="Remove subscriber"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -292,7 +275,7 @@ export default function AdminGuestActivityPage() {
         {pages > 1 && (
           <div className="flex items-center justify-between pt-2">
             <p className="text-sm text-muted-foreground">
-              Page {page} of {pages} ({total} events)
+              Page {page} of {pages} ({total} subscribers)
             </p>
             <div className="flex gap-2">
               <Button
@@ -315,6 +298,27 @@ export default function AdminGuestActivityPage() {
           </div>
         )}
       </main>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove this subscriber?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="font-semibold text-foreground">{deleteTarget?.email}</span> will be removed from the
+              newsletter list. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && handleDelete(deleteTarget)}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

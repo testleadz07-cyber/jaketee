@@ -19,6 +19,7 @@ export default function TagsPage() {
   const [editingTag, setEditingTag] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -172,6 +173,8 @@ export default function TagsPage() {
           <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
           <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
           <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
           <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
           <Link href="/admin/tags"><Button variant="secondary" size="sm">Tags</Button></Link>
@@ -200,12 +203,23 @@ export default function TagsPage() {
           <Button onClick={handleAddTag} disabled={saving || !newTag.trim()}>Add</Button>
         </div>
 
+        {/* Search */}
+        <Input
+          placeholder="Search tags..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="max-w-sm"
+        />
+
         {/* Tag list */}
         <ul className="space-y-2 max-w-lg">
           {tags.length === 0 && (
             <li className="text-muted-foreground text-sm py-4">No tags yet. Add your first tag above.</li>
           )}
-          {tags.map(tag => (
+          {tags.filter(t => t.toLowerCase().includes(search.toLowerCase())).length === 0 && tags.length > 0 && (
+            <li className="text-muted-foreground text-sm py-4">No tags match &quot;{search}&quot;.</li>
+          )}
+          {tags.filter(t => t.toLowerCase().includes(search.toLowerCase())).map(tag => (
             <li key={tag} className="flex items-center gap-2 p-3 rounded-xl border bg-card hover:bg-muted/20 transition-colors">
               {editingTag === tag ? (
                 <>

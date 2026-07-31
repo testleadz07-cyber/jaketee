@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { ImageUpload } from '@/components/image-upload'
+import { useToast } from '@/hooks/use-toast'
 import {
   orderCategoriesForDisplay,
   resolveAncestorChain,
@@ -105,6 +106,7 @@ export default function EditProduct() {
   const productId = params.id as string
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { toast } = useToast()
   const [product, setProduct] = useState<any>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -160,10 +162,19 @@ export default function EditProduct() {
       if (res.ok) {
         router.push('/admin/products')
       } else {
-        alert('Failed to save product')
+        const errorData = await res.json().catch(() => ({}))
+        toast({
+          title: 'Failed to save product',
+          description: errorData.error,
+          variant: 'destructive',
+        })
       }
     } catch {
-      alert('Failed to save product')
+      toast({
+        title: 'Failed to save product',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      })
     } finally {
       setSaving(false)
     }

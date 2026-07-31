@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { ImageUpload } from '@/components/image-upload'
+import { useToast } from '@/hooks/use-toast'
 import {
   orderCategoriesForDisplay,
   resolveAncestorChain,
@@ -103,7 +104,8 @@ const VARIANT_SUGGESTIONS: Record<string, Array<{ name: string; label: string; v
 export default function NewProduct() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+  const { toast } = useToast()
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -192,10 +194,18 @@ export default function NewProduct() {
         router.push('/admin/products')
       } else {
         const errorData = await res.json()
-        alert(errorData.error || 'Failed to create product')
+        toast({
+          title: 'Failed to create product',
+          description: errorData.error,
+          variant: 'destructive',
+        })
       }
     } catch {
-      alert('Failed to create product')
+      toast({
+        title: 'Failed to create product',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      })
     } finally {
       setSubmitting(false)
     }

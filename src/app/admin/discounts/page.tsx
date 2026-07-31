@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -41,7 +41,8 @@ import {
   DollarSign,
   Percent,
   Check,
-  X
+  X,
+  Search
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -67,6 +68,13 @@ export default function AdminDiscounts() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
   const [isDemoMode, setIsDemoMode] = useState(false)
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const limit = 20
 
   // Dialog open states
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -107,17 +115,32 @@ export default function AdminDiscounts() {
   }, [status, router])
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchCoupons()
-    }
-  }, [status])
+    const t = setTimeout(() => {
+      setPage(1)
+      setSearchQuery(searchInput)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
-  const fetchCoupons = async () => {
+  useEffect(() => {
+    setPage(1)
+  }, [activeFilter])
+
+  const fetchCoupons = useCallback(async () => {
+    setLoading(true)
     try {
-      const res = await fetch('/api/admin/discounts')
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
+      if (activeFilter !== 'all') params.set('active', activeFilter)
+
+      const res = await fetch(`/api/admin/discounts?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setCoupons(data)
+        setTotal(Number(res.headers.get('X-Total-Count') || data.length))
+        setPages(Number(res.headers.get('X-Pages') || 1))
         // Detect fallback mock data
         const first = data[0]
         if (first && first.id && first.id.startsWith('demo-')) {
@@ -129,7 +152,11 @@ export default function AdminDiscounts() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, searchQuery, activeFilter])
+
+  useEffect(() => {
+    if (status === 'authenticated') fetchCoupons()
+  }, [status, fetchCoupons])
 
   const handleCodeChangeAdd = (val: string) => {
     setNewCoupon((prev) => ({ ...prev, code: val.toUpperCase().replace(/[^A-Z0-9]/g, '') }))
@@ -374,6 +401,8 @@ export default function AdminDiscounts() {
           <Link href="/admin/notifications">
             <Button variant="ghost" size="sm">Notifications</Button>
           </Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/reviews">
             <Button variant="ghost" size="sm">Reviews</Button>
           </Link>
@@ -416,11 +445,40 @@ export default function AdminDiscounts() {
           </Button>
         </div>
 
+        {/* Search & Status Filter */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by code..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex gap-2">
+            {[
+              { value: 'all', label: 'All' },
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' },
+            ].map((opt) => (
+              <Button
+                key={opt.value}
+                variant={activeFilter === opt.value ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveFilter(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         {/* Coupon Cards / Table Grid */}
         <Card className="border-2">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Ticket className="h-5 w-5 text-primary" /> Active Coupons
+              <Ticket className="h-5 w-5 text-primary" /> Coupons ({total})
             </CardTitle>
             <CardDescription>View, edit, and toggle active promotions for checkout subtotal cuts.</CardDescription>
           </CardHeader>
@@ -506,6 +564,20 @@ export default function AdminDiscounts() {
             </div>
           </CardContent>
         </Card>
+
+        {pages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-muted-foreground">Page {page} of {pages} ({total} coupons)</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* CREATE DIALOG */}

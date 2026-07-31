@@ -2,8 +2,9 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -22,7 +23,8 @@ import {
   CheckCircle,
   Truck,
   XCircle,
-  ClipboardList
+  ClipboardList,
+  Search
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -74,7 +76,13 @@ export default function AdminOrders() {
   
   // Status filter state
   const [activeTab, setActiveTab] = useState<string>('all')
-  
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const limit = 20
+
   // Expandable row state
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
   
@@ -92,39 +100,53 @@ export default function AdminOrders() {
   }, [status, router])
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchOrders()
-    }
-  }, [status])
+    const t = setTimeout(() => {
+      setPage(1)
+      setSearchQuery(searchInput)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
-  const fetchOrders = async () => {
+  useEffect(() => {
+    setPage(1)
+  }, [activeTab])
+
+  const fetchOrders = useCallback(async () => {
+    setLoading(true)
     try {
-      const res = await fetch('/api/orders')
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (activeTab !== 'all') params.set('status', activeTab)
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
+
+      const res = await fetch(`/api/orders?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setOrders(data)
-        // Detect fallback mock data
-        const first = data[0]
-        if (first && first._id && !first.id) {
-          // If first item does not have id property but has _id, it's Mongoose DB data mapping. 
-          // Let's verify how stats does it: it checks the DB presence.
-          // Wait, isDemoMode is checkable by seeing if database is active or mock static data has been returned.
-          // Let's fetch config or just check if any orders have typical mock values.
-        }
+        setTotal(Number(res.headers.get('X-Total-Count') || data.length))
+        setPages(Number(res.headers.get('X-Pages') || 1))
       }
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, activeTab, searchQuery])
+
+  useEffect(() => {
+    if (status === 'authenticated') fetchOrders()
+  }, [status, fetchOrders])
 
   // Detect if db connection actually failed
   useEffect(() => {
     // If no db, stats endpoint yields "mock-1" or similar ids, and categories doesn't set id.
+    // Use `total` (unfiltered count from the API) rather than the current page's
+    // `orders` array, since a search/status filter can legitimately return zero
+    // results without the store being in demo mode.
     const isMock = orders.some(o => o._id?.startsWith('mock') || o.id?.startsWith('mock'))
-    setIsDemoMode(isMock || orders.length === 0)
-  }, [orders])
+    setIsDemoMode(isMock || (total === 0 && activeTab === 'all' && !searchQuery))
+  }, [orders, total, activeTab, searchQuery])
 
   const toggleExpand = (orderId: string) => {
     setExpandedOrders(prev => ({
@@ -265,10 +287,7 @@ export default function AdminOrders() {
     }
   }
 
-  const filteredOrders = orders.filter(o => {
-    if (activeTab === 'all') return true
-    return o.status.toLowerCase() === activeTab.toLowerCase()
-  })
+  const filteredOrders = orders
 
   if (status === 'loading' || loading) {
     return (
@@ -351,6 +370,8 @@ export default function AdminOrders() {
           <Link href="/admin/notifications">
             <Button variant="ghost" size="sm">Notifications</Button>
           </Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/reviews">
             <Button variant="ghost" size="sm">Reviews</Button>
           </Link>
@@ -383,10 +404,19 @@ export default function AdminOrders() {
           </div>
         )}
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold">Orders</h2>
-            <p className="text-muted-foreground text-sm">Manage customer orders and ship updates</p>
+            <p className="text-muted-foreground text-sm">Manage customer orders and ship updates ({total} total)</p>
+          </div>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search order #, name, email..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-9"
+            />
           </div>
         </div>
 
@@ -640,6 +670,20 @@ export default function AdminOrders() {
             </div>
           )}
         </div>
+
+        {pages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-muted-foreground">Page {page} of {pages} ({total} orders)</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

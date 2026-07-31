@@ -19,6 +19,7 @@ import { Footer } from '@/components/footer'
 import { Search, Sparkles, ShoppingBag, Filter, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { buildCategoryUrl } from '@/lib/categories'
+import { getStaticCategoriesWithCount } from '@/lib/static-data'
 
 interface Product {
   id: string
@@ -82,11 +83,20 @@ export default function Home() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/categories')
-      const data = await res.json()
-      setCategories(data)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
+      const staticCategories = getStaticCategoriesWithCount()
+      if (!staticCategories || staticCategories.length === 0) {
+        throw new Error('Static categories file returned no data')
+      }
+      setCategories(staticCategories)
+    } catch (staticError) {
+      console.error('Error rendering categories from static file, falling back to database:', staticError)
+      try {
+        const res = await fetch('/api/categories')
+        const data = await res.json()
+        setCategories(data)
+      } catch (dbError) {
+        console.error('Error fetching categories from database:', dbError)
+      }
     }
   }
 

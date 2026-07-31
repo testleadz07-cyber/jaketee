@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Discount from '@/models/Discount'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session || (session.user as any).role !== 'admin') {
@@ -13,12 +13,32 @@ export async function GET() {
 
     const db = await connectDB()
     if (db) {
-      const discounts = await Discount.find().sort({ createdAt: -1 }).lean()
+      const { searchParams } = new URL(request.url)
+      const search = searchParams.get('search')?.trim()
+      const activeParam = searchParams.get('active') // 'all' | 'active' | 'inactive'
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20))
+
+      const query: Record<string, any> = {}
+      if (search) {
+        query.code = { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
+      }
+      if (activeParam === 'active') query.isActive = true
+      else if (activeParam === 'inactive') query.isActive = false
+
+      const total = await Discount.countDocuments(query)
+      const discounts = await Discount.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean()
       const mapped = discounts.map((d: any) => ({
         ...d,
         id: String(d._id),
       }))
-      return NextResponse.json(mapped)
+      return NextResponse.json(mapped, {
+        headers: { 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
+      })
     }
 
     // Fallback static list in case of no DB

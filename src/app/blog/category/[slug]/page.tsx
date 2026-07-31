@@ -1,15 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useCallback, use } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
+import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Pagination,
   PaginationContent,
@@ -18,7 +17,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { Newspaper, Filter, Calendar, User } from 'lucide-react'
+import { Newspaper, Calendar, User } from 'lucide-react'
+import { notFound } from 'next/navigation'
 
 interface BlogPostSummary {
   id: string
@@ -27,16 +27,15 @@ interface BlogPostSummary {
   excerpt: string
   featuredImage?: string | null
   categories: Array<{ id: string; name: string; slug: string }>
-  tags?: string[]
   author: { name: string }
   publishedAt: string
-  views: number
 }
 
 interface BlogCategory {
   id: string
   name: string
   slug: string
+  description?: string
 }
 
 function formatDate(dateString: string) {
@@ -51,48 +50,40 @@ function formatDate(dateString: string) {
   }
 }
 
-export default function BlogListPage() {
-  return (
-    <Suspense fallback={null}>
-      <BlogListContent />
-    </Suspense>
-  )
-}
+export default function BlogCategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
 
-function BlogListContent() {
-  const searchParams = useSearchParams()
-
+  const [category, setCategory] = useState<BlogCategory | null>(null)
+  const [categoryLoaded, setCategoryLoaded] = useState(false)
   const [posts, setPosts] = useState<BlogPostSummary[]>([])
-  const [categories, setCategories] = useState<BlogCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    const pageParam = searchParams.get('page')
-    if (pageParam) setPage(Math.max(1, parseInt(pageParam, 10) || 1))
-    fetchCategories()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/admin/blog-categories')
-      if (res.ok) {
+    const fetchCategory = async () => {
+      try {
+        const res = await fetch('/api/admin/blog-categories')
         const data = await res.json()
-        setCategories(Array.isArray(data) ? data : [])
+        const match = Array.isArray(data) ? data.find((c: any) => c.slug === slug) : null
+        setCategory(match || null)
+      } catch (error) {
+        console.error('Error fetching blog category:', error)
+        setCategory(null)
+      } finally {
+        setCategoryLoaded(true)
       }
-    } catch (error) {
-      console.error('Error fetching blog categories:', error)
     }
-  }
+    fetchCategory()
+  }, [slug])
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
       params.append('page', String(page))
+      params.append('category', slug)
 
       const res = await fetch(`/api/blog?${params.toString()}`)
       const data = await res.json()
@@ -105,7 +96,7 @@ function BlogListContent() {
     } finally {
       setLoading(false)
     }
-  }, [page])
+  }, [page, slug])
 
   useEffect(() => {
     fetchPosts()
@@ -117,11 +108,14 @@ function BlogListContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  if (categoryLoaded && !category) {
+    notFound()
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
       <Header />
 
-      {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-background py-16 md:py-20">
         <div className="container mx-auto px-4 relative">
           <motion.div
@@ -130,36 +124,21 @@ function BlogListContent() {
             transition={{ duration: 0.5 }}
             className="max-w-3xl mx-auto text-center"
           >
+            <Breadcrumbs
+              className="justify-center mb-6"
+              items={[{ label: 'Blog', href: '/blog' }, { label: category?.name || '' }]}
+            />
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-6">
               <Newspaper className="h-4 w-4" />
               The Luxe Journal
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-              Our Blog
+              {category?.name || 'Loading…'}
             </h1>
-            <p className="text-lg text-muted-foreground">
-              Style guides, product stories, and ideas curated by our team.
-            </p>
+            {category?.description && (
+              <p className="text-lg text-muted-foreground">{category.description}</p>
+            )}
           </motion.div>
-        </div>
-      </section>
-
-      {/* Category filters */}
-      <section className="border-b bg-background/50 backdrop-blur sticky top-[73px] z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Filter className="h-4 w-4 text-muted-foreground mr-2" />
-            <Badge variant="default" className="cursor-default">
-              All Posts
-            </Badge>
-            {categories.map((category) => (
-              <Link key={category.id} href={`/blog/category/${category.slug}`}>
-                <Badge variant="outline" className="cursor-pointer transition-all hover:scale-105">
-                  {category.name}
-                </Badge>
-              </Link>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -173,15 +152,14 @@ function BlogListContent() {
         ) : posts.length === 0 ? (
           <div className="text-center py-16">
             <Newspaper className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No posts found</h3>
-            <p className="text-muted-foreground">Try a different category or check back later.</p>
+            <h3 className="text-xl font-semibold mb-2">No posts in this category yet</h3>
+            <p className="text-muted-foreground">
+              Check back later, or browse <Link href="/blog" className="underline">all posts</Link>.
+            </p>
           </div>
         ) : (
           <>
-            <motion.div
-              layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
+            <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post, index) => (
                 <motion.div
                   key={post.id}
@@ -201,13 +179,9 @@ function BlogListContent() {
                             className="object-cover transition-transform duration-300 group-hover:scale-110"
                           />
                           {post.categories?.[0] && (
-                            <Link
-                              href={`/blog/category/${post.categories[0].slug}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="absolute top-3 left-3 z-10"
-                            >
-                              <Badge variant="secondary">{post.categories[0].name}</Badge>
-                            </Link>
+                            <Badge className="absolute top-3 left-3 z-10" variant="secondary">
+                              {post.categories[0].name}
+                            </Badge>
                           )}
                         </div>
                         <CardContent className="p-5">

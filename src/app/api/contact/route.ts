@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail, contactFormTemplate } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
+import { connectDB } from '@/lib/mongodb'
+import ContactMessage from '@/models/ContactMessage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +44,11 @@ export async function POST(request: NextRequest) {
       subject: 'LUXE STORE - Inquiry Received',
       html: customerReplyHtml,
     })
+
+    const db = await connectDB()
+    if (db) {
+      await ContactMessage.create({ name, email, subject, message })
+    }
 
     await createNotification({
       type: 'contact_form',

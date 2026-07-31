@@ -21,6 +21,9 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { getWhatsAppUrl } from '@/lib/whatsapp'
+
+const whatsappUrl = getWhatsAppUrl("Hi! I have a question about my order.")
 
 export default function ContactPage() {
   const { toast } = useToast()
@@ -192,6 +195,27 @@ export default function ContactPage() {
                       <p className="text-sm text-muted-foreground">Mon-Fri, 9am-6pm EST</p>
                     </div>
                   </div>
+
+                  {whatsappUrl && (
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-[#25D366]/10 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" className="h-6 w-6 fill-[#25D366]" aria-hidden="true">
+                          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.07c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.1.11-1.78-.11-.41-.13-.94-.3-1.62-.6-2.84-1.23-4.7-4.12-4.84-4.31-.14-.19-1.16-1.54-1.16-2.93 0-1.4.73-2.08 1-2.37.24-.28.55-.35.73-.35h.53c.17 0 .4-.03.62.47.24.55.8 1.94.87 2.08.07.14.11.3.02.49-.09.19-.14.3-.28.46-.14.16-.29.36-.42.48-.14.14-.28.29-.12.57.16.28.72 1.19 1.55 1.93 1.06.95 1.96 1.24 2.24 1.38.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.31z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-1">WhatsApp</h3>
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          Message us directly
+                        </a>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">

@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { hashPassword } from '@/lib/auth'
+import { sendEmail, passwordChangedTemplate } from '@/lib/email'
 
 // Validate a reset token (used by the reset-password page before showing the form)
 export async function GET(request: NextRequest) {
@@ -67,6 +68,14 @@ export async function POST(request: NextRequest) {
     user.resetPasswordToken = undefined
     user.resetPasswordExpires = undefined
     await user.save()
+
+    sendEmail({
+      to: user.email,
+      subject: 'Your LUXE STORE password was changed',
+      html: passwordChangedTemplate({ userName: user.name }),
+    }).then((result) => {
+      if (!result.success) console.error('Failed to send password-changed email:', result.message)
+    })
 
     return NextResponse.json({ message: 'Your password has been reset successfully. You can now sign in.' })
   } catch (error: any) {

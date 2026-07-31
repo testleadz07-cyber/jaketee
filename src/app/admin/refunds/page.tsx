@@ -2,8 +2,9 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -17,7 +18,8 @@ import {
   CheckCircle,
   XCircle,
   Inbox,
-  Clock
+  Clock,
+  Search
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -49,22 +51,44 @@ export default function AdminRefundsPage() {
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const limit = 20
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
   }, [status, router])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchRequests()
-  }, [status])
+    const t = setTimeout(() => {
+      setPage(1)
+      setSearchQuery(searchInput)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
 
-  async function fetchRequests() {
+  useEffect(() => {
+    setPage(1)
+  }, [activeTab])
+
+  const fetchRequests = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/refunds')
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (activeTab !== 'all') params.set('status', activeTab)
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
+
+      const res = await fetch(`/api/admin/refunds?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
         setRequests(data.requests || [])
+        setTotal(data.total ?? (data.requests || []).length)
+        setPages(data.pages || 1)
       } else {
         setIsDemoMode(true)
         setRequests(MOCK_REQUESTS)
@@ -75,7 +99,11 @@ export default function AdminRefundsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, activeTab, searchQuery])
+
+  useEffect(() => {
+    if (status === 'authenticated') fetchRequests()
+  }, [status, fetchRequests])
 
   async function handleAction(id: string, action: 'approved' | 'rejected') {
     if (isDemoMode) {
@@ -102,7 +130,7 @@ export default function AdminRefundsPage() {
     }
   }
 
-  const filtered = requests.filter(r => activeTab === 'all' || r.status === activeTab)
+  const filtered = requests
   const tabs: Array<{ key: typeof activeTab; label: string }> = [
     { key: 'all', label: 'All' },
     { key: 'pending', label: 'Pending' },
@@ -172,6 +200,8 @@ export default function AdminRefundsPage() {
           <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
           <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
           <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
+          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
+          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
           <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
           <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
           <Link href="/admin/tags"><Button variant="ghost" size="sm">Tags</Button></Link>
@@ -204,12 +234,21 @@ export default function AdminRefundsPage() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="font-semibold">
-              {requests.filter(r => r.status === 'pending').length} pending
+              {total} {activeTab === 'all' ? 'total' : activeTab}
             </Badge>
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Search & Tabs */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by order #, name, email..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-9"
+          />
+        </div>
         <div className="flex border-b overflow-x-auto gap-2 py-1 select-none">
           {tabs.map(tab => (
             <button
@@ -222,11 +261,6 @@ export default function AdminRefundsPage() {
               }`}
             >
               {tab.label}
-              {tab.key !== 'all' && (
-                <span className="ml-1.5 text-[10px] opacity-70">
-                  ({requests.filter(r => r.status === tab.key).length})
-                </span>
-              )}
             </button>
           ))}
         </div>
@@ -300,6 +334,20 @@ export default function AdminRefundsPage() {
             </div>
           )}
         </div>
+
+        {pages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-muted-foreground">Page {page} of {pages} ({total} requests)</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

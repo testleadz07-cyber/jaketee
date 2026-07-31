@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
 import Category from '@/models/Category'
 import BlogPost from '@/models/BlogPost'
+import BlogCategory from '@/models/BlogCategory'
 import { getStaticProducts, getStaticCategories } from '@/lib/static-data'
 import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
 
@@ -32,13 +33,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productsList: any[] = []
   let categoriesList: Array<{ _id: string; name: string; slug: string; parentId?: string | null; updatedAt: Date }> = []
   let blogPostsList: Array<{ slug: string; updatedAt: Date }> = []
+  let blogCategoriesList: Array<{ slug: string; updatedAt: Date }> = []
 
   try {
     const db = await connectDB()
     if (db) {
       const dbProducts = await Product.find({}).lean()
       const dbCategories = await Category.find({}).lean()
-      const dbBlogPosts = await BlogPost.find({ status: 'published' }).select('slug updatedAt').lean()
+      const dbBlogPosts = await BlogPost.find({ status: 'published' }).select('slug updatedAt categories').lean()
+      const dbBlogCategories = await BlogCategory.find({}).select('slug updatedAt').lean()
+      const usedCategoryIds = new Set(
+        dbBlogPosts.flatMap((p: any) => (p.categories || []).map((id: any) => String(id)))
+      )
+      blogCategoriesList = dbBlogCategories
+        .filter((c: any) => usedCategoryIds.has(String(c._id)))
+        .map((c: any) => ({ slug: c.slug, updatedAt: c.updatedAt || new Date() }))
 
       categoriesList = dbCategories.map((c: any) => ({
         _id: String(c._id),
@@ -114,5 +123,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes]
+  const blogCategoryRoutes = blogCategoriesList.map((category) => ({
+    url: `${baseUrl}/blog/category/${category.slug}`,
+    lastModified: category.updatedAt,
+    changeFrequency: 'weekly' as const,
+    priority: 0.5,
+  }))
+
+  return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes, ...blogCategoryRoutes]
 }

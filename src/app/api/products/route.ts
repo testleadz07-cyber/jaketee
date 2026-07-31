@@ -79,7 +79,11 @@ export async function GET(request: NextRequest) {
         : [],
     }))
 
-    return NextResponse.json(mapped)
+    const total = await Product.countDocuments(filter)
+
+    return NextResponse.json(mapped, {
+      headers: { 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
+    })
   } catch (error: any) {
     console.error('Error fetching products:', error)
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })

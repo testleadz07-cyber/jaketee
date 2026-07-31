@@ -320,8 +320,9 @@ export function BlogPostForm({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Featured Image</Label>
             <ImageUpload
+              label="Featured Image"
+              maxImages={1}
               onUpload={(urls) => setValues((prev) => ({ ...prev, featuredImage: urls[urls.length - 1] || urls[0] || '' }))}
               initialImages={values.featuredImage ? [values.featuredImage] : []}
             />

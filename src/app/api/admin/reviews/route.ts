@@ -19,14 +19,28 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
+    const search = searchParams.get('search')?.trim()
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20))
 
     const query: Record<string, any> = {}
     if (status && ['pending', 'approved', 'rejected'].includes(status)) {
       query.status = status
     }
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      query.$or = [
+        { title: { $regex: escaped, $options: 'i' } },
+        { comment: { $regex: escaped, $options: 'i' } },
+        { userName: { $regex: escaped, $options: 'i' } },
+      ]
+    }
 
+    const total = await Review.countDocuments(query)
     const reviews = await Review.find(query)
       .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
       .lean()
 
     const productIds = Array.from(new Set(reviews.map((r: any) => String(r.productId))))
@@ -53,7 +67,9 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(mapped)
+    return NextResponse.json(mapped, {
+      headers: { 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
+    })
   } catch (error: any) {
     console.error('Admin reviews fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 })

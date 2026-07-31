@@ -243,7 +243,7 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
         </div>
         
         <div className="relative h-28 w-28 overflow-hidden rounded-xl bg-muted flex-shrink-0 border-2 mt-4 sm:mt-0">
-          <img src={product.images?.[0]?.url || '/placeholder.png'} alt={product.name} className="object-cover w-full h-full" />
+          <Image src={product.images?.[0]?.url || '/placeholder.png'} alt={product.name} fill sizes="112px" className="object-cover" />
         </div>
 
         <div className="flex-1 space-y-2 text-center sm:text-left">
