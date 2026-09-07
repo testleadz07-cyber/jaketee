@@ -7,6 +7,7 @@ import Discount from '@/models/Discount'
 import AbandonedCart from '@/models/AbandonedCart'
 import Product from '@/models/Product'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
+import { getCountryFromRequest } from '@/lib/geo'
 
 export async function POST(request: NextRequest) {
   try {
@@ -130,20 +131,8 @@ export async function POST(request: NextRequest) {
           ? xForwardedFor.split(',')[0].trim()
           : request.headers.get('x-real-ip') || '127.0.0.1'
 
-        let country = 'Unknown'
-        if (ip && ip !== '127.0.0.1' && ip !== '::1' && !ip.startsWith('192.168.') && !ip.startsWith('10.') && !ip.startsWith('172.')) {
-          try {
-            const geoRes = await fetch(`https://ipapi.co/${ip}/json/`, { signal: AbortSignal.timeout(2000) })
-            if (geoRes.ok) {
-              const geoData = await geoRes.json()
-              if (geoData && geoData.country_name) {
-                country = geoData.country_name
-              }
-            }
-          } catch {}
-        } else if (ip === '127.0.0.1' || ip === '::1') {
-          country = 'Localhost'
-        }
+        const country = getCountryFromRequest(request)
+          || (ip === '127.0.0.1' || ip === '::1' ? 'Localhost' : 'Unknown')
 
         await Activity.create({
           userId,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
+import { getCountryFromRequest } from '@/lib/geo'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,14 +28,7 @@ export async function POST(request: NextRequest) {
       : request.headers.get('x-real-ip') || 'Unknown'
     const userAgent = request.headers.get('user-agent') || undefined
 
-    // Try to parse country from body (client can pass it on first heartbeat)
-    let country: string | undefined
-    try {
-      const body = await request.json()
-      country = body?.country || undefined
-    } catch {
-      // body may be empty on sendBeacon calls
-    }
+    const country = getCountryFromRequest(request)
 
     const update: Record<string, any> = { lastSeenAt: new Date() }
     if (ip && ip !== 'Unknown') update.ip = ip
