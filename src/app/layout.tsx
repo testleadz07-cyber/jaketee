@@ -22,23 +22,23 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://luxestore.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "LUXE STORE - Premium Fashion & Activewear",
-  description: "Discover premium fashion, activewear, and outdoor apparel. Quality meets elegance at Luxe Store.",
-  keywords: ["Luxe Store", "Fashion", "Activewear", "Outdoor", "Clothing", "Apparel", "Sportswear"],
-  authors: [{ name: "LUXE STORE Team" }],
+  title: "Jacketee - Premium Fashion & Activewear",
+  description: "Discover premium fashion, activewear, and outdoor apparel. Quality meets elegance at Jacketee.",
+  keywords: ["Jacketee", "Fashion", "Activewear", "Outdoor", "Clothing", "Apparel", "Sportswear"],
+  authors: [{ name: "Jacketee Team" }],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
   openGraph: {
-    title: "LUXE STORE - Premium Fashion & Activewear",
+    title: "Jacketee - Premium Fashion & Activewear",
     description: "Discover premium fashion, activewear, and outdoor apparel",
-    url: "https://luxestore.com",
-    siteName: "LUXE STORE",
+    url: SITE_URL,
+    siteName: "Jacketee",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "LUXE STORE - Premium Fashion & Activewear",
+    title: "Jacketee - Premium Fashion & Activewear",
     description: "Discover premium fashion, activewear, and outdoor apparel",
   },
 };
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "LUXE STORE",
+  name: "Jacketee",
   url: SITE_URL,
   logo: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
 };
@@ -54,7 +54,7 @@ const organizationJsonLd = {
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "LUXE STORE",
+  name: "Jacketee",
   url: SITE_URL,
   potentialAction: {
     "@type": "SearchAction",

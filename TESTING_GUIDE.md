@@ -1,6 +1,6 @@
-# Clothaa (LUXE STORE) Testing Guide
+# Jacketee (Jacketee) Testing Guide
 
-This document provides a comprehensive step-by-step guide on how to test all customer-facing and administrator features of the **Clothaa** (LUXE STORE) codebase.
+This document provides a comprehensive step-by-step guide on how to test all customer-facing and administrator features of the **Jacketee** (Jacketee) codebase.
 
 ---
 
@@ -35,7 +35,7 @@ Before testing, ensure your local development server is running and the database
   1. Navigate to `/register` or click **Sign In** in the header, then click **Create an account**.
   2. Attempt to submit the form with empty fields. Verify validation messages appear.
   3. Enter a short password (less than 6 characters) and verify it triggers a validation error.
-  4. Submit valid credentials (e.g., Name: `Test User`, Email: `test@clothaa.com`, Password: `password123`).
+  4. Submit valid credentials (e.g., Name: `Test User`, Email: `test@jacketee.com`, Password: `password123`).
   5. Verify that you are successfully registered and redirected to the login page with a success toast.
 
 ### Login & Session

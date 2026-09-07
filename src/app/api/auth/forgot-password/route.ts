@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const emailResult = await sendEmail({
       to: user.email,
-      subject: 'Reset your LUXE STORE password',
+      subject: 'Reset your Jacketee password',
       html: passwordResetTemplate({ userName: user.name, resetUrl }),
     })
 

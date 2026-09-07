@@ -188,7 +188,7 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
                 <ShoppingBag className="h-8 w-8 text-primary" />
               </motion.div>
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                LUXE STORE
+                Jacketee
               </span>
             </Link>
           </div>

@@ -28,15 +28,15 @@ export async function generateMetadata({
 
   if (!category) {
     return {
-      title: 'Category Not Found — LUXE STORE Blog',
+      title: 'Category Not Found — Jacketee Blog',
       description: 'The requested blog category could not be found.',
       robots: { index: false, follow: false },
     }
   }
 
   const pageUrl = `${SITE_URL}/blog/category/${slug}`
-  const title = `${category.name} — LUXE STORE Blog`
-  const description = category.description || `Browse ${category.name} articles from the LUXE STORE Journal.`
+  const title = `${category.name} — Jacketee Blog`
+  const description = category.description || `Browse ${category.name} articles from the Jacketee Journal.`
 
   return {
     title,
@@ -46,7 +46,7 @@ export async function generateMetadata({
       title,
       description,
       url: pageUrl,
-      siteName: 'LUXE STORE',
+      siteName: 'Jacketee',
       images: [{ url: DEFAULT_IMAGE, width: 1200, height: 630, alt: category.name }],
       type: 'website',
     },
@@ -83,7 +83,7 @@ export default async function BlogCategoryLayout({
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: category.name,
-    description: category.description || `Browse ${category.name} articles from the LUXE STORE Journal.`,
+    description: category.description || `Browse ${category.name} articles from the Jacketee Journal.`,
     url: pageUrl,
     mainEntity: {
       '@type': 'ItemList',

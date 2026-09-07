@@ -95,7 +95,7 @@ async function markOrderPaid(dbOrderId: string, paypalCaptureId: string) {
 
     await sendEmail({
       to: order.userEmail,
-      subject: `LUXE STORE - Order Confirmation #${order.orderNumber}`,
+      subject: `Jacketee - Order Confirmation #${order.orderNumber}`,
       html: emailHtml,
     })
   } catch (emailError) {

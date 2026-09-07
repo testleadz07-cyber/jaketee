@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, ShoppingCart, Check, Loader2 } from 'lucide-react'
+import { ShoppingCart, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useCartStore } from '@/store/cart'
@@ -100,16 +100,6 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
 
   const handleCheckboxChange = (id: string, checked: boolean) => {
     setSelectedItems(prev => ({ ...prev, [id]: checked }))
-  }
-
-  const handleVariantChange = (productId: string, variantName: string, value: string) => {
-    setSelectedVariants(prev => ({
-      ...prev,
-      [productId]: {
-        ...prev[productId],
-        [variantName]: value
-      }
-    }))
   }
 
   const getProductPrice = (product: Product) => {
@@ -213,93 +203,57 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
     }
   }
 
-  const groupVariants = (variants: any[]) => {
-    const list = variants || []
-    return list.reduce((acc, variant) => {
-      if (!acc[variant.name]) {
-        acc[variant.name] = []
-      }
-      if (!acc[variant.name].some((v: any) => v.value === variant.value)) {
-        acc[variant.name].push(variant)
-      }
-      return acc
-    }, {} as Record<string, any[]>)
-  }
-
-  const renderProductItem = (product: Product, isCurrent = false) => {
+  const renderProductItem = (product: Product) => {
     const prodId = product.id || product._id || ''
     const isChecked = !!selectedItems[prodId]
-    const grouped = groupVariants(product.variants || [])
-    const currentSelections = selectedVariants[prodId] || {}
 
     return (
-      <div key={prodId} className={`flex flex-col sm:flex-row items-center gap-4 bg-background border p-4 rounded-2xl relative transition-all duration-300 ${isChecked ? 'border-primary/50 shadow-sm' : 'opacity-60 border-border'}`}>
-        <div className="absolute top-4 left-4 z-10">
+      <div
+        key={prodId}
+        className={`relative flex h-full flex-col items-center rounded-2xl border-2 bg-background p-4 text-center transition-all duration-300 ${
+          isChecked ? 'border-primary/50 shadow-sm' : 'border-border opacity-60'
+        }`}
+      >
+        <div className="absolute top-3 right-3 z-10">
           <Checkbox
             checked={isChecked}
             onCheckedChange={(checked) => handleCheckboxChange(prodId, !!checked)}
-            className="rounded-md h-5 w-5 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            className="h-5 w-5 rounded-md border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
           />
         </div>
-        
-        <div className="relative h-28 w-28 overflow-hidden rounded-xl bg-muted flex-shrink-0 border-2 mt-4 sm:mt-0">
+
+        <div className="relative mb-3 h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl border-2 bg-muted">
           <Image src={product.images?.[0]?.url || '/placeholder.png'} alt={product.name} fill sizes="112px" className="object-cover" />
         </div>
 
-        <div className="flex-1 space-y-2 text-center sm:text-left">
-          <h4 className="font-semibold text-sm line-clamp-1">{product.name}</h4>
-          <p className="text-primary font-bold text-sm">
+        <div className="flex w-full flex-1 flex-col justify-center">
+          <h4 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold">{product.name}</h4>
+          <p className="mt-2 text-sm font-bold text-primary">
             ${getProductPrice(product).toFixed(2)}
           </p>
-
-          {/* Variant selections */}
-          {isChecked && Object.keys(grouped).map(name => (
-            <div key={name} className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 pt-1">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground">{name}:</span>
-              <select
-                value={currentSelections[name] || ''}
-                onChange={(e) => handleVariantChange(prodId, name, e.target.value)}
-                className="text-xs bg-muted/50 border border-muted focus:border-primary rounded px-2 py-0.5"
-              >
-                {grouped[name].map((v, idx) => (
-                  <option key={v.id || `${name}-${v.value}-${idx}`} value={v.value} disabled={!v.inStock}>
-                    {v.value} {v.priceAdjust > 0 ? `(+$${v.priceAdjust})` : ''} {!v.inStock ? '(Out of Stock)' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-card/40 backdrop-blur-sm border-2 rounded-3xl p-6 md:p-8 space-y-6">
+    <div className="space-y-6 rounded-3xl border-2 bg-card/40 p-6 backdrop-blur-sm md:p-8">
       <div>
         <h3 className="text-xl font-bold tracking-tight">Frequently Bought Together</h3>
-        <p className="text-xs text-muted-foreground mt-1">Get the complete set and elevate your look</p>
+        <p className="mt-1 text-xs text-muted-foreground">Get the complete set and elevate your look</p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 items-center">
-        {/* Products List row */}
-        <div className="flex-1 flex flex-col md:flex-row items-center gap-4 w-full">
-          {renderProductItem(currentProduct, true)}
-
-          {bundleProducts.map(p => (
-            <div key={p.id || p._id} className="flex flex-col md:flex-row items-center gap-4 w-full">
-              <div className="flex items-center justify-center bg-muted/20 border-2 rounded-full h-8 w-8 text-muted-foreground font-bold shrink-0">
-                <Plus className="h-4 w-4" />
-              </div>
-              {renderProductItem(p)}
-            </div>
-          ))}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        {/* Products */}
+        <div className="grid flex-1 gap-3 [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]">
+          {renderProductItem(currentProduct)}
+          {bundleProducts.map(p => renderProductItem(p))}
         </div>
 
         {/* Bundle buy panel */}
-        <div className="w-full lg:w-72 bg-background border p-6 rounded-2xl flex flex-col justify-center space-y-4 shrink-0 text-center">
+        <div className="flex w-full shrink-0 flex-col justify-center space-y-4 rounded-2xl border bg-background p-6 text-center lg:w-72 lg:sticky lg:top-24">
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Bundle Price</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Bundle Price</span>
             <p className="text-2xl font-extrabold text-primary">
               ${bundleSubtotal.toFixed(2)}
             </p>
@@ -310,14 +264,14 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
 
           <Button
             size="lg"
-            className="w-full h-12 rounded-xl text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground group"
+            className="group h-12 w-full rounded-xl bg-primary text-sm font-bold text-primary-foreground hover:bg-primary/90"
             onClick={handleAddBundleToCart}
             disabled={addingToCart || selectedCount === 0}
           >
             {addingToCart ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <ShoppingCart className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+              <ShoppingCart className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
             )}
             Add Bundle to Cart
           </Button>

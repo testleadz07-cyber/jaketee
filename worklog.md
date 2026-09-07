@@ -175,7 +175,7 @@ Work Log:
 - Updated next.config.ts for Netlify compatibility
 - Created .env.example with MONGODB_URI template
 - Updated homepage footer with links to Contact, Shipping, Returns pages
-- Updated layout metadata for "LUXE STORE" branding
+- Updated layout metadata for "Jacketee" branding
 - Created comprehensive README.md with deployment instructions
 
 Stage Summary:

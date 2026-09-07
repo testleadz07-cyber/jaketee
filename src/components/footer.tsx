@@ -88,7 +88,7 @@ export function Footer() {
             <div className="flex items-center gap-2">
               <ShoppingBag className="h-6 w-6 text-primary animate-pulse" />
               <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                LUXE STORE
+                Jacketee
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -220,7 +220,7 @@ export function Footer() {
               Support
             </Link>
           </div>
-          <p>© {new Date().getFullYear()} Luxe Store. All rights reserved. Designed for excellence.</p>
+          <p>© {new Date().getFullYear()} Jacketee. All rights reserved. Designed for excellence.</p>
         </div>
       </div>
     </footer>

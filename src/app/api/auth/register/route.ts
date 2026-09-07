@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${request.nextUrl.protocol}//${request.nextUrl.host}`
     sendEmail({
       to: user.email,
-      subject: 'Welcome to LUXE STORE',
+      subject: 'Welcome to Jacketee',
       html: welcomeEmailTemplate({ userName: user.name, shopUrl: appUrl }),
     }).then((result) => {
       if (!result.success) console.error('Failed to send welcome email:', result.message)

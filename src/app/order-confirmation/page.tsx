@@ -211,7 +211,7 @@ function ConfirmationContent() {
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Order Confirmed!</h1>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Thank you for shopping at LUXE STORE. We have sent a confirmation email to{' '}
+          Thank you for shopping at Jacketee. We have sent a confirmation email to{' '}
           <span className="font-semibold text-primary">{session?.user?.email || order.shippingAddress.name}</span>.
         </p>
         <div className="inline-block px-4 py-2 bg-muted/60 border rounded-full text-sm font-semibold">
@@ -416,7 +416,7 @@ export default function OrderConfirmationPage() {
       </main>
       <footer className="border-t bg-background mt-auto">
         <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Luxe Store. All rights reserved.
+          © 2024 Jacketee. All rights reserved.
         </div>
       </footer>
     </div>

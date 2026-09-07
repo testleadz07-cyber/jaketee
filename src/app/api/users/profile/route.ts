@@ -71,7 +71,7 @@ export async function PUT(request: NextRequest) {
     if (newPassword && user) {
       sendEmail({
         to: (user as any).email,
-        subject: 'Your LUXE STORE password was changed',
+        subject: 'Your Jacketee password was changed',
         html: passwordChangedTemplate({ userName: (user as any).name }),
       }).then((result) => {
         if (!result.success) console.error('Failed to send password-changed email:', result.message)

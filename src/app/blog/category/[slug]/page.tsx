@@ -194,7 +194,7 @@ export default function BlogCategoryPage({ params }: { params: Promise<{ slug: s
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <User className="h-3.5 w-3.5" />
-                              {post.author?.name || 'Luxe Store'}
+                              {post.author?.name || 'Jacketee'}
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />

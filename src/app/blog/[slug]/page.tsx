@@ -159,7 +159,7 @@ export default function BlogPostPage() {
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
             <span className="flex items-center gap-1.5">
               <User className="h-4 w-4" />
-              {post.author?.name || 'Luxe Store'}
+              {post.author?.name || 'Jacketee'}
             </span>
             <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />

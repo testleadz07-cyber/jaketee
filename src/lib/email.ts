@@ -26,7 +26,7 @@ export async function sendEmail({
 
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"LUXE STORE" <${process.env.SMTP_USER}>`,
+      from: process.env.EMAIL_FROM || `"Jacketee" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,
@@ -59,7 +59,7 @@ export function orderConfirmationTemplate(order: {
   return `
     <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
       <div style="background: #18181b; color: white; padding: 24px; text-align: center;">
-        <h1 style="margin: 0; font-size: 24px;">LUXE STORE</h1>
+        <h1 style="margin: 0; font-size: 24px;">Jacketee</h1>
         <p style="margin: 8px 0 0; opacity: 0.8;">Order Confirmation</p>
       </div>
       <div style="padding: 24px; background: white;">
@@ -89,7 +89,7 @@ export function orderConfirmationTemplate(order: {
         <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@luxestore.com</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
-        © ${new Date().getFullYear()} LUXE STORE. All rights reserved.
+        © ${new Date().getFullYear()} Jacketee. All rights reserved.
       </div>
     </div>`
 }
@@ -98,12 +98,12 @@ export function welcomeEmailTemplate(data: { userName: string; shopUrl: string }
   return `
     <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
       <div style="background: #18181b; color: white; padding: 24px; text-align: center;">
-        <h1 style="margin: 0; font-size: 24px;">LUXE STORE</h1>
+        <h1 style="margin: 0; font-size: 24px;">Jacketee</h1>
         <p style="margin: 8px 0 0; opacity: 0.8;">Welcome!</p>
       </div>
       <div style="padding: 24px; background: white;">
         <p>Hi ${data.userName},</p>
-        <p>Thanks for creating an account with LUXE STORE. Your account is ready to go — you can now check out faster, track your orders, and save your favorite pieces to your wishlist.</p>
+        <p>Thanks for creating an account with Jacketee. Your account is ready to go — you can now check out faster, track your orders, and save your favorite pieces to your wishlist.</p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${data.shopUrl}" style="background: #18181b; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">
             Start Shopping
@@ -112,7 +112,7 @@ export function welcomeEmailTemplate(data: { userName: string; shopUrl: string }
         <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@luxestore.com</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
-        © ${new Date().getFullYear()} LUXE STORE. All rights reserved.
+        © ${new Date().getFullYear()} Jacketee. All rights reserved.
       </div>
     </div>`
 }
@@ -121,7 +121,7 @@ export function passwordResetTemplate(data: { userName: string; resetUrl: string
   return `
     <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
       <div style="background: #18181b; color: white; padding: 24px; text-align: center;">
-        <h1 style="margin: 0; font-size: 24px;">LUXE STORE</h1>
+        <h1 style="margin: 0; font-size: 24px;">Jacketee</h1>
         <p style="margin: 8px 0 0; opacity: 0.8;">Password Reset Request</p>
       </div>
       <div style="padding: 24px; background: white;">
@@ -137,7 +137,7 @@ export function passwordResetTemplate(data: { userName: string; resetUrl: string
         <p style="color: #71717a; font-size: 14px; margin-top: 24px;">If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
-        © ${new Date().getFullYear()} LUXE STORE. All rights reserved.
+        © ${new Date().getFullYear()} Jacketee. All rights reserved.
       </div>
     </div>`
 }
@@ -146,16 +146,16 @@ export function passwordChangedTemplate(data: { userName: string }) {
   return `
     <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
       <div style="background: #18181b; color: white; padding: 24px; text-align: center;">
-        <h1 style="margin: 0; font-size: 24px;">LUXE STORE</h1>
+        <h1 style="margin: 0; font-size: 24px;">Jacketee</h1>
         <p style="margin: 8px 0 0; opacity: 0.8;">Password Changed</p>
       </div>
       <div style="padding: 24px; background: white;">
         <p>Hi ${data.userName},</p>
-        <p>This is a confirmation that your LUXE STORE account password was just changed successfully.</p>
+        <p>This is a confirmation that your Jacketee account password was just changed successfully.</p>
         <p style="color: #71717a; font-size: 14px; margin-top: 24px;">If you didn't make this change, please contact us immediately at support@luxestore.com so we can secure your account.</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
-        © ${new Date().getFullYear()} LUXE STORE. All rights reserved.
+        © ${new Date().getFullYear()} Jacketee. All rights reserved.
       </div>
     </div>`
 }
@@ -208,7 +208,7 @@ export function abandonedCartTemplate(data: {
     html: `
     <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
       <div style="background: #18181b; color: white; padding: 24px; text-align: center;">
-        <h1 style="margin: 0; font-size: 24px;">LUXE STORE</h1>
+        <h1 style="margin: 0; font-size: 24px;">Jacketee</h1>
         <p style="margin: 8px 0 0; opacity: 0.8;">${copy.heading}</p>
       </div>
       <div style="padding: 24px; background: white;">
@@ -239,7 +239,7 @@ export function abandonedCartTemplate(data: {
         <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@luxestore.com</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
-        © ${new Date().getFullYear()} LUXE STORE. All rights reserved.
+        © ${new Date().getFullYear()} Jacketee. All rights reserved.
       </div>
     </div>`,
   }

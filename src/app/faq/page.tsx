@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,18 +21,45 @@ import {
   CreditCard,
   UserCircle,
   ShieldCheck,
+  Palette,
+  ShoppingBag,
+  Users,
+  Ruler,
+  Factory,
 } from 'lucide-react'
 import Link from 'next/link'
 
 interface FaqItem {
   question: string
-  answer: string
+  answer: string | string[]
+  bullets?: string[]
+  ordered?: string[]
 }
 
 interface FaqCategory {
   title: string
   icon: React.ElementType
   items: FaqItem[]
+}
+
+interface DbFaqItem {
+  id: string
+  question: string
+  answer: string[]
+  category: string
+  bullets: string[]
+  ordered: string[]
+}
+
+const CATEGORY_META: Record<string, { title: string; icon: React.ElementType }> = {
+  'how-to-design': { title: 'Design & Customization', icon: Palette },
+  'single-jacket-orders': { title: 'Single Jacket Orders', icon: ShoppingBag },
+  'bulk-team-orders': { title: 'Bulk & Team Orders', icon: Users },
+  'jacket-sizing': { title: 'Jacket Sizing', icon: Ruler },
+  'production-delivery': { title: 'Production & Delivery', icon: Factory },
+  payment: { title: 'Payments', icon: CreditCard },
+  'returns-exchanges': { title: 'Returns & Exchanges', icon: RotateCcw },
+  common: { title: 'General', icon: HelpCircle },
 }
 
 const faqCategories: FaqCategory[] = [
@@ -164,6 +192,46 @@ const faqCategories: FaqCategory[] = [
 ]
 
 export default function FaqPage() {
+  const [dbFaqs, setDbFaqs] = useState<DbFaqItem[]>([])
+
+  useEffect(() => {
+    fetch('/api/faqs')
+      .then((res) => res.json())
+      .then((data) => setDbFaqs(Array.isArray(data) ? data : []))
+      .catch(() => setDbFaqs([]))
+  }, [])
+
+  const mergedCategories = useMemo(() => {
+    const normalize = (s: string) => s.trim().toLowerCase()
+    const categories: FaqCategory[] = faqCategories.map((c) => ({ ...c, items: [...c.items] }))
+    const byTitle = new Map(categories.map((c) => [c.title, c]))
+
+    const seen = new Set<string>()
+    categories.forEach((c) => c.items.forEach((i) => seen.add(normalize(i.question))))
+
+    dbFaqs.forEach((f) => {
+      const key = normalize(f.question)
+      if (seen.has(key)) return
+      seen.add(key)
+
+      const meta = CATEGORY_META[f.category] || { title: 'General', icon: HelpCircle }
+      let target = byTitle.get(meta.title)
+      if (!target) {
+        target = { title: meta.title, icon: meta.icon, items: [] }
+        categories.push(target)
+        byTitle.set(meta.title, target)
+      }
+      target.items.push({
+        question: f.question,
+        answer: f.answer,
+        bullets: f.bullets,
+        ordered: f.ordered,
+      })
+    })
+
+    return categories
+  }, [dbFaqs])
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
       <Header showBack backHref="/" />
@@ -189,7 +257,7 @@ export default function FaqPage() {
 
           {/* FAQ Categories */}
           <div className="space-y-6">
-            {faqCategories.map((category) => (
+            {mergedCategories.map((category) => (
               <Card key={category.title} className="border-2">
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-2">
@@ -199,16 +267,35 @@ export default function FaqPage() {
                 </CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
-                    {category.items.map((item, idx) => (
-                      <AccordionItem key={idx} value={`${category.title}-${idx}`}>
-                        <AccordionTrigger className="text-base font-medium">
-                          {item.question}
-                        </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground">
-                          {item.answer}
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
+                    {category.items.map((item, idx) => {
+                      const paragraphs = Array.isArray(item.answer) ? item.answer : [item.answer]
+                      return (
+                        <AccordionItem key={idx} value={`${category.title}-${idx}`}>
+                          <AccordionTrigger className="text-base font-medium">
+                            {item.question}
+                          </AccordionTrigger>
+                          <AccordionContent className="text-muted-foreground space-y-2">
+                            {paragraphs.map((p, pIdx) => (
+                              <p key={pIdx}>{p}</p>
+                            ))}
+                            {item.bullets && item.bullets.length > 0 && (
+                              <ul className="list-disc pl-5 space-y-1">
+                                {item.bullets.map((b, bIdx) => (
+                                  <li key={bIdx}>{b}</li>
+                                ))}
+                              </ul>
+                            )}
+                            {item.ordered && item.ordered.length > 0 && (
+                              <ol className="list-decimal pl-5 space-y-1">
+                                {item.ordered.map((o, oIdx) => (
+                                  <li key={oIdx}>{o}</li>
+                                ))}
+                              </ol>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                      )
+                    })}
                   </Accordion>
                 </CardContent>
               </Card>

@@ -12,7 +12,7 @@ const SUPPORT_EMAIL = 'support@luxestore.com'
 const sections = [
   {
     heading: '1. Introduction',
-    body: `Luxe Store ("we", "us", or "our") respects your privacy and is committed to protecting the personal data you share with us. This Privacy Policy explains what information we collect when you visit or shop with us, why we collect it, how we use and protect it, and the choices and rights you have regarding your data. By using our site, you agree to the collection and use of information in accordance with this policy.`,
+    body: `Jacketee ("we", "us", or "our") respects your privacy and is committed to protecting the personal data you share with us. This Privacy Policy explains what information we collect when you visit or shop with us, why we collect it, how we use and protect it, and the choices and rights you have regarding your data. By using our site, you agree to the collection and use of information in accordance with this policy.`,
   },
   {
     heading: '2. Information We Collect',

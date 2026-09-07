@@ -1,0 +1,865 @@
+[
+  {
+    "_id": "6a554c27388116485a5e0010",
+    "question": "Where can I get my jacket embroidered?",
+    "answer": [
+      "Right here, online. Send us your logo, name, or artwork, pick your jacket, and our in-house team handles the embroidery and ships it straight to you, no local shop needed."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 0,
+    "displayPages": ["patches-embroidery", "how-to-design"]
+  },
+  {
+    "_id": "6a554c55388116485a5e0017",
+    "question": "How much does it cost to embroider a jacket?",
+    "answer": [
+      "It depends on the design size, stitch count, and how many placements you want (chest, sleeve, back). A small chest logo or name costs less than a large back piece. Send us your artwork and jacket choice, and we'll give you an exact quote."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 0,
+    "displayPages": ["patches-embroidery", "how-to-design"]
+  },
+  {
+    "_id": "6a554c6b388116485a5e001e",
+    "question": "Can I get my name embroidered on my jacket?",
+    "answer": [
+      "Yes. Names, initials, and nicknames can be embroidered on the chest, sleeve, or back in the thread color and lettering style you choose."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 0,
+    "displayPages": ["patches-embroidery", "how-to-design"]
+  },
+  {
+    "_id": "6a554c81388116485a5e0021",
+    "question": "Do I need to find an embroidery shop near me?",
+    "answer": [
+      "No. We manage the whole process online, from design approval to embroidery and shipping, so you can get your jacket embroidered no matter where you are located."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 0,
+    "displayPages": ["patches-embroidery", "how-to-design"]
+  },
+  {
+    "_id": "6a554c91388116485a5e0028",
+    "question": "What jackets work best for embroidery?",
+    "answer": [
+      "Wool, leather, cotton twill, and fleece jackets all take embroidery well. Varsity and letterman jackets are especially popular for embroidered names, letters, and patches."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 0,
+    "displayPages": ["patches-embroidery", "how-to-design"]
+  },
+  {
+    "_id": "6a554ca7388116485a5e002b",
+    "question": "What should I look for in a brand for embroidered jackets?",
+    "answer": [
+      "Pick a brand that does embroidery in-house rather than outsourcing it, sends you a free digital proof before production starts, and lets you choose thread colors and placement on your actual jacket style. We handle design, digitizing, and embroidery all under one roof, so the proof you approve is exactly what you receive."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 0,
+    "displayPages": ["patches-embroidery", "how-to-design"]
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d7",
+    "question": "Can I order just one garment from Jacketee?",
+    "answer": [
+      "Yes, we welcome single orders! Whether you're designing a one-of-a-kind piece for yourself or outfitting your entire team, there are no minimum order requirements."
+    ],
+    "category": "single-jacket-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 1
+  },
+  {
+    "_id": "6a2c51378147e9f7373301de",
+    "question": "Do you have a minimum order?",
+    "answer": [
+      "Yes. To get bulk pricing, you need to order at least 10 jackets. We work with schools, teams, and small brands across the U.S."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 1
+  },
+  {
+    "_id": "6a2c51378147e9f7373301eb",
+    "question": "Do you offer custom sizing for the jacket?",
+    "answer": [
+      "Yes, we do. All of our jackets follow Standard American Unisex sizing, check our size guide. If you normally wear a medium in the United States, order a medium from us.",
+      "If your measurements are different, just choose the closest size. For an extra $20, we can adjust the jacket to your exact measurements and make a custom-sized varsity or bomber jacket."
+    ],
+    "category": "jacket-sizing",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 1
+  },
+  {
+    "_id": "6a2c51378147e9f7373301fd",
+    "question": "How long does it take to get my jacket in the U.S.?",
+    "answer": ["Production & Delivery Timeline"],
+    "category": "production-delivery",
+    "bullets": [
+      "Blank jacket: 5-7 business days.",
+      "With embroidery/patches: 7-10 business days.",
+      "Bulk/team orders (10+ jackets): 3-4 weeks.",
+      "Shipping after production: 4-5 business days.",
+      "Rush production may be available depending on order size and current workload — share your deadline with our sales team and they'll confirm."
+    ],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 1
+  },
+  {
+    "_id": "6a2c51378147e9f737330204",
+    "question": "How can I pay for my order?",
+    "answer": [
+      "We accept all major credit cards as well as payments via PayPal. We also accept bank wire to company acccount for bulk / wholesale orders."
+    ],
+    "category": "payment",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 1
+  },
+  {
+    "_id": "6a2c51378147e9f737330208",
+    "question": "Can Jacketee cancel my order?",
+    "answer": [
+      "Yes, Jacketee reserves the right to cancel an order under specific circumstances. If the uploaded artwork is deemed not feasible for production, if attempts to communicate with the customer regarding the order go unanswered, or if there's a discrepancy between the billing and shipping addresses that aren't rectified through verification, Jacketee may cancel the order.",
+      "Additionally, in instances where the artwork is excessively complex, contains too many colors or gradients that are unattainable for embroidery but could be achieved through sublimation printing, Jacketee holds the right to cancel the order if the customer insists on embroidery for such designs. These conditions are in place to ensure the quality and feasibility of the final product."
+    ],
+    "category": "returns-exchanges",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 1
+  },
+  {
+    "_id": "6a2c51378147e9f7373301cc",
+    "question": "Where can I read customer reviews about Jacketee?",
+    "answer": [
+      "We have thousands of online reviews from verified buyers, please read verified reviews on our Trust Pilot & Facebook Page."
+    ],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 2
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d8",
+    "question": "Can I request my private label on a single jacket?",
+    "answer": [
+      "We offer private labels for wholesale orders only. If you wish to have a private label on single jacket order you can pay label production charges and we can attach your labels."
+    ],
+    "category": "single-jacket-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 2
+  },
+  {
+    "_id": "6a2c51378147e9f7373301df",
+    "question": "What design options do you offer?",
+    "answer": [
+      "You can customize jacket colors, sleeves, patches, embroidery, names, numbers, and more. Use our online builder to create a unique varsity jacket."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 2
+  },
+  {
+    "_id": "6a2c51378147e9f7373301ec",
+    "question": "Do you offer sizing samples?",
+    "answer": [
+      "All of our varsity jackets are true to size and we have an accurate sizing chart. Our jackets do not run small. However you can request a size sample before making any purchase. $50 will be charged and we can dispatch any in-stock jacket sizing purpose."
+    ],
+    "category": "jacket-sizing",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 2
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f0",
+    "question": "Can repairs be made on the garment?",
+    "answer": [
+      "We're currently unable to offer repair services after a jacket has shipped. If you receive a jacket with a manufacturing fault, contact us within 24 hours of delivery with photos and we'll make it right free of charge."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 2
+  },
+  {
+    "_id": "6a2c51378147e9f737330205",
+    "question": "What currency do you use?",
+    "answer": ["All prices are in USD."],
+    "category": "payment",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 2
+  },
+  {
+    "_id": "6a2c51378147e9f737330209",
+    "question": "Do you offer returns and Exchange?",
+    "answer": [
+      "Custom jackets are usually non-refundable and non-exchangeable. We make each jacket based on your chosen colors and embroidery. Before shipping, we send you photos for approval. Please review these photos carefully. Make sure you're 100% sure before placing your order.",
+      "If you have any questions, contact our sales team. They'll help you find the perfect jacket. We do accept exchanges with some limits. Please check our Return and Exchange Policy for details."
+    ],
+    "category": "returns-exchanges",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 2
+  },
+  {
+    "_id": "6a2c51378147e9f7373301cd",
+    "question": "Can I track my order after it has been shipped?",
+    "answer": [
+      "Yes, once you approve your jacket we ship, our system will generate an email with tracking information. You can track your jacket and arrange a pickup / delivery time."
+    ],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d9",
+    "question": "Can production begin on my order before the payment?",
+    "answer": ["No, we require 100% payment upfront in order to process any order."],
+    "category": "single-jacket-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f7373301e0",
+    "question": "Can I order blank jackets in bulk?",
+    "answer": [
+      "Yes! We offer blank coats in all sizes and colors. You can order them plain and decorate later with your own design or logo."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f7373301ed",
+    "question": "Do your jackets run small?",
+    "answer": [
+      "No, our jackets do not run small; they are true to size. Please refer to our sizing chart page for accurate jacket measurements."
+    ],
+    "category": "jacket-sizing",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f1",
+    "question": "Can we add individual names & numbers on varsity jackets?",
+    "answer": [
+      "Yes, using our jacket builder you can write individual names on the chest or back of the custom senior varsity jacket and hoodies."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f7373301ff",
+    "question": "Do you offer rush order services?",
+    "answer": [
+      "Rush production may be available depending on order size and current workload. Share your deadline with our sales team and they'll confirm whether it can be met — we don't quote a fixed rush timeline since it depends on the order."
+    ],
+    "category": "production-delivery",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f737330206",
+    "question": "Will I have to pay any taxes / custom duties for my international order?",
+    "answer": [
+      "International orders may be subject to import duties, taxes, brokerage charges, or customs processing fees. These depend on the destination country, shipment value, and current local regulations, which can change without notice.",
+      "Jacketee does not control or collect these charges and only charges shipping. Please check with your local customs authority for current rules before ordering."
+    ],
+    "category": "payment",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f73733020a",
+    "question": "How can I cancel my order?",
+    "answer": [
+      "To cancel an order, please contact us within 24 hours via email or Facebook Messenger with your 5-digit order number. There is no cancellation fee within this window. Requests made after 24 hours cannot be accepted, since production may have already begun.",
+      "A refund will be issued in a few days."
+    ],
+    "category": "returns-exchanges",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 3
+  },
+  {
+    "_id": "6a2c51378147e9f7373301ce",
+    "question": "Do you offer quantity discounts?",
+    "answer": [
+      "Yes. All serious inquires must be submitted through the Contact Us form on our website. Please tell us exactly what you would like on your jackets, as well as the number of jackets you are interested in ordering. We will let you how much discount we can offer."
+    ],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 4
+  },
+  {
+    "_id": "6a2c51378147e9f7373301e1",
+    "question": "Do you offer private labeling or neck labels?",
+    "answer": [
+      "Yes. We add custom neck labels for your brand or school. A one-time setup fee of $50 covers up to 100 jackets with private tags."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 4
+  },
+  {
+    "_id": "6a2c51378147e9f7373301ee",
+    "question": "What sizes are available for jackets?",
+    "answer": [
+      "Our garments come in unisex sizes from XS to 6XL, including tall sizes for the perfect fit. Check our guide for your right size."
+    ],
+    "category": "jacket-sizing",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 4
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f2",
+    "question": "Can you send us a design proof?",
+    "answer": [
+      "Our jacket builder creates a digital design proof. however if you wish to use specific embroidery sizes or have special instructions, please leave us a note right below the jacket builder and request for design sheet approval. Our designer will create an embroidery sheet with sizes and will get your approval."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 4
+  },
+  {
+    "_id": "6a2c51378147e9f737330200",
+    "question": "Can I get photos before shipping?",
+    "answer": [
+      "Yes. We send clear photos of your finished garments before shipping. You can check everything and approve your order to dispatch."
+    ],
+    "category": "production-delivery",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 4
+  },
+  {
+    "_id": "6a2c51378147e9f737330207",
+    "question": "Fraud Prevention",
+    "answer": [
+      "In order to save customer's money from fraudsters and our time dealing with them, we may require additional verification for orders with following conditions:"
+    ],
+    "category": "payment",
+    "bullets": [
+      "Order has been reported as possible fraud.",
+      "Different shipping address or billing address orders.",
+      "Order total amount exceeds $500.",
+      "We may ask for an identity proof showing billing address or photo holding your credit card. We don't ask for sensitive information such as CVV code or social security number."
+    ],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 4
+  },
+  {
+    "_id": "6a2c51378147e9f73733020b",
+    "question": "I received a faulty item, what do I do?",
+    "answer": [
+      "We take garment's high quality photos for all angels before dispatch. Our quality control team inspect each garment before packing. Normally there is no production fault when we ship the jacket.",
+      "Do not worry if it's a manufacturing fault it will be covered free of cost. Please share a photo of the jacket within 24 hours of receiving your item. Our team will inspect the photo(s) and get back to you with a solution."
+    ],
+    "category": "returns-exchanges",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 4
+  },
+  {
+    "_id": "6a2c51378147e9f7373301cf",
+    "question": "Do you ship to all countries?",
+    "answer": ["We cover almost entire world. We ship worldwide except Russia, Israel and Africa."],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 5
+  },
+  {
+    "_id": "6a2c51378147e9f7373301db",
+    "question": "Can I order just one jacket for myself?",
+    "answer": [
+      "Yes, you can! We have no minimum order requirements. You are welcome to design just one jacket for yourself or a big batch for your whole team. Get started with our online jacket builder. Browse our in-stock collection of high quality wool & leather jackets or satin jackets."
+    ],
+    "category": "single-jacket-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 5
+  },
+  {
+    "_id": "6a2c51378147e9f7373301e2",
+    "question": "What materials do you use?",
+    "answer": [
+      "We use finest melton wool, genuine cowhide leather, sheep leather, faux leather, fleece, and cotton twill. You can mix and match these for a custom order."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 5
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f3",
+    "question": "How do I customize more than one jacket?",
+    "answer": [
+      "Please use our online jacket builder to create one or more jackets. Click on the plus sign and create a copy of the design and then modify."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": {
+      "src": "/jacketee-assets/frontend-images/faqs/customize-varsity-jacket-for-group-team.png",
+      "alt": "Customize varsity jacket for group team"
+    },
+    "order": 5
+  },
+  {
+    "_id": "6a2c51378147e9f737330201",
+    "question": "Do you make the jackets in-house?",
+    "answer": [
+      "Yes. We make every jacket in our own factory. Our expert team handles stitching, embroidery, and quality checks in one place."
+    ],
+    "category": "production-delivery",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 5
+  },
+  {
+    "_id": "6a2c51378147e9f7373301e3",
+    "question": "Will someone help me during the process?",
+    "answer": [
+      "Yes! Our support team is available 24/7. We'll help with your design, size selection, order details, and delivery updates.",
+      "Alternatly you can use our online jacket creator."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 6
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f4",
+    "question": "How do I place a RUSH order?",
+    "answer": [
+      "Standard custom jackets are produced in 7-10 business days, plus 4-5 business days for delivery. If you have an urgent deadline, add your jacket to the cart, select the RUSH PRODUCTION option, and share your required date — our team will confirm whether it can be met before you complete payment."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 6
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d1",
+    "question": "How long my custom jacket order will take to deliver?",
+    "answer": [
+      "Blank, non-customized jackets are produced in 5-7 business days. Custom jackets with embroidery or patches are produced in 7-10 business days. Bulk and team orders (10+ jackets) are produced in 3-4 weeks. After production, delivery takes an additional 4-5 business days.",
+      "We always aim to meet these timelines, though material availability can occasionally add a short delay. We ship worldwide via DHL and FedEx."
+    ],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 7
+  },
+  {
+    "_id": "6a2c51378147e9f7373301e4",
+    "question": "How fast can I get my bulk order?",
+    "answer": [
+      "Most bulk orders arrive within 3-4 weeks. We confirm your timeline before production begins to ensure everything stays on track."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 7
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f5",
+    "question": "How do I remove the background of my logo?",
+    "answer": [
+      "Our jacket builder removes all backgrounds of custom artwork and logos. However if you see design is being cut and the jacket builder removes the internal background then uncheck the box and upload a design. You can write a note for our designers to remove the outer background."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": {
+      "src": "/jacketee-assets/frontend-images/faqs/remove-background-logo-varsity-jacket.png",
+      "alt": "Remove background from logo in jacket builder"
+    },
+    "order": 7
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d2",
+    "question": "I am having a problem browsing your website! How do I contact?",
+    "answer": ["Please contact us through the Contact Us form."],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 8
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f6",
+    "question": "How do I upload my own patch / logo?",
+    "answer": [
+      "Use our online jacket builder to upload your artwork, logo or artwork on a varsity jacket. Jacket builder will remove all backgrounds automatically."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": {
+      "src": "/jacketee-assets/frontend-images/faqs/remove-background-logo-varsity-jacket.png",
+      "alt": "Upload patch or logo in jacket builder"
+    },
+    "order": 8
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d3",
+    "question": "Are there any delivery charges?",
+    "answer": ["Yes, we charge a flat shipping rate of $45 per jacket, regardless of destination."],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 9
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f7",
+    "question": "Where do I see examples of your work?",
+    "answer": ["You can view our latest client work on our instagram page."],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 9
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d4",
+    "question": "Can I request changes after placing my order?",
+    "answer": [
+      "Yes, you can request changes within 24 hours of placing an order. To meet the promised delivery date we process all orders after 24 hours. If you have any change in your order, kindly request changes free of cost within 24 hours by email. Write email subject 5 DIGIT ORDER# CHANGES.",
+      "Note: Additional charges may apply if you change materials or add new embroideries / patches."
+    ],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 10
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f8",
+    "question": "How do I design a letterman jacket online?",
+    "answer": [
+      "It's easy! Just follow these steps:",
+      "When you're ready, just add it to the cart. Start designing now!"
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [
+      "Pick Your Style: Choose from varsity, bomber, hoodies, and more.",
+      "Pick Materials: Select your fabrics, like premium wool and real leather.",
+      "Choose Colors: Pick colors for the body, sleeves, and collar.",
+      "Add Your Logo: Upload your design for custom patches and embroidery.",
+      "Live Preview: Watch your jacket design update in real time."
+    ],
+    "image": { "src": "", "alt": "" },
+    "order": 10
+  },
+  {
+    "_id": "6a2c51378147e9f7373301d5",
+    "question": "Shipping Rates",
+    "answer": ["We charge a flat shipping rate of $45 per jacket, worldwide, regardless of destination."],
+    "category": "common",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 11
+  },
+  {
+    "_id": "6a2c51378147e9f7373301e8",
+    "question": "How can we get fabric swatches?",
+    "answer": [
+      "Please get in touch with our sales team and pay the shipping charges. Within 1-2 days they will ship your fabric swatches and provide a tracking code. You can also request Pantone code for a perticular fabric shade and then review Pantone code on your end to save time and costs."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 11
+  },
+  {
+    "_id": "6a2c51378147e9f7373301f9",
+    "question": "How do I add my school logo or team patch?",
+    "answer": [
+      "Our design tool makes it easy to upload your own logos for custom embroidery and chenille patches. We will send you a digital proof to approve before we start making your jacket. Learn more about our patches and embroidery options."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 11
+  },
+  {
+    "_id": "6a2c51378147e9f7373301e9",
+    "question": "Do you offer custom colors for bulk orders?",
+    "answer": ["Yes! We offer custom color options based on material and order quantity:"],
+    "category": "bulk-team-orders",
+    "bullets": [
+      "Satin Garments: Any color is possible using sublimation printing.",
+      "Melton Wool, Cotton Fleece, Cotton Twill: For orders of 100+ garments, we can dye custom fabric colors.",
+      "Cowhide & Sheep Leather Sleeves: For 25+ peices, we offer custom leather colors upon request.",
+      "Just share your preferred shade with our team-we'll confirm feasibility and lead time."
+    ],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 12
+  },
+  {
+    "_id": "6a2c51378147e9f7373301fa",
+    "question": "How much does a custom letterman jacket cost?",
+    "answer": ["Our jackets start as low as $52 with free color customization. Pick a base and build from there:"],
+    "category": "how-to-design",
+    "bullets": [
+      "Blank & budget-friendly: Fleece Jackets, Cotton Twill Jackets, Satin Baseball.",
+      "Wool & Leather (premium feel): Wool Varsity, Wool-Leather Varsity, All-Leather Letterman. Prices vary by material and trims-see live from price on each collection page.",
+      "Add embroidery, chenille patches, names & numbers: Build your jacket and the price updates in real time as you add options: Jacket Builder.",
+      "Tip: Start with your base (fleece, twill, satin, wool, or leather), then use the builder to calculate your exact total, including patches and embroidery."
+    ],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 12
+  },
+  {
+    "_id": "6a2c51378147e9f7373301ea",
+    "question": "Can we order custom patches only without jackets?",
+    "answer": [
+      "Yes, we offer wholesale production of custom patches, including embroidered, felt, and chenille styles. Whether you need school logos, team emblems, or brand designs, we can produce them in large quantities. Please contact our sales team to discuss your requirements and get a custom quote."
+    ],
+    "category": "bulk-team-orders",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 13
+  },
+  {
+    "_id": "6a2c51378147e9f7373301fb",
+    "question": "Can you print photos on the jackets?",
+    "answer": [
+      "Yes, we can print high resolution photo or illustration and attach it to the jacket as sewn on patch.",
+      "Satin sublimated jackets will have direct print on the fabric. Note: Complex artwork or artwork with too many colors and gredients are impossible to embroider. We will do sublimation print and then attach as patch. If you have complex artwork get in touch with our support team prior to order. Here is an example of what can be embroidery and what can be print."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": {
+      "src": "/jacketee-assets/frontend-images/faqs/embroidery-vs-printing.jpg",
+      "alt": "Embroidery vs printing example"
+    },
+    "order": 13
+  },
+  {
+    "_id": "6a5fb6efda49a512d4795d0b",
+    "question": "What is a custom varsity jacket?",
+    "answer": [
+      "A custom varsity jacket is a personalized letterman-style jacket made with your selected colors, materials, patches, embroidery, names, numbers, and logos. You can design one for personal wear, schools, teams, clubs, or brands."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 20,
+    "displayPages": ["varsity-jackets"]
+  },
+  {
+    "_id": "6a5fb6efda49a512d4795d0e",
+    "question": "What is the difference between a varsity jacket and a letterman jacket?",
+    "answer": [
+      "They're the same jacket. \"Letterman jacket\" comes from the school tradition of awarding a chenille letter for achievement, while \"varsity jacket\" is the more common term used today for the same style in fashion, streetwear, and team orders."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 21,
+    "displayPages": ["varsity-jackets"]
+  },
+  {
+    "_id": "6a5fb6efda49a512d4795d11",
+    "question": "Are wool and leather varsity jackets good for schools and teams?",
+    "answer": [
+      "Yes — wool and leather is the classic letterman build and one of the most popular choices for schools, teams, and clubs. Wool also holds chenille patches and embroidery especially well, which matters for school lettering and team names."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 22,
+    "displayPages": ["wool-and-leather"]
+  },
+  {
+    "_id": "6a5fb6f0da49a512d4795d14",
+    "question": "What is a wool and leather varsity jacket?",
+    "answer": [
+      "A wool and leather varsity jacket has a wool body paired with leather (or faux leather) sleeves, usually in a contrasting color — the classic letterman construction used for school and team orders for decades."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 23,
+    "displayPages": ["wool-and-leather"]
+  },
+  {
+    "_id": "6a5fb6f0da49a512d4795d17",
+    "question": "Are leather sleeve varsity jackets durable?",
+    "answer": [
+      "Yes, when made with quality leather and proper stitching. Leather sleeves hold up well to regular wear and give the jacket a structured, premium finish that lasts."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 24,
+    "displayPages": ["wool-and-leather", "all-leather"]
+  },
+  {
+    "_id": "6a5fb6f0da49a512d4795d1a",
+    "question": "Can I choose genuine leather or faux leather sleeves?",
+    "answer": [
+      "Yes. Genuine leather offers a premium, long-lasting finish, while faux leather is a more affordable, animal-friendly alternative with a similar look. Both are available across our varsity jacket styles."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 25,
+    "displayPages": ["wool-and-leather", "faux-leather"]
+  },
+  {
+    "_id": "6a5fb6f0da49a512d4795d1d",
+    "question": "What is an all leather varsity jacket?",
+    "answer": [
+      "An all leather varsity jacket has leather on both the body and sleeves, rather than just the sleeves, while keeping the classic varsity shape — ribbed trims, snap buttons, and full customisation with patches and embroidery."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 26,
+    "displayPages": ["all-leather"]
+  },
+  {
+    "_id": "6a5fb6f1da49a512d4795d20",
+    "question": "What is an all wool varsity jacket?",
+    "answer": [
+      "An all wool varsity jacket is made with wool on both the body and sleeves, giving a classic, warm, clean letterman look without leather sleeves."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 27,
+    "displayPages": ["all-wool"]
+  },
+  {
+    "_id": "6a5fb6f1da49a512d4795d23",
+    "question": "Are satin varsity jackets lightweight?",
+    "answer": [
+      "Yes — satin varsity jackets are noticeably lighter than wool or leather builds, making them a comfortable choice for mild weather, events, and casual custom designs."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 28,
+    "displayPages": ["satin"]
+  },
+  {
+    "_id": "6a5fb6f1da49a512d4795d26",
+    "question": "Are fleece varsity jackets warm?",
+    "answer": [
+      "Yes, fleece varsity jackets are warm and comfortable — a good option for casual wear, relaxed team jackets, and soft everyday custom styles."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 29,
+    "displayPages": ["fleece"]
+  },
+  {
+    "_id": "6a5fb6f2da49a512d4795d29",
+    "question": "What is a hooded varsity jacket?",
+    "answer": [
+      "A hooded varsity jacket combines the classic letterman shape with a soft, lined hood at the neckline for extra coverage and a more modern, streetwear-ready look — popular for everyday and outdoor wear."
+    ],
+    "category": "how-to-design",
+    "bullets": [],
+    "ordered": [],
+    "image": { "src": "", "alt": "" },
+    "order": 30,
+    "displayPages": ["hooded"]
+  }
+]

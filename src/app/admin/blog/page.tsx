@@ -259,7 +259,7 @@ export default function AdminBlog() {
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
               </Link>
-              <h1 className="text-2xl font-bold tracking-tight">LUXE STORE Admin</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Jacketee Admin</h1>
             </div>
             <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-sm text-muted-foreground hidden md:inline">

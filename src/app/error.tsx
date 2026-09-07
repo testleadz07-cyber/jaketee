@@ -72,7 +72,7 @@ export default function Error({
 
       <footer className="border-t bg-background mt-auto">
         <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Luxe Store. All rights reserved.
+          © 2024 Jacketee. All rights reserved.
         </div>
       </footer>
     </div>

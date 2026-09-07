@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -16,7 +15,7 @@ import { Header } from '@/components/header'
 import { ProductCard } from '@/components/product-card'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
-import { Search, Sparkles, ShoppingBag, Filter, ChevronDown } from 'lucide-react'
+import { Sparkles, ShoppingBag, Filter, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { buildCategoryUrl } from '@/lib/categories'
 import { getStaticCategoriesWithCount } from '@/lib/static-data'
@@ -51,7 +50,6 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState(() => {
     if (typeof window === 'undefined') return 'all'
     return new URLSearchParams(window.location.search).get('category') || 'all'
@@ -79,7 +77,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchProducts()
-  }, [searchQuery, selectedCategory, sortBy])
+  }, [selectedCategory, sortBy])
 
   const fetchCategories = async () => {
     try {
@@ -104,7 +102,6 @@ export default function Home() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (searchQuery) params.append('search', searchQuery)
       if (selectedCategory !== 'all') params.append('category', selectedCategory)
 
       if (sortBy === 'price-asc') {
@@ -195,18 +192,6 @@ export default function Home() {
               Curated selection of the finest electronics, fashion, home goods,
               and more. Quality meets elegance.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <div className="relative w-full sm:w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 text-base"
-                />
-              </div>
-            </div>
           </motion.div>
         </div>
       </section>

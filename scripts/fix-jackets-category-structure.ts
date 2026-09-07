@@ -3,8 +3,8 @@ import mongoose from 'mongoose'
 import Category from '@/models/Category'
 
 // Corrects the category taxonomy seeded earlier (scripts/seed-jackets-categories.ts)
-// against Clothaa's real site structure (verified via their actual sitemap.xml):
-// - There is no "Jackets" parent on Clothaa - the 7 jacket types are each top-level.
+// against Jacketee's real site structure (verified via their actual sitemap.xml):
+// - There is no "Jackets" parent on Jacketee - the 7 jacket types are each top-level.
 // - Two Varsity subcategory slugs were wrong: wool-and-leather -> wool-leather,
 //   all-wool -> wool. Updated in place (not delete+recreate) to preserve any
 //   existing product references.

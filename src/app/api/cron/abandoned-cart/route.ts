@@ -96,7 +96,7 @@ async function runAbandonedCartSweep(request: NextRequest) {
 
       const result = await sendEmail({
         to: cart.userEmail,
-        subject: `LUXE STORE - ${subject}`,
+        subject: `Jacketee - ${subject}`,
         html,
       })
 

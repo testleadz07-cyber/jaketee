@@ -10,6 +10,7 @@ import { isLoginLocked, recordFailedLogin, resetLoginAttempts } from '@/lib/rate
 const pendingSessionIds = new Map<string, string>()
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',

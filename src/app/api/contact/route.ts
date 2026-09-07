@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; padding: 24px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #18181b; margin-top: 0;">We received your message!</h2>
         <p>Dear ${name},</p>
-        <p>Thank you for contacting LUXE STORE. We have received your inquiry regarding <strong>"${subject}"</strong>.</p>
+        <p>Thank you for contacting Jacketee. We have received your inquiry regarding <strong>"${subject}"</strong>.</p>
         <p>Our customer support team will review your message and respond within 24 hours.</p>
         <br />
         <p style="color: #71717a; font-size: 12px; margin-bottom: 0;">This is an automated response. Please do not reply directly to this email.</p>
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     
     await sendEmail({
       to: email,
-      subject: 'LUXE STORE - Inquiry Received',
+      subject: 'Jacketee - Inquiry Received',
       html: customerReplyHtml,
     })
 

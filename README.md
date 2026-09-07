@@ -1,4 +1,4 @@
-# LUXE STORE - Premium Fashion E-Commerce
+# Jacketee - Premium Fashion E-Commerce
 
 A modern, full-stack e-commerce store built with Next.js 16, NextAuth, and static data (ready for MongoDB).
 
@@ -27,7 +27,7 @@ A modern, full-stack e-commerce store built with Next.js 16, NextAuth, and stati
 - **UI Components**: shadcn/ui
 - **State Management**: Zustand
 - **Animations**: Framer Motion
-- **Deployment**: Netlify (Node.js)
+- **Deployment**: Vercel (Next.js)
 
 ## 🚀 Getting Started
 
@@ -91,7 +91,6 @@ luxe-store/
 │   └── store/                  # Zustand stores
 │       └── cart.ts             # Cart store
 ├── public/                     # Static assets
-├── netlify.toml               # Netlify configuration
 ├── next.config.ts             # Next.js configuration
 ├── tailwind.config.ts         # Tailwind configuration
 └── package.json               # Dependencies
@@ -158,16 +157,17 @@ For development (optional - static data works without it):
 5. **Footwear** - Sneakers, boots
 6. **Accessories** - Bags, belts, caps
 
-## 🚀 Deployment to Netlify
+## 🚀 Deployment to Vercel
 
-1. Connect your GitHub repository to Netlify
-2. Netlify will automatically detect Next.js
-3. Build settings are configured in `netlify.toml`
+1. Connect your GitHub repository to Vercel
+2. Import the project as a Next.js app
+3. Set the environment variables from `.env.example`
 4. Deploy!
 
 For admin authentication in production:
-1. Add `NEXTAUTH_SECRET` to Netlify environment variables
-2. Add `NEXTAUTH_URL` with your domain
+1. Add `NEXTAUTH_SECRET` in Vercel environment variables
+2. Add `NEXTAUTH_URL` if you want to override the default domain
+3. Ensure `AUTH_TRUST_HOST=true` is enabled for Vercel-hosted domains
 
 ## 🤝 Contributing
 

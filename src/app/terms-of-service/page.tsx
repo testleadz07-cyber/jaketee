@@ -12,7 +12,7 @@ const SUPPORT_EMAIL = 'support@luxestore.com'
 const sections = [
   {
     heading: '1. Agreement to Terms',
-    body: `These Terms of Service ("Terms") govern your access to and use of the Luxe Store website, mobile experience, and services (collectively, the "Service"). By creating an account, placing an order, or otherwise using the Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree, please do not use the Service.`,
+    body: `These Terms of Service ("Terms") govern your access to and use of the Jacketee website, mobile experience, and services (collectively, the "Service"). By creating an account, placing an order, or otherwise using the Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree, please do not use the Service.`,
   },
   {
     heading: '2. Eligibility',
@@ -63,7 +63,7 @@ const sections = [
   },
   {
     heading: '10. Intellectual Property',
-    body: `All content on the Service — including text, graphics, logos, product images, and software — is owned by or licensed to Luxe Store and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, or create derivative works from our content without prior written permission.`,
+    body: `All content on the Service — including text, graphics, logos, product images, and software — is owned by or licensed to Jacketee and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, or create derivative works from our content without prior written permission.`,
   },
   {
     heading: '11. Third-Party Links & Services',
@@ -75,15 +75,15 @@ const sections = [
   },
   {
     heading: '13. Limitation of Liability',
-    body: `To the fullest extent permitted by law, Luxe Store and its officers, employees, and affiliates shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service. Our total liability for any claim arising from these Terms or the Service shall not exceed the amount you paid for the product(s) giving rise to the claim.`,
+    body: `To the fullest extent permitted by law, Jacketee and its officers, employees, and affiliates shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service. Our total liability for any claim arising from these Terms or the Service shall not exceed the amount you paid for the product(s) giving rise to the claim.`,
   },
   {
     heading: '14. Indemnification',
-    body: `You agree to indemnify and hold harmless Luxe Store from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the Service or violation of these Terms.`,
+    body: `You agree to indemnify and hold harmless Jacketee from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the Service or violation of these Terms.`,
   },
   {
     heading: '15. Governing Law & Dispute Resolution',
-    body: `These Terms are governed by the laws of the jurisdiction in which Luxe Store is incorporated, without regard to conflict-of-laws principles. Any disputes arising from these Terms or the Service shall first be attempted to be resolved informally by contacting customer support; unresolved disputes may be subject to binding arbitration or the courts of competent jurisdiction, as permitted by applicable consumer protection law.`,
+    body: `These Terms are governed by the laws of the jurisdiction in which Jacketee is incorporated, without regard to conflict-of-laws principles. Any disputes arising from these Terms or the Service shall first be attempted to be resolved informally by contacting customer support; unresolved disputes may be subject to binding arbitration or the courts of competent jurisdiction, as permitted by applicable consumer protection law.`,
   },
   {
     heading: '16. Changes to These Terms',

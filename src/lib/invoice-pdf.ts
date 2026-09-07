@@ -61,7 +61,7 @@ function formatDate(d: string | Date) {
 export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   pdfDoc.setTitle(`Invoice ${order.orderNumber}`)
-  pdfDoc.setAuthor('LUXE STORE')
+  pdfDoc.setAuthor('Jacketee')
   pdfDoc.setSubject('Order Invoice / Receipt')
 
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
@@ -101,7 +101,7 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
 
   // ---------- Header band ----------
   page.drawRectangle({ x: 0, y: PAGE_HEIGHT - 96, width: PAGE_WIDTH, height: 96, color: ACCENT })
-  drawText('LUXE STORE', MARGIN, PAGE_HEIGHT - 45, { font: fontBold, size: 22, color: WHITE })
+  drawText('Jacketee', MARGIN, PAGE_HEIGHT - 45, { font: fontBold, size: 22, color: WHITE })
   drawText('123 Fifth Avenue, New York, NY 10160, USA', MARGIN, PAGE_HEIGHT - 63, {
     size: 9,
     color: rgb(0.85, 0.85, 0.87),

@@ -37,9 +37,14 @@ import {
   AlertTriangle,
   Package,
   Layers,
-  Inbox
+  Inbox,
+  ExternalLink,
+  Star,
+  Boxes,
+  Calendar
 } from 'lucide-react'
 import Link from 'next/link'
+import { buildProductUrl } from '@/lib/categories'
 
 interface Product {
   id: string
@@ -50,12 +55,16 @@ interface Product {
   inStock: boolean
   isFeatured: boolean
   stockCount?: number
+  averageRating?: number
+  reviewCount?: number
   tags?: string[]
   category?: {
     name: string
     slug: string
   }
+  categoryPath?: Array<{ name: string; slug: string }>
   images: Array<{ url: string }>
+  createdAt?: string
 }
 
 export default function AdminProducts() {
@@ -292,7 +301,7 @@ export default function AdminProducts() {
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
               </Link>
-              <h1 className="text-2xl font-bold tracking-tight">LUXE STORE Admin</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Jacketee Admin</h1>
             </div>
             <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-sm text-muted-foreground hidden md:inline">
@@ -461,6 +470,8 @@ export default function AdminProducts() {
                             <span className="font-semibold text-primary">${product.price.toFixed(2)}</span>
                             <span>•</span>
                             <span>{product.category?.name || 'Uncategorized'}</span>
+                            <span>•</span>
+                            <span className="font-mono truncate max-w-[180px]" title={product.slug}>{product.slug}</span>
                           </div>
                           <div className="flex gap-1.5 mt-2 flex-wrap">
                             {product.isFeatured && (
@@ -480,7 +491,30 @@ export default function AdminProducts() {
                         </div>
                       </div>
 
+                      <div className="hidden lg:flex items-center gap-4 text-xs text-muted-foreground flex-shrink-0">
+                        <div className="flex items-center gap-1.5 w-20" title="Stock count">
+                          <Boxes className="h-3.5 w-3.5" />
+                          {product.stockCount ?? '—'}
+                        </div>
+                        <div className="flex items-center gap-1.5 w-24" title="Rating">
+                          <Star className="h-3.5 w-3.5" />
+                          {product.averageRating ? product.averageRating.toFixed(1) : '—'}
+                          {product.reviewCount !== undefined && (
+                            <span>({product.reviewCount})</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 w-24" title="Date added">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : '—'}
+                        </div>
+                      </div>
+
                       <div className="flex gap-2">
+                        <Link href={buildProductUrl(product)} target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="View Product">
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Link href={`/admin/products/${prodId}`}>
                           <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="Edit Product">
                             <Edit className="h-4 w-4" />

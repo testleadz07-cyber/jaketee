@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     sendEmail({
       to: user.email,
-      subject: 'Your LUXE STORE password was changed',
+      subject: 'Your Jacketee password was changed',
       html: passwordChangedTemplate({ userName: user.name }),
     }).then((result) => {
       if (!result.success) console.error('Failed to send password-changed email:', result.message)

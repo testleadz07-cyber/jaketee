@@ -31,17 +31,17 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: 'Post Not Found — LUXE STORE Blog',
+      title: 'Post Not Found — Jacketee Blog',
       description: 'The requested blog post could not be found.',
       robots: { index: false, follow: false },
     }
   }
 
   const pageUrl = `${SITE_URL}/blog/${slug}`
-  const title = post.seoTitle || `${post.title} — LUXE STORE Blog`
+  const title = post.seoTitle || `${post.title} — Jacketee Blog`
   const description = (post.seoDescription || post.excerpt || '').slice(0, 160)
   const imageUrl = post.ogImage || post.featuredImage || DEFAULT_IMAGE
-  const authorName = post.author?.name || 'LUXE STORE'
+  const authorName = post.author?.name || 'Jacketee'
   const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
   const modifiedTime = post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined
 
@@ -53,7 +53,7 @@ export async function generateMetadata({
       title,
       description,
       url: pageUrl,
-      siteName: 'LUXE STORE',
+      siteName: 'Jacketee',
       images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
       type: 'article',
       publishedTime,
@@ -86,7 +86,7 @@ export default async function BlogPostLayout({
 
   const pageUrl = `${SITE_URL}/blog/${slug}`
   const imageUrl = post.ogImage || post.featuredImage || DEFAULT_IMAGE
-  const authorName = post.author?.name || 'LUXE STORE'
+  const authorName = post.author?.name || 'Jacketee'
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
@@ -100,7 +100,7 @@ export default async function BlogPostLayout({
     author: { '@type': 'Person', name: authorName },
     publisher: {
       '@type': 'Organization',
-      name: 'LUXE STORE',
+      name: 'Jacketee',
       logo: { '@type': 'ImageObject', url: DEFAULT_IMAGE },
     },
     mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },

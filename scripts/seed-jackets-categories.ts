@@ -2,10 +2,10 @@ import 'dotenv/config'
 import mongoose from 'mongoose'
 import Category from '@/models/Category'
 
-// Jackets taxonomy sourced from clothaa.com's live nav (see PRODUCTION_READINESS_CHECKLIST.md §8.1).
+// Jackets taxonomy sourced from jacketee.com's live nav (see PRODUCTION_READINESS_CHECKLIST.md §8.1).
 // Level 0: Jackets (new top-level parent)
 // Level 1: 7 jacket types
-// Level 2: material/style subcategories, only under Varsity Jackets (Clothaa's hero type)
+// Level 2: material/style subcategories, only under Varsity Jackets (Jacketee's hero type)
 const TAXONOMY = {
   name: 'Jackets',
   slug: 'jackets',

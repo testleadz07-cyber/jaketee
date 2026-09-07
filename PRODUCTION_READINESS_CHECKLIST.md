@@ -1,4 +1,4 @@
-# Production Readiness Checklist — LUXE STORE
+# Production Readiness Checklist — Jacketee
 
 Tracks what's implemented vs. missing to make this a professional, production-grade
 e-commerce store. Based on a source review of this repo (not a live/running audit).
@@ -212,7 +212,7 @@ Accessories) is unaffected. Inspired by thejacketmaker.com's validated, SEO-prov
 approach (see prior comparison — 46% organic-search traffic, 1.9K ranked keywords,
 4.7★/456 Trustpilot reviews).
 
-### 8.1 Catalog change — taxonomy (confirmed against clothaa.com's live nav)
+### 8.1 Catalog change — taxonomy (confirmed against jacketee.com's live nav)
 
 Two-level structure: **Level 1 = Jacket Type**, **Level 2 = Material/Style
 subcategory** — but the material breakdown only goes deep on the hero jacket type;
@@ -275,7 +275,7 @@ the rest stay flat single-level categories.
   - [ ] Leather Jackets
   - [ ] Puffer Jackets
 - [ ] Level 2 — Material/Style (sub-subcategory, deep breakdown only on the hero
-      type — pick which of the 7 above gets this; Clothaa uses Varsity Jackets):
+      type — pick which of the 7 above gets this; Jacketee uses Varsity Jackets):
   - [ ] Wool & Leather
   - [ ] All Wool
   - [ ] Faux Leather
@@ -286,7 +286,7 @@ the rest stay flat single-level categories.
   - [ ] Fleece
   - [ ] Cotton Twill
 - [ ] "Design Your Own" and "Bulk Orders" implemented as cross-cutting global CTAs/
-      entry points, **not** nested category pages (matches Clothaa's nav structure)
+      entry points, **not** nested category pages (matches Jacketee's nav structure)
 
 ### 8.2 Customization builder (jackets only)
 - [x] Multi-step builder scoped to Jackets category products: style → material

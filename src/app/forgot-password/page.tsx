@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
               <div className="flex items-center gap-2">
                 <ShoppingBag className="h-8 w-8 text-primary" />
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                  LUXE STORE
+                  Jacketee
                 </span>
               </div>
             </div>

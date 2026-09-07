@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (resolution.type === 'product') {
     const product = resolution.product
-    const title = `${product.name} - LUXE STORE`
+    const title = `${product.name} - Jacketee`
     const description = (product.description || '').slice(0, 160)
     const imageUrl = product.images?.[0]?.url || DEFAULT_IMAGE
 
@@ -36,10 +36,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (resolution.type === 'category') {
     const category = resolution.category
-    const title = `${category.name} - LUXE STORE`
+    const title = `${category.name} - Jacketee`
     const description = category.description
       ? category.description.slice(0, 160)
-      : `Shop ${category.name} at LUXE STORE`
+      : `Shop ${category.name} at Jacketee`
     const imageUrl = category.image || DEFAULT_IMAGE
 
     return {
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   return {
-    title: 'Page Not Found - LUXE STORE',
+    title: 'Page Not Found - Jacketee',
     description: 'The requested page could not be found.',
   }
 }
@@ -90,7 +90,7 @@ export default async function CatchAllLayout({ params }: Props) {
       image: imageUrls,
       sku: String(product._id || product.id || product.slug),
       url: canonicalUrl,
-      brand: { '@type': 'Brand', name: 'LUXE STORE' },
+      brand: { '@type': 'Brand', name: 'Jacketee' },
       ...(categoryPath.length > 0 && { category: categoryPath[categoryPath.length - 1].name }),
       offers: {
         '@type': 'Offer',
@@ -99,7 +99,7 @@ export default async function CatchAllLayout({ params }: Props) {
         price: price.toFixed(2),
         availability,
         itemCondition: 'https://schema.org/NewCondition',
-        seller: { '@type': 'Organization', name: 'LUXE STORE' },
+        seller: { '@type': 'Organization', name: 'Jacketee' },
       },
     }
 
@@ -174,7 +174,7 @@ export default async function CatchAllLayout({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: category.name,
-    description: category.description || `Shop ${category.name} at LUXE STORE`,
+    description: category.description || `Shop ${category.name} at Jacketee`,
     url: canonicalUrl,
   }
 

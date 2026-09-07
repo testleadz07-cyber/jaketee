@@ -1,11 +1,16 @@
+import 'dotenv/config'
 import mongoose from 'mongoose'
 import Category from '../src/models/Category'
 import Product from '../src/models/Product'
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/luxe-store'
+const MONGODB_URI = process.env.MONGODB_URI
 
 async function seed() {
   try {
+    if (!MONGODB_URI) {
+      throw new Error('MONGODB_URI is not configured')
+    }
+
     await mongoose.connect(MONGODB_URI)
     console.log('Connected to MongoDB')
 
