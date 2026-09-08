@@ -566,7 +566,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
-      <Header showBack backHref="/" />
+      <Header />
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
         <Breadcrumbs items={[{ label: 'Checkout' }]} className="mb-6" />

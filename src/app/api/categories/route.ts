@@ -9,48 +9,37 @@ import { authOptions } from '@/lib/auth-options'
 
 export async function GET() {
   try {
-    const staticCategories = getStaticCategoriesWithCount()
-    if (!staticCategories || staticCategories.length === 0) {
-      throw new Error('Static categories file returned no data')
-    }
-    return NextResponse.json(staticCategories)
-  } catch (staticError: any) {
-    console.error('Error rendering categories from static file, falling back to database:', staticError)
-    try {
-      const db = await connectDB()
-      if (!db) {
-        return NextResponse.json(getStaticCategoriesWithCount())
+    const db = await connectDB()
+    if (!db) throw new Error('Database not connected')
+
+    const categories = await Category.find().lean()
+    const nodes: CategoryNode[] = categories.map((c: any) => ({
+      _id: String(c._id),
+      parentId: c.parentId ? String(c.parentId) : null,
+    }))
+
+    const counts = await Product.aggregate([
+      { $match: { inStock: true } },
+      { $group: { _id: '$categoryId', count: { $sum: 1 } } },
+    ])
+    const countByCategoryId = new Map<string, number>(
+      counts.map((c: any) => [String(c._id), c.count as number])
+    )
+
+    const categoriesWithCount = categories.map((cat: any) => {
+      const descendantIds = resolveDescendantIds(nodes, String(cat._id))
+      const count = descendantIds.reduce((sum, id) => sum + (countByCategoryId.get(id) || 0), 0)
+      return {
+        ...cat,
+        id: String(cat._id),
+        parentId: cat.parentId ? String(cat.parentId) : null,
+        _count: { products: count },
       }
-
-      const categories = await Category.find().lean()
-      const nodes: CategoryNode[] = categories.map((c: any) => ({
-        _id: String(c._id),
-        parentId: c.parentId ? String(c.parentId) : null,
-      }))
-
-      const counts = await Product.aggregate([
-        { $match: { inStock: true } },
-        { $group: { _id: '$categoryId', count: { $sum: 1 } } },
-      ])
-      const countByCategoryId = new Map<string, number>(
-        counts.map((c: any) => [String(c._id), c.count as number])
-      )
-
-      const categoriesWithCount = categories.map((cat: any) => {
-        const descendantIds = resolveDescendantIds(nodes, String(cat._id))
-        const count = descendantIds.reduce((sum, id) => sum + (countByCategoryId.get(id) || 0), 0)
-        return {
-          ...cat,
-          id: String(cat._id),
-          parentId: cat.parentId ? String(cat.parentId) : null,
-          _count: { products: count },
-        }
-      })
-      return NextResponse.json(categoriesWithCount)
-    } catch (dbError: any) {
-      console.error('Error fetching categories from database:', dbError)
-      return NextResponse.json(getStaticCategoriesWithCount())
-    }
+    })
+    return NextResponse.json(categoriesWithCount, { headers: { 'Cache-Control': 'no-store' } })
+  } catch (dbError: any) {
+    console.error('Error fetching categories from database, using static fallback:', dbError)
+    return NextResponse.json(getStaticCategoriesWithCount())
   }
 }
 

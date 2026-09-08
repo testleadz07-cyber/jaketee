@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import { resolveDescendantIds, resolveAncestorChain, type CategoryNode } from '@/lib/categories'
 import {
   AlertDialog,
@@ -353,14 +354,7 @@ export default function AdminCategories() {
     : new Set<string>()
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading categories...</p>
-        </div>
-      </div>
-    )
+    return <AdminLoadingShell label="Loading categories..." />
   }
 
   if (!session || (session.user as any).role !== 'admin') {

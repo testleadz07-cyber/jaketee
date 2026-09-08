@@ -28,7 +28,7 @@ interface Product {
   price: number
   compareAtPrice?: number | null
   images: Array<{ url: string; alt: string }>
-  category: {
+  category?: {
     name: string
     slug: string
   }

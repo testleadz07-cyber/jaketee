@@ -20,7 +20,7 @@ interface ProductCardProps {
     price: number
     compareAtPrice?: number | null
     images: Array<{ url: string; alt: string }>
-    category: {
+    category?: {
       name: string
       slug: string
     }
@@ -34,6 +34,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id))
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
+  const imageUrl = product.images[0]?.url || '/placeholder.png'
+  const isCloudinaryImage = imageUrl.startsWith('https://res.cloudinary.com/')
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
@@ -53,11 +55,13 @@ export function ProductCard({ product }: ProductCardProps) {
         <Card className="h-full overflow-hidden border-2 hover:border-primary transition-colors group cursor-pointer">
           <div className="relative aspect-square overflow-hidden bg-muted">
             <Image
-              src={product.images[0]?.url || '/placeholder.png'}
+              src={imageUrl}
               alt={product.images[0]?.alt || product.name}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
               className="object-cover transition-transform duration-300 group-hover:scale-110"
+              unoptimized={isCloudinaryImage}
+              onError={(event) => { event.currentTarget.src = '/placeholder.png' }}
             />
             
             <Button
@@ -107,7 +111,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
           <CardContent className="p-4">
             <Badge variant="outline" className="mb-2 text-xs">
-              {product.category.name}
+              {product.category?.name || 'Uncategorized'}
             </Badge>
 
             <h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors">

@@ -15,6 +15,7 @@ import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { ImageUpload } from '@/components/image-upload'
 import { useToast } from '@/hooks/use-toast'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import {
   orderCategoriesForDisplay,
   resolveAncestorChain,
@@ -212,11 +213,7 @@ export default function NewProduct() {
   }
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    )
+    return <AdminLoadingShell label="Loading product editor..." />
   }
 
   if (!session) {

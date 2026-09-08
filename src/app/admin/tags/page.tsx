@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, Edit, Trash2, Check, ChevronLeft, LogOut, Tags as TagsIcon } from 'lucide-react'
@@ -124,11 +125,7 @@ export default function TagsPage() {
   }
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
+    return <AdminLoadingShell label="Loading tags..." />
   }
 
   if (!session || (session.user as any).role !== 'admin') {

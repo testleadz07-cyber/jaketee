@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, LogOut, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { BlogPostForm, BlogPostFormValues } from '@/components/admin/blog-post-form'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 
 export default function EditBlogPost() {
   const { data: session, status } = useSession()
@@ -81,11 +82,7 @@ export default function EditBlogPost() {
   }
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    )
+    return <AdminLoadingShell label="Loading blog post..." />
   }
 
   if (!session || (session.user as any).role !== 'admin') {

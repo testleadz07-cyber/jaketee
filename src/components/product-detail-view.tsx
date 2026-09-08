@@ -294,7 +294,7 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header showBack backHref="/" />
+      <Header />
 
       {/* Product Detail */}
       <main className="flex-1">

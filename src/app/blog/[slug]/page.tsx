@@ -112,7 +112,7 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header showBack backHref="/blog" />
+      <Header />
 
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8 max-w-4xl">

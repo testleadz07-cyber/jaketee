@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import {
   ChevronLeft,
   LogOut,
@@ -148,14 +149,7 @@ export default function AdminRefundsPage() {
   }
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading refund requests...</p>
-        </div>
-      </div>
-    )
+    return <AdminLoadingShell label="Loading refund requests..." />
   }
 
   if (!session || (session.user as any).role !== 'admin') {

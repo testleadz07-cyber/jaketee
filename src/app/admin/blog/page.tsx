@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -224,14 +225,7 @@ export default function AdminBlog() {
   const filteredPosts = posts
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading blog posts...</p>
-        </div>
-      </div>
-    )
+    return <AdminLoadingShell label="Loading blog posts..." />
   }
 
   if (!session || (session.user as any).role !== 'admin') {

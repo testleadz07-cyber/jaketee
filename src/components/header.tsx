@@ -22,11 +22,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { buildProductUrl } from '@/lib/categories'
 
-interface HeaderProps {
-  showBack?: boolean
-  backHref?: string
-}
-
 interface SearchSuggestion {
   id: string
   name: string
@@ -37,7 +32,7 @@ interface SearchSuggestion {
   categoryPath?: Array<{ name: string; slug: string }>
 }
 
-export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
+export function Header() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -173,13 +168,6 @@ export function Header({ showBack = false, backHref = '/' }: HeaderProps) {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            {showBack && (
-              <Link href={backHref}>
-                <Button variant="ghost" size="sm" className="px-2">
-                  ← Back
-                </Button>
-              </Link>
-            )}
             <Link href="/" className="flex items-center gap-2">
               <motion.div
                 whileHover={{ rotate: 360 }}

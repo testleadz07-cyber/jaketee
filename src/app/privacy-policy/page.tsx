@@ -106,7 +106,7 @@ const sections = [
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
-      <Header showBack backHref="/" />
+      <Header />
 
       <main className="flex-1 container mx-auto px-4 py-12">
         <Breadcrumbs items={[{ label: 'Privacy Policy' }]} className="mb-6 max-w-4xl mx-auto" />

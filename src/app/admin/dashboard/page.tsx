@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import {
   AreaChart,
   Area,
@@ -143,14 +144,7 @@ export default function AdminDashboard() {
   }
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading admin analytics...</p>
-        </div>
-      </div>
-    )
+    return <AdminLoadingShell label="Loading admin analytics..." />
   }
 
   if (!session || (session.user as any).role !== 'admin') {

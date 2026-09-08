@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { orderCategoriesForDisplay } from '@/lib/categories'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import {
   ChevronLeft,
   LogOut,
@@ -31,7 +34,8 @@ interface BulkProduct {
   inStock: boolean
   isFeatured: boolean
   tags: string[]
-  category?: { name: string }
+  categoryId?: string | null
+  category?: { id: string; name: string; slug: string } | null
   images: Array<{ url: string }>
 }
 
@@ -40,6 +44,15 @@ interface DirtyRow {
   price?: number
   stockCount?: number
   isFeatured?: boolean
+  categoryId?: string
+}
+
+interface Category {
+  id: string
+  _id?: string
+  name: string
+  slug: string
+  parentId?: string | null
 }
 
 const ITEMS_PER_PAGE = 20
@@ -67,6 +80,7 @@ export default function BulkEditorPage() {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [dirtyRows, setDirtyRows] = useState<Record<string, DirtyRow>>({})
+  const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -74,13 +88,24 @@ export default function BulkEditorPage() {
 
   useEffect(() => {
     if (status === 'authenticated') fetchPage(page)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, page])
+
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    fetch('/api/categories', { cache: 'no-store' })
+      .then((res) => res.ok ? res.json() : Promise.reject(new Error('Failed to load categories')))
+      .then((data: Category[]) => setCategories(data
+        .map((category) => ({ ...category, id: category.id || category._id || '' }))
+        .filter((category) => category.id && category.name)))
+      .catch(() => {
+        toast({ title: 'Categories unavailable', description: 'Product categories could not be loaded.', variant: 'destructive' })
+      })
+  }, [status, toast])
 
   async function fetchPage(p: number) {
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/bulk-edit?page=${p}&limit=${ITEMS_PER_PAGE}`)
+      const res = await fetch(`/api/admin/bulk-edit?page=${p}&limit=${ITEMS_PER_PAGE}`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setProducts(data.products)
@@ -99,7 +124,7 @@ export default function BulkEditorPage() {
     }
   }
 
-  const updateCell = useCallback((id: string, field: keyof DirtyRow, value: number | boolean) => {
+  const updateCell = useCallback((id: string, field: keyof DirtyRow, value: number | boolean | string) => {
     setDirtyRows(prev => ({ ...prev, [id]: { ...prev[id], id, [field]: value } }))
   }, [])
 
@@ -122,14 +147,21 @@ export default function BulkEditorPage() {
       const res = await fetch('/api/admin/bulk-edit', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates.map(u => ({ id: u.id, price: u.price, stock: u.stockCount, isFeatured: u.isFeatured })))
+        body: JSON.stringify(updates.map(u => ({
+          id: u.id,
+          price: u.price,
+          stock: u.stockCount,
+          isFeatured: u.isFeatured,
+          categoryId: u.categoryId,
+        })))
       })
       if (res.ok) {
         toast({ title: 'Changes Saved', description: `${updates.length} product(s) updated.` })
         setDirtyRows({})
-        fetchPage(page)
+        await fetchPage(page)
       } else {
-        toast({ title: 'Save Failed', description: 'Could not save changes.', variant: 'destructive' })
+        const errorData = await res.json().catch(() => ({}))
+        toast({ title: 'Save Failed', description: errorData.error || 'Could not save changes.', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Error', description: 'Network error.', variant: 'destructive' })
@@ -140,16 +172,10 @@ export default function BulkEditorPage() {
 
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
   const dirtyCount = Object.keys(dirtyRows).length
+  const orderedCategories = orderCategoriesForDisplay(categories.map((category) => ({ ...category, _id: category.id })))
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading product catalog...</p>
-        </div>
-      </div>
-    )
+    return <AdminLoadingShell label="Loading product catalog..." />
   }
 
   if (!session || (session.user as any).role !== 'admin') {
@@ -270,7 +296,7 @@ export default function BulkEditorPage() {
                     const isLowStock = currentStock <= 5
 
                     return (
-                      <tr key={id} className={`transition-colors ${isDirty ? 'bg-yellow-50 border-l-4 border-l-yellow-400' : 'hover:bg-muted/20'}`}>
+                      <tr key={id} className={`transition-colors ${isDirty ? 'bg-amber-500/10 border-l-4 border-l-amber-400' : 'hover:bg-muted/20'}`}>
                         <td className="p-3 pl-4">
                           <div className="flex items-center gap-3">
                             <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 border">
@@ -279,7 +305,28 @@ export default function BulkEditorPage() {
                             <span className="font-medium truncate max-w-[160px]" title={product.name}>{product.name}</span>
                           </div>
                         </td>
-                        <td className="p-3 text-muted-foreground text-xs">{product.category?.name || '—'}</td>
+                        <td className="p-3">
+                          <Select
+                            value={getCurrent<string | null>(
+                              product,
+                              'categoryId',
+                              product.categoryId || product.category?.id || ''
+                            ) || undefined}
+                            onValueChange={(value) => updateCell(id, 'categoryId', value)}
+                            disabled={isDemoMode || categories.length === 0}
+                          >
+                            <SelectTrigger className="h-8 w-44 text-xs">
+                              <SelectValue placeholder="" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {orderedCategories.map(({ category, depth }) => (
+                                <SelectItem key={category.id} value={category.id}>
+                                  {depth > 0 ? `${'  '.repeat(depth)}↳ ` : ''}{category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
                         <td className="p-3">
                           <Input type="number" step="0.01" min="0" value={currentPrice}
                             onChange={(e) => updateCell(id, 'price', parseFloat(e.target.value) || 0)}
@@ -319,7 +366,7 @@ export default function BulkEditorPage() {
                         </td>
                         <td className="p-3 text-center">
                           {isDirty
-                            ? <span className="text-yellow-600 text-xs font-semibold">Modified</span>
+                            ? <span className="text-amber-300 text-xs font-semibold">Modified</span>
                             : <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />}
                         </td>
                       </tr>
