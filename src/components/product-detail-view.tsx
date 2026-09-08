@@ -13,7 +13,7 @@ import { useWishlistStore } from '@/store/wishlist'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import { ReviewsSection } from '@/components/reviews-section'
 import { Breadcrumbs } from '@/components/breadcrumbs'
-import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
+// import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
 import { SizeGuide } from '@/components/size-guide'
 import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
@@ -91,30 +91,21 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
   const addItem = useCartStore((state) => state.addItem)
   const addRecentlyViewed = useRecentlyViewedStore((state) => state.addItem)
 
-  useEffect(() => {
-    fetchProduct()
-  }, [slug])
+  function groupVariants(variants: Product['variants']) {
+    const list = variants || []
+    return list.reduce((acc, variant) => {
+      if (!acc[variant.name]) {
+        acc[variant.name] = []
+      }
+      if (acc[variant.name].some((v) => v.value === variant.value)) {
+        return acc
+      }
+      acc[variant.name].push(variant)
+      return acc
+    }, {} as Record<string, Product['variants']>)
+  }
 
-  useEffect(() => {
-    if (!product) return
-    addRecentlyViewed({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      description: product.description,
-      price: product.price,
-      compareAtPrice: product.compareAtPrice,
-      images: (product.images || []).map((img) => ({
-        url: img.url,
-        alt: img.alt || '',
-      })),
-      category: product.category,
-      isFeatured: product.isFeatured,
-    })
-    logUserActivity('view_product', { productId: product.id, name: product.name })
-  }, [product?.id])
-
-  const fetchProduct = async () => {
+  async function fetchProduct() {
     setLoading(true)
     setOverrideImage(null)
     try {
@@ -146,19 +137,36 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
     }
   }
 
-  const groupVariants = (variants: Product['variants']) => {
-    const list = variants || []
-    return list.reduce((acc, variant) => {
-      if (!acc[variant.name]) {
-        acc[variant.name] = []
-      }
-      if (acc[variant.name].some((v) => v.value === variant.value)) {
-        return acc
-      }
-      acc[variant.name].push(variant)
-      return acc
-    }, {} as Record<string, Product['variants']>)
-  }
+  useEffect(() => {
+    let isMounted = true
+
+    Promise.resolve().then(() => {
+      if (isMounted) fetchProduct()
+    })
+
+    return () => {
+      isMounted = false
+    }
+  }, [slug])
+
+  useEffect(() => {
+    if (!product) return
+    addRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      images: (product.images || []).map((img) => ({
+        url: img.url,
+        alt: img.alt || '',
+      })),
+      category: product.category,
+      isFeatured: product.isFeatured,
+    })
+    logUserActivity('view_product', { productId: product.id, name: product.name })
+  }, [product?.id])
 
   const getSelectedVariantPriceAdjust = () => {
     if (!product || !product.variants) return 0
@@ -595,7 +603,7 @@ export function ProductDetailView({ slug }: ProductDetailViewProps) {
           </div>
 
           <div className="mt-12 space-y-12 border-t pt-12">
-            <FrequentlyBoughtTogether currentProduct={product} />
+            {/* <FrequentlyBoughtTogether currentProduct={product} /> */}
             <YouMayAlsoLike currentProduct={product} />
             <RecentlyViewed excludeProductId={product.id} />
           </div>

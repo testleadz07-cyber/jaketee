@@ -24,22 +24,21 @@ export function Footer() {
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    let isMounted = true
 
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/categories')
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(data)
-      } else {
-        setCategories(getStaticCategories())
-      }
-    } catch {
-      setCategories(getStaticCategories())
+    fetch('/api/categories')
+      .then((res) => (res.ok ? res.json() : getStaticCategories()))
+      .then((data) => {
+        if (isMounted) setCategories(data)
+      })
+      .catch(() => {
+        if (isMounted) setCategories(getStaticCategories())
+      })
+
+    return () => {
+      isMounted = false
     }
-  }
+  }, [])
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -127,6 +126,18 @@ export function Footer() {
                 className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
               >
                 FAQ
+              </Link>
+              <Link
+                href="/materials-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
+              >
+                Materials & Colors
+              </Link>
+              <Link
+                href="/patches-embroidery"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors hover:translate-x-0.5 duration-200"
+              >
+                Patches & Embroidery
               </Link>
               <Link
                 href="/contact"
