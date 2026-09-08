@@ -18,7 +18,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://luxestore.com";
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://jacketee.com";
+const verification: Metadata["verification"] = {
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : {}),
+  ...(process.env.BING_SITE_VERIFICATION
+    ? { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION } }
+    : {}),
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -26,6 +34,7 @@ export const metadata: Metadata = {
   description: "Discover premium fashion, activewear, and outdoor apparel. Quality meets elegance at Jacketee.",
   keywords: ["Jacketee", "Fashion", "Activewear", "Outdoor", "Clothing", "Apparel", "Sportswear"],
   authors: [{ name: "Jacketee Team" }],
+  verification: Object.keys(verification).length > 0 ? verification : undefined,
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },

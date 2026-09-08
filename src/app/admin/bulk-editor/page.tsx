@@ -35,7 +35,7 @@ interface BulkProduct {
   isFeatured: boolean
   tags: string[]
   categoryId?: string | null
-  category?: { id: string; name: string; slug: string } | null
+  category?: { id?: string; name: string; slug?: string } | null
   images: Array<{ url: string }>
 }
 

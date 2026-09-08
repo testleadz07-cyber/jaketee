@@ -53,7 +53,7 @@ npm run dev
 ## 🔐 Admin Access
 
 **Login Credentials:**
-- Email: `admin@luxestore.com`
+- Email: `admin@jacketee.com`
 - Password: `admin123`
 
 Access the admin panel by:
@@ -179,7 +179,7 @@ This project is open source and available under the MIT License.
 
 ## 📞 Support
 
-For support, email support@luxestore.com or visit our Contact page.
+For support, email support@jacketee.com or visit our Contact page.
 
 ---
 

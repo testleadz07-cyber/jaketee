@@ -11,7 +11,7 @@ interface Props {
   children: React.ReactNode
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://luxestore.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
 const DEFAULT_IMAGE = 'https://z-cdn.chatglm.cn/z-ai/static/logo.svg'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {

@@ -15,44 +15,46 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        identifier: { label: 'Email or username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please provide email and password')
+        if (!credentials?.identifier || !credentials?.password) {
+          throw new Error('Please provide your email or username and password')
         }
 
-        const email = credentials.email
+        const identifier = credentials.identifier.trim().toLowerCase()
 
-        const lockStatus = isLoginLocked(email)
+        const lockStatus = isLoginLocked(identifier)
         if (lockStatus.locked) {
           throw new Error('Too many failed login attempts. Please try again later.')
         }
 
         const db = await connectDB()
         if (db) {
-          const user = await User.findOne({ email })
+          const user = await User.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
+          })
           const isValid = user ? await comparePassword(credentials.password, user.password) : false
           if (!user || !isValid) {
-            recordFailedLogin(email)
-            throw new Error('Invalid email or password')
+            recordFailedLogin(identifier)
+            throw new Error('Invalid email or username or password')
           }
           if (user.isActive === false) {
             throw new Error('This account has been disabled. Please contact support.')
           }
-          resetLoginAttempts(email)
-          return { id: String(user._id), email: user.email, name: user.name, role: user.role }
+          resetLoginAttempts(identifier)
+          return { id: String(user._id), email: user.email, name: user.name, username: user.username, role: user.role }
         }
 
         // Fallback: hardcoded admin (no DB)
-        if (email === 'admin@luxestore.com' && credentials.password === 'admin123') {
-          resetLoginAttempts(email)
-          return { id: '1', email: 'admin@luxestore.com', name: 'Admin User', role: 'admin' }
+        if (identifier === 'admin@jacketee.com' && credentials.password === 'admin123') {
+          resetLoginAttempts(identifier)
+          return { id: '1', email: 'admin@jacketee.com', name: 'Admin User', username: 'admin', role: 'admin' }
         }
 
-        recordFailedLogin(email)
-        throw new Error('Invalid email or password')
+        recordFailedLogin(identifier)
+        throw new Error('Invalid email or username or password')
       },
     }),
   ],
@@ -63,6 +65,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role
         token.userId = (user as any).id
+        token.username = (user as any).username
 
         // Pick up the LoginSession id created in the signIn event
         const userId = (user as any).id as string
@@ -78,6 +81,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).role = token.role
         ;(session.user as any).id = token.userId
         ;(session.user as any).loginSessionId = token.loginSessionId
+        ;(session.user as any).username = token.username
       }
       return session
     },

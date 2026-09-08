@@ -8,10 +8,15 @@ import { sendEmail, welcomeEmailTemplate } from '@/lib/email'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, password } = body
+    const { name, username, email, password } = body
 
-    if (!name || !email || !password) {
+    if (!name || !username || !email || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
+    }
+
+    const normalizedUsername = String(username).trim().toLowerCase()
+    if (!/^[a-z0-9_-]{3,30}$/.test(normalizedUsername)) {
+      return NextResponse.json({ error: 'Username must be 3–30 characters using only letters, numbers, underscores, or hyphens' }, { status: 400 })
     }
 
     if (password.length < 6) {
@@ -27,15 +32,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database not available. Please try again later.' }, { status: 503 })
     }
 
-    const existing = await User.findOne({ email })
+    const normalizedEmail = String(email).trim().toLowerCase()
+    const existing = await User.findOne({
+      $or: [{ email: normalizedEmail }, { username: normalizedUsername }],
+    })
     if (existing) {
-      return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
+      return NextResponse.json({
+        error: existing.username === normalizedUsername
+          ? 'This username is already taken'
+          : 'An account with this email already exists',
+      }, { status: 409 })
     }
 
     const hashedPassword = await hashPassword(password)
     const user = await User.create({
       name,
-      email,
+      username: normalizedUsername,
+      email: normalizedEmail,
       password: hashedPassword,
       role: 'customer',
     })
@@ -60,7 +73,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(userWithoutPassword, { status: 201 })
   } catch (error: any) {
     if (error.code === 11000) {
-      return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
+      return NextResponse.json({ error: 'This email or username is already in use' }, { status: 409 })
     }
     console.error('Registration error:', error)
     return NextResponse.json({ error: 'Registration failed' }, { status: 500 })

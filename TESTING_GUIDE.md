@@ -41,7 +41,7 @@ Before testing, ensure your local development server is running and the database
 ### Login & Session
 * **Target Page**: `/login`
 * **Test Steps**:
-  1. Enter the newly created credentials or use the demo admin credentials (`admin@luxestore.com` / `admin123`).
+  1. Enter the newly created credentials or use the demo admin credentials (`admin@jacketee.com` / `admin123`).
   2. Verify that logging in with incorrect credentials shows an error toast.
   3. Log in with correct credentials. Confirm you are redirected to the homepage (or dashboard if admin).
   4. Verify that the navigation header updates: the **Sign In** button is replaced by a user profile dropdown menu displaying your name and email.
@@ -164,7 +164,7 @@ Before testing, ensure your local development server is running and the database
 ## 🔑 6. Admin Panel
 
 > [!IMPORTANT]
-> To access admin pages, you must log in with an administrator account (such as `admin@luxestore.com` / `admin123`). Unauthorized requests to `/admin/*` will be intercepted and redirected to `/login`.
+> To access admin pages, you must log in with an administrator account (such as `admin@jacketee.com` / `admin123`). Unauthorized requests to `/admin/*` will be intercepted and redirected to `/login`.
 
 ### Admin Dashboard
 * **Target Page**: `/admin/dashboard`

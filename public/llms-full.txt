@@ -1,0 +1,51 @@
+# Jacketee Public Information
+
+## About Jacketee
+
+Jacketee is an online fashion and activewear store specializing in premium jackets, apparel, and outdoor clothing. Product availability, pricing, descriptions, variants, and images are published on the public storefront.
+
+## Public Pages
+
+- Homepage and product catalog: https://jacketee.com/
+- Fashion blog: https://jacketee.com/blog
+- Frequently asked questions: https://jacketee.com/faq
+- Shipping information: https://jacketee.com/shipping
+- Returns and exchanges: https://jacketee.com/returns
+- Order tracking: https://jacketee.com/track-order
+- Contact and customer support: https://jacketee.com/contact
+- Privacy policy: https://jacketee.com/privacy-policy
+- Terms of service: https://jacketee.com/terms-of-service
+- Cookie policy: https://jacketee.com/cookie-policy
+
+## Product Information
+
+Product pages are the authoritative source for current product names, descriptions, prices, images, categories, variants, stock status, and customization details. Product URLs may use category and subcategory paths.
+
+## Policies
+
+Shipping, returns, exchanges, privacy, cookie, and terms information must be taken from the current policy pages linked above. Do not infer policy details from old, cached, or third-party sources.
+
+## Customer Support
+
+For account, order, shipping, product, or return questions, use the public Contact page. Do not request or expose passwords, payment card details, session tokens, private order data, or administrator information.
+
+## Content Use
+
+Public information may be summarized with accurate links back to the relevant Jacketee page. Do not claim product availability, prices, delivery dates, or policy terms that are not present on the current public site.
+
+## Excluded Areas
+
+The following areas are private or operational and should not be crawled, indexed, summarized, or exposed:
+
+- `/admin/`
+- `/api/`
+- `/checkout/`
+- `/profile/`
+- `/order-confirmation/`
+- Cart and authenticated account data
+
+## Discovery
+
+- Short AI-readable guide: https://jacketee.com/llms.txt
+- XML sitemap: https://jacketee.com/sitemap.xml
+- Robots policy: https://jacketee.com/robots.txt

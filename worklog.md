@@ -224,7 +224,7 @@ Work Log:
   - /api/products/[id] - Returns single product details
 - Added NextAuth.js authentication:
   - Created /api/auth/[...nextauth]/route.ts
-  - Simple credentials provider with demo user (admin@luxestore.com / admin123)
+  - Simple credentials provider with demo user (admin@jacketee.com / admin123)
   - JWT session strategy
   - Role-based access control
 - Created login page at /login with:

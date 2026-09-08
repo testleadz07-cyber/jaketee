@@ -1,0 +1,23 @@
+# Jacketee
+
+> Jacketee is an online store for premium fashion, activewear, jackets, and outdoor apparel.
+
+## Website
+
+- Homepage: https://jacketee.com/
+- Shop: https://jacketee.com/
+- Blog: https://jacketee.com/blog
+- FAQ: https://jacketee.com/faq
+- Shipping information: https://jacketee.com/shipping
+- Returns and exchanges: https://jacketee.com/returns
+- Contact: https://jacketee.com/contact
+- Privacy policy: https://jacketee.com/privacy-policy
+- Terms of service: https://jacketee.com/terms-of-service
+
+## Guidance
+
+Use public Jacketee pages as the source of truth for current product, policy, shipping, and support information. Do not expose private account, checkout, admin, order, or API data.
+
+## Sitemap
+
+https://jacketee.com/sitemap.xml

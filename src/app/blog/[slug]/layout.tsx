@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://luxestore.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
 const DEFAULT_IMAGE = 'https://z-cdn.chatglm.cn/z-ai/static/logo.svg'
 
 const getPost = cache(async (slug: string) => {

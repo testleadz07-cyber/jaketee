@@ -72,12 +72,12 @@ async function seed() {
   const adminPassword = await hashPassword('admin123')
   await User.create({
     name: 'Admin User',
-    email: 'admin@luxestore.com',
+    email: 'admin@jacketee.com',
     password: adminPassword,
     role: 'admin',
     addresses: [],
   })
-  console.log('  👤 Admin user: admin@luxestore.com / admin123')
+  console.log('  👤 Admin user: admin@jacketee.com / admin123')
 
   // Seed demo customer
   const custPassword = await hashPassword('customer123')

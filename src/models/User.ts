@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IUser extends Document {
   name: string
+  username?: string
   email: string
   password: string
   role: 'admin' | 'customer'
@@ -29,6 +30,7 @@ const AddressSchema = new Schema(
   {
     label: { type: String, default: 'Home' },
     name: { type: String, required: true },
+    username: { type: String, trim: true, lowercase: true },
     street: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
@@ -57,5 +59,6 @@ const UserSchema = new Schema<IUser>(
 )
 
 UserSchema.index({ email: 1 })
+UserSchema.index({ username: 1 }, { unique: true, sparse: true })
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema)

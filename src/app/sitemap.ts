@@ -8,7 +8,7 @@ import { getStaticProducts, getStaticCategories } from '@/lib/static-data'
 import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://luxestore.com'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
 
   // Static routes
   const staticRoutes = [

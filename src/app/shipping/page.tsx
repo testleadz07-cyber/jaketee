@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { Footer } from '@/components/footer'
 
 export default function ShippingPage() {
   return (
@@ -239,12 +240,7 @@ export default function ShippingPage() {
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

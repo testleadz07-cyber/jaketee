@@ -1,0 +1,4 @@
+Contact: mailto:support@jacketee.com
+Expires: 2027-09-09T00:00:00.000Z
+Canonical: https://jacketee.com/.well-known/security.txt
+Policy: https://jacketee.com/contact

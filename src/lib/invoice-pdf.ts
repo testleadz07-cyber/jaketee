@@ -106,7 +106,7 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
     size: 9,
     color: rgb(0.85, 0.85, 0.87),
   })
-  drawText('support@luxestore.com  •  www.luxestore.com', MARGIN, PAGE_HEIGHT - 77, {
+  drawText('support@jacketee.com  •  www.jacketee.com', MARGIN, PAGE_HEIGHT - 77, {
     size: 9,
     color: rgb(0.85, 0.85, 0.87),
   })
@@ -305,7 +305,7 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
     { size: 8.5, color: MUTED }
   )
   drawText(
-    'Questions about this order? Contact support@luxestore.com',
+    'Questions about this order? Contact support@jacketee.com',
     MARGIN,
     footerY,
     { size: 8.5, color: MUTED }

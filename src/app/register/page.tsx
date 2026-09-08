@@ -17,6 +17,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 export default function RegisterPage() {
   const router = useRouter()
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -49,7 +50,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, username, email, password }),
       })
 
       const data = await res.json()
@@ -61,7 +62,7 @@ export default function RegisterPage() {
       }
 
       const result = await signIn('credentials', {
-        email,
+        identifier: email,
         password,
         redirect: false,
       })
@@ -122,6 +123,19 @@ export default function RegisterPage() {
                   placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="john_doe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                   disabled={isLoading}
                 />

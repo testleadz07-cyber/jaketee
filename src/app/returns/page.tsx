@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { Footer } from '@/components/footer'
 
 export default function ReturnsPage() {
   const [form, setForm] = useState({ orderId: '', name: '', email: '', reason: '' })
@@ -197,7 +198,7 @@ export default function ReturnsPage() {
                   <div>
                     <h3 className="font-semibold mb-1">Initiate Return</h3>
                     <p className="text-sm text-muted-foreground">
-                      Contact us at <span className="font-medium">returns@luxestore.com</span> or use the contact form with your order number
+                      Contact us at <span className="font-medium">returns@jacketee.com</span> or use the contact form with your order number
                     </p>
                   </div>
                 </div>
@@ -407,12 +408,7 @@ export default function ReturnsPage() {
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

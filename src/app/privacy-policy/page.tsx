@@ -5,9 +5,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Header } from '@/components/header'
 import { Shield, Mail } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { Footer } from '@/components/footer'
 
 const LAST_UPDATED = 'July 8, 2026'
-const SUPPORT_EMAIL = 'support@luxestore.com'
+const SUPPORT_EMAIL = 'support@jacketee.com'
 
 const sections = [
   {
@@ -164,6 +165,7 @@ export default function PrivacyPolicyPage() {
           </Card>
         </motion.div>
       </main>
+      <Footer />
     </div>
   )
 }

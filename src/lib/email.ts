@@ -86,7 +86,7 @@ export function orderConfirmationTemplate(order: {
           <p style="margin: 0;">${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}</p>
           <p style="margin: 0;">${order.shippingAddress.country}</p>
         </div>
-        <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@luxestore.com</p>
+        <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@jacketee.com</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
         © ${new Date().getFullYear()} Jacketee. All rights reserved.
@@ -109,7 +109,7 @@ export function welcomeEmailTemplate(data: { userName: string; shopUrl: string }
             Start Shopping
           </a>
         </div>
-        <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@luxestore.com</p>
+        <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@jacketee.com</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
         © ${new Date().getFullYear()} Jacketee. All rights reserved.
@@ -152,7 +152,7 @@ export function passwordChangedTemplate(data: { userName: string }) {
       <div style="padding: 24px; background: white;">
         <p>Hi ${data.userName},</p>
         <p>This is a confirmation that your Jacketee account password was just changed successfully.</p>
-        <p style="color: #71717a; font-size: 14px; margin-top: 24px;">If you didn't make this change, please contact us immediately at support@luxestore.com so we can secure your account.</p>
+        <p style="color: #71717a; font-size: 14px; margin-top: 24px;">If you didn't make this change, please contact us immediately at support@jacketee.com so we can secure your account.</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
         © ${new Date().getFullYear()} Jacketee. All rights reserved.
@@ -236,7 +236,7 @@ export function abandonedCartTemplate(data: {
             Complete Your Purchase
           </a>
         </div>
-        <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@luxestore.com</p>
+        <p style="color: #71717a; font-size: 14px;">If you have any questions, reply to this email or contact us at support@jacketee.com</p>
       </div>
       <div style="padding: 16px; text-align: center; color: #a1a1aa; font-size: 12px;">
         © ${new Date().getFullYear()} Jacketee. All rights reserved.

@@ -17,17 +17,13 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { data: session } = useSession()
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    if (searchParams.get('success') === 'true') {
-      setSuccess('Account created successfully! Please sign in.')
-    }
-  }, [searchParams])
+  const success = searchParams.get('success') === 'true'
+    ? 'Account created successfully! Please sign in.'
+    : ''
 
   useEffect(() => {
     if (session?.user) {
@@ -43,12 +39,11 @@ function LoginContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setSuccess('')
     setIsLoading(true)
 
     try {
       const result = await signIn('credentials', {
-        email,
+        identifier,
         password,
         redirect: false,
       })
@@ -108,13 +103,13 @@ function LoginContent() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="identifier">Email or username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="identifier"
+              type="text"
+              placeholder="your@email.com or username"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
               disabled={isLoading}
             />
@@ -156,7 +151,7 @@ function LoginContent() {
 
           <div className="border-t pt-4 mt-6">
             <p className="text-center text-[10px] text-muted-foreground opacity-60">
-              Admin demo: admin@luxestore.com / admin123
+              Admin demo: admin@jacketee.com / admin123
             </p>
           </div>
         </form>

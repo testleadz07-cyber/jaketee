@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Cookie, Mail } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { openCookiePreferences } from '@/lib/cookie-consent'
+import { Footer } from '@/components/footer'
 
 const LAST_UPDATED = 'July 8, 2026'
-const SUPPORT_EMAIL = 'support@luxestore.com'
+const SUPPORT_EMAIL = 'support@jacketee.com'
 
 const categories = [
   {
@@ -155,6 +156,7 @@ export default function CookiePolicyPage() {
           </Card>
         </motion.div>
       </main>
+      <Footer />
     </div>
   )
 }

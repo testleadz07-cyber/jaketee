@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email to store owner (SMTP_USER or EMAIL_FROM)
-    const adminEmail = process.env.SMTP_USER || 'admin@luxestore.com'
+    const adminEmail = process.env.SMTP_USER || 'admin@jacketee.com'
     const ownerEmailHtml = contactFormTemplate({ name, email, subject, message })
     
     await sendEmail({
