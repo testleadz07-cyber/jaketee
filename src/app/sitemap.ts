@@ -13,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes
   const staticRoutes = [
     { path: '',              priority: 1.0, freq: 'daily'   },
+    { path: '/shop',         priority: 0.9, freq: 'daily'   },
     { path: '/contact',      priority: 0.7, freq: 'monthly' },
     { path: '/blog',         priority: 0.8, freq: 'daily'   },
     { path: '/faq',          priority: 0.7, freq: 'monthly' },

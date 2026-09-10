@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
 
     let sortObj: any = {}
     if (sort === 'featured') sortObj = { isFeatured: -1, createdAt: -1 }
+    else if (sort === 'newest') sortObj = { createdAt: -1 }
     else if (sort === 'price') sortObj = { price: order === 'asc' ? 1 : -1 }
     else if (sort === 'name') sortObj = { name: order === 'asc' ? 1 : -1 }
     else sortObj = { createdAt: -1 }
