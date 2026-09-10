@@ -28,13 +28,13 @@ export function NewsletterPopup() {
     if (isExcludedRoute) return
 
     // Check if shown in this session
-    const hasBeenShown = sessionStorage.getItem('luxe_newsletter_shown')
+    const hasBeenShown = sessionStorage.getItem('jacketee_newsletter_shown')
     if (hasBeenShown) return
 
     // Trigger popup after 5 seconds delay
     const timer = setTimeout(() => {
       setIsOpen(true)
-      sessionStorage.setItem('luxe_newsletter_shown', 'true')
+      sessionStorage.setItem('jacketee_newsletter_shown', 'true')
     }, 5000)
 
     return () => clearTimeout(timer)
@@ -132,7 +132,7 @@ export function NewsletterPopup() {
                     <Sparkles className="h-5 w-5 text-amber-500 fill-amber-500" />
                   </h2>
                   <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                    Subscribe to the LUXE newsletter and receive a 15% discount code for your first purchase.
+                    Subscribe to the Jacketee newsletter and receive a 15% discount code for your first purchase.
                   </p>
                 </div>
 

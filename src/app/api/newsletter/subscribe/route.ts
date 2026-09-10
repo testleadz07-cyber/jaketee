@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Subscriber from '@/models/Subscriber'
 import { createNotification } from '@/lib/notifications'
+import { newsletterSubscriptionTemplate, sendEmail } from '@/lib/email'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const NEWSLETTER_DISCOUNT_CODE = 'WELCOME15'
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +37,20 @@ export async function POST(request: NextRequest) {
         message: trimmedEmail,
       })
 
-      return NextResponse.json({ message: 'Successfully subscribed to the newsletter!' }, { status: 201 })
+      const emailResult = await sendEmail({
+        to: trimmedEmail,
+        subject: 'Welcome to Jacketee - You are subscribed',
+        html: newsletterSubscriptionTemplate({
+          shopUrl: APP_URL,
+          discountCode: NEWSLETTER_DISCOUNT_CODE,
+        }),
+      })
+
+      if (!emailResult.success) {
+        console.error('Newsletter confirmation email failed:', emailResult.message)
+      }
+
+      return NextResponse.json({ message: 'Successfully subscribed. Please check your email for your welcome code.' }, { status: 201 })
     }
 
     // Static/Mock mode success simulation
@@ -42,7 +59,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'You are already subscribed to our newsletter! (Demo Mode)' }, { status: 409 })
     }
 
-    return NextResponse.json({ message: 'Successfully subscribed to the newsletter! (Demo Mode)' }, { status: 201 })
+    const emailResult = await sendEmail({
+      to: trimmedEmail,
+      subject: 'Welcome to Jacketee - You are subscribed',
+      html: newsletterSubscriptionTemplate({
+        shopUrl: APP_URL,
+        discountCode: NEWSLETTER_DISCOUNT_CODE,
+      }),
+    })
+
+    if (!emailResult.success) {
+      console.error('Newsletter confirmation email failed:', emailResult.message)
+    }
+
+    return NextResponse.json({ message: 'Successfully subscribed. Please check your email for your welcome code. (Demo Mode)' }, { status: 201 })
   } catch (error: any) {
     console.error('Newsletter subscription error:', error)
     return NextResponse.json({ error: 'Failed to subscribe. Please try again later.' }, { status: 500 })

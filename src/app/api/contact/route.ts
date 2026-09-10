@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sendEmail, contactFormTemplate } from '@/lib/email'
+import { sendEmail, contactCustomerReplyTemplate, contactFormTemplate } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
 import { connectDB } from '@/lib/mongodb'
 import ContactMessage from '@/models/ContactMessage'
@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
     }
 
-    // Send email to store owner (SMTP_USER or EMAIL_FROM)
-    const adminEmail = process.env.SMTP_USER || 'admin@jacketee.com'
+    // Send email to store owner
+    const adminEmail = process.env.SMTP_USER || 'info@jacketee.com'
     const ownerEmailHtml = contactFormTemplate({ name, email, subject, message })
     
     await sendEmail({
@@ -28,16 +28,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Send auto-reply to customer
-    const customerReplyHtml = `
-      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; padding: 24px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #18181b; margin-top: 0;">We received your message!</h2>
-        <p>Dear ${name},</p>
-        <p>Thank you for contacting Jacketee. We have received your inquiry regarding <strong>"${subject}"</strong>.</p>
-        <p>Our customer support team will review your message and respond within 24 hours.</p>
-        <br />
-        <p style="color: #71717a; font-size: 12px; margin-bottom: 0;">This is an automated response. Please do not reply directly to this email.</p>
-      </div>
-    `
+    const customerReplyHtml = contactCustomerReplyTemplate({ name, subject })
     
     await sendEmail({
       to: email,
