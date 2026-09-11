@@ -65,6 +65,12 @@ async function fetchProducts(path: string) {
   return res.json()
 }
 
+async function fetchCategories() {
+  const res = await fetch('/api/categories')
+  if (!res.ok) throw new Error('Failed to fetch categories')
+  return res.json()
+}
+
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>(() => getStaticCategoriesWithCount())
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
@@ -82,19 +88,18 @@ export default function Home() {
       const fallbackNewArrivals = inStockStatic.slice(0, 8)
 
       try {
-        const categoryData = getStaticCategoriesWithCount()
-        setCategories(categoryData)
-
-        const [featured, newest, ...categoryRows] = await Promise.all([
+        const [categoryData, featured, newest, ...categoryRows] = await Promise.all([
+          fetchCategories(),
           fetchProducts('/api/products?sort=featured&limit=8'),
           fetchProducts('/api/products?sort=newest&limit=8'),
-          ...categorySectionSlugs.map((slug) => fetchProducts(`/api/products?category=${slug}&sort=featured&limit=4`)),
+          ...curatedCategorySlugs.map((slug) => fetchProducts(`/api/products?category=${slug}&sort=featured&limit=4`)),
         ])
 
+        setCategories(Array.isArray(categoryData) ? categoryData : getStaticCategoriesWithCount())
         setFeaturedProducts(featured.length ? featured : fallbackFeatured)
         setNewArrivals(newest.length ? newest : fallbackNewArrivals)
         setCategoryProducts(
-          categorySectionSlugs.reduce<Record<string, Product[]>>((acc, slug, index) => {
+          curatedCategorySlugs.reduce<Record<string, Product[]>>((acc, slug, index) => {
             acc[slug] = categoryRows[index] || []
             return acc
           }, {})
