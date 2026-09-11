@@ -46,26 +46,54 @@ interface Category {
   }
 }
 
+const PRODUCTS_PER_PAGE = 12
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
-  const [categories] = useState<Category[]>(() => getStaticCategoriesWithCount())
+  const [categories, setCategories] = useState<Category[]>(() => getStaticCategoriesWithCount())
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(() => {
     if (typeof window === 'undefined') return 'all'
     return new URLSearchParams(window.location.search).get('category') || 'all'
   })
   const [sortBy, setSortBy] = useState('featured')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalProducts, setTotalProducts] = useState(0)
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null)
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null)
   const categoryContainerRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  async function fetchProducts() {
-    setLoading(true)
+  const handleCategoryChange = (categorySlug: string) => {
+    setSelectedCategory(categorySlug)
+    setCurrentPage(1)
+    setProducts([])
+    setTotalProducts(0)
+    setOpenCategoryId(null)
+  }
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value)
+    setCurrentPage(1)
+    setProducts([])
+    setTotalProducts(0)
+  }
+
+  async function fetchProducts(page: number) {
+    const isFirstPage = page === 1
+    if (isFirstPage) {
+      setLoading(true)
+    } else {
+      setLoadingMore(true)
+    }
+
     try {
       const params = new URLSearchParams()
       const searchQuery = new URLSearchParams(window.location.search).get('search')
       if (selectedCategory !== 'all') params.append('category', selectedCategory)
       if (searchQuery) params.append('search', searchQuery)
+      params.append('page', String(page))
+      params.append('limit', String(PRODUCTS_PER_PAGE))
 
       if (sortBy === 'price-asc') {
         params.append('sort', 'price')
@@ -82,6 +110,7 @@ export default function Home() {
 
       const res = await fetch(`/api/products?${params.toString()}`)
       let data = await res.json()
+      const total = Number(res.headers.get('X-Total-Count') || data.length)
 
       if (sortBy === 'featured') {
         data = [...data].sort((a: Product, b: Product) => {
@@ -91,11 +120,17 @@ export default function Home() {
         })
       }
 
-      setProducts(data)
+      setTotalProducts(total)
+      setProducts((prev) => {
+        if (isFirstPage) return data
+        const existingIds = new Set(prev.map((product) => product.id))
+        return [...prev, ...data.filter((product: Product) => !existingIds.has(product.id))]
+      })
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
@@ -112,8 +147,33 @@ export default function Home() {
   }, [openCategoryId])
 
   useEffect(() => {
-    void Promise.resolve().then(fetchProducts)
-  }, [selectedCategory, sortBy])
+    let cancelled = false
+
+    async function fetchCategories() {
+      try {
+        const res = await fetch('/api/categories')
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled && Array.isArray(data)) {
+          setCategories(data)
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    }
+
+    fetchCategories()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    void Promise.resolve().then(() => fetchProducts(currentPage))
+  }, [selectedCategory, sortBy, currentPage])
+
+  const canLoadMore = products.length < totalProducts
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
@@ -186,9 +246,9 @@ export default function Home() {
               <Badge
                 variant={selectedCategory === 'all' ? 'default' : 'outline'}
                 className="cursor-pointer transition-all hover:scale-105"
-                onClick={() => setSelectedCategory('all')}
+                onClick={() => handleCategoryChange('all')}
               >
-                All Products
+                All Products{totalProducts > 0 && selectedCategory === 'all' ? ` (${totalProducts})` : ''}
               </Badge>
               {categories.filter((category) => !category.parentId).map((category) => {
                 const subcategories = categories.filter((c) => c.parentId === category.id)
@@ -207,7 +267,7 @@ export default function Home() {
                           selectedCategory === category.slug ? 'default' : 'outline'
                         }
                         className="cursor-pointer transition-all hover:scale-105"
-                        onClick={() => setSelectedCategory(category.slug)}
+                        onClick={() => handleCategoryChange(category.slug)}
                       >
                         {category.name} ({category._count.products})
                       </Badge>
@@ -254,7 +314,7 @@ export default function Home() {
 
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Sort by:</span>
-              <Select value={sortBy} onValueChange={setSortBy}>
+              <Select value={sortBy} onValueChange={handleSortChange}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -290,21 +350,42 @@ export default function Home() {
             </p>
           </div>
         ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          >
-            {products.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </motion.div>
+          <>
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {products.length} of {totalProducts || products.length} products
+              </p>
+            </div>
+
+            <motion.div
+              layout
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
+              {products.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: (index % PRODUCTS_PER_PAGE) * 0.05 }}
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {canLoadMore && (
+              <div className="mt-10 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setCurrentPage((page) => page + 1)}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? 'Loading...' : 'Load more products'}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </main>
 
