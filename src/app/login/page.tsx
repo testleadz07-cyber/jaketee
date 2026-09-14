@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { signIn, useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { getSession, signIn, useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
@@ -10,11 +10,34 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ShoppingBag, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 
+async function waitForSession() {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const session = await getSession()
+    if (session?.user) return session
+    await new Promise((resolve) => setTimeout(resolve, 150))
+  }
+  return null
+}
+
+function getSafeCallbackUrl(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return null
+  return value
+}
+
+function getDestination(role: string | undefined, callbackUrl: string | null) {
+  if (callbackUrl && (role === 'admin' || !callbackUrl.startsWith('/admin'))) {
+    return callbackUrl
+  }
+  return role === 'admin' ? '/admin/dashboard' : '/profile'
+}
+
+function redirectTo(destination: string) {
+  window.location.replace(destination)
+}
+
 function LoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { data: session } = useSession()
   const [identifier, setIdentifier] = useState('')
@@ -24,17 +47,14 @@ function LoginContent() {
   const success = searchParams.get('success') === 'true'
     ? 'Account created successfully! Please sign in.'
     : ''
+  const callbackUrl = getSafeCallbackUrl(searchParams.get('callbackUrl'))
 
   useEffect(() => {
     if (session?.user) {
       const role = (session.user as any).role
-      if (role === 'admin') {
-        router.push('/admin/dashboard')
-      } else {
-        router.push('/profile')
-      }
+      redirectTo(getDestination(role, callbackUrl))
     }
-  }, [session, router])
+  }, [callbackUrl, session])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,17 +72,9 @@ function LoginContent() {
         setError('Invalid email or password')
         setIsLoading(false)
       } else {
-        // Retrieve updated session to route correctly
-        const res = await fetch('/api/auth/session')
-        const updatedSession = await res.json()
-        const role = updatedSession?.user?.role || 'customer'
-        
-        if (role === 'admin') {
-          router.push('/admin/dashboard')
-        } else {
-          router.push('/profile')
-        }
-        router.refresh()
+        const updatedSession = await waitForSession()
+        const role = (updatedSession?.user as any)?.role || 'customer'
+        redirectTo(getDestination(role, callbackUrl))
       }
     } catch (error) {
       setError('An error occurred. Please try again.')

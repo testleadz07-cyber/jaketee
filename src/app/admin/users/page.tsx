@@ -48,6 +48,7 @@ import {
 interface AdminUserRow {
   id: string
   name: string
+  username: string | null
   email: string
   role: 'admin' | 'customer'
   isActive: boolean
@@ -75,6 +76,7 @@ export default function AdminUsersPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newUsername, setNewUsername] = useState('')
   const [newEmail, setNewEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [newRole, setNewRole] = useState<'customer' | 'admin'>('customer')
@@ -107,13 +109,10 @@ export default function AdminUsersPage() {
   }, [page, search, roleFilter, statusFilter])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchUsers()
+    if (status === 'authenticated') {
+      void Promise.resolve().then(fetchUsers)
+    }
   }, [status, fetchUsers])
-
-  // Debounce search + reset to page 1
-  useEffect(() => {
-    setPage(1)
-  }, [search, roleFilter, statusFilter])
 
   const handleToggleActive = async (user: AdminUserRow) => {
     const nextActive = !user.isActive
@@ -147,14 +146,23 @@ export default function AdminUsersPage() {
 
   const resetCreateForm = () => {
     setNewName('')
+    setNewUsername('')
     setNewEmail('')
     setNewPassword('')
     setNewRole('customer')
   }
 
   const handleCreateUser = async () => {
-    if (!newName.trim() || !newEmail.trim() || !newPassword) {
-      toast({ title: 'Error', description: 'Name, email, and password are required.', variant: 'destructive' })
+    if (!newName.trim() || !newUsername.trim() || !newEmail.trim() || !newPassword) {
+      toast({ title: 'Error', description: 'Name, username, email, and password are required.', variant: 'destructive' })
+      return
+    }
+    if (!/^[a-z0-9_-]{3,30}$/.test(newUsername.trim().toLowerCase())) {
+      toast({
+        title: 'Error',
+        description: 'Username must be 3-30 characters using only letters, numbers, underscores, or hyphens.',
+        variant: 'destructive',
+      })
       return
     }
     if (newPassword.length < 6) {
@@ -169,6 +177,7 @@ export default function AdminUsersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newName.trim(),
+          username: newUsername.trim().toLowerCase(),
           email: newEmail.trim(),
           password: newPassword,
           role: newRole,
@@ -259,7 +268,8 @@ export default function AdminUsersPage() {
           <Link href="/admin/tags"><Button variant="ghost" size="sm">Tags</Button></Link>
           <Link href="/admin/refunds"><Button variant="ghost" size="sm">Refunds</Button></Link>
           <Link href="/admin/blog"><Button variant="ghost" size="sm">Blog</Button></Link>
-        </div>
+          <Link href="/admin/faqs"><Button variant="ghost" size="sm">FAQs</Button></Link>
+          </div>
       </nav>
 
       {/* Main Body */}
@@ -282,13 +292,22 @@ export default function AdminUsersPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Search by name, username, or email..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
               className="pl-9"
             />
           </div>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <Select
+            value={roleFilter}
+            onValueChange={(value) => {
+              setRoleFilter(value)
+              setPage(1)
+            }}
+          >
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
@@ -298,7 +317,13 @@ export default function AdminUsersPage() {
               <SelectItem value="admin">Admin</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter(value)
+              setPage(1)
+            }}
+          >
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -327,6 +352,7 @@ export default function AdminUsersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Username</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
@@ -344,6 +370,9 @@ export default function AdminUsersPage() {
                     onClick={() => router.push(`/admin/users/${user.id}`)}
                   >
                     <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {user.username ? `@${user.username}` : '—'}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                     <TableCell>
                       <Badge variant={user.role === 'admin' ? 'default' : 'outline'}>
@@ -448,6 +477,18 @@ export default function AdminUsersPage() {
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Jane Doe"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-username">Username</Label>
+              <Input
+                id="new-username"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder="jane_doe"
+              />
+              <p className="text-xs text-muted-foreground">
+                The user can sign in with this username or their email address.
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="new-email">Email</Label>

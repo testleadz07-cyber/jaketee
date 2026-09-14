@@ -198,7 +198,7 @@ export default function ReturnsPage() {
                   <div>
                     <h3 className="font-semibold mb-1">Initiate Return</h3>
                     <p className="text-sm text-muted-foreground">
-                      Contact us at <span className="font-medium">returns@jacketee.com</span> or use the contact form with your order number
+                      Contact us at <span className="font-medium">info@jacketee.com</span> or use the contact form with your order number
                     </p>
                   </div>
                 </div>

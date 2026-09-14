@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       query.$or = [
         { name: { $regex: escaped, $options: 'i' } },
+        { username: { $regex: escaped, $options: 'i' } },
         { email: { $regex: escaped, $options: 'i' } },
       ]
     }
@@ -68,6 +69,7 @@ export async function GET(request: NextRequest) {
       return {
         id: String(u._id),
         name: u.name,
+        username: u.username || null,
         email: u.email,
         role: u.role,
         isActive: u.isActive !== false,
@@ -99,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, email, password, role } = body
+    const { name, username, email, password, role } = body
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -107,6 +109,15 @@ export async function POST(request: NextRequest) {
 
     if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: 'A valid email is required' }, { status: 400 })
+    }
+
+    if (!username || typeof username !== 'string' || !username.trim()) {
+      return NextResponse.json({ error: 'Username is required' }, { status: 400 })
+    }
+
+    const normalizedUsername = username.trim().toLowerCase()
+    if (!/^[a-z0-9_-]{3,30}$/.test(normalizedUsername)) {
+      return NextResponse.json({ error: 'Username must be 3-30 characters using only letters, numbers, underscores, or hyphens' }, { status: 400 })
     }
 
     if (!password || typeof password !== 'string' || password.length < 6) {
@@ -121,14 +132,21 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedEmail = email.toLowerCase().trim()
-    const existing = await User.findOne({ email: normalizedEmail })
+    const existing = await User.findOne({
+      $or: [{ email: normalizedEmail }, { username: normalizedUsername }],
+    })
     if (existing) {
-      return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
+      return NextResponse.json({
+        error: existing.username === normalizedUsername
+          ? 'This username is already taken'
+          : 'An account with this email already exists',
+      }, { status: 409 })
     }
 
     const hashedPassword = await hashPassword(password)
     const user = await User.create({
       name: name.trim(),
+      username: normalizedUsername,
       email: normalizedEmail,
       password: hashedPassword,
       role: userRole,
@@ -139,6 +157,7 @@ export async function POST(request: NextRequest) {
       {
         id: String(user._id),
         name: user.name,
+        username: user.username || null,
         email: user.email,
         role: user.role,
         isActive: user.isActive !== false,
@@ -151,7 +170,7 @@ export async function POST(request: NextRequest) {
     )
   } catch (error: any) {
     if (error.code === 11000) {
-      return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
+      return NextResponse.json({ error: 'This email or username is already in use' }, { status: 409 })
     }
     console.error('Admin user create error:', error)
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })

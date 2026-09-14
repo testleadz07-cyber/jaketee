@@ -45,6 +45,7 @@ const AddressSchema = new Schema(
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
+    username: { type: String, trim: true, lowercase: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['admin', 'customer'], default: 'customer' },

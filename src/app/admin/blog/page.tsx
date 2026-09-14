@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import {
@@ -83,6 +85,10 @@ export default function AdminBlog() {
   const [searchInput, setSearchInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [dateField, setDateField] = useState<'createdAt' | 'publishedAt'>('createdAt')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<BlogPostListItem | null>(null)
   const [page, setPage] = useState(1)
   const [pages, setPages] = useState(1)
@@ -92,6 +98,18 @@ export default function AdminBlog() {
   const [categories, setCategories] = useState<BlogCategory[]>([])
   const [newCategoryName, setNewCategoryName] = useState('')
   const [addingCategory, setAddingCategory] = useState(false)
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/blog-categories')
+      if (res.ok) {
+        const data = await res.json()
+        setCategories(data)
+      }
+    } catch (error) {
+      console.error('Error fetching blog categories:', error)
+    }
+  }, [])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -108,8 +126,8 @@ export default function AdminBlog() {
   }, [searchInput])
 
   useEffect(() => {
-    setPage(1)
-  }, [statusFilter])
+    void Promise.resolve().then(() => setPage(1))
+  }, [statusFilter, categoryFilter, dateField, dateFrom, dateTo])
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
@@ -118,6 +136,10 @@ export default function AdminBlog() {
       params.set('page', String(page))
       params.set('limit', String(limit))
       if (statusFilter !== 'all') params.set('status', statusFilter)
+      if (categoryFilter !== 'all') params.set('category', categoryFilter)
+      params.set('dateField', dateField)
+      if (dateFrom) params.set('dateFrom', dateFrom)
+      if (dateTo) params.set('dateTo', dateTo)
       if (searchQuery.trim()) params.set('search', searchQuery.trim())
 
       const res = await fetch(`/api/admin/blog?${params.toString()}`)
@@ -132,27 +154,19 @@ export default function AdminBlog() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter, searchQuery])
+  }, [page, statusFilter, categoryFilter, dateField, dateFrom, dateTo, searchQuery])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchPosts()
+    if (status === 'authenticated') {
+      void Promise.resolve().then(fetchPosts)
+    }
   }, [status, fetchPosts])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchCategories()
-  }, [status])
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/admin/blog-categories')
-      if (res.ok) {
-        const data = await res.json()
-        setCategories(data)
-      }
-    } catch (error) {
-      console.error('Error fetching blog categories:', error)
+    if (status === 'authenticated') {
+      void Promise.resolve().then(fetchCategories)
     }
-  }
+  }, [status, fetchCategories])
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return
@@ -220,6 +234,25 @@ export default function AdminBlog() {
     } finally {
       setDeleteTarget(null)
     }
+  }
+
+  const hasActiveFilters =
+    !!searchInput.trim() ||
+    statusFilter !== 'all' ||
+    categoryFilter !== 'all' ||
+    dateField !== 'createdAt' ||
+    !!dateFrom ||
+    !!dateTo
+
+  const clearFilters = () => {
+    setSearchInput('')
+    setSearchQuery('')
+    setStatusFilter('all')
+    setCategoryFilter('all')
+    setDateField('createdAt')
+    setDateFrom('')
+    setDateTo('')
+    setPage(1)
   }
 
   const filteredPosts = posts
@@ -312,6 +345,9 @@ export default function AdminBlog() {
           <Link href="/admin/blog">
             <Button variant="secondary" size="sm">Blog</Button>
           </Link>
+          <Link href="/admin/faqs">
+            <Button variant="ghost" size="sm">FAQs</Button>
+          </Link>
         </div>
       </nav>
 
@@ -376,30 +412,112 @@ export default function AdminBlog() {
           </CardContent>
         </Card>
 
-        {/* Search & Status Filter */}
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search posts by title..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex gap-2 overflow-x-auto">
-            {STATUS_TABS.map((tab) => (
-              <Button
-                key={tab.value}
-                variant={statusFilter === tab.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setStatusFilter(tab.value)}
-              >
-                {tab.label}
+        {/* Search & Filters */}
+        <Card className="border-2 shadow-sm">
+          <CardContent className="p-4 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,1fr)_180px_220px] gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="blog-search">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="blog-search"
+                    placeholder="Search title, slug, excerpt, tags, author..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Status</Label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    setStatusFilter(value)
+                    setPage(1)
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_TABS.map((tab) => (
+                      <SelectItem key={tab.value} value={tab.value}>
+                        {tab.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Category</Label>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={(value) => {
+                    setCategoryFilter(value)
+                    setPage(1)
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.slug}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[180px_180px_180px_auto] gap-3 items-end">
+              <div className="space-y-1.5">
+                <Label>Date Type</Label>
+                <Select value={dateField} onValueChange={(value) => setDateField(value as 'createdAt' | 'publishedAt')}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="createdAt">Created Date</SelectItem>
+                    <SelectItem value="publishedAt">Published Date</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="date-from">From</Label>
+                <Input
+                  id="date-from"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => {
+                    setDateFrom(e.target.value)
+                    setPage(1)
+                  }}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="date-to">To</Label>
+                <Input
+                  id="date-to"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => {
+                    setDateTo(e.target.value)
+                    setPage(1)
+                  }}
+                />
+              </div>
+              <Button variant="outline" onClick={clearFilters} disabled={!hasActiveFilters}>
+                <X className="h-4 w-4 mr-2" />
+                Clear Filters
               </Button>
-            ))}
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Posts List Card */}
         <Card className="border-2 shadow-sm">

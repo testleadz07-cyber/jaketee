@@ -272,6 +272,7 @@ export default function AdminReviewsPage() {
           <Link href="/admin/blog">
             <Button variant="ghost" size="sm">Blog</Button>
           </Link>
+          <Link href="/admin/faqs"><Button variant="ghost" size="sm">FAQs</Button></Link>
         </div>
       </nav>
 

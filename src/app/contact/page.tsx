@@ -180,8 +180,9 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Email</h3>
-                      <p className="text-muted-foreground">support@jacketee.com</p>
-                      <p className="text-sm text-muted-foreground">orders@jacketee.com</p>
+                      <a href="mailto:info@jacketee.com" className="text-muted-foreground transition-colors hover:text-primary">
+                        info@jacketee.com
+                      </a>
                     </div>
                   </div>
 
@@ -191,8 +192,9 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Phone</h3>
-                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                      <p className="text-sm text-muted-foreground">Mon-Fri, 9am-6pm EST</p>
+                      <a href="tel:+923187328027" className="text-muted-foreground transition-colors hover:text-primary">
+                        +923187328027
+                      </a>
                     </div>
                   </div>
 
@@ -224,11 +226,7 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold mb-1">Address</h3>
                       <p className="text-muted-foreground">
-                        123 Fashion Street
-                        <br />
-                        New York, NY 10001
-                        <br />
-                        United States
+                        Adalatghar, Sialkot
                       </p>
                     </div>
                   </div>
@@ -239,13 +237,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Business Hours</h3>
-                      <p className="text-muted-foreground">
-                        Monday - Friday: 9:00 AM - 6:00 PM
-                      </p>
-                      <p className="text-muted-foreground">
-                        Saturday: 10:00 AM - 4:00 PM
-                      </p>
-                      <p className="text-muted-foreground">Sunday: Closed</p>
+                      <p className="text-muted-foreground">Always open</p>
                     </div>
                   </div>
                 </CardContent>

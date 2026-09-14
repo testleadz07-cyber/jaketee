@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { getSession, signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
@@ -13,6 +13,19 @@ import { ShoppingBag, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+
+async function waitForSession() {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const session = await getSession()
+    if (session?.user) return session
+    await new Promise((resolve) => setTimeout(resolve, 150))
+  }
+  return null
+}
+
+function redirectTo(destination: string) {
+  window.location.replace(destination)
+}
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -69,12 +82,13 @@ export default function RegisterPage() {
 
       if (result?.error) {
         // Account was created but auto sign-in failed - fall back to login page.
-        router.push('/login?success=true')
+        router.replace('/login?success=true')
         return
       }
 
-      router.push('/')
-      router.refresh()
+      const updatedSession = await waitForSession()
+      const role = (updatedSession?.user as any)?.role || 'customer'
+      redirectTo(role === 'admin' ? '/admin/dashboard' : '/profile')
     } catch (error) {
       setError('An error occurred. Please try again.')
       setIsLoading(false)

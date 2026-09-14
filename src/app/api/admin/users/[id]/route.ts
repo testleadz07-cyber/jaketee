@@ -57,6 +57,7 @@ export async function GET(
     return NextResponse.json({
       id: String((user as any)._id),
       name: (user as any).name,
+      username: (user as any).username || null,
       email: (user as any).email,
       role: (user as any).role,
       isActive: (user as any).isActive !== false,
@@ -108,7 +109,7 @@ export async function PATCH(
 
     const currentAdminId = (session.user as any).id
     const body = await request.json()
-    const { name, email, phone, role, isActive, password, addresses } = body
+    const { name, username, email, phone, role, isActive, password, addresses } = body
 
     const update: Record<string, any> = {}
 
@@ -147,6 +148,21 @@ export async function PATCH(
         return NextResponse.json({ error: 'Another account already uses this email' }, { status: 409 })
       }
       update.email = normalizedEmail
+    }
+
+    if (username !== undefined) {
+      if (typeof username !== 'string' || !username.trim()) {
+        return NextResponse.json({ error: 'Username is required' }, { status: 400 })
+      }
+      const normalizedUsername = username.trim().toLowerCase()
+      if (!/^[a-z0-9_-]{3,30}$/.test(normalizedUsername)) {
+        return NextResponse.json({ error: 'Username must be 3-30 characters using only letters, numbers, underscores, or hyphens' }, { status: 400 })
+      }
+      const existing = await User.findOne({ username: normalizedUsername, _id: { $ne: id } })
+      if (existing) {
+        return NextResponse.json({ error: 'This username is already taken' }, { status: 409 })
+      }
+      update.username = normalizedUsername
     }
 
     if (password !== undefined && password !== '') {
@@ -192,6 +208,7 @@ export async function PATCH(
     return NextResponse.json({
       id: String(user._id),
       name: user.name,
+      username: user.username || null,
       email: user.email,
       role: user.role,
       isActive: user.isActive !== false,
@@ -200,7 +217,7 @@ export async function PATCH(
     })
   } catch (error: any) {
     if (error.code === 11000) {
-      return NextResponse.json({ error: 'Another account already uses this email' }, { status: 409 })
+      return NextResponse.json({ error: 'This email or username is already in use' }, { status: 409 })
     }
     console.error('Admin user update error:', error)
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })

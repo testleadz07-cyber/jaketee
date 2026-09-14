@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CartDrawer } from '@/components/cart-drawer'
-import { ArrowRight, ChevronDown, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Search, ShoppingBag, User, UserCheck, X } from 'lucide-react'
+import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, ShoppingBag, Tags, User, UserCheck, Users, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
@@ -23,17 +23,46 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { buildProductUrl } from '@/lib/categories'
 
-const shopLinks = [
-  { href: '/shop', label: 'Shop All', description: 'Browse the full Jacketee catalog' },
-  { href: '/varsity-jackets', label: 'Varsity Jackets', description: 'Classic letterman styles' },
-  { href: '/bomber-jackets', label: 'Bomber Jackets', description: 'MA-1 and satin bomber styles' },
-  { href: '/leather-jackets', label: 'Leather Jackets', description: 'Premium leather and suede' },
-  { href: '/puffer-jackets', label: 'Puffer Jackets', description: 'Insulated outerwear' },
+interface NavLink {
+  href: string
+  label: string
+  description: string
+  icon?: React.ElementType
+}
+
+const varsitySubcategoryLinks: NavLink[] = [
+  { href: '/varsity-jackets/wool-leather', label: 'Wool & Leather', description: 'Classic letterman body with leather sleeves' },
+  { href: '/varsity-jackets/all-wool', label: 'All Wool', description: 'Warm wool body and sleeves' },
+  { href: '/varsity-jackets/satin', label: 'Satin', description: 'Lightweight shiny team jacket style' },
+  { href: '/varsity-jackets/faux-leather', label: 'Faux Leather', description: 'Leather look with vegan materials' },
+  { href: '/varsity-jackets/all-leather', label: 'All Leather', description: 'Premium leather varsity builds' },
+  { href: '/varsity-jackets/hooded', label: 'Hooded', description: 'Varsity style with everyday hood detail' },
+  { href: '/varsity-jackets/retro', label: 'Retro', description: 'Vintage-inspired letterman looks' },
+  { href: '/varsity-jackets/cotton-twill', label: 'Cotton Twill', description: 'Lightweight casual varsity fabric' },
 ]
 
-const guideLinks = [
-  { href: '/materials-colors', label: 'Materials & Colors', description: 'Compare fabrics, finishes, and colors' },
-  { href: '/patches-embroidery', label: 'Patches & Embroidery', description: 'Plan lettering, patches, and placement' },
+const otherStyleLinks: NavLink[] = [
+  { href: '/bomber-jackets', label: 'Bomber Jackets', description: 'MA-1, satin, and casual bomber styles' },
+  { href: '/puffer-jackets', label: 'Puffer Jackets', description: 'Insulated outerwear for colder seasons' },
+  { href: '/denim-jackets', label: 'Denim Jackets', description: 'Custom denim layers and streetwear looks' },
+  { href: '/coach-jackets', label: 'Coach Jackets', description: 'Lightweight snap-front team jackets' },
+  { href: '/fleece-hoodies', label: 'Fleece Hoodies', description: 'Soft fleece and hoodie-based apparel' },
+  { href: '/leather-jackets', label: 'Leather Jackets', description: 'Premium leather and suede options' },
+]
+
+const bulkOrderLinks: NavLink[] = [
+  { href: '/bulk-orders/schools', label: 'School Orders', description: 'Varsity jackets for schools, teams, and clubs', icon: GraduationCap },
+  { href: '/bulk-orders/corporate', label: 'Corporate Office', description: 'Branded jackets for staff, events, and merch', icon: Building2 },
+  { href: '/bulk-orders/private-label', label: 'Private Label', description: 'Custom production for brands and resellers', icon: Tags },
+]
+
+const supportLinks: NavLink[] = [
+  { href: '/faq', label: 'Size Guide', description: 'Sizing help before you order', icon: Ruler },
+  { href: '/track-order', label: 'Track Order', description: 'Check order status and delivery updates', icon: Package },
+  { href: '/materials-colors', label: 'Materials', description: 'Compare fabrics, finishes, and color options' },
+  { href: '/patches-embroidery', label: 'Patches', description: 'Plan chenille, embroidery, and placement' },
+  { href: '/faq', label: 'FAQ', description: 'Quick answers for common questions' },
+  { href: '/contact', label: 'Contact Us', description: 'Ask about orders, sizing, or custom work' },
 ]
 
 interface SearchSuggestion {
@@ -137,26 +166,63 @@ export function Header() {
 
   const showDropdown = (isOpen || mobileSearchOpen) && query.trim().length >= 2
 
-  const renderMobileLink = (href: string, label: string, description?: string) => (
+  const renderMobileLink = (href: string, label: string, description?: string, itemKey = href) => (
     <Link
-      key={href}
+      key={itemKey}
       href={href}
       onClick={() => setMobileMenuOpen(false)}
       className="group flex min-h-14 items-center justify-between gap-3 rounded-md border bg-card px-3.5 py-3 transition-colors hover:border-primary/40 hover:bg-accent"
     >
       <span className="min-w-0">
         <span className="block text-sm font-semibold leading-5">{label}</span>
-        {description && <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">{description}</span>}
       </span>
       <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
     </Link>
   )
 
-  const renderMobileSection = (title: string, links: typeof shopLinks) => (
+  const renderMobileSection = (title: string, links: NavLink[]) => (
     <section className="space-y-2">
       <p className="px-1 text-xs font-bold uppercase text-muted-foreground">{title}</p>
-      <div className="space-y-2">{links.map((link) => renderMobileLink(link.href, link.label, link.description))}</div>
+      <div className="space-y-2">
+        {links.map((link) => renderMobileLink(link.href, link.label, link.description, `${title}-${link.label}-${link.href}`))}
+      </div>
     </section>
+  )
+
+  const renderDesktopMenuLink = (link: NavLink, compact = false) => (
+    <Link
+      key={link.href}
+      href={link.href}
+      className={`group/link flex w-full items-center justify-between gap-3 rounded-lg border border-transparent transition-colors hover:border-primary/20 hover:bg-accent ${
+        compact ? 'p-3' : 'p-4'
+      }`}
+    >
+      <span className="min-w-0 text-sm font-semibold leading-5">{link.label}</span>
+      <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/link:translate-x-0.5 group-hover/link:opacity-100 group-hover/link:text-primary" />
+    </Link>
+  )
+
+  const renderDesktopMenu = (
+    label: string,
+    children: React.ReactNode,
+    panelClassName = 'w-[720px]'
+  ) => (
+    <div className="group relative">
+      <button
+        type="button"
+        className="inline-flex h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold transition-colors hover:bg-accent"
+      >
+        {label}
+        <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
+      </button>
+      <div
+        className={`invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 ${panelClassName}`}
+      >
+        <div className="overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-2xl shadow-black/15 ring-1 ring-black/5">
+          {children}
+        </div>
+      </div>
+    </div>
   )
 
   const renderSuggestionsList = () => (
@@ -238,54 +304,92 @@ export function Header() {
             </Link>
 
             <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="gap-1 px-3">
-                    Shop
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[560px] p-3">
-                  <div className="grid grid-cols-[1fr_0.85fr] gap-3">
-                    <div>
-                      <DropdownMenuLabel className="px-2 text-xs uppercase text-muted-foreground">
-                        Shop Jackets
-                      </DropdownMenuLabel>
-                      {shopLinks.map((link) => (
-                        <DropdownMenuItem key={link.href} asChild className="cursor-pointer p-0">
-                          <Link href={link.href} className="block rounded-md px-3 py-2">
-                            <span className="block text-sm font-medium">{link.label}</span>
-                            <span className="mt-0.5 block text-xs text-muted-foreground">{link.description}</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
-                    <div className="border-l pl-3">
-                      <DropdownMenuLabel className="px-2 text-xs uppercase text-muted-foreground">
-                        Custom Guides
-                      </DropdownMenuLabel>
-                      {guideLinks.map((link) => (
-                        <DropdownMenuItem key={link.href} asChild className="cursor-pointer p-0">
-                          <Link href={link.href} className="block rounded-md px-3 py-2">
-                            <span className="block text-sm font-medium">{link.label}</span>
-                            <span className="mt-0.5 block text-xs text-muted-foreground">{link.description}</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
+              {renderDesktopMenu(
+                'Varsity Jackets',
+                <div className="grid grid-cols-[0.9fr_1.6fr] gap-0">
+                  <div className="border-r bg-muted/35 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Main Category</p>
+                    <Link
+                      href="/varsity-jackets"
+                      className="mt-4 block rounded-lg bg-background p-4 shadow-sm transition-colors hover:bg-accent"
+                    >
+                      <span className="block text-lg font-bold">Varsity Jackets</span>
+                      <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
+                        Shop all varsity
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </span>
+                    </Link>
+                  </div>
+                  <div className="p-5">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Sub-Categories</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      {varsitySubcategoryLinks.map((link) => renderDesktopMenuLink(link, true))}
                     </div>
                   </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </div>
+              )}
 
-              <Link href="/materials-colors" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent">
-                Materials
-              </Link>
-              <Link href="/patches-embroidery" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent">
-                Custom Options
-              </Link>
-              <Link href="/contact" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent">
-                Contact
-              </Link>
+              {renderDesktopMenu(
+                'Other Styles',
+                <div className="p-5">
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Shop Other Styles</p>
+                    </div>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href="/shop">View All</Link>
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {otherStyleLinks.map((link) => renderDesktopMenuLink(link, true))}
+                  </div>
+                </div>,
+                'w-[640px]'
+              )}
+
+              {renderDesktopMenu(
+                'Bulk Order',
+                <div className="p-5">
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">For Teams & Brands</p>
+                  <div className="mt-3 grid grid-cols-3 gap-3">
+                    {bulkOrderLinks.map((link) => {
+                      const Icon = link.icon || Users
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className="group/link rounded-lg border bg-card p-4 transition-colors hover:border-primary/35 hover:bg-accent"
+                        >
+                          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+                            <Icon className="h-5 w-5" />
+                          </span>
+                          <span className="mt-4 block text-sm font-bold">{link.label}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>,
+                'w-[620px]'
+              )}
+
+              {renderDesktopMenu(
+                'Support',
+                <div className="grid grid-cols-[1fr_1fr] gap-0">
+                  <div className="border-r p-5">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Help Center</p>
+                    <div className="mt-3 space-y-2">
+                      {supportLinks.slice(0, 3).map((link) => renderDesktopMenuLink(link, true))}
+                    </div>
+                  </div>
+                  <div className="p-5">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Guides & Contact</p>
+                    <div className="mt-3 space-y-2">
+                      {supportLinks.slice(3).map((link) => renderDesktopMenuLink(link, true))}
+                    </div>
+                  </div>
+                </div>,
+                'w-[620px]'
+              )}
             </nav>
           </div>
 
@@ -471,7 +575,7 @@ export function Header() {
                   <span>Jacketee</span>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Custom jackets, materials, patches, and order support.
+                  Varsity jackets, other styles, bulk orders, and support.
                 </p>
                 <Button asChild className="mt-4 h-11 w-full justify-between">
                   <Link href="/shop" onClick={() => setMobileMenuOpen(false)}>
@@ -479,6 +583,44 @@ export function Header() {
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
+                {status === 'authenticated' && session?.user && (
+                  <div className="mt-3 grid gap-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex min-h-12 items-center justify-between gap-3 rounded-md border bg-background px-3.5 py-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-accent"
+                    >
+                      <span>My Profile</span>
+                      <UserCheck className="h-4 w-4 text-muted-foreground" />
+                    </Link>
+                    <Link
+                      href="/profile?tab=wishlist"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex min-h-12 items-center justify-between gap-3 rounded-md border bg-background px-3.5 py-3 text-sm font-semibold transition-colors hover:border-primary/40 hover:bg-accent"
+                    >
+                      <span>My Wishlist</span>
+                      <Heart className="h-4 w-4 text-muted-foreground" />
+                    </Link>
+                    <Button
+                      variant="outline"
+                      className="h-11 w-full justify-start px-3 text-destructive hover:text-destructive"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        signOut({ callbackUrl: '/' })
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log out
+                    </Button>
+                  </div>
+                )}
+                {status !== 'authenticated' && (
+                  <Button asChild className="mt-3 w-full">
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                      Sign In
+                    </Link>
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -491,39 +633,22 @@ export function Header() {
               </div>
 
               <div className="flex-1 space-y-6 p-4">
-                {renderMobileSection('Shop Jackets', shopLinks.slice(1))}
-                {renderMobileSection('Custom Guides', guideLinks)}
-                {renderMobileSection('Help', [
-                  { href: '/contact', label: 'Contact Us', description: 'Ask about sizing, materials, or custom work' },
-                  { href: '/track-order', label: 'Track Order', description: 'Check your order status' },
-                  { href: '/faq', label: 'FAQ', description: 'Quick answers before you order' },
+                {renderMobileSection('Varsity Jackets', [
+                  { href: '/varsity-jackets', label: 'All Varsity Jackets', description: 'Classic custom letterman styles' },
+                  ...varsitySubcategoryLinks,
                 ])}
+                {renderMobileSection('Other Styles', otherStyleLinks)}
+                {renderMobileSection('Bulk Order', bulkOrderLinks)}
+                {renderMobileSection('Support', supportLinks)}
               </div>
 
               <div className="border-t p-4">
                 {status === 'authenticated' && session?.user ? (
                   <div className="space-y-2">
-                    {renderMobileLink('/profile', 'My Profile', session.user.email || undefined)}
-                    {renderMobileLink('/profile?tab=wishlist', 'My Wishlist')}
                     {(session.user as any).role === 'admin' && renderMobileLink('/admin/dashboard', 'Admin Dashboard')}
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start px-3 text-destructive hover:text-destructive"
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        signOut({ callbackUrl: '/' })
-                      }}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Log out
-                    </Button>
                   </div>
                 ) : (
-                  <Button asChild className="w-full">
-                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                      Sign In
-                    </Link>
-                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">Sign in to view your profile and wishlist.</p>
                 )}
               </div>
             </motion.aside>

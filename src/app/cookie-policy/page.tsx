@@ -10,7 +10,7 @@ import { openCookiePreferences } from '@/lib/cookie-consent'
 import { Footer } from '@/components/footer'
 
 const LAST_UPDATED = 'July 8, 2026'
-const SUPPORT_EMAIL = 'support@jacketee.com'
+const SUPPORT_EMAIL = 'info@jacketee.com'
 
 const categories = [
   {

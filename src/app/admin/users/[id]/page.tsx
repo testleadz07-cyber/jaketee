@@ -83,6 +83,7 @@ interface UserActivityRow {
 interface UserDetail {
   id: string
   name: string
+  username: string | null
   email: string
   role: 'admin' | 'customer'
   isActive: boolean
@@ -199,6 +200,7 @@ export default function AdminUserDetailPage() {
   const [sessionsLoading, setSessionsLoading] = useState(false)
 
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState<'admin' | 'customer'>('customer')
@@ -218,6 +220,7 @@ export default function AdminUserDetailPage() {
         const data = await res.json()
         setUser(data)
         setName(data.name)
+        setUsername(data.username || '')
         setEmail(data.email)
         setPhone(data.phone || '')
         setRole(data.role)
@@ -266,8 +269,10 @@ export default function AdminUserDetailPage() {
 
   useEffect(() => {
     if (status === 'authenticated' && userId) {
-      fetchUser()
-      fetchSessions(1)
+      void Promise.resolve().then(() => {
+        fetchUser()
+        fetchSessions(1)
+      })
     }
   }, [status, userId, fetchUser, fetchSessions])
 
@@ -283,12 +288,21 @@ export default function AdminUserDetailPage() {
       }
     }
 
+    if (!/^[a-z0-9_-]{3,30}$/.test(username.trim().toLowerCase())) {
+      toast({
+        title: 'Error',
+        description: 'Username must be 3-30 characters using only letters, numbers, underscores, or hyphens.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setSaving(true)
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, role, isActive, addresses }),
+        body: JSON.stringify({ name, username: username.trim().toLowerCase(), email, phone, role, isActive, addresses }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -395,6 +409,7 @@ export default function AdminUserDetailPage() {
           <div>
             <h1 className="text-xl font-bold tracking-tight">{user.name}</h1>
             <p className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+              {user.username && <span>@{user.username}</span>}
               <span>{user.email}</span>
               {user.country && user.country !== 'Unknown' && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-200">
@@ -483,6 +498,18 @@ export default function AdminUserDetailPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="username"
+                />
+                <p className="text-xs text-muted-foreground">
+                  This user can sign in with username or email.
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="flex items-center gap-1.5">

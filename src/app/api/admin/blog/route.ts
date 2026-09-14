@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
+import BlogCategory from '@/models/BlogCategory'
 
 function slugify(input: string) {
   return input
@@ -10,6 +11,10 @@ function slugify(input: string) {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '')
+}
+
+function escapeRegex(input: string) {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 async function isAdmin() {
@@ -32,7 +37,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
-    const search = searchParams.get('search')
+    const search = searchParams.get('search')?.trim()
+    const category = searchParams.get('category')?.trim()
+    const dateField = searchParams.get('dateField') === 'publishedAt' ? 'publishedAt' : 'createdAt'
+    const dateFrom = searchParams.get('dateFrom')
+    const dateTo = searchParams.get('dateTo')
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20))
 
@@ -41,7 +50,32 @@ export async function GET(request: NextRequest) {
       query.status = status
     }
     if (search) {
-      query.title = { $regex: search, $options: 'i' }
+      const escaped = escapeRegex(search)
+      query.$or = [
+        { title: { $regex: escaped, $options: 'i' } },
+        { slug: { $regex: escaped, $options: 'i' } },
+        { excerpt: { $regex: escaped, $options: 'i' } },
+        { content: { $regex: escaped, $options: 'i' } },
+        { tags: { $regex: escaped, $options: 'i' } },
+        { 'author.name': { $regex: escaped, $options: 'i' } },
+      ]
+    }
+    if (category && category !== 'all') {
+      const categoryDoc = await BlogCategory.findOne({ slug: category }).select('_id').lean()
+      query.categories = categoryDoc?._id || null
+    }
+
+    const dateQuery: Record<string, Date> = {}
+    if (dateFrom) {
+      const from = new Date(`${dateFrom}T00:00:00.000Z`)
+      if (!Number.isNaN(from.getTime())) dateQuery.$gte = from
+    }
+    if (dateTo) {
+      const to = new Date(`${dateTo}T23:59:59.999Z`)
+      if (!Number.isNaN(to.getTime())) dateQuery.$lte = to
+    }
+    if (Object.keys(dateQuery).length > 0) {
+      query[dateField] = dateQuery
     }
 
     const total = await BlogPost.countDocuments(query)
