@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import {
   Dialog,
   DialogContent,
@@ -269,6 +270,7 @@ export function SizeGuide({
             </div>
           </TabsContent>
         </Tabs>
+        <Link href="/size-guide" className="inline-flex w-fit text-sm font-semibold underline underline-offset-4">View full jacket size guide</Link>
       </DialogContent>
     </Dialog>
   )

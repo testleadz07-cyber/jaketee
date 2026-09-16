@@ -12,7 +12,6 @@ import { ProductCard } from '@/components/product-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import {
   Select,
   SelectContent,
@@ -409,7 +408,9 @@ export function CategoryDetailView({ slug, initialCategories = [] }: CategoryDet
                   <span className="flex items-center gap-2"><item.icon className="h-4 w-4 shrink-0" />{item.label}</span><ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </Link>
               ))}
-              <div className="flex items-center border-b py-3"><JacketSizeGuide /></div>
+              <Link href="/size-guide" className="flex items-center justify-between gap-3 border-b py-3 text-sm font-medium hover:text-primary">
+                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 shrink-0" />Size guide</span><ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
             </div>
           </div>
           </div>

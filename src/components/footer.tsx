@@ -28,6 +28,7 @@ const customerCareLinks: FooterLink[] = [
   { href: '/shop', label: 'Shop All' },
   { href: '/blog', label: 'Blog' },
   { href: '/faq', label: 'FAQ' },
+  { href: '/size-guide', label: 'Size Guide' },
   { href: '/materials-colors', label: 'Materials & Colors' },
   { href: '/patches-embroidery', label: 'Patches & Embroidery' },
   { href: '/contact', label: 'Contact Us' },

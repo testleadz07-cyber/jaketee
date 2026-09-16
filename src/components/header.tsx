@@ -57,7 +57,7 @@ const bulkOrderLinks: NavLink[] = [
 ]
 
 const supportLinks: NavLink[] = [
-  { href: '/faq', label: 'Size Guide', description: 'Sizing help before you order', icon: Ruler },
+  { href: '/size-guide', label: 'Size Guide', description: 'Sizing help before you order', icon: Ruler },
   { href: '/track-order', label: 'Track Order', description: 'Check order status and delivery updates', icon: Package },
   { href: '/materials-colors', label: 'Materials', description: 'Compare fabrics, finishes, and color options' },
   { href: '/patches-embroidery', label: 'Patches', description: 'Plan chenille, embroidery, and placement' },

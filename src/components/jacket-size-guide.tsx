@@ -23,6 +23,7 @@ export function JacketSizeGuide({ sizes = [] }: { sizes?: string[] }) {
           <div><dt className="font-semibold">Sleeve</dt><dd className="text-muted-foreground">Measure from the shoulder point to the wrist.</dd></div>
           <div><dt className="font-semibold">Length</dt><dd className="text-muted-foreground">Measure from the base of the collar to the hem.</dd></div>
         </dl>
+        <Link href="/size-guide" className="inline-flex w-fit items-center gap-1 text-sm font-semibold underline underline-offset-4">View full jacket size guide</Link>
         <p className="text-sm">Need measurements for this style? <Link href="/contact" className="font-semibold underline underline-offset-4">Ask our team</Link>.</p>
       </DialogContent>
     </Dialog>

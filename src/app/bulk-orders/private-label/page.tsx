@@ -7,6 +7,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { BulkOrderResources } from '@/components/bulk-order-resources'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders/private-label`
@@ -176,6 +177,8 @@ export default function PrivateLabelBulkOrdersPage() {
             </Card>
           </div>
         </section>
+
+        <BulkOrderResources kind="private-label" />
 
         <section className="border-t bg-zinc-950 text-white">
           <div className="container mx-auto grid gap-6 px-4 py-12 md:grid-cols-[1fr_auto] md:items-center">
