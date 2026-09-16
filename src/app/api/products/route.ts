@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '100')
     const all = searchParams.get('all') === 'true'
+    const stock = searchParams.get('stock')
+    const featured = searchParams.get('featured')
+    const dateFrom = searchParams.get('dateFrom')
+    const dateTo = searchParams.get('dateTo')
 
     const db = await connectDB()
     if (!db) {
@@ -25,6 +29,21 @@ export async function GET(request: NextRequest) {
     const filter: any = {}
     if (!all) {
       filter.inStock = true
+    }
+    if (all && stock === 'in') filter.inStock = true
+    if (all && stock === 'out') filter.inStock = false
+    if (all && stock === 'low') {
+      filter.inStock = true
+      filter.stockCount = { $lte: 5 }
+    }
+    if (all && featured === 'yes') filter.isFeatured = true
+    if (all && featured === 'no') filter.isFeatured = false
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00.000Z`) : null
+    const to = dateTo ? new Date(`${dateTo}T23:59:59.999Z`) : null
+    if (all && ((from && !Number.isNaN(from.getTime())) || (to && !Number.isNaN(to.getTime())))) {
+      filter.createdAt = {}
+      if (from && !Number.isNaN(from.getTime())) filter.createdAt.$gte = from
+      if (to && !Number.isNaN(to.getTime())) filter.createdAt.$lte = to
     }
 
     // Fetched once, used both for category-rollup filtering and for
@@ -44,9 +63,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
+      const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { name: { $regex: escaped, $options: 'i' } },
+        { slug: { $regex: escaped, $options: 'i' } },
+        { description: { $regex: escaped, $options: 'i' } },
       ]
     }
 

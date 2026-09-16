@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react'
+import { JacketSizeGuide } from '@/components/jacket-size-guide'
 
 export interface JacketCustomizerVariant {
   id?: string
@@ -216,7 +217,10 @@ export function JacketCustomizer({
 
               {(!hasMeasurements || sizingMode === 'standard') && hasSize && (
                 <div>
-                  <Label className="text-sm font-medium block mb-2">Size</Label>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <Label className="text-sm font-medium">Size</Label>
+                    <JacketSizeGuide sizes={groupedVariants['Size'].map((variant) => variant.value)} />
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {groupedVariants['Size'].map((variant, idx) => {
                       const isSelected = selectedVariants['Size'] === variant.value

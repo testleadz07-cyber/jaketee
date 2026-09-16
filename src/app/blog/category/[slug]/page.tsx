@@ -130,7 +130,7 @@ export default function BlogCategoryPage({ params }: { params: Promise<{ slug: s
             />
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-6">
               <Newspaper className="h-4 w-4" />
-              The Luxe Journal
+              Jacketee Journal
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
               {category?.name || 'Loading…'}

@@ -42,7 +42,8 @@ import {
   ExternalLink,
   Star,
   Boxes,
-  Calendar
+  Calendar,
+  X,
 } from 'lucide-react'
 import Link from 'next/link'
 import { buildProductUrl } from '@/lib/categories'
@@ -75,11 +76,18 @@ export default function AdminProducts() {
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [stockFilter, setStockFilter] = useState('all')
+  const [featuredFilter, setFeaturedFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('newest')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
@@ -106,11 +114,7 @@ export default function AdminProducts() {
     return () => clearTimeout(t)
   }, [searchInput])
 
-  useEffect(() => {
-    setPage(1)
-  }, [categoryFilter])
-
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (signal?: AbortSignal) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -119,10 +123,24 @@ export default function AdminProducts() {
       params.set('limit', String(limit))
       if (searchQuery.trim()) params.set('search', searchQuery.trim())
       if (categoryFilter !== 'all') params.set('category', categoryFilter)
+      if (stockFilter !== 'all') params.set('stock', stockFilter)
+      if (featuredFilter !== 'all') params.set('featured', featuredFilter)
+      if (dateFrom) params.set('dateFrom', dateFrom)
+      if (dateTo) params.set('dateTo', dateTo)
+      if (sortBy === 'price-asc' || sortBy === 'price-desc') {
+        params.set('sort', 'price')
+        params.set('order', sortBy === 'price-asc' ? 'asc' : 'desc')
+      } else if (sortBy === 'name') {
+        params.set('sort', 'name')
+      } else {
+        params.set('sort', sortBy)
+      }
 
-      const res = await fetch(`/api/products?${params.toString()}`)
+      const res = await fetch(`/api/products?${params.toString()}`, { signal })
+      if (!res.ok) throw new Error('Could not load products')
       if (res.ok) {
         const data = await res.json()
+        if (signal?.aborted) return
         setProducts(data)
         setTotal(Number(res.headers.get('X-Total-Count') || data.length))
         setPages(Number(res.headers.get('X-Pages') || 1))
@@ -131,16 +149,27 @@ export default function AdminProducts() {
         if (first && first._id && !first.id) {
           setIsDemoMode(true)
         }
+        setLoadError('')
       }
     } catch (error) {
+      if (signal?.aborted) return
       console.error('Error fetching products:', error)
+      setLoadError('Could not load products. Please try again.')
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+        setHasLoaded(true)
+      }
     }
-  }, [page, searchQuery, categoryFilter])
+  }, [page, searchQuery, categoryFilter, stockFilter, featuredFilter, dateFrom, dateTo, sortBy])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchProducts()
+    if (status !== 'authenticated') return
+    const controller = new AbortController()
+    Promise.resolve().then(() => {
+      if (!controller.signal.aborted) fetchProducts(controller.signal)
+    })
+    return () => controller.abort()
   }, [status, fetchProducts])
 
   useEffect(() => {
@@ -153,11 +182,11 @@ export default function AdminProducts() {
   }, [status])
 
   const handleSelectAll = (checked: boolean) => {
+    const visibleIds = filteredProducts.map(p => p.id || p._id || '').filter(Boolean)
     if (checked) {
-      const allIds = filteredProducts.map(p => p.id || p._id || '')
-      setSelectedIds(allIds.filter(id => id !== ''))
+      setSelectedIds((current) => [...new Set([...current, ...visibleIds])])
     } else {
-      setSelectedIds([])
+      setSelectedIds((current) => current.filter((id) => !visibleIds.includes(id)))
     }
   }
 
@@ -263,7 +292,7 @@ export default function AdminProducts() {
 
   const filteredProducts = products
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading' || (loading && !hasLoaded)) {
     return <AdminLoadingShell label="Loading products..." />
   }
 
@@ -282,6 +311,18 @@ export default function AdminProducts() {
 
   const allFilteredSelected = filteredProducts.length > 0 && 
     filteredProducts.every(p => selectedIds.includes(p.id || p._id || ''))
+  const hasFilters = Boolean(searchInput || categoryFilter !== 'all' || stockFilter !== 'all' || featuredFilter !== 'all' || dateFrom || dateTo || sortBy !== 'newest')
+  const clearFilters = () => {
+    setSearchInput('')
+    setSearchQuery('')
+    setCategoryFilter('all')
+    setStockFilter('all')
+    setFeaturedFilter('all')
+    setSortBy('newest')
+    setDateFrom('')
+    setDateTo('')
+    setPage(1)
+  }
 
   return (
     <div className="min-h-screen bg-muted/10 flex flex-col pb-24">
@@ -385,39 +426,78 @@ export default function AdminProducts() {
           </Link>
         </div>
 
-        {/* Search & Bulk Action Summary */}
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            <div className="relative flex-1 max-w-md">
+        {/* Search and filters */}
+        <div className="space-y-3 border-y bg-background py-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,2fr)_repeat(4,minmax(135px,1fr))]">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search products by name..."
+                aria-label="Search products"
+                placeholder="Search name, slug or description"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full sm:w-48">
+            <Select value={categoryFilter} onValueChange={(value) => { setCategoryFilter(value); setPage(1) }}>
+              <SelectTrigger className="w-full" aria-label="Filter by category">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Select value={stockFilter} onValueChange={(value) => { setStockFilter(value); setPage(1) }}>
+              <SelectTrigger className="w-full" aria-label="Filter by stock"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All stock</SelectItem>
+                <SelectItem value="in">In stock</SelectItem>
+                <SelectItem value="out">Out of stock</SelectItem>
+                <SelectItem value="low">Low stock (5 or less)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={featuredFilter} onValueChange={(value) => { setFeaturedFilter(value); setPage(1) }}>
+              <SelectTrigger className="w-full" aria-label="Filter by featured status"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All products</SelectItem>
+                <SelectItem value="yes">Featured</SelectItem>
+                <SelectItem value="no">Not featured</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(value) => { setSortBy(value); setPage(1) }}>
+              <SelectTrigger className="w-full" aria-label="Sort products"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="name">Name A-Z</SelectItem>
+                <SelectItem value="price-asc">Price: low to high</SelectItem>
+                <SelectItem value="price-desc">Price: high to low</SelectItem>
+                <SelectItem value="featured">Featured first</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          {selectedIds.length > 0 && (
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="text-xs font-medium text-muted-foreground">Added from
+              <Input type="date" value={dateFrom} max={dateTo || undefined} onChange={(event) => { setDateFrom(event.target.value); setPage(1) }} className="mt-1 w-[170px] text-foreground" />
+            </label>
+            <label className="text-xs font-medium text-muted-foreground">Added to
+              <Input type="date" value={dateTo} min={dateFrom || undefined} onChange={(event) => { setDateTo(event.target.value); setPage(1) }} className="mt-1 w-[170px] text-foreground" />
+            </label>
+            {hasFilters && <Button type="button" variant="ghost" size="sm" onClick={clearFilters}><X className="mr-1 h-4 w-4" />Clear filters</Button>}
+            {loading && <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground" role="status"><Loader2 className="h-3.5 w-3.5 animate-spin" />Updating results</span>}
+          </div>
+        </div>
+        {loadError && <div className="flex items-center justify-between gap-3 border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" role="alert"><span>{loadError}</span><Button type="button" size="sm" variant="outline" onClick={() => fetchProducts()}>Retry</Button></div>}
+        {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 p-2 px-4 rounded-lg bg-primary/5 border border-primary/20 text-sm">
               <span className="font-semibold">{selectedIds.length}</span> items selected
               <Button variant="link" size="sm" onClick={() => setSelectedIds([])} className="text-muted-foreground h-auto p-0 ml-2">
                 Clear selection
               </Button>
             </div>
-          )}
-        </div>
+        )}
 
         {/* Products Table Card */}
         <Card className="border-2 shadow-sm">

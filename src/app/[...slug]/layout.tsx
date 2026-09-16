@@ -1,10 +1,15 @@
 import { Metadata } from 'next'
 import { permanentRedirect, notFound } from 'next/navigation'
 import { resolveSlugPath } from '@/lib/route-resolver'
-import { ProductDetailView } from '@/components/product-detail-view'
+import { ProductDetailView, type ProductDetailData, type ProductFaqData } from '@/components/product-detail-view'
 import { CategoryDetailView } from '@/components/category-detail-view'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
+import Faq from '@/models/Faq'
+import Category from '@/models/Category'
+import Product from '@/models/Product'
+import { getStaticCategoriesWithCount } from '@/lib/static-data'
+import { resolveDescendantIds } from '@/lib/categories'
 
 interface Props {
   params: Promise<{ slug: string[] }>
@@ -23,14 +28,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const product = resolution.product
     const title = `${product.name} - Jacketee`
     const description = (product.description || '').slice(0, 160)
-    const imageUrl = product.images?.[0]?.url || DEFAULT_IMAGE
+    const imageUrl = product.images?.[0]?.url
 
     return {
       title,
       description,
       alternates: { canonical: canonicalUrl },
-      openGraph: { title, description, images: [{ url: imageUrl }], type: 'website', url: canonicalUrl },
-      twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
+      openGraph: { title, description, ...(imageUrl ? { images: [{ url: imageUrl }] } : {}), type: 'website', url: canonicalUrl },
+      twitter: { card: 'summary_large_image', title, description, ...(imageUrl ? { images: [imageUrl] } : {}) },
     }
   }
 
@@ -75,19 +80,94 @@ export default async function CatchAllLayout({ params }: Props) {
 
   if (resolution.type === 'product') {
     const product = resolution.product
-    const imageUrls = (product.images?.length ? product.images : [{ url: DEFAULT_IMAGE }]).map(
-      (img: any) => img.url
-    )
-    const price = Number(product.price ?? 0)
-    const availability = product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
     const categoryPath: { name: string; slug: string }[] = product.categoryPath || []
+    const faqTargets = [
+      product.slug,
+      `/${product.slug}`,
+      slug.join('/'),
+      `/${slug.join('/')}`,
+      ...categoryPath.flatMap((category, index) => {
+        const path = categoryPath.slice(0, index + 1).map((item) => item.slug).join('/')
+        return [category.slug, `/${category.slug}`, path, `/${path}`]
+      }).reverse(),
+    ]
+    let productFaqs: ProductFaqData[] = []
+    try {
+      const db = await connectDB()
+      if (db) {
+        const matched = await Faq.find({ displayPages: { $in: faqTargets } }).limit(24).lean()
+        productFaqs = matched
+          .sort((a: any, b: any) => {
+            const rank = (faq: any) => Math.min(...(faq.displayPages || []).map((page: string) => {
+              const index = faqTargets.indexOf(page)
+              return index < 0 ? Number.MAX_SAFE_INTEGER : index
+            }))
+            return rank(a) - rank(b) || Number(a.order || 0) - Number(b.order || 0)
+          })
+          .slice(0, 4)
+          .map((faq: any) => ({
+            id: String(faq._id),
+            question: faq.question,
+            answer: faq.answer || [],
+            bullets: faq.bullets || [],
+            ordered: faq.ordered || [],
+          }))
+      }
+    } catch (error) {
+      console.error('Error fetching product FAQs:', error)
+    }
+    const initialProduct: ProductDetailData = {
+      id: String(product._id || product.id),
+      name: product.name,
+      slug: product.slug,
+      description: product.description || '',
+      specificationDetails: product.specificationDetails || undefined,
+      careInstructions: product.careInstructions || undefined,
+      price: Number(product.price || 0),
+      compareAtPrice: product.compareAtPrice == null ? null : Number(product.compareAtPrice),
+      inStock: Boolean(product.inStock),
+      isFeatured: Boolean(product.isFeatured),
+      category: categoryPath.at(-1) || { name: product.categoryId?.name || 'Shop', slug: product.categoryId?.slug || 'shop' },
+      categoryPath,
+      images: (product.images || []).map((image: any, index: number) => ({
+        id: String(image.id || image._id || index),
+        url: image.url,
+        alt: image.alt || null,
+        order: Number(image.order ?? index),
+      })),
+      variants: (product.variants || []).map((variant: any, index: number) => ({
+        id: String(variant.id || variant._id || index),
+        name: variant.name,
+        value: variant.value,
+        priceAdjust: Number(variant.priceAdjust || 0),
+        inStock: Boolean(variant.inStock),
+        image: variant.image || null,
+      })),
+      embroidery: product.embroidery ? {
+        available: Boolean(product.embroidery.available),
+        fee: Number(product.embroidery.fee || 0),
+        maxChars: Number(product.embroidery.maxChars || 20),
+      } : undefined,
+      measurementFields: product.measurementFields || [],
+      averageRating: Number(product.averageRating || 0),
+      reviewCount: Number(product.reviewCount || 0),
+      stockCount: Number(product.stockCount || 0),
+    }
+    const defaultAdjustments = new Map<string, number>()
+    for (const variant of initialProduct.variants) {
+      if (variant.inStock && !defaultAdjustments.has(variant.name)) {
+        defaultAdjustments.set(variant.name, variant.priceAdjust)
+      }
+    }
+    const price = initialProduct.price + [...defaultAdjustments.values()].reduce((sum, adjustment) => sum + adjustment, 0)
+    const availability = product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
 
     const productJsonLd: Record<string, any> = {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name,
       description: product.description,
-      image: imageUrls,
+      ...(initialProduct.images.length > 0 && { image: initialProduct.images.map((img) => img.url) }),
       sku: String(product._id || product.id || product.slug),
       url: canonicalUrl,
       brand: { '@type': 'Brand', name: 'Jacketee' },
@@ -103,7 +183,7 @@ export default async function CatchAllLayout({ params }: Props) {
       },
     }
 
-    if (product.reviewCount && product.reviewCount > 0) {
+    if (initialProduct.reviewCount && initialProduct.reviewCount > 0 && initialProduct.averageRating && initialProduct.averageRating > 0) {
       productJsonLd.aggregateRating = {
         '@type': 'AggregateRating',
         ratingValue: Number(product.averageRating || 0).toFixed(1),
@@ -163,13 +243,42 @@ export default async function CatchAllLayout({ params }: Props) {
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-        <ProductDetailView slug={product.slug} />
+        <ProductDetailView key={product.slug} slug={product.slug} initialProduct={initialProduct} faqs={productFaqs} />
       </>
     )
   }
 
   // category
   const category = resolution.category
+  let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; image?: string; parentId: string | null; _count: { products: number } }> = []
+  try {
+    const db = await connectDB()
+    if (db) {
+      const rawCategories = await Category.find().lean()
+      const nodes = rawCategories.map((item: any) => ({ _id: String(item._id), parentId: item.parentId ? String(item.parentId) : null }))
+      const counts = await Product.aggregate([{ $match: { inStock: true } }, { $group: { _id: '$categoryId', count: { $sum: 1 } } }])
+      const countById = new Map<string, number>(counts.map((item: any) => [String(item._id), Number(item.count)]))
+      initialCategories = rawCategories.map((item: any) => {
+        const id = String(item._id)
+        return {
+          id,
+          name: item.name,
+          slug: item.slug,
+          description: item.description || '',
+          image: item.image || '',
+          parentId: item.parentId ? String(item.parentId) : null,
+          _count: { products: resolveDescendantIds(nodes, id).reduce((sum, descendantId) => sum + (countById.get(descendantId) || 0), 0) },
+        }
+      })
+    } else {
+      initialCategories = getStaticCategoriesWithCount().map((item: any) => ({
+        id: String(item.id), name: item.name, slug: item.slug, description: item.description || '', image: item.image || '',
+        parentId: item.parentId ? String(item.parentId) : null, _count: item._count,
+      }))
+    }
+  } catch (error) {
+    console.error('Error loading category data:', error)
+  }
   const collectionJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -196,7 +305,7 @@ export default async function CatchAllLayout({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <CategoryDetailView slug={category.slug} />
+      <CategoryDetailView key={category.slug} slug={category.slug} initialCategories={initialCategories} />
     </>
   )
 }

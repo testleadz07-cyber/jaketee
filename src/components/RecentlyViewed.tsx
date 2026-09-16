@@ -8,9 +8,10 @@ import { useRecentlyViewedStore } from '@/store/recently-viewed'
 interface RecentlyViewedProps {
   excludeProductId?: string
   limit?: number
+  sectionClassName?: string
 }
 
-export function RecentlyViewed({ excludeProductId, limit = 4 }: RecentlyViewedProps) {
+export function RecentlyViewed({ excludeProductId, limit = 4, sectionClassName }: RecentlyViewedProps) {
   const items = useRecentlyViewedStore((state) => state.items)
 
   const products = items
@@ -19,7 +20,7 @@ export function RecentlyViewed({ excludeProductId, limit = 4 }: RecentlyViewedPr
 
   if (products.length === 0) return null
 
-  return (
+  const content = (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <History className="h-5 w-5 text-primary" />
@@ -42,5 +43,13 @@ export function RecentlyViewed({ excludeProductId, limit = 4 }: RecentlyViewedPr
         ))}
       </motion.div>
     </div>
+  )
+
+  if (!sectionClassName) return content
+
+  return (
+    <section className={sectionClassName}>
+      <div className="container mx-auto px-4 py-12 md:py-16">{content}</div>
+    </section>
   )
 }

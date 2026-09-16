@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { Star, Loader2, MessageSquare, ShieldAlert, Upload, X, ImageIcon, VideoIcon } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
@@ -36,6 +35,8 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
   const [allReviews, setAllReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [showAllReviews, setShowAllReviews] = useState(false)
+  const [reviewFormOpen, setReviewFormOpen] = useState(false)
 
   // Star-rating filter (0 = show all)
   const [ratingFilter, setRatingFilter] = useState(0)
@@ -56,7 +57,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
     fetchReviews()
   }, [productId, ratingFilter])
 
-  const fetchReviews = async () => {
+  async function fetchReviews() {
     setLoading(true)
     try {
       const qs = ratingFilter > 0 ? `&rating=${ratingFilter}` : ''
@@ -238,23 +239,18 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
   }))
 
   return (
-    <div className="space-y-8 mt-12 border-t pt-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="space-y-5">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Customer Reviews</h2>
-          <p className="text-sm text-muted-foreground">
-            Share your thoughts and experiences with this product
-          </p>
+          <h2 className="text-2xl font-semibold">Customer reviews</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{allReviews.length ? `${allReviews.length} customer ${allReviews.length === 1 ? 'review' : 'reviews'}` : 'No reviews yet'}</p>
         </div>
-
-        {allReviews.length > 0 && (
-          <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-xl border border-muted-foreground/10">
+        <div className="flex flex-wrap items-center gap-4">
+          {allReviews.length > 0 && <div className="flex items-center gap-3">
             <div className="text-center">
-              <p className="text-3xl font-extrabold text-primary">{averageRating.toFixed(1)}</p>
-              <p className="text-[10px] text-muted-foreground">out of 5 stars</p>
+              <p className="text-2xl font-bold">{averageRating.toFixed(1)}</p>
             </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-0.5">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
@@ -265,14 +261,15 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                     }`}
                   />
                 ))}
-              </div>
-              <p className="text-xs text-muted-foreground">{allReviews.length} reviews</p>
             </div>
-          </div>
-        )}
+          </div>}
+          <Button type="button" variant="outline" onClick={() => setReviewFormOpen((open) => !open)}>
+            {reviewFormOpen ? 'Close review form' : 'Write a review'}
+          </Button>
+        </div>
       </div>
 
-      {allReviews.length > 0 && (
+      {allReviews.length > 2 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground mr-1">Filter by rating:</span>
           <Button
@@ -301,31 +298,24 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
         </div>
       )}
 
-      <Separator />
-
       {/* Review List */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {loading ? (
           <div className="flex justify-center items-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
             <span className="text-sm text-muted-foreground">Loading reviews...</span>
           </div>
         ) : reviews.length === 0 ? (
-          <div className="text-center py-12 bg-muted/10 rounded-xl border-2 border-dashed">
-            <MessageSquare className="h-12 w-12 text-muted-foreground opacity-50 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg">
+          <div className="flex items-center gap-3 border-y py-5">
+            <MessageSquare className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <h3 className="text-sm font-medium">
               {ratingFilter > 0 ? `No ${ratingFilter}-star reviews yet` : 'No reviews yet'}
             </h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1">
-              {ratingFilter > 0
-                ? 'Try a different star rating filter or view all reviews.'
-                : 'Be the first to review this product and share your experience with other customers.'}
-            </p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {reviews.map((review, index) => (
-              <div key={review.id} className="space-y-3">
+          <div className="divide-y border-y">
+            {reviews.slice(0, showAllReviews ? undefined : 2).map((review) => (
+              <div key={review.id} className="space-y-2 py-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2">
@@ -386,18 +376,16 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                   </div>
                 )}
 
-                {index < reviews.length - 1 && <Separator className="pt-4" />}
               </div>
             ))}
+            {reviews.length > 2 && <Button type="button" variant="link" className="px-0" onClick={() => setShowAllReviews((show) => !show)}>{showAllReviews ? 'Show fewer reviews' : `Show all ${reviews.length} reviews`}</Button>}
           </div>
         )}
       </div>
 
-      <Separator />
-
       {/* Write a Review Form */}
-      <div className="bg-card border-2 rounded-xl p-6">
-        <h3 className="text-lg font-bold mb-4">Write a Review</h3>
+      {reviewFormOpen && <div className="border-t pt-5">
+        <h3 className="text-lg font-semibold mb-4">Write a review</h3>
 
         {session ? (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -534,7 +522,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
             </p>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   )
 }

@@ -56,33 +56,35 @@ export async function GET(
       })
 
       // Fetch in-stock products in the same category (excluding current)
+      const excludedIds = mongoose.Types.ObjectId.isValid(baseProductId)
+        ? [new mongoose.Types.ObjectId(baseProductId)]
+        : []
       const query: any = {
         inStock: true,
-        _id: { $ne: new mongoose.Types.ObjectId(baseProductId) }
+        _id: { $nin: excludedIds },
       }
 
-      if (baseProduct.categoryId) {
+      if (baseProduct.categoryId && mongoose.Types.ObjectId.isValid(String(baseProduct.categoryId))) {
         query.categoryId = baseProduct.categoryId
       }
 
       relatedProducts = await Product.find(query)
         .populate('categoryId', 'name slug')
-        .limit(8)
+        .sort({ isFeatured: -1, createdAt: -1 })
+        .limit(4)
         .lean()
 
       relatedProducts = relatedProducts.map(mapProduct)
 
       // If we don't have enough, backfill with featured products from other categories
-      if (relatedProducts.length < 3) {
+      if (relatedProducts.length < 4) {
         const extra = await Product.find({
           inStock: true,
-          _id: {
-            $ne: new mongoose.Types.ObjectId(baseProductId),
-            $nin: relatedProducts.map(p => new mongoose.Types.ObjectId(p.id))
-          }
+          _id: { $nin: [...excludedIds, ...relatedProducts.map(p => new mongoose.Types.ObjectId(p.id))] }
         })
           .populate('categoryId', 'name slug')
-          .limit(5 - relatedProducts.length)
+          .sort({ isFeatured: -1, createdAt: -1 })
+          .limit(4 - relatedProducts.length)
           .lean()
 
         relatedProducts = [...relatedProducts, ...extra.map(mapProduct)]
@@ -94,19 +96,17 @@ export async function GET(
         (p) => String(p.categoryId) === categoryIdStr && p.id !== baseProductId && p.inStock
       )
 
-      if (relatedProducts.length < 3) {
+      if (relatedProducts.length < 4) {
         const extra = allStatic.filter(
           (p) => String(p.categoryId) !== categoryIdStr && p.id !== baseProductId && p.inStock
         )
-        relatedProducts = [...relatedProducts, ...extra].slice(0, 8)
+        relatedProducts = [...relatedProducts, ...extra].slice(0, 4)
       }
     }
 
-    // Split recommendations:
-    // frequentlyBoughtTogether gets 1-2 items
-    // youMayAlsoLike gets up to 6 items
+    // Keep the legacy companion response while showing four distinct recommendations.
     const frequentlyBoughtTogether = relatedProducts.slice(0, 2)
-    const youMayAlsoLike = relatedProducts.slice(1, 7)
+    const youMayAlsoLike = relatedProducts.slice(0, 4)
 
     return NextResponse.json({
       frequentlyBoughtTogether,

@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BadgeCheck, PackageSearch, Palette, Ruler, ShoppingBag } from 'lucide-react'
+import { ArrowRight, BadgeCheck, MessageCircle, PackageSearch, Palette, RefreshCw, Ruler, ShoppingBag, Star, Truck, Users } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import {
   Select,
   SelectContent,
@@ -46,6 +48,24 @@ interface Product {
 
 interface CategoryDetailViewProps {
   slug: string
+  initialCategories?: Category[]
+}
+
+interface CategoryInsights {
+  reviewCount: number
+  averageRating: number
+  reviews: Array<{ id: string; rating: number; title: string; comment: string; userName: string; productName: string; productHref: string }>
+  faqs: Array<{ id: string; question: string; answer: string[]; bullets: string[]; ordered: string[]; href?: string }>
+}
+
+const CATEGORY_OVERVIEW: Record<string, string> = {
+  'varsity-jackets': 'Explore letterman-inspired styles for personal wear, schools, and teams. Compare the body and sleeve materials, fit, and decoration options on each jacket before ordering.',
+  'bomber-jackets': 'Browse shorter jacket silhouettes and compare the fabric, lining, and fit details of each bomber style. Product pages show the options available for that jacket.',
+  'coach-jackets': 'Compare lightweight coach-jacket styles, their closures, fabric choices, and the decoration options shown on each product page.',
+  'denim-jackets': 'Explore denim outerwear and compare washes, fit, and available customization options across the jackets in this collection.',
+  'fleece-hoodies': 'Compare fleece and hooded layers by fabric, fit, and available colors. Check each product page for its exact construction and sizing options.',
+  'leather-jackets': 'Browse leather styles and compare the material, lining, fit, and care details provided for each jacket.',
+  'puffer-jackets': 'Compare insulated outerwear by construction, fit, and product-specific material details before choosing a puffer jacket.',
 }
 
 const CATEGORY_HERO_IMAGES: Record<string, string> = {
@@ -60,13 +80,14 @@ const CATEGORY_HERO_IMAGES: Record<string, string> = {
 
 const DEFAULT_CATEGORY_HERO_IMAGE = CATEGORY_HERO_IMAGES['varsity-jackets']
 const PRODUCTS_PER_PAGE = 12
+const EMPTY_INSIGHTS: CategoryInsights = { reviewCount: 0, averageRating: 0, reviews: [], faqs: [] }
 
 function isUsableHeroImage(image?: string | null) {
   return Boolean(image && image !== '/placeholder.png')
 }
 
-export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
-  const [categories, setCategories] = useState<Category[]>([])
+export function CategoryDetailView({ slug, initialCategories = [] }: CategoryDetailViewProps) {
+  const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -75,6 +96,16 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalProducts, setTotalProducts] = useState(0)
   const [categoryHeroImage, setCategoryHeroImage] = useState<{ slug: string; image: string | null } | null>(null)
+  const [insights, setInsights] = useState<CategoryInsights | null>(null)
+
+  useEffect(() => {
+    let active = true
+    fetch(`/api/category-insights/${encodeURIComponent(slug)}`)
+      .then((response) => response.ok ? response.json() : EMPTY_INSIGHTS)
+      .then((data) => { if (active) setInsights(data) })
+      .catch((error) => { console.error('Error loading category insights:', error); if (active) setInsights(EMPTY_INSIGHTS) })
+    return () => { active = false }
+  }, [slug])
 
   const handleSortChange = (value: string) => {
     setSortBy(value)
@@ -181,7 +212,7 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
     }
   }, [slug, sortBy, currentPage])
 
-  if (loading) {
+  if (loading && categories.length === 0) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -246,10 +277,11 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <section className="container mx-auto px-4 py-8 flex-1">
+      <main className="flex-1">
+      <div className="container mx-auto px-4 py-8">
         <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 
-        <div className="mb-10 overflow-hidden rounded-lg border bg-[#111315] text-white shadow-sm">
+        <div className="overflow-hidden rounded-lg border bg-[#111315] text-white shadow-sm">
           <div className="grid min-h-[420px] gap-0 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="relative flex flex-col justify-center p-6 md:p-10 lg:p-12">
               <div className="absolute left-0 top-8 h-24 w-1 rounded-r-full bg-white/70" />
@@ -319,10 +351,12 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
             </div>
           </div>
         </div>
+      </div>
 
         {subcategories.length > 0 && (
-          <section className="mb-10">
-            <div className="mb-4 flex items-end justify-between gap-4">
+          <section className="border-y bg-muted/40 py-10 lg:py-12">
+            <div className="container mx-auto px-4">
+            <div className="mb-5 flex items-end justify-between gap-4 border-b pb-4">
               <div>
                 <p className="text-sm font-semibold uppercase text-primary">Browse deeper</p>
                 <h2 className="mt-1 text-2xl font-bold">Shop by style or material</h2>
@@ -347,11 +381,45 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
                 </Link>
               ))}
             </div>
+            </div>
           </section>
         )}
 
-        <div id="category-products" className="mb-5 flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <section className="border-b bg-background py-10 lg:py-14" aria-labelledby="collection-overview-heading">
+          <div className="container mx-auto grid gap-8 px-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(290px,0.9fr)] lg:gap-12">
           <div>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Collection guide</p>
+            <h2 id="collection-overview-heading" className="mt-2 text-2xl font-semibold">About {category.name}</h2>
+            {category.description && <p className="mt-4 leading-7 text-muted-foreground">{category.description}</p>}
+            <p className="mt-3 leading-7 text-muted-foreground">{CATEGORY_OVERVIEW[rootCategorySlug] || `Compare the product details, available options, and fit information for the ${category.name} styles in this collection.`}</p>
+            <p className="mt-4 text-sm text-muted-foreground">Product specifications and customization options vary by style. Open a product page for its exact details.</p>
+          </div>
+          <div className="lg:border-l lg:pl-10">
+            <h3 className="text-base font-semibold">Plan your order</h3>
+            <div className="mt-3 grid gap-x-6 sm:grid-cols-2">
+              {[
+                { label: 'Materials & colors', href: '/materials-colors', icon: Palette },
+                { label: 'Patches & embroidery', href: '/patches-embroidery', icon: BadgeCheck },
+                { label: 'Shipping information', href: '/shipping', icon: Truck },
+                { label: 'Returns & exchanges', href: '/returns', icon: RefreshCw },
+                { label: 'Bulk orders', href: '/bulk-orders/schools', icon: Users },
+                { label: 'Contact us', href: '/contact', icon: MessageCircle },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="flex items-center justify-between gap-3 border-b py-3 text-sm font-medium hover:text-primary">
+                  <span className="flex items-center gap-2"><item.icon className="h-4 w-4 shrink-0" />{item.label}</span><ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              ))}
+              <div className="flex items-center border-b py-3"><JacketSizeGuide /></div>
+            </div>
+          </div>
+          </div>
+        </section>
+
+        <section id="category-products" className="scroll-mt-20 border-b bg-muted/20 py-10 lg:py-14" aria-labelledby="category-products-heading">
+          <div className="container mx-auto px-4">
+        <div className="mb-6 flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 id="category-products-heading" className="text-2xl font-semibold">Shop {category.name}</h2>
             <p className="text-sm text-muted-foreground">
               Showing {products.length} of {productCount} {productCount === 1 ? 'item' : 'items'} in {category.name}
             </p>
@@ -373,7 +441,11 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
           </div>
         </div>
 
-        {products.length > 0 ? (
+        {loading && products.length === 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4" aria-label="Loading products">
+            {Array.from({ length: 8 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-md bg-muted" />)}
+          </div>
+        ) : products.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => (
@@ -404,7 +476,54 @@ export function CategoryDetailView({ slug }: CategoryDetailViewProps) {
             </Button>
           </div>
         )}
+          </div>
+        </section>
+
+      <section className="border-b bg-background py-12" aria-labelledby="category-reviews-heading">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
+            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Customer feedback</p><h2 id="category-reviews-heading" className="mt-2 text-2xl font-semibold">Reviews of {category.name} products</h2></div>
+            {insights && insights.reviewCount > 0 && <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><strong>{insights.averageRating.toFixed(1)} / 5</strong><span className="text-muted-foreground">from {insights.reviewCount} approved reviews</span></div>}
+          </div>
+          {insights?.reviews.length ? (
+            <div className="grid gap-8 pt-6 md:grid-cols-2">
+              {insights.reviews.map((review) => (
+                <blockquote key={review.id} className="border-l-2 border-foreground/30 pl-5">
+                  <div className="flex items-center gap-1" aria-label={`${review.rating} out of 5 stars`}>{Array.from({ length: 5 }, (_, index) => <Star key={index} className={`h-4 w-4 ${index < review.rating ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground/35'}`} />)}</div>
+                  {review.title && <p className="mt-3 font-semibold">{review.title}</p>}
+                  <p className="mt-2 line-clamp-4 text-sm leading-6 text-muted-foreground">{review.comment}</p>
+                  <footer className="mt-3 text-sm"><span className="font-medium">{review.userName}</span><span className="mx-2 text-muted-foreground">on</span><Link href={review.productHref} className="underline underline-offset-4">{review.productName}</Link></footer>
+                </blockquote>
+              ))}
+            </div>
+          ) : <p className="pt-6 text-sm text-muted-foreground">{insights ? 'There are no approved reviews for products in this collection yet.' : 'Loading customer feedback...'}</p>}
+        </div>
       </section>
+
+      <section className="border-b bg-muted/40 py-12" aria-labelledby="category-faq-heading">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
+            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Collection questions</p><h2 id="category-faq-heading" className="mt-2 text-2xl font-semibold">Top 10 questions about {category.name}</h2></div>
+            <Link href="/faq" className="text-sm font-semibold underline underline-offset-4">View all FAQs</Link>
+          </div>
+          {insights?.faqs.length ? (
+            <Accordion type="single" collapsible className="max-w-4xl">
+              {insights.faqs.slice(0, 10).map((faq) => (
+                <AccordionItem key={faq.id} value={faq.id}>
+                  <AccordionTrigger className="text-left font-medium">{faq.question}</AccordionTrigger>
+                  <AccordionContent className="space-y-2 text-sm leading-6 text-muted-foreground">
+                    {faq.answer.map((answer, index) => <p key={index}>{answer}</p>)}
+                    {faq.bullets.length > 0 && <ul className="list-disc pl-5">{faq.bullets.map((bullet, index) => <li key={index}>{bullet}</li>)}</ul>}
+                    {faq.ordered.length > 0 && <ol className="list-decimal pl-5">{faq.ordered.map((step, index) => <li key={index}>{step}</li>)}</ol>}
+                    {faq.href && <Link href={faq.href} className="inline-flex items-center gap-1 font-semibold text-foreground underline underline-offset-4">Read more <ArrowRight className="h-3.5 w-3.5" /></Link>}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : <p className="pt-6 text-sm text-muted-foreground">{insights ? 'No collection questions are available right now.' : 'Loading collection questions...'}</p>}
+        </div>
+      </section>
+      </main>
 
       <Footer />
     </div>
