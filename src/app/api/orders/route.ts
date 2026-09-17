@@ -27,6 +27,9 @@ export async function POST(request: NextRequest) {
     if (!items || items.length === 0 || !total || !shippingAddress) {
       return NextResponse.json({ error: 'Missing required order fields' }, { status: 400 })
     }
+    if (items.reduce((count: number, item: { quantity: number }) => count + Number(item.quantity), 0) !== 1) {
+      return NextResponse.json({ error: 'Contact us for a shipping quote on multiple jackets.' }, { status: 400 })
+    }
 
     const userId = (session.user as any).id
     const userEmail = session.user.email || ''
@@ -35,7 +38,8 @@ export async function POST(request: NextRequest) {
     const orderNumber = `LX-${Date.now()}`
 
     // Double check coupon validations if db is connected and code exists
-    let verifiedDiscountAmount = discountAmount || 0
+    let verifiedDiscountAmount = 0
+    let verifiedFreeShipping = false
     if (promoCode) {
       try {
         const discount = await Discount.findOne({ code: promoCode.toUpperCase().trim() })
@@ -52,6 +56,8 @@ export async function POST(request: NextRequest) {
               calculated = (subtotal * discount.discountValue) / 100
             } else if (discount.discountType === 'fixed') {
               calculated = discount.discountValue
+            } else if (discount.discountType === 'free_shipping') {
+              verifiedFreeShipping = true
             }
             if (calculated > subtotal) {
               calculated = subtotal
@@ -62,6 +68,10 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         console.error('Failed to verify coupon in order creation API:', err)
       }
+    }
+    const expectedShipping = verifiedFreeShipping ? 0 : 30
+    if (Number(shipping) !== expectedShipping || Math.abs(Number(total) - (Number(subtotal) - verifiedDiscountAmount + expectedShipping + Number(tax || 0))) > 0.01) {
+      return NextResponse.json({ error: 'Order total does not match the shipping charge.' }, { status: 400 })
     }
 
     // Reserve stock atomically per line item before the order is created.

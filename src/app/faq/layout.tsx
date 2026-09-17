@@ -39,15 +39,15 @@ const faqJsonLd = {
       name: 'How long does shipping take?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Standard shipping takes 5–7 business days. Expedited shipping (2–3 business days) and overnight options are available at checkout.',
+        text: 'Bulk orders of 10 or more jackets typically take 3-4 weeks in total, including production and delivery. Contact Jacketee for individual-order estimates.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Do you offer free shipping?',
+      name: 'How much is shipping?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes! Orders over $75 qualify for free standard shipping within the continental US.',
+        text: 'One jacket ships for $30 USD. Shipping for two or more jackets is quoted based on quantity and weight.',
       },
     },
     // Returns
@@ -56,7 +56,7 @@ const faqJsonLd = {
       name: 'What is your return policy?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'We accept returns within 30 days of delivery for items in original, unworn condition with tags attached. Start a return from your account or contact our support team.',
+        text: 'Eligible stock jackets may be returned within 10 days of delivery. A 15% restocking fee, minimum $35, applies to change-of-mind returns. Custom items are excluded except for faults or errors.',
       },
     },
     {
@@ -64,7 +64,7 @@ const faqJsonLd = {
       name: 'How long does a refund take?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Once we receive and inspect your return, refunds are processed within 3–5 business days to your original payment method.',
+        text: 'After receiving and inspecting an approved return, Jacketee processes the refund to the original payment method. Your bank or card provider may need additional time.',
       },
     },
     // Payments

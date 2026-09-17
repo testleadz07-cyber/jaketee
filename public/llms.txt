@@ -1,11 +1,16 @@
 # Jacketee
 
-> Jacketee is an online store for premium fashion, activewear, jackets, and outdoor apparel.
+> Jacketee is an online store for varsity, bomber, leather, puffer, and other jackets, with custom colors, patches, embroidery, and bulk order options.
 
 ## Website
 
 - Homepage: https://jacketee.com/
-- Shop: https://jacketee.com/
+- Shop: https://jacketee.com/shop
+- Varsity jackets: https://jacketee.com/varsity-jackets
+- Bulk orders: https://jacketee.com/bulk-orders
+- Materials and colors: https://jacketee.com/materials-colors
+- Patches and embroidery: https://jacketee.com/patches-embroidery
+- Size guide: https://jacketee.com/size-guide
 - Blog: https://jacketee.com/blog
 - FAQ: https://jacketee.com/faq
 - Shipping information: https://jacketee.com/shipping

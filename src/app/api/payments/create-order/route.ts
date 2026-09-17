@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
+import Discount from '@/models/Discount'
 
 async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID
@@ -56,10 +57,25 @@ export async function POST(request: NextRequest) {
     if (!items || items.length === 0 || !shippingAddress) {
       return NextResponse.json({ error: 'Missing required checkout items or shipping info' }, { status: 400 })
     }
+    if (items.reduce((count: number, item: { quantity: number }) => count + Number(item.quantity), 0) !== 1) {
+      return NextResponse.json({ error: 'Contact us for a shipping quote on multiple jackets.' }, { status: 400 })
+    }
 
     const db = await connectDB()
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
+    }
+
+    const discount = promoCode ? await Discount.findOne({ code: String(promoCode).toUpperCase().trim(), isActive: true }) : null
+    const now = new Date()
+    const freeShipping = Boolean(discount && discount.discountType === 'free_shipping'
+      && (!discount.startDate || now >= new Date(discount.startDate))
+      && (!discount.endDate || now <= new Date(discount.endDate))
+      && (discount.usageLimit == null || discount.usageCount < discount.usageLimit)
+      && Number(subtotal) >= discount.minOrderValue)
+    const shippingAmount = freeShipping ? 0 : 30
+    if (Math.abs(Number(amount) - (Number(subtotal) - Number(discountAmount || 0) + shippingAmount)) > 0.01) {
+      return NextResponse.json({ error: 'Checkout total does not match the shipping charge.' }, { status: 400 })
     }
 
     const userId = (session.user as any).id
@@ -84,7 +100,7 @@ export async function POST(request: NextRequest) {
         variants: item.variants || [],
       })),
       subtotal: subtotal ?? amount,
-      shipping: 0,
+      shipping: shippingAmount,
       tax: 0,
       promoCode: promoCode ? promoCode.toUpperCase().trim() : undefined,
       discountAmount: Number((discountAmount || 0).toFixed ? discountAmount.toFixed(2) : discountAmount || 0),

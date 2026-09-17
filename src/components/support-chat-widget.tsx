@@ -31,12 +31,12 @@ const quickQuestions = [
   {
     question: 'What is your return policy?',
     answer:
-      'Returns are accepted within 30 days of delivery for unworn items with tags attached. Visit our Returns page to start a request.',
+      'Eligible stock jackets may be returned within 10 days of delivery. A 15% restocking fee, minimum $35, applies to change-of-mind returns. Custom items are excluded except for faults or errors.',
   },
   {
     question: 'How long does shipping take?',
     answer:
-      'Standard shipping takes 5-7 business days. Express and next day options are available at checkout.',
+      'One jacket ships for $30 USD. For two or more jackets, contact us for a quote based on quantity and weight. Bulk orders typically take 3-4 weeks including production and delivery.',
   },
   {
     question: 'How do I contact a person?',

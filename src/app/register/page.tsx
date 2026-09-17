@@ -9,7 +9,8 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ShoppingBag, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { BrandLogo } from '@/components/brand-logo'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Breadcrumbs } from '@/components/breadcrumbs'
@@ -108,12 +109,7 @@ export default function RegisterPage() {
         <Card className="w-full border-2">
           <CardHeader className="space-y-4 text-center">
             <div className="flex justify-center">
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="h-8 w-8 text-primary" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                  Jacketee
-                </span>
-              </div>
+              <BrandLogo />
             </div>
             <CardTitle className="text-2xl">Create Account</CardTitle>
             <CardDescription>

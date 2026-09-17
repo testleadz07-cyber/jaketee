@@ -96,17 +96,17 @@ const faqCategories: FaqCategory[] = [
       {
         question: 'How long does shipping take?',
         answer:
-          'Standard shipping takes 5-7 business days, express shipping takes 2-3 business days, and next day delivery is available for orders placed before 2 PM EST. See our Shipping page for full details.',
+          'Bulk orders of 10 or more jackets typically take 3-4 weeks in total, including production and delivery. Contact us for a current estimate for individual orders.',
       },
       {
         question: 'Do you ship internationally?',
         answer:
-          'Yes, we ship to over 100 countries. International delivery typically takes 7-14 business days, and rates are calculated at checkout based on destination and package weight.',
+          'Contact us with your destination and jacket quantity to confirm availability and delivery timing.',
       },
       {
-        question: 'Is shipping free?',
+        question: 'How much is shipping?',
         answer:
-          'Standard shipping is free on orders over $50. Express and next day delivery have reduced or free shipping thresholds on larger orders — see the Shipping page for exact amounts.',
+          'One jacket ships for $30 USD. Shipping for two or more jackets is quoted based on quantity and weight.',
       },
     ],
   },
@@ -117,17 +117,17 @@ const faqCategories: FaqCategory[] = [
       {
         question: 'What is your return policy?',
         answer:
-          'We accept returns within 30 days of delivery for unworn, unwashed items with original tags attached. Visit our Returns page to start a request.',
+          'Eligible, non-customized stock jackets may be returned within 10 days of delivery. A 15% restocking fee, minimum $35, applies to change-of-mind returns. Customized jackets are not returnable for a change of mind; faulty or incorrect items are reviewed separately.',
       },
       {
         question: 'How do I start a return or exchange?',
         answer:
-          'Go to the Returns & Exchanges page and submit a return request with your order number. We will email you a prepaid shipping label and instructions.',
+          'Go to the Returns & Exchanges page and submit a request with your order number. We will confirm eligibility, charges and return instructions before you ship the item.',
       },
       {
         question: 'When will I get my refund?',
         answer:
-          'Refunds are processed within 3-5 business days after we receive and inspect your return. It may take a few additional days for the funds to appear in your account.',
+          'After we receive and inspect an approved return, we process the refund to your original payment method. Your bank or card provider may need additional time to post it.',
       },
     ],
   },

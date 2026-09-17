@@ -292,7 +292,7 @@ function ConfirmationContent() {
                 {getDeliveryDateString(order.createdAt)}
               </p>
               <p className="text-xs text-emerald-700/80 mt-1">
-                Standard Shipping: 5-7 business days
+                Your delivery estimate will be confirmed with your order details.
               </p>
             </CardContent>
           </Card>

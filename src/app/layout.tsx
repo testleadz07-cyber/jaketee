@@ -19,6 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://jacketee.com";
+const HOME_TITLE = "Custom Varsity & Bomber Jackets | Jacketee";
+const HOME_DESCRIPTION = "Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.";
 const verification: Metadata["verification"] = {
   ...(process.env.GOOGLE_SITE_VERIFICATION
     ? { google: process.env.GOOGLE_SITE_VERIFICATION }
@@ -30,25 +32,25 @@ const verification: Metadata["verification"] = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Jacketee - Premium Fashion & Activewear",
-  description: "Discover premium fashion, activewear, and outdoor apparel. Quality meets elegance at Jacketee.",
-  keywords: ["Jacketee", "Fashion", "Activewear", "Outdoor", "Clothing", "Apparel", "Sportswear"],
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
+  keywords: ["Jacketee", "custom jackets", "varsity jackets", "bomber jackets", "jacket patches", "jacket embroidery", "bulk jacket orders"],
   authors: [{ name: "Jacketee Team" }],
   verification: Object.keys(verification).length > 0 ? verification : undefined,
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/logo.png",
   },
   openGraph: {
-    title: "Jacketee - Premium Fashion & Activewear",
-    description: "Discover premium fashion, activewear, and outdoor apparel",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     url: SITE_URL,
     siteName: "Jacketee",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Jacketee - Premium Fashion & Activewear",
-    description: "Discover premium fashion, activewear, and outdoor apparel",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
   },
 };
 
@@ -57,7 +59,7 @@ const organizationJsonLd = {
   "@type": "Organization",
   name: "Jacketee",
   url: SITE_URL,
-  logo: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+  logo: `${SITE_URL}/logo.png`,
 };
 
 const websiteJsonLd = {
@@ -69,7 +71,7 @@ const websiteJsonLd = {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${SITE_URL}/?search={search_term_string}`,
+      urlTemplate: `${SITE_URL}/shop?search={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
   },

@@ -3,22 +3,22 @@ import { Metadata } from 'next'
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
 
 export const metadata: Metadata = {
-  title: 'Jacketee — Premium Fashion & Activewear',
+  title: 'Custom Varsity & Bomber Jackets | Jacketee',
   description:
-    'Shop premium fashion, activewear, and outdoor apparel. Varsity jackets, bomber jackets, tracksuits & more. Free shipping on orders over $75.',
+    'Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.',
   alternates: { canonical: SITE_URL },
   openGraph: {
-    title: 'Jacketee — Premium Fashion & Activewear',
+    title: 'Custom Varsity & Bomber Jackets | Jacketee',
     description:
-      'Shop premium fashion, activewear, and outdoor apparel. Varsity jackets, bomber jackets, tracksuits & more.',
+      'Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.',
     url: SITE_URL,
     siteName: 'Jacketee',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jacketee — Premium Fashion & Activewear',
+    title: 'Custom Varsity & Bomber Jackets | Jacketee',
     description:
-      'Shop premium fashion, activewear, and outdoor apparel. Varsity jackets, bomber jackets, tracksuits & more.',
+      'Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.',
   },
 }

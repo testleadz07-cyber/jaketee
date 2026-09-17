@@ -5,11 +5,11 @@ const PAGE_URL = `${SITE_URL}/returns`
 
 export const metadata: Metadata = {
   title: 'Returns & Exchanges — Jacketee',
-  description: 'Jacketee\'s hassle-free 30-day return and exchange policy. Learn how to start a return, what items are eligible, and how long refunds take.',
+  description: 'Eligible stock jackets may be returned within 10 days. Learn about Jacketee return eligibility, restocking fees and custom-item exceptions.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Returns & Exchanges — Jacketee',
-    description: '30-day hassle-free returns and exchanges. Learn how to start a return at Jacketee.',
+    description: 'Learn about Jacketee 10-day stock-jacket returns, restocking fees and custom-item exceptions.',
     url: PAGE_URL,
     siteName: 'Jacketee',
     type: 'website',
@@ -17,6 +17,6 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: 'Returns & Exchanges — Jacketee',
-    description: '30-day hassle-free returns. Start a return at Jacketee.',
+    description: 'Jacketee 10-day stock-jacket returns and custom-item exceptions.',
   },
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
@@ -42,6 +43,8 @@ export default function CheckoutPage() {
   const { toast } = useToast()
   
   const { items, getTotalPrice, clearCart, appliedPromo, setAppliedPromo, clearAppliedPromo, getDiscountedTotalPrice } = useCartStore()
+  const jacketCount = items.reduce((count, item) => count + item.quantity, 0)
+  const shippingAmount = jacketCount === 1 && !appliedPromo?.freeShipping ? 30 : 0
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -290,7 +293,7 @@ export default function CheckoutPage() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                amount: getDiscountedTotalPrice(),
+                amount: getDiscountedTotalPrice() + shippingAmount,
                 subtotal: getTotalPrice(),
                 discountAmount: appliedPromo ? Number((getTotalPrice() - getDiscountedTotalPrice()).toFixed(2)) : 0,
                 promoCode: appliedPromo?.code,
@@ -451,9 +454,9 @@ export default function CheckoutPage() {
         variants: item.variants
       })),
       subtotal: getTotalPrice(),
-      shipping: 0,
+      shipping: shippingAmount,
       tax: 0,
-      total: getDiscountedTotalPrice(),
+      total: getDiscountedTotalPrice() + shippingAmount,
       promoCode: appliedPromo?.code,
       discountAmount: appliedPromo ? Number((getTotalPrice() - getDiscountedTotalPrice()).toFixed(2)) : 0,
       shippingAddress: {
@@ -500,6 +503,10 @@ export default function CheckoutPage() {
   }
 
   const handleNextStep = async () => {
+    if (jacketCount !== 1) {
+      toast({ title: 'Shipping quote required', description: 'Contact us for shipping on two or more jackets before checkout.', variant: 'destructive' })
+      return
+    }
     // Sync values from refs if browser autofill didn't trigger state changes
     const nameVal = shippingName || nameRef.current?.value || ''
     const streetVal = shippingStreet || streetRef.current?.value || ''
@@ -1019,8 +1026,11 @@ export default function CheckoutPage() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium text-emerald-600">FREE</span>
+                    <span className="font-medium">{jacketCount === 1 ? (shippingAmount ? '$30.00' : 'FREE') : 'Quote required'}</span>
                   </div>
+                  {jacketCount > 1 && (
+                    <p className="text-xs text-muted-foreground">Shipping for multiple jackets depends on quantity and weight. <Link href="/contact" className="font-medium underline">Request a quote</Link> before checkout.</p>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Estimated Tax</span>
                     <span className="font-medium">$0.00</span>
@@ -1078,7 +1088,7 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between items-baseline font-bold text-xl pt-2">
                   <span>Total</span>
-                  <span className="text-primary">${mounted ? getDiscountedTotalPrice().toFixed(2) : '0.00'}</span>
+                  <span className="text-primary">{jacketCount > 1 ? 'Quote required' : `$${mounted ? (getDiscountedTotalPrice() + shippingAmount).toFixed(2) : '0.00'}`}</span>
                 </div>
               </CardContent>
             </Card>

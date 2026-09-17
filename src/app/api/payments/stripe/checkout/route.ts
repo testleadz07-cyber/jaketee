@@ -29,6 +29,9 @@ export async function POST(request: NextRequest) {
     if (!items || items.length === 0 || !shippingAddress) {
       return NextResponse.json({ error: 'Missing required checkout items or shipping info' }, { status: 400 })
     }
+    if (items.reduce((count: number, item: { quantity: number }) => count + Number(item.quantity), 0) !== 1) {
+      return NextResponse.json({ error: 'Contact us for a shipping quote on multiple jackets.' }, { status: 400 })
+    }
 
     const db = await connectDB()
     if (!db) {
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // Setup calculations
     const taxAmount = 0
-    const shippingAmount = 0
+    const shippingAmount = isFreeShipping ? 0 : 30
     const total = Math.max(0, subtotal - discountAmount + shippingAmount + taxAmount)
 
     const orderNumber = `LX-${Date.now()}`
@@ -143,6 +146,13 @@ export async function POST(request: NextRequest) {
     const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
+      shipping_options: shippingAmount ? [{
+        shipping_rate_data: {
+          type: 'fixed_amount',
+          fixed_amount: { amount: 3000, currency: 'usd' },
+          display_name: 'Shipping',
+        },
+      }] : undefined,
       mode: 'payment',
       customer_email: userEmail,
       client_reference_id: String(order._id),

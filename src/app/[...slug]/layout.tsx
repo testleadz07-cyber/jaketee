@@ -17,7 +17,7 @@ interface Props {
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
-const DEFAULT_IMAGE = 'https://z-cdn.chatglm.cn/z-ai/static/logo.svg'
+const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
   const { slug } = await params

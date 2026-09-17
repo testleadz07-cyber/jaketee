@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CartDrawer } from '@/components/cart-drawer'
-import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, ShoppingBag, Tags, User, UserCheck, Users, X } from 'lucide-react'
+import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, Tags, User, UserCheck, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
@@ -22,6 +22,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { buildProductUrl } from '@/lib/categories'
+import { BrandLogo } from '@/components/brand-logo'
 
 interface NavLink {
   href: string
@@ -189,37 +190,36 @@ export function Header() {
     </section>
   )
 
-  const renderDesktopMenuLink = (link: NavLink, compact = false) => (
+  const renderDesktopMenuLink = (link: NavLink) => (
     <Link
       key={link.href}
       href={link.href}
-      className={`group/link flex w-full items-center justify-between gap-3 rounded-lg border border-transparent transition-colors hover:border-primary/20 hover:bg-accent ${
-        compact ? 'p-3' : 'p-4'
-      }`}
+      className="block rounded-sm px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
     >
-      <span className="min-w-0 text-sm font-semibold leading-5">{link.label}</span>
-      <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover/link:translate-x-0.5 group-hover/link:opacity-100 group-hover/link:text-primary" />
+      {link.label}
     </Link>
   )
 
   const renderDesktopMenu = (
     label: string,
-    children: React.ReactNode,
-    panelClassName = 'w-[720px]'
+    links: NavLink[],
+    allLink?: NavLink
   ) => (
     <div className="group relative">
       <button
         type="button"
-        className="inline-flex h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold transition-colors hover:bg-accent"
+        aria-haspopup="true"
+        className="inline-flex h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {label}
-        <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
+        <ChevronDown className="h-4 w-4" />
       </button>
       <div
-        className={`invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 ${panelClassName}`}
+        className="invisible absolute left-0 top-full z-50 w-56 pt-1 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
       >
-        <div className="overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-2xl shadow-black/15 ring-1 ring-black/5">
-          {children}
+        <div className="rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+          {allLink && <div className="border-b pb-1 mb-1">{renderDesktopMenuLink(allLink)}</div>}
+          {links.map(renderDesktopMenuLink)}
         </div>
       </div>
     </div>
@@ -291,105 +291,15 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2">
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.5 }}
-              >
-                <ShoppingBag className="h-8 w-8 text-primary" />
-              </motion.div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Jacketee
-              </span>
+            <Link href="/" aria-label="Jacketee home" className="block shrink-0">
+              <BrandLogo priority />
             </Link>
 
             <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
-              {renderDesktopMenu(
-                'Varsity Jackets',
-                <div className="grid grid-cols-[0.9fr_1.6fr] gap-0">
-                  <div className="border-r bg-muted/35 p-5">
-                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Main Category</p>
-                    <Link
-                      href="/varsity-jackets"
-                      className="mt-4 block rounded-lg bg-background p-4 shadow-sm transition-colors hover:bg-accent"
-                    >
-                      <span className="block text-lg font-bold">Varsity Jackets</span>
-                      <span className="mt-4 inline-flex items-center text-sm font-semibold text-primary">
-                        Shop all varsity
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </span>
-                    </Link>
-                  </div>
-                  <div className="p-5">
-                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Sub-Categories</p>
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      {varsitySubcategoryLinks.map((link) => renderDesktopMenuLink(link, true))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {renderDesktopMenu(
-                'Other Styles',
-                <div className="p-5">
-                  <div className="mb-4 flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Shop Other Styles</p>
-                    </div>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href="/shop">View All</Link>
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {otherStyleLinks.map((link) => renderDesktopMenuLink(link, true))}
-                  </div>
-                </div>,
-                'w-[640px]'
-              )}
-
-              {renderDesktopMenu(
-                'Bulk Order',
-                <div className="p-5">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">For Teams & Brands</p>
-                  <div className="mt-3 grid grid-cols-3 gap-3">
-                    {bulkOrderLinks.map((link) => {
-                      const Icon = link.icon || Users
-                      return (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          className="group/link rounded-lg border bg-card p-4 transition-colors hover:border-primary/35 hover:bg-accent"
-                        >
-                          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-                            <Icon className="h-5 w-5" />
-                          </span>
-                          <span className="mt-4 block text-sm font-bold">{link.label}</span>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                </div>,
-                'w-[620px]'
-              )}
-
-              {renderDesktopMenu(
-                'Support',
-                <div className="grid grid-cols-[1fr_1fr] gap-0">
-                  <div className="border-r p-5">
-                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Help Center</p>
-                    <div className="mt-3 space-y-2">
-                      {supportLinks.slice(0, 3).map((link) => renderDesktopMenuLink(link, true))}
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Guides & Contact</p>
-                    <div className="mt-3 space-y-2">
-                      {supportLinks.slice(3).map((link) => renderDesktopMenuLink(link, true))}
-                    </div>
-                  </div>
-                </div>,
-                'w-[620px]'
-              )}
+              {renderDesktopMenu('Varsity Jackets', varsitySubcategoryLinks, { href: '/varsity-jackets', label: 'All Varsity Jackets', description: '' })}
+              {renderDesktopMenu('Other Styles', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
+              {renderDesktopMenu('Bulk Order', bulkOrderLinks, { href: '/bulk-orders', label: 'All Bulk Orders', description: '' })}
+              {renderDesktopMenu('Support', supportLinks)}
             </nav>
           </div>
 
@@ -568,12 +478,9 @@ export function Header() {
               className="absolute right-0 top-0 flex h-dvh w-[92vw] max-w-sm flex-col overflow-y-auto border-l bg-background shadow-2xl"
             >
               <div className="border-b bg-muted/30 p-5 pr-14">
-                <div className="flex items-center gap-2 text-lg font-semibold">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                    <ShoppingBag className="h-5 w-5" />
-                  </span>
-                  <span>Jacketee</span>
-                </div>
+                <Link href="/" onClick={() => setMobileMenuOpen(false)} aria-label="Jacketee home" className="inline-block">
+                  <BrandLogo className="h-10 w-[120px]" />
+                </Link>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Varsity jackets, other styles, bulk orders, and support.
                 </p>

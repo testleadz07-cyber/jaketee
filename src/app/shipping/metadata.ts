@@ -5,11 +5,11 @@ const PAGE_URL = `${SITE_URL}/shipping`
 
 export const metadata: Metadata = {
   title: 'Shipping Information — Jacketee',
-  description: 'Learn about Jacketee\'s shipping options, delivery times, rates, and free shipping eligibility. Free shipping on orders over $75.',
+  description: 'One jacket ships for $30 USD. Shipping for multiple jackets is quoted by quantity and weight. Learn about Jacketee delivery timelines.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Shipping Information — Jacketee',
-    description: 'Shipping options, delivery times, and free shipping details for Jacketee orders.',
+    description: 'Jacketee shipping charges, multi-jacket quotes, and delivery timelines.',
     url: PAGE_URL,
     siteName: 'Jacketee',
     type: 'website',
@@ -17,6 +17,6 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: 'Shipping Information — Jacketee',
-    description: 'Shipping options and delivery times for Jacketee orders.',
+    description: 'Jacketee shipping charges and delivery timelines.',
   },
 }

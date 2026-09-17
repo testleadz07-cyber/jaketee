@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2, Send, ShoppingBag } from 'lucide-react'
+import { Loader2, Send } from 'lucide-react'
 import Link from 'next/link'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { buildCategoryUrl } from '@/lib/categories'
 import { openCookiePreferences } from '@/lib/cookie-consent'
 import { getStaticCategories } from '@/lib/static-data'
 import { useToast } from '@/hooks/use-toast'
+import { BrandLogo } from '@/components/brand-logo'
 
 interface Category {
   id: string
@@ -25,6 +26,7 @@ interface FooterLink {
 }
 
 const customerCareLinks: FooterLink[] = [
+  { href: '/about', label: 'About Jacketee' },
   { href: '/shop', label: 'Shop All' },
   { href: '/blog', label: 'Blog' },
   { href: '/faq', label: 'FAQ' },
@@ -162,12 +164,7 @@ export function Footer() {
       <div className="container mx-auto px-4 pb-24 pt-10 md:pb-16 md:pt-14">
         <div className="grid gap-8 md:grid-cols-[1.15fr_0.85fr_1fr_1fr] md:gap-12">
           <div className="space-y-4 md:max-w-xs">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="h-6 w-6 text-primary" />
-              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-xl font-bold text-transparent">
-                Jacketee
-              </span>
-            </div>
+            <Link href="/" aria-label="Jacketee home" className="inline-block"><BrandLogo /></Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Custom jackets, patches, embroidery, and team apparel made for standout everyday wear.
             </p>
