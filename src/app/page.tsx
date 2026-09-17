@@ -1,589 +1,93 @@
-'use client'
+import { connectDB } from '@/lib/mongodb'
+import ProductModel from '@/models/Product'
+import CategoryModel from '@/models/Category'
+import { resolveAncestorChain, resolveDescendantIds, type CategoryNode } from '@/lib/categories'
+import { curatedCategorySlugs } from '@/lib/curated-category-slugs'
+import Home, { type Category, type Product } from './home-client'
 
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { ArrowRight, BadgeCheck, Headphones, Palette, PackageCheck, Ruler, Sparkles, Truck, RotateCcw, Star } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Header } from '@/components/header'
-import { ProductCard } from '@/components/product-card'
-import { RecentlyViewed } from '@/components/RecentlyViewed'
-import { Footer } from '@/components/footer'
-import { buildCategoryUrl } from '@/lib/categories'
-import { getStaticCategoriesWithCount, getStaticProducts } from '@/lib/static-data'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+export const dynamic = 'force-dynamic'
 
-interface Product {
-  id: string
-  name: string
-  slug: string
-  description: string
-  price: number
-  compareAtPrice?: number | null
-  images: Array<{ url: string; alt: string }>
-  category?: {
-    name: string
-    slug: string
+export default async function Page() {
+  if (!(await connectDB())) throw new Error('Catalog is temporarily unavailable')
+
+  const rawCategories = await CategoryModel.find().lean()
+  const nodes: CategoryNode[] = rawCategories.map((item) => ({
+    _id: String(item._id), parentId: item.parentId ? String(item.parentId) : null,
+  }))
+  const chainNodes = rawCategories.map((item) => ({
+    _id: String(item._id),
+    parentId: item.parentId ? String(item.parentId) : null,
+    name: item.name,
+    slug: item.slug,
+  }))
+  const categoryIds = new Map(rawCategories.map((item) => [item.slug, String(item._id)]))
+  const categoryQueries = curatedCategorySlugs.map((slug) => {
+    const id = categoryIds.get(slug)
+    return ProductModel.find({
+      inStock: true,
+      categoryId: { $in: id ? resolveDescendantIds(nodes, id) : [] },
+    })
+      .sort({ isFeatured: -1, createdAt: -1 })
+      .limit(4)
+      .populate('categoryId', 'name slug')
+      .lean()
+  })
+  const [counts, rawFeatured, rawNewest, ...rawCategoryRows] = await Promise.all([
+    ProductModel.aggregate([
+      { $match: { inStock: true } },
+      { $group: { _id: '$categoryId', count: { $sum: 1 } } },
+    ]),
+    ProductModel.find({ inStock: true })
+      .sort({ isFeatured: -1, createdAt: -1 })
+      .limit(4)
+      .populate('categoryId', 'name slug')
+      .lean(),
+    ProductModel.find({ inStock: true })
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .populate('categoryId', 'name slug')
+      .lean(),
+    ...categoryQueries,
+  ])
+  const countById = new Map<string, number>(counts.map((row) => [String(row._id), row.count]))
+  const categories: Category[] = rawCategories.map((item) => ({
+    id: String(item._id),
+    name: item.name,
+    slug: item.slug,
+    description: item.description,
+    image: item.image,
+    parentId: item.parentId ? String(item.parentId) : null,
+    _count: {
+      products: resolveDescendantIds(nodes, String(item._id))
+        .reduce((sum, id) => sum + (countById.get(id) ?? 0), 0),
+    },
+  }))
+  const mapProduct = (item: typeof rawFeatured[number]): Product => {
+    const productCategory = item.categoryId && typeof item.categoryId === 'object' && 'name' in item.categoryId
+      ? item.categoryId : null
+    return {
+      id: String(item._id),
+      name: item.name,
+      slug: item.slug,
+      description: item.description ?? '',
+      price: item.price,
+      compareAtPrice: item.compareAtPrice ?? null,
+      images: (item.images ?? []).map((image) => ({ url: image.url, alt: image.alt ?? item.name })),
+      category: productCategory ? { name: String(productCategory.name), slug: String(productCategory.slug) } : undefined,
+      categoryPath: productCategory
+        ? resolveAncestorChain(chainNodes, String(productCategory._id)).map((node) => ({ name: node.name, slug: node.slug }))
+        : [],
+      isFeatured: item.isFeatured ?? false,
+      inStock: item.inStock,
+    }
   }
-  categoryPath?: Array<{ name: string; slug: string }>
-  isFeatured: boolean
-  inStock: boolean
-}
+  const featuredProducts = rawFeatured.map(mapProduct)
+  const newArrivals = rawNewest.map(mapProduct)
+    .filter((item) => !featuredProducts.some((featured) => featured.id === item.id))
+    .slice(0, 4)
+  const categoryProducts = Object.fromEntries(
+    curatedCategorySlugs.map((slug, index) => [slug, rawCategoryRows[index].map(mapProduct)])
+  ) as Record<string, Product[]>
 
-interface Category {
-  id: string
-  name: string
-  slug: string
-  description?: string
-  image?: string
-  parentId?: string | null
-  _count: {
-    products: number
-  }
-}
-
-interface BlogPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string
-  featuredImage?: string | null
-}
-
-interface ReviewHighlight {
-  id: string
-  name: string
-  rating: number
-  comment: string
-  image: string | null
-  productName: string
-  productHref: string
-}
-
-const curatedCategorySlugs = [
-  'varsity-jackets',
-  'bomber-jackets',
-  'leather-jackets',
-  'puffer-jackets',
-  'coach-jackets',
-  'denim-jackets',
-]
-
-const homeHeroImage = 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1788899943/clothaa/exports/patches-embroidery/hero__varsity-jacket-patches-embroidery-hero.jpg'
-
-const trustItems = [
-  { icon: BadgeCheck, label: 'Custom design support' },
-  { icon: Palette, label: 'Material and color guidance' },
-  { icon: PackageCheck, label: 'Secure checkout' },
-  { icon: Headphones, label: 'Help within 24 hours' },
-]
-
-const homeFaqs = [
-  {
-    question: 'How do I find the right jacket size?',
-    answer: 'If you are unsure about fit, contact our team with your measurements before ordering. We can help you compare the available jacket options.',
-    href: '/contact',
-    link: 'Ask about sizing',
-  },
-  {
-    question: 'Can I add patches or embroidery?',
-    answer: 'Yes. Explore the available patch and embroidery options, then share your artwork and preferred placement with our team.',
-    href: '/patches-embroidery',
-    link: 'Explore custom options',
-  },
-  {
-    question: 'How do school or bulk orders work?',
-    answer: 'Start with the school, corporate, or private-label order page. Tell us the quantity, design, and timing you have in mind so we can discuss the next steps.',
-    href: '/bulk-orders',
-    link: 'Explore bulk orders',
-  },
-]
-
-const featuredArticleSlugs = [
-  'hooded-varsity-jackets-guide',
-  'corporate-away-day-uniforms-custom-jacket-vs-polo',
-  'sports-teams-custom-jackets-award-nights-banquets',
-]
-
-async function fetchProducts(path: string) {
-  const res = await fetch(path)
-  if (!res.ok) throw new Error(`Failed to fetch ${path}`)
-  return res.json()
-}
-
-async function fetchCategories() {
-  const res = await fetch('/api/categories')
-  if (!res.ok) throw new Error('Failed to fetch categories')
-  return res.json()
-}
-
-export default function Home() {
-  const [categories, setCategories] = useState<Category[]>(() => getStaticCategoriesWithCount())
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
-  const [newArrivals, setNewArrivals] = useState<Product[]>([])
-  const [categoryProducts, setCategoryProducts] = useState<Record<string, Product[]>>({})
-  const [articles, setArticles] = useState<BlogPost[]>([])
-  const [reviewHighlights, setReviewHighlights] = useState<ReviewHighlight[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const loadHomeData = async () => {
-      const staticProducts = getStaticProducts() as Product[]
-      const inStockStatic = staticProducts.filter((product) => product.inStock)
-      const fallbackFeatured = [...inStockStatic]
-        .sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
-        .slice(0, 4)
-      const fallbackNewArrivals = inStockStatic.filter((product) => !fallbackFeatured.some((featured) => featured.id === product.id)).slice(0, 4)
-
-      try {
-        const [categoryData, featured, newest, ...categoryRows] = await Promise.all([
-          fetchCategories(),
-          fetchProducts('/api/products?sort=featured&limit=4'),
-          fetchProducts('/api/products?sort=newest&limit=8'),
-          ...curatedCategorySlugs.map((slug) => fetchProducts(`/api/products?category=${slug}&sort=featured&limit=4`)),
-        ])
-
-        setCategories(Array.isArray(categoryData) ? categoryData : getStaticCategoriesWithCount())
-        setFeaturedProducts(featured.length ? featured : fallbackFeatured)
-        setNewArrivals(
-          newest.length
-            ? newest.filter((product: Product) => !featured.some((featuredProduct: Product) => featuredProduct.id === product.id)).slice(0, 4)
-            : fallbackNewArrivals
-        )
-        setCategoryProducts(
-          curatedCategorySlugs.reduce<Record<string, Product[]>>((acc, slug, index) => {
-            acc[slug] = categoryRows[index] || []
-            return acc
-          }, {})
-        )
-      } catch (error) {
-        console.error('Error loading homepage data:', error)
-        setFeaturedProducts(fallbackFeatured)
-        setNewArrivals(fallbackNewArrivals)
-        setCategoryProducts(
-          curatedCategorySlugs.reduce<Record<string, Product[]>>((acc, slug) => {
-            acc[slug] = inStockStatic
-              .filter((product) => product.categoryPath?.some((category) => category.slug === slug))
-              .slice(0, 4)
-            return acc
-          }, {})
-        )
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadHomeData()
-  }, [])
-
-  useEffect(() => {
-    const loadEditorialContent = async () => {
-      const [blogResult, reviewResult] = await Promise.allSettled([
-        fetch('/api/blog?limit=24').then((res) => res.ok ? res.json() : { posts: [] }),
-        fetch('/api/reviews/highlights').then((res) => res.ok ? res.json() : []),
-      ])
-
-      if (blogResult.status === 'fulfilled' && Array.isArray(blogResult.value.posts)) {
-        const publishedPosts = blogResult.value.posts as BlogPost[]
-        const usablePosts = publishedPosts.filter((post) => /^https:\/\//.test(post.featuredImage || ''))
-        const selectedPosts = featuredArticleSlugs
-          .map((slug) => usablePosts.find((post) => post.slug === slug))
-          .filter((post): post is BlogPost => Boolean(post))
-        setArticles([
-          ...selectedPosts,
-          ...usablePosts.filter((post) => !selectedPosts.some((selected) => selected.id === post.id)),
-        ].slice(0, 3))
-      }
-
-      if (reviewResult.status === 'fulfilled' && Array.isArray(reviewResult.value)) {
-        setReviewHighlights(reviewResult.value)
-      }
-    }
-
-    loadEditorialContent()
-  }, [])
-
-  const categoryTiles = curatedCategorySlugs
-    .map((slug) => categories.find((category) => category.slug === slug))
-    .filter((category): category is Category => Boolean(category && category._count.products > 0))
-
-  const productGrid = (products: Product[], skeletonCount = 4) => {
-    if (loading) {
-      return (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: skeletonCount }).map((_, index) => (
-            <div key={index} className="aspect-[3/4] rounded-lg bg-muted animate-pulse" />
-          ))}
-        </div>
-      )
-    }
-
-    if (products.length === 0) {
-      return (
-        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Products are being prepared for this section.
-        </div>
-      )
-    }
-
-    return (
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product, index) => (
-          <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ delay: index * 0.04 }}
-          >
-            <ProductCard product={product} />
-          </motion.div>
-        ))}
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Header />
-
-      <section className="relative min-h-[560px] overflow-hidden bg-zinc-950 text-white md:min-h-[680px]">
-        <Image
-          src={homeHeroImage}
-          alt="Model wearing a blue varsity jacket with custom patches and embroidery"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="container relative mx-auto flex min-h-[560px] items-center px-4 py-16 md:min-h-[680px]">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-3xl"
-          >
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur">
-              <Sparkles className="h-4 w-4" />
-              Custom jackets, patches, and embroidery
-            </div>
-            <h1 className="text-4xl font-black leading-tight md:text-6xl lg:text-7xl">
-              Custom Jackets Made To Stand Out
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-white/85 md:text-xl">
-              Shop varsity, bomber, wool, satin, leather, patch, and embroidery-ready styles built for teams,
-              brands, schools, and everyday wear.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-12 px-6 text-base">
-                <Link href="/shop">
-                  Shop Jackets
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="secondary"
-                className="h-12 border border-white/20 bg-white/10 px-6 text-base text-white hover:bg-white/20"
-              >
-                <Link href="/patches-embroidery">Explore Custom Options</Link>
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="border-b bg-muted/30">
-        <div className="container mx-auto grid gap-4 px-4 py-5 sm:grid-cols-2 lg:grid-cols-4">
-          {trustItems.map((item) => (
-            <div key={item.label} className="flex items-center gap-3 text-sm font-medium">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background text-primary">
-                <item.icon className="h-4 w-4" />
-              </span>
-              {item.label}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <main className="flex-1">
-        <section className="border-b border-border bg-background">
-          <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-primary">Shop by category</p>
-              <h2 className="mt-2 text-3xl font-bold md:text-4xl">Start with the jacket style</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Explore varsity, bomber, leather, and other jacket styles to find the right starting point.
-              </p>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/shop">View All Products</Link>
-            </Button>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categoryTiles.map((category) => {
-              const sampleProduct = categoryProducts[category.slug]?.find((product) => product.images?.[0]?.url)
-              const imageUrl = sampleProduct?.images?.[0]?.url || category.image
-
-              return (
-                <Link
-                  key={category.id}
-                  href={buildCategoryUrl([{ slug: category.slug }])}
-                  className="group relative min-h-[220px] overflow-hidden rounded-lg bg-zinc-900 p-6 text-white"
-                >
-                  {imageUrl && (
-                    <Image
-                      src={imageUrl}
-                      alt={sampleProduct?.images?.[0]?.alt || category.name}
-                      fill
-                      sizes="(max-width: 1024px) 50vw, 33vw"
-                      className="object-cover opacity-50 transition-transform duration-500 group-hover:scale-105"
-                      unoptimized={imageUrl.startsWith('https://res.cloudinary.com/')}
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-black/35" />
-                  <div className="relative flex h-full flex-col justify-end">
-                    <p className="text-sm text-white/75">{category._count.products} products</p>
-                    <h3 className="mt-2 text-2xl font-bold">{category.name}</h3>
-                    <p className="mt-3 flex items-center text-sm font-semibold">
-                      Shop category
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </p>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-          </div>
-        </section>
-
-        <section className="border-b border-border bg-zinc-100 dark:bg-zinc-900">
-          <div className="container mx-auto px-4 py-12 md:py-16">
-            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wider text-primary">Featured jackets</p>
-                <h2 className="mt-2 text-3xl font-bold md:text-4xl">Selected styles worth seeing first</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Compare a few in-stock jackets and explore the colors, materials, and details that suit you.
-                </p>
-              </div>
-              <Button asChild variant="outline">
-                <Link href="/shop?sort=featured">Shop Featured</Link>
-              </Button>
-            </div>
-            {productGrid(featuredProducts)}
-          </div>
-        </section>
-
-        <section className="border-b bg-zinc-950 text-white">
-          <div className="container mx-auto px-4 py-12 md:py-16">
-            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase text-white/65">Made for your group</p>
-                <h2 className="mt-2 text-3xl font-bold md:text-4xl">Custom & bulk jackets</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
-                  Explore jacket options for schools, businesses, and independent labels.
-                </p>
-              </div>
-              <Button asChild variant="secondary">
-                <Link href="/bulk-orders">Explore Bulk Orders <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
-            </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              {[
-                { title: 'Schools & teams', href: '/bulk-orders/schools' },
-                { title: 'Corporate apparel', href: '/bulk-orders/corporate' },
-                { title: 'Private label', href: '/bulk-orders/private-label' },
-              ].map((item) => (
-                <Link key={item.href} href={item.href} className="group flex items-center justify-between border-t border-white/25 py-5 text-lg font-semibold transition-colors hover:text-white/70 md:border-y">
-                  {item.title}<ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-border bg-background">
-          <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="mb-8">
-            <p className="text-sm font-semibold uppercase text-muted-foreground">Make it yours</p>
-            <h2 className="mt-2 text-3xl font-bold md:text-4xl">Explore custom options</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Compare jacket materials, then plan the patches and embroidery that make the design your own.
-            </p>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Link
-              href="/materials-colors"
-              className="group rounded-lg border bg-card p-6 transition-colors hover:border-primary/50 md:p-8"
-            >
-              <Palette className="h-8 w-8 text-primary" />
-              <h2 className="mt-5 text-2xl font-bold">Materials & Colors</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Compare wool, leather, satin, fleece, twill, and color options before choosing your custom jacket.
-              </p>
-              <span className="mt-6 inline-flex items-center text-sm font-semibold text-primary">
-                Explore guide
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-            <Link
-              href="/patches-embroidery"
-              className="group rounded-lg border bg-card p-6 transition-colors hover:border-primary/50 md:p-8"
-            >
-              <Ruler className="h-8 w-8 text-primary" />
-              <h2 className="mt-5 text-2xl font-bold">Patches & Embroidery</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Plan chenille patches, embroidery placement, lettering, artwork, and team personalization.
-              </p>
-              <span className="mt-6 inline-flex items-center text-sm font-semibold text-primary">
-                View options
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-          </div>
-          </div>
-        </section>
-
-        {(loading || newArrivals.length > 0) && <section className="border-b border-border bg-zinc-100 dark:bg-zinc-900">
-          <div className="container mx-auto px-4 py-12 md:py-16">
-            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wider text-primary">New arrivals</p>
-                <h2 className="mt-2 text-3xl font-bold md:text-4xl">Fresh styles in the lineup</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  See the newest in-stock jackets added to the Jacketee catalog.
-                </p>
-              </div>
-              <Button asChild variant="outline">
-                <Link href="/shop">Browse Catalog</Link>
-              </Button>
-            </div>
-            {productGrid(newArrivals)}
-          </div>
-        </section>}
-
-        <section className="border-b border-border bg-background">
-          <div className="container mx-auto px-4 py-12 md:py-16">
-          <p className="text-xs font-semibold uppercase text-muted-foreground">Before you order</p>
-          <h2 className="mt-2 text-2xl font-bold md:text-3xl">Shop with confidence</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Check sizing guidance, shipping details, and returns information before placing an order.
-          </p>
-          <div className="mt-8 grid gap-7 sm:grid-cols-3">
-            {[
-              { icon: Ruler, title: 'Fit & sizing', href: '/faq', label: 'See sizing answers' },
-              { icon: Truck, title: 'Shipping', href: '/shipping', label: 'View shipping information' },
-              { icon: RotateCcw, title: 'Returns', href: '/returns', label: 'Read the returns policy' },
-            ].map((item) => (
-              <div key={item.href} className="border-l-2 border-zinc-300 pl-5 dark:border-zinc-600">
-                <item.icon className="h-6 w-6 text-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">{item.title}</h3>
-                <Link href={item.href} className="mt-2 inline-flex items-center text-sm text-muted-foreground underline-offset-4 hover:underline">
-                  {item.label}<ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </div>
-            ))}
-          </div>
-          </div>
-        </section>
-
-        {reviewHighlights.length > 0 && (
-          <section className="border-b border-zinc-800 bg-zinc-950 text-white">
-            <div className="container mx-auto px-4 py-12 md:py-16">
-              <h2 className="text-2xl font-bold md:text-3xl">From Jacketee customers</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">
-                Read approved reviews from people who ordered Jacketee products.
-              </p>
-              <div className="mt-8 grid gap-6 md:grid-cols-3">
-                {reviewHighlights.map((review) => (
-                  <Link key={review.id} href={review.productHref} className="group block border-t border-white/25 pt-5">
-                    {review.image && (
-                      <div className="relative mb-5 aspect-[4/3] overflow-hidden bg-muted">
-                        <Image src={review.image} alt={`Customer photo of ${review.productName}`} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" unoptimized />
-                      </div>
-                    )}
-                    <div className="flex gap-0.5 text-amber-500" aria-label={`${review.rating} out of 5 stars`}>
-                      {Array.from({ length: review.rating }).map((_, index) => <Star key={index} className="h-4 w-4 fill-current" />)}
-                    </div>
-                    <p className="mt-3 line-clamp-4 text-sm leading-6">{review.comment}</p>
-                    <p className="mt-4 text-sm font-semibold">{review.name}</p>
-                    <p className="mt-1 text-xs text-white/65 group-hover:underline">{review.productName}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section className="border-b border-border bg-zinc-100 dark:bg-zinc-900">
-          <div className="container mx-auto grid gap-8 px-4 py-12 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-16">
-            <div>
-              <p className="text-xs font-semibold uppercase text-muted-foreground">Help & support</p>
-              <h2 className="mt-2 text-2xl font-bold md:text-3xl">Common questions</h2>
-              <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
-                Find quick answers about jacket sizing, custom details, and group orders.
-              </p>
-              <Link href="/faq" className="mt-5 inline-flex items-center text-sm font-semibold hover:underline">
-                View all FAQs <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
-          <Accordion type="single" collapsible className="border-t border-border">
-            {homeFaqs.map((faq) => (
-              <AccordionItem key={faq.question} value={faq.question}>
-                <AccordionTrigger className="text-left text-base font-semibold">{faq.question}</AccordionTrigger>
-                <AccordionContent className="max-w-3xl text-sm leading-7 text-muted-foreground">
-                  <p>{faq.answer}</p>
-                  <Link href={faq.href} className="mt-2 inline-flex items-center font-semibold text-foreground hover:underline">
-                    {faq.link} <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-          </div>
-        </section>
-
-        {articles.length > 0 && (
-          <section className="border-b border-border bg-background">
-            <div className="container mx-auto px-4 py-12 md:py-16">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase text-primary">Jacketee Journal</p>
-                  <h2 className="mt-2 text-2xl font-bold md:text-3xl">Ideas for your next jacket</h2>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                    Browse practical guides to jacket styles, custom details, and team apparel.
-                  </p>
-                </div>
-                <Link href="/blog" className="inline-flex items-center text-sm font-semibold hover:underline">
-                  View all articles <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </div>
-              <div className="mt-8 grid gap-6 md:grid-cols-3">
-                {articles.map((article) => (
-                  <Link key={article.id} href={`/blog/${article.slug}`} className="group block">
-                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                      <Image src={article.featuredImage!} alt={article.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-300 group-hover:scale-105" unoptimized />
-                    </div>
-                    <h3 className="mt-4 text-lg font-semibold leading-snug group-hover:underline">{article.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-      <RecentlyViewed limit={4} sectionClassName="border-b border-border bg-zinc-100 dark:bg-zinc-900" />
-
-      <Footer />
-    </div>
-  )
+  return <Home categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
 }
