@@ -9,6 +9,7 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
 import { ShoppingBag, CheckCircle, Package, ArrowRight, Calendar, MapPin, CreditCard, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -24,6 +25,7 @@ interface OrderItem {
 interface Order {
   _id: string
   orderNumber: string
+  userEmail: string
   createdAt: string
   status: string
   subtotal: number
@@ -53,6 +55,7 @@ function ConfirmationContent() {
   const [verifyingPayment, setVerifyingPayment] = useState(false)
   const [verificationError, setVerificationError] = useState<string | null>(null)
   const [downloadingInvoice, setDownloadingInvoice] = useState(false)
+  const [lookupEmail, setLookupEmail] = useState('')
 
   useEffect(() => {
     if (!orderId) {
@@ -64,7 +67,7 @@ function ConfirmationContent() {
     } else {
       fetchOrderDetails()
     }
-  }, [orderId, sessionId])
+  }, [orderId, sessionId, session?.user?.email])
 
   const verifyStripePayment = async () => {
     setVerifyingPayment(true)
@@ -89,22 +92,17 @@ function ConfirmationContent() {
     }
   }
 
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = async (emailOverride?: string) => {
     try {
-      // Find orders. Since /api/orders?userId=X fetches user's orders,
-      // let's fetch specific order. Wait, `/api/orders` returns an array of orders.
-      // So we fetch all user's orders and find the matching ID,
-      // or we can query the order directly (GET /api/orders?userId=X or similar,
-      // wait, let's look at `/api/orders` GET method we wrote:
-      // it returns all orders filtered by query param `userId`.
-      // So we can filter by currentUserId. Let's do that:
-      const res = await fetch(`/api/orders`)
+      const email = emailOverride || session?.user?.email || sessionStorage.getItem('jacketee-checkout-email') || ''
+      if (!email) return
+      const res = await fetch('/api/orders/confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, email }),
+      })
       if (res.ok) {
-        const data = await res.json()
-        const found = data.find((o: Order) => o._id === orderId)
-        if (found) {
-          setOrder(found)
-        }
+        setOrder(await res.json())
       }
     } catch (error) {
       console.error('Error fetching order details:', error)
@@ -117,7 +115,13 @@ function ConfirmationContent() {
     if (!order || downloadingInvoice) return
     setDownloadingInvoice(true)
     try {
-      const res = await fetch(`/api/orders/${order._id}/invoice`)
+      const res = session?.user
+        ? await fetch(`/api/orders/${order._id}/invoice`)
+        : await fetch('/api/orders/track/invoice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderNumber: order.orderNumber, email: order.userEmail }),
+          })
       if (!res.ok) throw new Error('Failed to generate invoice')
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
@@ -133,14 +137,6 @@ function ConfirmationContent() {
     } finally {
       setDownloadingInvoice(false)
     }
-  }
-
-  // Helper to add 5-7 days to order date for delivery estimate
-  const getDeliveryDateString = (dateStr: string) => {
-    const date = new Date(dateStr)
-    date.setDate(date.getDate() + 5)
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
-    return date.toLocaleDateString(undefined, options)
   }
 
   if (verifyingPayment) {
@@ -186,11 +182,13 @@ function ConfirmationContent() {
           <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
           <h3 className="text-xl font-semibold mb-2">Order Not Found</h3>
           <p className="text-muted-foreground mb-6 max-w-sm">
-            We couldn't retrieve the details for this order. Please verify your order number in your dashboard profile.
+            Enter the email used at checkout to view your order, or use your order number on the tracking page.
           </p>
-          <Link href="/">
-            <Button>Return to catalog</Button>
-          </Link>
+          <form className="flex w-full max-w-sm flex-col gap-3" onSubmit={(event) => { event.preventDefault(); setLoading(true); void fetchOrderDetails(lookupEmail) }}>
+            <Input type="email" required autoComplete="email" aria-label="Checkout email" placeholder="Email used at checkout" value={lookupEmail} onChange={(event) => setLookupEmail(event.target.value)} />
+            <Button type="submit">Find My Order</Button>
+          </form>
+          <Link href="/track-order" className="mt-4 text-sm underline">Track by order number</Link>
         </CardContent>
       </Card>
     )
@@ -212,7 +210,7 @@ function ConfirmationContent() {
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Order Confirmed!</h1>
         <p className="text-muted-foreground max-w-md mx-auto">
           Thank you for shopping at Jacketee. We have sent a confirmation email to{' '}
-          <span className="font-semibold text-primary">{session?.user?.email || order.shippingAddress.name}</span>.
+          <span className="font-semibold text-primary">{order.userEmail}</span>.
         </p>
         <div className="inline-block px-4 py-2 bg-muted/60 border rounded-full text-sm font-semibold">
           Order Number: <span className="text-primary font-bold">{order.orderNumber}</span>
@@ -261,7 +259,7 @@ function ConfirmationContent() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-emerald-600 font-semibold">FREE</span>
+                  <span>${order.shipping.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax</span>
@@ -279,20 +277,20 @@ function ConfirmationContent() {
 
         {/* Shipping details sidebar */}
         <div className="space-y-6 col-span-1">
-          {/* Delivery estimate */}
+          {/* Delivery schedule */}
           <Card className="border-2 bg-emerald-500/5 border-emerald-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2 text-emerald-800">
                 <Calendar className="h-5 w-5 text-emerald-600" />
-                Estimated Delivery
+                Delivery Schedule
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="font-bold text-sm text-emerald-950">
-                {getDeliveryDateString(order.createdAt)}
+                To be confirmed
               </p>
               <p className="text-xs text-emerald-700/80 mt-1">
-                Your delivery estimate will be confirmed with your order details.
+                We will confirm the production and delivery timeline by email.
               </p>
             </CardContent>
           </Card>

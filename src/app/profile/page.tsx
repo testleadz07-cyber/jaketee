@@ -99,6 +99,9 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
+  const [claimEmail, setClaimEmail] = useState('')
+  const [isRequestingClaim, setIsRequestingClaim] = useState(false)
+  const [claimRequested, setClaimRequested] = useState(false)
 
   const [addresses, setAddresses] = useState<Address[]>([])
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false)
@@ -268,6 +271,26 @@ export default function ProfilePage() {
       console.error('Error fetching orders:', error)
     } finally {
       setIsOrdersLoading(false)
+    }
+  }
+
+  const requestGuestOrders = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setIsRequestingClaim(true)
+    try {
+      const response = await fetch('/api/orders/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request', email: claimEmail.trim() || session?.user?.email }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Could not request verification')
+      setClaimRequested(true)
+      toast({ title: 'Check your email', description: result.message })
+    } catch (cause) {
+      toast({ title: 'Request failed', description: cause instanceof Error ? cause.message : 'Please try again.', variant: 'destructive' })
+    } finally {
+      setIsRequestingClaim(false)
     }
   }
 
@@ -675,6 +698,26 @@ export default function ProfilePage() {
 
             {/* Orders Tab */}
             <TabsContent value="orders" className="space-y-6">
+              <section className="border-b pb-6">
+                <h2 className="text-base font-semibold">Placed an order as a guest?</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Verify the email used at checkout to add those orders to this account.</p>
+                <form onSubmit={requestGuestOrders} className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Input
+                    type="email"
+                    aria-label="Guest checkout email"
+                    autoComplete="email"
+                    placeholder={session?.user?.email || 'Email used at checkout'}
+                    value={claimEmail}
+                    onChange={(event) => { setClaimEmail(event.target.value); setClaimRequested(false) }}
+                    className="max-w-sm"
+                  />
+                  <Button type="submit" disabled={isRequestingClaim}>
+                    {isRequestingClaim ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                    Send verification link
+                  </Button>
+                </form>
+                {claimRequested && <p role="status" className="mt-2 text-sm text-muted-foreground">If guest orders exist for that email, a link is on its way.</p>}
+              </section>
               {isOrdersLoading ? (
                 <div className="flex flex-col justify-center items-center py-12 bg-card border-2 rounded-xl">
                   <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />

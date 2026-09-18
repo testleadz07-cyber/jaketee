@@ -46,16 +46,11 @@ async function getPayPalAccessToken() {
 // since it fires from PayPal's servers even if the customer closes the tab
 // before this request finishes. Both paths are idempotent and safe to run
 // in either order.
-async function markOrderPaid(dbOrderId: string, paypalCaptureId: string) {
-  const db = await connectDB()
-  if (!db) return
-
-  const order = await Order.findById(dbOrderId)
-  if (!order || order.status === 'paid') return
+async function markOrderPaid(order: InstanceType<typeof Order>, paypalCaptureId: string) {
+  if (order.status === 'paid') return
 
   order.status = 'paid'
-  order.paymentId = paypalCaptureId
-  order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via PayPal capture response' })
+  order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: `Confirmed via PayPal capture ${paypalCaptureId}` })
   await order.save()
 
   await decrementStockForOrder(order.items)
@@ -106,27 +101,25 @@ async function markOrderPaid(dbOrderId: string, paypalCaptureId: string) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
     const { orderId, dbOrderId } = body
 
-    if (!orderId) {
-      return NextResponse.json({ error: 'OrderId is required' }, { status: 400 })
+    if (typeof orderId !== 'string' || typeof dbOrderId !== 'string') {
+      return NextResponse.json({ error: 'Order references are required' }, { status: 400 })
     }
-
-    // Check if it's a mock order id
-    if (orderId.startsWith('mock-order-')) {
-      const mockCaptureId = `mock-capture-${Date.now()}`
-      if (dbOrderId) {
-        await markOrderPaid(dbOrderId, mockCaptureId)
-      }
-      return NextResponse.json({
-        status: 'COMPLETED',
-        id: mockCaptureId,
-      })
+    if (!(await connectDB())) {
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
+    }
+    const order = await Order.findById(dbOrderId).catch(() => null)
+    if (!order || order.paymentMethod !== 'paypal' || order.paymentId !== orderId ||
+      (order.userId && String(order.userId) !== String((session?.user as any)?.id || ''))) {
+      return NextResponse.json({ error: 'Order does not match this payment' }, { status: 403 })
+    }
+    if (order.status === 'paid') {
+      return NextResponse.json({ status: 'COMPLETED', id: order.paymentId })
+    }
+    if (order.status !== 'pending') {
+      return NextResponse.json({ error: 'This order can no longer be paid' }, { status: 409 })
     }
 
     const accessToken = await getPayPalAccessToken()
@@ -145,9 +138,10 @@ export async function POST(request: NextRequest) {
 
       if (res.ok) {
         const data = await res.json()
-        if (data.status === 'COMPLETED' && dbOrderId) {
-          await markOrderPaid(dbOrderId, data.id)
+        if (data.status !== 'COMPLETED' || data.id !== orderId) {
+          return NextResponse.json({ error: 'PayPal did not confirm this payment' }, { status: 502 })
         }
+        await markOrderPaid(order, data.id)
         return NextResponse.json({
           status: data.status,
           id: data.id,
@@ -159,16 +153,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Mock fallback (PayPal not configured on this server)
-    const mockCaptureId = `mock-capture-${Date.now()}`
-    if (dbOrderId) {
-      await markOrderPaid(dbOrderId, mockCaptureId)
-    }
-    console.log('PayPal not configured. Returning mock capture status.')
-    return NextResponse.json({
-      status: 'COMPLETED',
-      id: mockCaptureId,
-    })
+    return NextResponse.json({ error: 'PayPal is not configured on this server.' }, { status: 503 })
   } catch (error: any) {
     console.error('Capture payment error:', error)
     return NextResponse.json({ error: 'Failed to capture payment' }, { status: 500 })

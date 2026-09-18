@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
-import Discount from '@/models/Discount'
+import { CheckoutError, resolveCheckoutCustomer, resolveCheckoutDiscount, resolveCheckoutItems } from '@/lib/checkout-order'
 
 async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID
@@ -43,22 +43,10 @@ async function getPayPalAccessToken() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { amount, items, shippingAddress, promoCode, discountAmount, subtotal } = body
-
-    if (!amount || isNaN(Number(amount))) {
-      return NextResponse.json({ error: 'Valid amount is required' }, { status: 400 })
-    }
-
-    if (!items || items.length === 0 || !shippingAddress) {
+    const { items: rawItems, shippingAddress, promoCode, email } = body
+    if (!rawItems || !shippingAddress) {
       return NextResponse.json({ error: 'Missing required checkout items or shipping info' }, { status: 400 })
-    }
-    if (items.reduce((count: number, item: { quantity: number }) => count + Number(item.quantity), 0) !== 1) {
-      return NextResponse.json({ error: 'Contact us for a shipping quote on multiple jackets.' }, { status: 400 })
     }
 
     const db = await connectDB()
@@ -66,21 +54,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const discount = promoCode ? await Discount.findOne({ code: String(promoCode).toUpperCase().trim(), isActive: true }) : null
-    const now = new Date()
-    const freeShipping = Boolean(discount && discount.discountType === 'free_shipping'
-      && (!discount.startDate || now >= new Date(discount.startDate))
-      && (!discount.endDate || now <= new Date(discount.endDate))
-      && (discount.usageLimit == null || discount.usageCount < discount.usageLimit)
-      && Number(subtotal) >= discount.minOrderValue)
-    const shippingAmount = freeShipping ? 0 : 30
-    if (Math.abs(Number(amount) - (Number(subtotal) - Number(discountAmount || 0) + shippingAmount)) > 0.01) {
-      return NextResponse.json({ error: 'Checkout total does not match the shipping charge.' }, { status: 400 })
-    }
-
-    const userId = (session.user as any).id
-    const userEmail = session.user.email || ''
-    const userName = session.user.name || ''
+    const { userId, userEmail, userName } = resolveCheckoutCustomer(session?.user as any, email, shippingAddress)
+    const items = await resolveCheckoutItems(rawItems)
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const discount = await resolveCheckoutDiscount(promoCode, subtotal)
+    const shippingAmount = discount.freeShipping ? 0 : 30
+    const amount = Number((subtotal - discount.amount + shippingAmount).toFixed(2))
 
     // Create a PENDING order up front, before the payment is captured. This
     // gives the PayPal webhook a record to look up and mark as paid, so
@@ -91,7 +70,7 @@ export async function POST(request: NextRequest) {
       userId,
       userEmail,
       userName,
-      items: items.map((item: any) => ({
+      items: items.map((item) => ({
         productId: item.productId,
         name: item.name,
         image: item.image,
@@ -99,11 +78,11 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
         variants: item.variants || [],
       })),
-      subtotal: subtotal ?? amount,
+      subtotal,
       shipping: shippingAmount,
       tax: 0,
-      promoCode: promoCode ? promoCode.toUpperCase().trim() : undefined,
-      discountAmount: Number((discountAmount || 0).toFixed ? discountAmount.toFixed(2) : discountAmount || 0),
+      promoCode: discount.code,
+      discountAmount: discount.amount,
       total: Number(Number(amount).toFixed(2)),
       status: 'pending',
       paymentMethod: 'paypal',
@@ -154,14 +133,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Mock mode fallback (PayPal not configured on this server)
-    const mockId = `mock-order-${Date.now()}`
-    pendingOrder.paymentId = mockId
+    pendingOrder.status = 'cancelled'
+    pendingOrder.statusHistory.push({ status: 'cancelled', timestamp: new Date(), note: 'PayPal is not configured' })
     await pendingOrder.save()
-    console.log('PayPal not configured. Returning mock order ID.')
-    return NextResponse.json({ id: mockId, orderId: String(pendingOrder._id) })
+    return NextResponse.json({ error: 'PayPal is not configured on this server.' }, { status: 503 })
   } catch (error: any) {
     console.error('Create payment order error:', error)
-    return NextResponse.json({ error: 'Failed to initiate payment' }, { status: 500 })
+    return NextResponse.json({ error: error instanceof CheckoutError ? error.message : 'Failed to initiate payment' }, { status: error instanceof CheckoutError ? error.status : 500 })
   }
 }

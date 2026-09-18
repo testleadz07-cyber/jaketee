@@ -9,14 +9,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useCartStore } from '@/store/cart'
 import { useToast } from '@/hooks/use-toast'
-import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, CheckCircle2, X, Tag, MapPin, Plus, Check } from 'lucide-react'
+import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, X, Tag, MapPin, Plus, Check } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 
 interface SavedAddress {
@@ -79,7 +78,6 @@ export default function CheckoutPage() {
   // the capture step and confirmation redirect can reference the same record.
   const paypalDbOrderIdRef = useRef<string | null>(null)
   const [activeGateway, setActiveGateway] = useState('both')
-  const [stripePublishableKey, setStripePublishableKey] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'stripe'>('paypal')
   const [promoCodeInput, setPromoCodeInput] = useState('')
   const [isValidating, setIsValidating] = useState(false)
@@ -87,6 +85,7 @@ export default function CheckoutPage() {
 
   // Shipping input refs for browser autofill sync
   const nameRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
   const streetRef = useRef<HTMLInputElement>(null)
   const cityRef = useRef<HTMLInputElement>(null)
   const stateRef = useRef<HTMLInputElement>(null)
@@ -238,10 +237,11 @@ export default function CheckoutPage() {
       if (res.ok) {
         const data = await res.json()
         setPaypalClientId(data.clientId)
-        setStripePublishableKey(data.stripePublishableKey)
         const gateway = data.activeGateway || 'both'
         setActiveGateway(gateway)
-        if (gateway === 'stripe') {
+        const paypalAvailable = Boolean(data.clientId && data.clientId !== 'your_paypal_client_id')
+        const stripeAvailable = Boolean(data.stripePublishableKey && data.stripePublishableKey !== 'your_stripe_publishable_key')
+        if (gateway === 'stripe' || (!paypalAvailable && stripeAvailable)) {
           setPaymentMethod('stripe')
         } else {
           setPaymentMethod('paypal')
@@ -261,6 +261,7 @@ export default function CheckoutPage() {
       script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`
       script.async = true
       script.onload = () => {
+        setIsPaypalLoading(false)
         renderPaypalButtons()
       }
       script.onerror = () => {
@@ -269,6 +270,7 @@ export default function CheckoutPage() {
       }
       document.body.appendChild(script)
     } else if (step === 3 && paymentMethod === 'paypal' && window.paypal) {
+      setIsPaypalLoading(false)
       renderPaypalButtons()
     }
   }, [step, paypalClientId, paymentMethod])
@@ -293,9 +295,7 @@ export default function CheckoutPage() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                amount: getDiscountedTotalPrice() + shippingAmount,
-                subtotal: getTotalPrice(),
-                discountAmount: appliedPromo ? Number((getTotalPrice() - getDiscountedTotalPrice()).toFixed(2)) : 0,
+                email: shippingEmail,
                 promoCode: appliedPromo?.code,
                 items: items.map(item => ({
                   productId: item.productId,
@@ -317,10 +317,15 @@ export default function CheckoutPage() {
               }),
             })
             const data = await res.json()
-            paypalDbOrderIdRef.current = data.orderId || null
+            if (!res.ok || !data.id || !data.orderId) {
+              throw new Error(data.error || 'Could not start PayPal checkout')
+            }
+            paypalDbOrderIdRef.current = data.orderId
             return data.id
           } catch (error) {
             console.error('Error creating PayPal order:', error)
+            toast({ title: 'Checkout unavailable', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' })
+            throw error
           }
         },
         onApprove: async (data: any) => {
@@ -334,7 +339,7 @@ export default function CheckoutPage() {
 
             const captureData = await res.json()
 
-            if (captureData.status === 'COMPLETED') {
+            if (res.ok && captureData.status === 'COMPLETED' && captureData.id === data.orderID) {
               if (paypalDbOrderIdRef.current) {
                 // The order was already created (and marked paid) by
                 // /api/payments/create-order + /api/payments/capture above,
@@ -343,8 +348,7 @@ export default function CheckoutPage() {
                 router.push(`/order-confirmation?id=${paypalDbOrderIdRef.current}`)
                 setIsSubmittingOrder(false)
               } else {
-                // Fallback: no DB order was created up front for some reason.
-                handleOrderSubmit(captureData.id)
+                throw new Error('Order reference is missing. Contact support with your PayPal receipt.')
               }
             } else {
               toast({
@@ -356,6 +360,7 @@ export default function CheckoutPage() {
             }
           } catch (error) {
             console.error('Error capturing PayPal payment:', error)
+            toast({ title: 'Order needs attention', description: error instanceof Error ? error.message : 'Contact support with your PayPal receipt.', variant: 'destructive' })
             setIsSubmittingOrder(false)
           }
         },
@@ -376,7 +381,7 @@ export default function CheckoutPage() {
   const handleStripeCheckout = async () => {
     setIsSubmittingOrder(true)
     
-    if (!shippingName || !shippingStreet || !shippingCity || !shippingState || !shippingZip) {
+    if (!shippingName || !shippingEmail || !shippingStreet || !shippingCity || !shippingState || !shippingZip) {
       toast({
         title: 'Missing Fields',
         description: 'Please fill in all shipping details.',
@@ -387,6 +392,7 @@ export default function CheckoutPage() {
     }
 
     const payload = {
+      email: shippingEmail,
       items: items.map(item => ({
         productId: item.productId,
         name: item.name,
@@ -408,6 +414,7 @@ export default function CheckoutPage() {
     }
 
     try {
+      sessionStorage.setItem('jacketee-checkout-email', shippingEmail.trim().toLowerCase())
       const res = await fetch('/api/payments/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -440,68 +447,6 @@ export default function CheckoutPage() {
     }
   }
 
-  const handleOrderSubmit = async (paymentId: string) => {
-    setIsSubmittingOrder(true)
-    
-    const orderData = {
-      userId: session?.user ? (session.user as any).id : null,
-      items: items.map(item => ({
-        productId: item.productId,
-        name: item.name,
-        image: item.image,
-        price: item.price,
-        quantity: item.quantity,
-        variants: item.variants
-      })),
-      subtotal: getTotalPrice(),
-      shipping: shippingAmount,
-      tax: 0,
-      total: getDiscountedTotalPrice() + shippingAmount,
-      promoCode: appliedPromo?.code,
-      discountAmount: appliedPromo ? Number((getTotalPrice() - getDiscountedTotalPrice()).toFixed(2)) : 0,
-      shippingAddress: {
-        name: shippingName,
-        street: shippingStreet,
-        city: shippingCity,
-        state: shippingState,
-        zip: shippingZip,
-        country: shippingCountry,
-        phone: shippingPhone
-      },
-      status: 'paid', // Captured successfully
-      paymentId
-    }
-
-    try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-      })
-
-      if (res.ok) {
-        const order = await res.json()
-        clearCart()
-        router.push(`/order-confirmation?id=${order._id}`)
-      } else {
-        const errData = await res.json()
-        toast({
-          title: 'Error Creating Order',
-          description: errData.error || 'Failed to submit your order. Please contact support.',
-          variant: 'destructive'
-        })
-      }
-    } catch (error) {
-      toast({
-        title: 'Error Submitting Order',
-        description: 'An error occurred. Please try again.',
-        variant: 'destructive'
-      })
-    } finally {
-      setIsSubmittingOrder(false)
-    }
-  }
-
   const handleNextStep = async () => {
     if (jacketCount !== 1) {
       toast({ title: 'Shipping quote required', description: 'Contact us for shipping on two or more jackets before checkout.', variant: 'destructive' })
@@ -509,6 +454,7 @@ export default function CheckoutPage() {
     }
     // Sync values from refs if browser autofill didn't trigger state changes
     const nameVal = shippingName || nameRef.current?.value || ''
+    const emailVal = shippingEmail || emailRef.current?.value || ''
     const streetVal = shippingStreet || streetRef.current?.value || ''
     const cityVal = shippingCity || cityRef.current?.value || ''
     const stateVal = shippingState || stateRef.current?.value || ''
@@ -519,6 +465,7 @@ export default function CheckoutPage() {
     if (step === 1) {
       const missingFields: string[] = []
       if (!nameVal) missingFields.push('Recipient Name')
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal.trim())) missingFields.push('Valid Email Address')
       if (!streetVal) missingFields.push('Street Address')
       if (!cityVal) missingFields.push('City')
       if (!stateVal) missingFields.push('State')
@@ -535,6 +482,8 @@ export default function CheckoutPage() {
 
       // Sync refs back to states
       setShippingName(nameVal)
+      setShippingEmail(emailVal.trim())
+      sessionStorage.setItem('jacketee-checkout-email', emailVal.trim().toLowerCase())
       setShippingStreet(streetVal)
       setShippingCity(cityVal)
       setShippingState(stateVal)
@@ -622,7 +571,7 @@ export default function CheckoutPage() {
                         <Truck className="h-5 w-5 text-primary" />
                         Shipping Information
                       </CardTitle>
-                      <CardDescription>Enter the delivery address for your order</CardDescription>
+                      <CardDescription>Enter your delivery details. No account is required.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {/* Saved address picker (logged-in users with an address book) */}
@@ -691,6 +640,22 @@ export default function CheckoutPage() {
                             onChange={e => setShippingPhone(e.target.value)}
                           />
                         </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="shippingEmail">Email Address</Label>
+                        <Input
+                          id="shippingEmail"
+                          ref={emailRef}
+                          type="email"
+                          autoComplete="email"
+                          placeholder="you@example.com"
+                          value={shippingEmail}
+                          onChange={(e) => setShippingEmail(e.target.value)}
+                          readOnly={Boolean(session?.user?.email)}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">{session?.user?.email ? 'Your receipt and order updates will go to your account email.' : 'Your receipt and order updates will be sent here.'}</p>
                       </div>
 
                       <div className="space-y-2">
@@ -826,6 +791,7 @@ export default function CheckoutPage() {
                       <div className="p-4 rounded-lg bg-muted/30 border space-y-1 text-sm">
                         <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">Shipping to:</p>
                         <p className="font-semibold">{shippingName}</p>
+                        <p className="text-muted-foreground">{shippingEmail}</p>
                         <p className="text-muted-foreground">{shippingStreet}</p>
                         <p className="text-muted-foreground">{shippingCity}, {shippingState} {shippingZip}</p>
                         <p className="text-muted-foreground">{shippingCountry}</p>
@@ -872,11 +838,6 @@ export default function CheckoutPage() {
                           <CreditCard className="h-5 w-5 text-primary" />
                           Payment Options
                         </CardTitle>
-                        {isPaypalPlaceholder && (
-                          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px]">
-                            Demo Mode
-                          </Badge>
-                        )}
                       </div>
                       <CardDescription>Choose how you'd like to pay</CardDescription>
                     </CardHeader>
@@ -942,18 +903,10 @@ export default function CheckoutPage() {
                                     <div className="text-xs space-y-1">
                                       <p className="font-bold">PayPal Gateway Not Configured</p>
                                       <p className="text-muted-foreground">
-                                        The PayPal integration is currently in local Demo Mode. Press "Pay Now" below to complete order simulation.
+                                        PayPal is unavailable right now. Please choose another payment method or try again later.
                                       </p>
                                     </div>
                                   </div>
-                                  <Button
-                                    className="w-full h-14 text-lg font-bold bg-amber-500 hover:bg-amber-600 text-amber-950 border border-amber-600 shadow-md"
-                                    onClick={() => handleOrderSubmit(`demo-payment-${Date.now()}`)}
-                                    disabled={isSubmittingOrder}
-                                  >
-                                    <CheckCircle2 className="h-5 w-5 mr-2" />
-                                    Pay Now (Demo Mode Simulation)
-                                  </Button>
                                 </div>
                               )}
                             </>

@@ -19,6 +19,8 @@ const ROUTE_LIMITS: Record<string, { windowMs: number; max: number }> = {
   '/api/newsletter/subscribe': { windowMs: 60 * 60 * 1000, max: 5 },
   // Checkout / payment abuse
   '/api/orders': { windowMs: 60 * 1000, max: 10 },
+  '/api/orders/confirmation': { windowMs: 60 * 1000, max: 10 },
+  '/api/orders/claim': { windowMs: 15 * 60 * 1000, max: 5 },
   '/api/payments/create-order': { windowMs: 60 * 1000, max: 10 },
   '/api/payments/capture': { windowMs: 60 * 1000, max: 10 },
   '/api/payments/stripe/checkout': { windowMs: 60 * 1000, max: 10 },

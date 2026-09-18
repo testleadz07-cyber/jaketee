@@ -162,8 +162,7 @@ async function markOrderPaid(resource: any) {
   }
 
   order.status = 'paid'
-  order.paymentId = resource.id
-  order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via PayPal webhook' })
+  order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: `Confirmed via PayPal webhook capture ${resource.id}` })
   await order.save()
 
   await decrementStockForOrder(order.items)

@@ -3,16 +3,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
-import Discount from '@/models/Discount'
 import Stripe from 'stripe'
+import { CheckoutError, resolveCheckoutCustomer, resolveCheckoutDiscount, resolveCheckoutItems } from '@/lib/checkout-order'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY
     if (!stripeSecretKey || stripeSecretKey === 'your_stripe_secret_key') {
       return NextResponse.json({ error: 'Stripe is not configured on this server.' }, { status: 503 })
@@ -24,13 +20,10 @@ export async function POST(request: NextRequest) {
     })
 
     const body = await request.json()
-    const { items, shippingAddress, promoCode } = body
+    const { items: rawItems, shippingAddress, promoCode, email } = body
 
-    if (!items || items.length === 0 || !shippingAddress) {
+    if (!rawItems || !shippingAddress) {
       return NextResponse.json({ error: 'Missing required checkout items or shipping info' }, { status: 400 })
-    }
-    if (items.reduce((count: number, item: { quantity: number }) => count + Number(item.quantity), 0) !== 1) {
-      return NextResponse.json({ error: 'Contact us for a shipping quote on multiple jackets.' }, { status: 400 })
     }
 
     const db = await connectDB()
@@ -38,74 +31,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const userId = (session.user as any).id
-    const userEmail = session.user.email || ''
-    const userName = session.user.name || ''
+    const { userId, userEmail, userName } = resolveCheckoutCustomer(session?.user as any, email, shippingAddress)
+    const items = await resolveCheckoutItems(rawItems)
 
-    // Calculate subtotal from products
-    let subtotal = 0
-    const lineItems = items.map((item: any) => {
-      const itemPrice = Number(item.price)
-      subtotal += itemPrice * Number(item.quantity)
-      
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const lineItems = items.map((item) => {
       return {
         price_data: {
           currency: 'usd',
           product_data: {
             name: item.name,
-            images: item.image ? [item.image] : [],
+            images: item.image.startsWith('https://') ? [item.image] : [],
           },
-          unit_amount: Math.round(itemPrice * 100), // Stripe uses cents
+          unit_amount: Math.round(item.price * 100),
         },
         quantity: item.quantity,
       }
     })
 
     // Perform Coupon Code Backend Validations
-    let discountAmount = 0
-    let isFreeShipping = false
+    const discount = await resolveCheckoutDiscount(promoCode, subtotal)
+    const discountAmount = discount.amount
+    const isFreeShipping = discount.freeShipping
     let stripeCouponId: string | undefined = undefined
 
-    if (promoCode) {
-      try {
-        const discount = await Discount.findOne({ code: promoCode.toUpperCase().trim() })
-        if (discount && discount.isActive) {
-          const now = new Date()
-          const startValid = !discount.startDate || now >= new Date(discount.startDate)
-          const endValid = !discount.endDate || now <= new Date(discount.endDate)
-          const usageValid = discount.usageLimit === null || discount.usageLimit === undefined || discount.usageCount < discount.usageLimit
-          const minOrderValid = subtotal >= discount.minOrderValue
-
-          if (startValid && endValid && usageValid && minOrderValid) {
-            if (discount.discountType === 'percentage') {
-              discountAmount = (subtotal * discount.discountValue) / 100
-              const stripeCoupon = await stripe.coupons.create({
-                percent_off: discount.discountValue,
-                duration: 'once',
-                name: discount.code,
-              })
-              stripeCouponId = stripeCoupon.id
-            } else if (discount.discountType === 'fixed') {
-              discountAmount = discount.discountValue
-              const stripeCoupon = await stripe.coupons.create({
-                amount_off: Math.round(discount.discountValue * 100),
-                currency: 'usd',
-                duration: 'once',
-                name: discount.code,
-              })
-              stripeCouponId = stripeCoupon.id
-            } else if (discount.discountType === 'free_shipping') {
-              isFreeShipping = true
-            }
-
-            if (discountAmount > subtotal) {
-              discountAmount = subtotal
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error applying coupon in Stripe checkout API:', err)
-      }
+    if (discount.type === 'percentage') {
+      const stripeCoupon = await stripe.coupons.create({
+        percent_off: discount.value,
+        duration: 'once',
+        name: discount.code,
+      })
+      stripeCouponId = stripeCoupon.id
+    } else if (discount.type === 'fixed' && discountAmount > 0) {
+      const stripeCoupon = await stripe.coupons.create({
+        amount_off: Math.round(discountAmount * 100),
+        currency: 'usd',
+        duration: 'once',
+        name: discount.code,
+      })
+      stripeCouponId = stripeCoupon.id
     }
 
     // Setup calculations
@@ -121,7 +85,7 @@ export async function POST(request: NextRequest) {
       userId,
       userEmail,
       userName,
-      items: items.map((item: any) => ({
+      items: items.map((item) => ({
         productId: item.productId,
         name: item.name,
         image: item.image,
@@ -132,7 +96,7 @@ export async function POST(request: NextRequest) {
       subtotal,
       shipping: shippingAmount,
       tax: taxAmount,
-      promoCode: promoCode ? promoCode.toUpperCase().trim() : undefined,
+      promoCode: discount.code,
       discountAmount: Number(discountAmount.toFixed(2)),
       total: Number(total.toFixed(2)),
       status: 'pending',
@@ -172,6 +136,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: stripeSession.url })
   } catch (error: any) {
     console.error('Stripe session creation failed:', error)
-    return NextResponse.json({ error: error.message || 'Stripe Checkout generation failed.' }, { status: 500 })
+    return NextResponse.json({ error: error instanceof CheckoutError ? error.message : 'Stripe Checkout generation failed.' }, { status: error instanceof CheckoutError ? error.status : 500 })
   }
 }

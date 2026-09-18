@@ -250,6 +250,23 @@ export function newsletterSubscriptionTemplate(data: { shopUrl: string; discount
   })
 }
 
+export function guestOrderClaimTemplate(data: { claimUrl: string }) {
+  return emailLayout({
+    eyebrow: 'Order history',
+    title: 'Add guest orders to your account',
+    preview: 'Verify your checkout email to see earlier Jacketee orders in your account.',
+    children: `
+      <p style="margin: 0; color: #3f3f46; font-size: 15px; line-height: 1.7;">
+        A Jacketee account requested to link orders placed with this email address. Open the link below and sign in to that account to confirm.
+      </p>
+      ${primaryButton('Link My Orders', data.claimUrl)}
+      <p style="margin: 0; color: #71717a; font-size: 13px; line-height: 1.6;">
+        This link expires in 30 minutes. If you did not request this, ignore this email. Your orders will stay unchanged.
+      </p>
+    `,
+  })
+}
+
 export function passwordResetTemplate(data: { userName: string; resetUrl: string }) {
   return emailLayout({
     eyebrow: 'Password reset',

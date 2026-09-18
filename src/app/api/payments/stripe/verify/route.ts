@@ -17,10 +17,6 @@ import { decrementStockForOrder } from '@/lib/inventory'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY
     if (!stripeSecretKey || stripeSecretKey === 'your_stripe_secret_key') {
       return NextResponse.json({ error: 'Stripe is not configured on this server.' }, { status: 503 })
@@ -44,17 +40,19 @@ export async function POST(request: NextRequest) {
 
     // 1. Fetch order from DB
     const order = await Order.findById(orderId)
-    if (!order) {
+    if (!order || order.paymentMethod !== 'stripe' || order.paymentId !== sessionId ||
+      (order.userId && String(order.userId) !== String((session?.user as any)?.id || ''))) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-    }
-
-    // If order is already marked as paid, return success
-    if (order.status === 'paid') {
-      return NextResponse.json({ status: 'paid', order })
     }
 
     // 2. Fetch session from Stripe
     const stripeSession = await stripe.checkout.sessions.retrieve(sessionId)
+    if (stripeSession.client_reference_id !== String(order._id) || stripeSession.metadata?.orderId !== String(order._id)) {
+      return NextResponse.json({ error: 'Payment does not match this order' }, { status: 403 })
+    }
+    if (order.status === 'paid') {
+      return NextResponse.json({ status: 'paid', order })
+    }
     
     if (stripeSession.payment_status === 'paid') {
       // 3. Update order status in MongoDB to paid
