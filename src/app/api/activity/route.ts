@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Activity from '@/models/Activity'
 import GuestActivity from '@/models/GuestActivity'
-import { getCountryFromRequest } from '@/lib/geo'
+import { getGeoFromRequest } from '@/lib/geo'
 
 const GUEST_ID_COOKIE = 'guest_id'
 const GUEST_ID_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
       ? xForwardedFor.split(',')[0].trim()
       : request.headers.get('x-real-ip') || '127.0.0.1'
     const userAgent = request.headers.get('user-agent') || undefined
-    const country = getCountryFromRequest(request) || (ip === '127.0.0.1' || ip === '::1' ? 'Localhost' : 'Unknown')
+    const geo = getGeoFromRequest(request)
+    const country = geo.country || (ip === '127.0.0.1' || ip === '::1' ? 'Localhost' : 'Unknown')
 
     const session = await getServerSession(authOptions)
 
@@ -43,6 +44,8 @@ export async function POST(request: NextRequest) {
         ip,
         userAgent,
         country,
+        region: geo.region,
+        city: geo.city,
       })
 
       return NextResponse.json({ success: true, activity: newActivity })
@@ -62,6 +65,8 @@ export async function POST(request: NextRequest) {
       ip,
       userAgent,
       country,
+      region: geo.region,
+      city: geo.city,
     })
 
     const response = NextResponse.json({ success: true, activity: newGuestActivity })

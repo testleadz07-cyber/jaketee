@@ -7,6 +7,8 @@ export interface IGuestActivity extends Document {
   ip?: string
   userAgent?: string
   country?: string
+  region?: string
+  city?: string
   createdAt: Date
 }
 
@@ -18,6 +20,8 @@ const GuestActivitySchema = new Schema<IGuestActivity>(
     ip: { type: String },
     userAgent: { type: String },
     country: { type: String },
+    region: { type: String },
+    city: { type: String },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 )

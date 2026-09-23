@@ -23,6 +23,9 @@ import {
 } from '@/components/ui/table'
 import {
   ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   LogOut,
   Loader2,
   Users as UsersIcon,
@@ -37,6 +40,8 @@ interface GuestActivityRow {
   ip?: string
   userAgent?: string
   country?: string
+  region?: string
+  city?: string
   createdAt: string
 }
 
@@ -79,6 +84,7 @@ export default function AdminGuestActivityPage() {
   const [page, setPage] = useState(1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [limit, setLimit] = useState(20)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -89,6 +95,7 @@ export default function AdminGuestActivityPage() {
     try {
       const params = new URLSearchParams()
       params.set('page', String(page))
+      params.set('limit', String(limit))
       if (actionFilter !== 'all') params.set('action', actionFilter)
       if (countryFilter.trim()) params.set('country', countryFilter.trim())
       if (guestIdFilter.trim()) params.set('guestId', guestIdFilter.trim())
@@ -108,15 +115,17 @@ export default function AdminGuestActivityPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, actionFilter, countryFilter, guestIdFilter, from, to])
+  }, [page, limit, actionFilter, countryFilter, guestIdFilter, from, to])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchActivity()
+    if (status !== 'authenticated') return
+    const timer = window.setTimeout(() => void fetchActivity(), 0)
+    return () => window.clearTimeout(timer)
   }, [status, fetchActivity])
 
-  useEffect(() => {
-    setPage(1)
-  }, [actionFilter, countryFilter, guestIdFilter, from, to])
+  const pageNumbers = Array.from(new Set([1, page - 1, page, page + 1, pages]))
+    .filter((value) => value >= 1 && value <= pages)
+    .sort((a, b) => a - b)
 
   if (status === 'loading') {
     return (
@@ -200,7 +209,7 @@ export default function AdminGuestActivityPage() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-          <Select value={actionFilter} onValueChange={setActionFilter}>
+          <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value); setPage(1) }}>
             <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Action" />
             </SelectTrigger>
@@ -216,26 +225,26 @@ export default function AdminGuestActivityPage() {
             <Input
               placeholder="Filter by country..."
               value={countryFilter}
-              onChange={(e) => setCountryFilter(e.target.value)}
+              onChange={(e) => { setCountryFilter(e.target.value); setPage(1) }}
               className="pl-9"
             />
           </div>
           <Input
             placeholder="Filter by guest ID..."
             value={guestIdFilter}
-            onChange={(e) => setGuestIdFilter(e.target.value)}
+            onChange={(e) => { setGuestIdFilter(e.target.value); setPage(1) }}
             className="w-full sm:w-56"
           />
           <Input
             type="date"
             value={from}
-            onChange={(e) => setFrom(e.target.value)}
+            onChange={(e) => { setFrom(e.target.value); setPage(1) }}
             className="w-full sm:w-40"
           />
           <Input
             type="date"
             value={to}
-            onChange={(e) => setTo(e.target.value)}
+            onChange={(e) => { setTo(e.target.value); setPage(1) }}
             className="w-full sm:w-40"
           />
         </div>
@@ -260,7 +269,7 @@ export default function AdminGuestActivityPage() {
                   <TableHead>Guest ID</TableHead>
                   <TableHead>Action</TableHead>
                   <TableHead>Details</TableHead>
-                  <TableHead>Country</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>IP</TableHead>
                 </TableRow>
               </TableHeader>
@@ -278,7 +287,12 @@ export default function AdminGuestActivityPage() {
                     </TableCell>
                     <TableCell>{renderActivityDetails(activity)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {activity.country || 'Unknown'}
+                      <span className="block text-foreground">{activity.city || activity.region || activity.country || 'Unknown'}</span>
+                      {(activity.city || activity.region) && (
+                        <span className="block text-xs">
+                          {[activity.region, activity.country].filter(Boolean).join(', ')}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {activity.ip || 'N/A'}
@@ -290,27 +304,63 @@ export default function AdminGuestActivityPage() {
           </div>
         )}
 
-        {pages > 1 && (
-          <div className="flex items-center justify-between pt-2">
-            <p className="text-sm text-muted-foreground">
-              Page {page} of {pages} ({total} events)
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                Previous
+        {total > 0 && (
+          <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                Showing {(page - 1) * limit + 1}-{Math.min(page * limit, total)} of {total} events
+              </p>
+              <Select value={String(limit)} onValueChange={(value) => { setLimit(Number(value)); setPage(1) }}>
+                <SelectTrigger className="h-8 w-[118px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                  <SelectItem value="100">100 per page</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+              <Button variant="outline" size="icon" className="h-8 w-8" disabled={page <= 1} onClick={() => setPage(1)} title="First page">
+                <ChevronsLeft className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
+                className="h-8 w-8"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                title="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {pageNumbers.map((pageNumber, index) => (
+                <div key={pageNumber} className="flex items-center gap-1">
+                  {index > 0 && pageNumber - pageNumbers[index - 1] > 1 && <span className="px-1 text-muted-foreground">...</span>}
+                  <Button
+                    variant={pageNumber === page ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 min-w-8 px-2"
+                    onClick={() => setPage(pageNumber)}
+                    aria-current={pageNumber === page ? 'page' : undefined}
+                  >
+                    {pageNumber}
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
                 disabled={page >= pages}
                 onClick={() => setPage((p) => Math.min(pages, p + 1))}
+                title="Next page"
               >
-                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= pages} onClick={() => setPage(pages)} title="Last page">
+                <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>
           </div>

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     if (from || to) {
       query.createdAt = {}
       if (from) query.createdAt.$gte = new Date(from)
-      if (to) query.createdAt.$lte = new Date(to)
+      if (to) query.createdAt.$lte = new Date(`${to}T23:59:59.999Z`)
     }
 
     const total = await GuestActivity.countDocuments(query)
@@ -59,6 +59,8 @@ export async function GET(request: NextRequest) {
         ip: a.ip,
         userAgent: a.userAgent,
         country: a.country,
+        region: a.region,
+        city: a.city,
         createdAt: a.createdAt,
       })),
       total,
