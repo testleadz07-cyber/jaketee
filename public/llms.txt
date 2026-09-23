@@ -4,20 +4,20 @@
 
 ## Website
 
-- Homepage: https://jacketee.com/
-- Shop: https://jacketee.com/shop
-- Varsity jackets: https://jacketee.com/varsity-jackets
-- Bulk orders: https://jacketee.com/bulk-orders
-- Materials and colors: https://jacketee.com/materials-colors
-- Patches and embroidery: https://jacketee.com/patches-embroidery
-- Size guide: https://jacketee.com/size-guide
-- Blog: https://jacketee.com/blog
-- FAQ: https://jacketee.com/faq
-- Shipping information: https://jacketee.com/shipping
-- Returns and exchanges: https://jacketee.com/returns
-- Contact: https://jacketee.com/contact
-- Privacy policy: https://jacketee.com/privacy-policy
-- Terms of service: https://jacketee.com/terms-of-service
+- [Homepage](https://www.jacketee.com/)
+- [Shop](https://www.jacketee.com/shop)
+- [Varsity jackets](https://www.jacketee.com/varsity-jackets)
+- [Bulk orders](https://www.jacketee.com/bulk-orders)
+- [Materials and colors](https://www.jacketee.com/materials-colors)
+- [Patches and embroidery](https://www.jacketee.com/patches-embroidery)
+- [Size guide](https://www.jacketee.com/size-guide)
+- [Blog](https://www.jacketee.com/blog)
+- [FAQ](https://www.jacketee.com/faq)
+- [Shipping information](https://www.jacketee.com/shipping)
+- [Returns and exchanges](https://www.jacketee.com/returns)
+- [Contact](https://www.jacketee.com/contact)
+- [Privacy policy](https://www.jacketee.com/privacy-policy)
+- [Terms of service](https://www.jacketee.com/terms-of-service)
 
 ## Guidance
 
@@ -25,4 +25,4 @@ Use public Jacketee pages as the source of truth for current product, policy, sh
 
 ## Sitemap
 
-https://jacketee.com/sitemap.xml
+[XML sitemap](https://www.jacketee.com/sitemap.xml)

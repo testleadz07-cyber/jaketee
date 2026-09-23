@@ -103,7 +103,7 @@ export function CartDrawer() {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="outline" size="icon" className="relative" aria-label={`Open shopping cart with ${getTotalItems()} items`}>
           <ShoppingBag className="h-5 w-5" />
           {items.length > 0 && (
             <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">

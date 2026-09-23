@@ -75,7 +75,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
 
           {/* Hero image */}
           {post.featuredImage && (
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-muted mb-8">
+            <div className="relative mb-8 aspect-[16/9] overflow-hidden rounded-lg border bg-muted">
               <Image
                 src={post.featuredImage}
                 alt={post.title}
@@ -137,20 +137,21 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
 
           {/* Shop This Post */}
           {post.taggedProducts?.length > 0 && (
-            <div className="mt-12 pt-8 border-t">
+            <section className="store-section store-section--soft store-section--accent mt-12 rounded-lg border">
+              <div className="p-5 md:p-7">
               <h2 className="text-2xl font-bold mb-6">Shop This Post</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {post.taggedProducts.map((product) => (
                   <Link key={product.id} href={`/product/${product.slug}`}>
-                    <motion.div whileHover={{ y: -8 }} transition={{ duration: 0.3 }} className="h-full">
-                      <Card className="h-full overflow-hidden border-2 hover:border-primary transition-colors group cursor-pointer pt-0">
+                    <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
+                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer pt-0 shadow-sm">
                         <div className="relative aspect-square overflow-hidden bg-muted">
                           <Image
                             src={product.thumbnail || '/placeholder.png'}
                             alt={product.name}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-300 group-hover:scale-110"
+                            className="media-zoom object-cover"
                           />
                         </div>
                         <CardContent className="p-4">
@@ -181,25 +182,27 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                   </Link>
                 ))}
               </div>
-            </div>
+              </div>
+            </section>
           )}
 
           {/* Related Posts */}
           {post.relatedPosts?.length > 0 && (
-            <div className="mt-12 pt-8 border-t">
+            <section className="store-section store-section--plain mt-12 rounded-lg border">
+              <div className="p-5 md:p-7">
               <h2 className="text-2xl font-bold mb-6">Related Posts</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {post.relatedPosts.map((related) => (
                   <Link key={related.id} href={`/blog/${related.slug}`}>
-                    <motion.div whileHover={{ y: -8 }} transition={{ duration: 0.3 }} className="h-full">
-                      <Card className="h-full overflow-hidden border-2 hover:border-primary transition-colors group cursor-pointer pt-0">
+                    <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
+                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer pt-0 shadow-sm">
                         <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                           <Image
                             src={related.featuredImage || '/placeholder.png'}
                             alt={related.title}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-300 group-hover:scale-110"
+                            className="media-zoom object-cover"
                           />
                         </div>
                         <CardContent className="p-4">
@@ -219,7 +222,8 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                   </Link>
                 ))}
               </div>
-            </div>
+              </div>
+            </section>
           )}
         </div>
       </main>

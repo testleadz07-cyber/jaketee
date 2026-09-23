@@ -107,6 +107,7 @@ export function NewsletterPopup() {
           {/* Close button */}
           <button
             onClick={() => setIsOpen(false)}
+            aria-label="Close newsletter signup"
             className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
           >
             <X className="h-5 w-5" />

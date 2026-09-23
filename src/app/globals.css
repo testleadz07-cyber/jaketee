@@ -121,6 +121,133 @@
   }
 }
 
+@layer components {
+  .store-section {
+    position: relative;
+    isolation: isolate;
+    border-block-end: 1px solid var(--border);
+  }
+
+  .store-section::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: color-mix(in oklab, var(--foreground) 18%, transparent);
+    opacity: 0;
+  }
+
+  .store-section--plain {
+    background: var(--background);
+  }
+
+  .store-section--soft {
+    background: color-mix(in oklab, var(--muted) 62%, var(--background));
+  }
+
+  .store-section--contrast {
+    border-color: oklch(1 0 0 / 14%);
+    background: oklch(0.15 0.006 255);
+    color: oklch(0.985 0 0);
+  }
+
+  .store-section--accent::before {
+    opacity: 1;
+  }
+
+  .section-shell {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 3rem 1rem;
+  }
+
+  .section-heading {
+    max-width: 46rem;
+  }
+
+  .section-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1rem;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .section-title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.65rem, 2vw, 2.25rem);
+    font-weight: 750;
+    line-height: 1.15;
+  }
+
+  .section-copy {
+    margin-top: 0.75rem;
+    max-width: 42rem;
+    color: var(--muted-foreground);
+    font-size: 0.925rem;
+    line-height: 1.7;
+  }
+
+  .interactive-lift {
+    transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .interactive-lift:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 34px -24px oklch(0.15 0 0 / 45%);
+    }
+  }
+
+  .media-zoom {
+    transition: transform 240ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .group:hover .media-zoom {
+      transform: scale(1.035);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .section-shell {
+      padding-block: 4rem;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes cookie-consent-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.cookie-consent-enter {
+  animation: cookie-consent-enter 240ms ease-out both;
+  will-change: transform, opacity;
+}
+
+.store-section--soft .text-muted-foreground {
+  color: color-mix(in oklab, var(--foreground) 68%, var(--background));
+}
+
 .blog-content {
   line-height: 1.75;
   color: hsl(var(--foreground));

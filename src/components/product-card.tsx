@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,7 +34,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const imageUrl = product.images[0]?.url || '/placeholder.png'
-  const isCloudinaryImage = imageUrl.startsWith('https://res.cloudinary.com/')
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
@@ -47,26 +45,23 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={buildProductUrl(product)}>
-      <motion.div
-        whileHover={{ y: -8 }}
-        transition={{ duration: 0.3 }}
-        className="h-full"
-      >
-        <Card className="h-full overflow-hidden border-2 hover:border-primary transition-colors group cursor-pointer">
+      <div className="interactive-lift h-full">
+        <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer shadow-sm">
           <div className="relative aspect-square overflow-hidden bg-muted">
             <Image
               src={imageUrl}
               alt={product.images[0]?.alt || product.name}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-110"
-              unoptimized={isCloudinaryImage}
+              sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw"
+              quality={70}
+              className="media-zoom object-cover"
               onError={(event) => { event.currentTarget.src = '/placeholder.png' }}
             />
             
             <Button
               size="icon"
               variant="secondary"
+              aria-label={isInWishlist ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
               className="absolute top-3 right-3 h-8 w-8 rounded-full z-10 bg-background/80 backdrop-blur hover:bg-background hover:scale-110 shadow-sm border border-border transition-all"
               onClick={async (e) => {
                 e.preventDefault()
@@ -92,7 +87,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </Button>
 
             {discount > 0 && (
-              <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground">
+              <Badge className="absolute top-3 left-3 border-red-800 bg-red-800 text-white">
                 -{discount}%
               </Badge>
             )}
@@ -102,11 +97,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 Featured
               </Badge>
             )}
-            <motion.div
-              className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"
-              initial={{ opacity: 0 }}
-              whileHover={{ opacity: 1 }}
-            />
+            <div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
           </div>
 
           <CardContent className="p-4">
@@ -136,6 +127,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
               <Button
                 size="icon"
+                aria-label={`View ${product.name}`}
                 className="rounded-full"
                 onClick={(e) => {
                   e.preventDefault()
@@ -147,7 +139,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </Link>
   )
 }

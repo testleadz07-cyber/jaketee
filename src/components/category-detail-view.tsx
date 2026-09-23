@@ -351,8 +351,8 @@ export function CategoryDetailView({
                   alt={category.name}
                   fill
                   sizes="(max-width: 1024px) 100vw, 45vw"
+                  quality={70}
                   className="object-contain p-6 md:p-10"
-                  unoptimized={heroImage.startsWith('http')}
                   priority
                 />
               ) : (
@@ -370,8 +370,8 @@ export function CategoryDetailView({
       </div>
 
         {subcategories.length > 0 && (
-          <section className="border-y bg-muted/40 py-10 lg:py-12">
-            <div className="container mx-auto px-4">
+          <section className="store-section store-section--soft">
+            <div className="section-shell">
             <div className="mb-5 flex items-end justify-between gap-4 border-b pb-4">
               <div>
                 <p className="text-sm font-semibold uppercase text-primary">Browse deeper</p>
@@ -383,7 +383,7 @@ export function CategoryDetailView({
                 <Link
                   key={sub.id}
                   href={buildCategoryUrl([...ancestorChain, sub])}
-                  className="group rounded-lg border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-accent"
+                  className="interactive-lift group rounded-lg border bg-card p-4 hover:border-primary/50 hover:bg-accent"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -401,8 +401,8 @@ export function CategoryDetailView({
           </section>
         )}
 
-        <section className="border-b bg-background py-10 lg:py-14" aria-labelledby="collection-overview-heading">
-          <div className="container mx-auto grid gap-8 px-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(290px,0.9fr)] lg:gap-12">
+        <section className="store-section store-section--plain store-section--accent" aria-labelledby="collection-overview-heading">
+          <div className="section-shell grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(290px,0.9fr)] lg:gap-12">
           <div>
             <p className="text-xs font-semibold uppercase text-muted-foreground">Collection guide</p>
             <h2 id="collection-overview-heading" className="mt-2 text-2xl font-semibold">About {category.name}</h2>
@@ -433,8 +433,8 @@ export function CategoryDetailView({
           </div>
         </section>
 
-        <section id="category-products" className="scroll-mt-20 border-b bg-muted/20 py-10 lg:py-14" aria-labelledby="category-products-heading">
-          <div className="container mx-auto px-4">
+        <section id="category-products" className="store-section store-section--soft scroll-mt-20" aria-labelledby="category-products-heading">
+          <div className="section-shell">
         <div className="mb-6 flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 id="category-products-heading" className="text-2xl font-semibold">Shop {category.name}</h2>
@@ -497,8 +497,8 @@ export function CategoryDetailView({
           </div>
         </section>
 
-      <section className="border-b bg-background py-12" aria-labelledby="category-reviews-heading">
-        <div className="container mx-auto px-4">
+      <section className="store-section store-section--plain" aria-labelledby="category-reviews-heading">
+        <div className="section-shell">
           <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
             <div><p className="text-xs font-semibold uppercase text-muted-foreground">Customer feedback</p><h2 id="category-reviews-heading" className="mt-2 text-2xl font-semibold">Reviews of {category.name} products</h2></div>
             {insights && insights.reviewCount > 0 && <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><strong>{insights.averageRating.toFixed(1)} / 5</strong><span className="text-muted-foreground">from {insights.reviewCount} approved reviews</span></div>}
@@ -518,8 +518,8 @@ export function CategoryDetailView({
         </div>
       </section>
 
-      <section className="border-b bg-muted/40 py-12" aria-labelledby="category-faq-heading">
-        <div className="container mx-auto px-4">
+      <section className="store-section store-section--soft store-section--accent" aria-labelledby="category-faq-heading">
+        <div className="section-shell">
           <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
             <div><p className="text-xs font-semibold uppercase text-muted-foreground">Collection questions</p><h2 id="category-faq-heading" className="mt-2 text-2xl font-semibold">Top 10 questions about {category.name}</h2></div>
             <Link href="/faq" className="text-sm font-semibold underline underline-offset-4">View all FAQs</Link>

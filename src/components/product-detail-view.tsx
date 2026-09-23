@@ -381,7 +381,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
               id="purchase-options"
-              className="space-y-6 scroll-mt-24 lg:border-l lg:pl-10"
+              className="space-y-6 scroll-mt-24 lg:sticky lg:top-24 lg:border-l lg:pl-10"
             >
               <div>
                 <Link
@@ -439,7 +439,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                 </div>
               </div>
 
-              <section className="border-y bg-muted/35 px-4 py-5 sm:px-5" aria-labelledby="product-details-heading">
+              <section className="rounded-md border bg-muted/35 px-4 py-5 sm:px-5" aria-labelledby="product-details-heading">
                 <h2 id="product-details-heading" className="text-lg font-semibold">Product details</h2>
                 <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{product.description}</p>
                 {product.specificationDetails && <details className="mt-4 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Specifications</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.specificationDetails}</p></details>}
@@ -604,11 +604,11 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
               )}
 
               <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
-                <Link href="/shipping" className="flex items-start gap-3 rounded-md bg-muted/40 p-3 hover:bg-muted">
+                <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                   <Truck className="mt-0.5 h-5 w-5 shrink-0" />
                   <span><strong className="block">Shipping</strong><span className="text-muted-foreground">Free standard shipping over $50. View delivery details.</span></span>
                 </Link>
-                <Link href="/returns" className="flex items-start gap-3 rounded-md bg-muted/40 p-3 hover:bg-muted">
+                <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                   <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
                   <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
                 </Link>
@@ -618,16 +618,16 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
         </div>
 
-        <section className="border-y bg-muted/35 py-12 lg:py-14">
-          <div className="container mx-auto px-4"><YouMayAlsoLike currentProduct={product} /></div>
+        <section className="store-section store-section--soft store-section--accent">
+          <div className="section-shell"><YouMayAlsoLike currentProduct={product} /></div>
         </section>
 
-        <section id="reviews" className="scroll-mt-24 border-b py-12 lg:py-14">
-          <div className="container mx-auto px-4"><ReviewsSection productId={product.id} onReviewSubmitted={fetchProduct} /></div>
+        <section id="reviews" className="store-section store-section--plain scroll-mt-24">
+          <div className="section-shell"><ReviewsSection productId={product.id} onReviewSubmitted={fetchProduct} /></div>
         </section>
 
-        <section className="border-b bg-muted/35 py-12 lg:py-14" aria-labelledby="product-faq-heading">
-          <div className="container mx-auto px-4">
+        <section className="store-section store-section--soft store-section--accent" aria-labelledby="product-faq-heading">
+          <div className="section-shell">
             <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
               <div><h2 id="product-faq-heading" className="text-2xl font-semibold">Questions about {categoryName}</h2><p className="mt-1 text-sm text-muted-foreground">Sizing, options, and ordering information for this style.</p></div>
               <Link href="/faq" className="text-sm font-semibold underline underline-offset-4">View all FAQs</Link>

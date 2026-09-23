@@ -29,18 +29,20 @@ export function CookieConsentBanner() {
   const [prefs, setPrefs] = useState({ functional: false, analytics: false, marketing: false })
 
   useEffect(() => {
-    if (!hasConsentDecision()) {
-      setVisible(true)
-    } else {
-      const stored = getStoredConsent()
-      if (stored) {
-        setPrefs({
-          functional: stored.functional,
-          analytics: stored.analytics,
-          marketing: stored.marketing,
-        })
+    const timer = window.setTimeout(() => {
+      if (!hasConsentDecision()) {
+        setVisible(true)
+      } else {
+        const stored = getStoredConsent()
+        if (stored) {
+          setPrefs({
+            functional: stored.functional,
+            analytics: stored.analytics,
+            marketing: stored.marketing,
+          })
+        }
       }
-    }
+    }, 0)
 
     const handleOpenPreferences = () => {
       const stored = getStoredConsent()
@@ -55,7 +57,10 @@ export function CookieConsentBanner() {
     }
 
     window.addEventListener(OPEN_COOKIE_PREFERENCES_EVENT, handleOpenPreferences)
-    return () => window.removeEventListener(OPEN_COOKIE_PREFERENCES_EVENT, handleOpenPreferences)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener(OPEN_COOKIE_PREFERENCES_EVENT, handleOpenPreferences)
+    }
   }, [])
 
   const handleAcceptAll = useCallback(() => {
@@ -83,7 +88,7 @@ export function CookieConsentBanner() {
           role="dialog"
           aria-live="polite"
           aria-label="Cookie consent"
-          className="fixed inset-x-0 bottom-0 z-[100] p-4 sm:p-6 animate-in slide-in-from-bottom-4 duration-500"
+          className="cookie-consent-enter fixed inset-x-0 bottom-0 z-[100] p-4 sm:p-6"
         >
           <div className="mx-auto max-w-4xl rounded-xl border-2 bg-card text-card-foreground shadow-2xl p-5 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

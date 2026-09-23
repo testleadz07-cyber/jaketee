@@ -57,20 +57,18 @@ export default function BlogListPage({ posts, categories, page, pages, total }: 
 }) {
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-background py-16 md:py-20">
-        <div className="container mx-auto px-4 relative">
+      <section className="store-section store-section--soft store-section--accent">
+        <div className="section-shell">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-6">
               <Newspaper className="h-4 w-4" />
               Jacketee Journal
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-              Our Blog
-            </h1>
+            <h1 className="mb-4 text-4xl font-bold md:text-5xl">Jacketee Journal</h1>
             <p className="text-lg text-muted-foreground">
               Style guides, product stories, and ideas curated by our team.
             </p>
@@ -97,7 +95,7 @@ export default function BlogListPage({ posts, categories, page, pages, total }: 
         </div>
       </section>
 
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="section-shell flex-1">
         {posts.length === 0 ? (
           <div className="text-center py-16">
             <Newspaper className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -112,15 +110,15 @@ export default function BlogListPage({ posts, categories, page, pages, total }: 
                   key={post.id}
                 >
                   <Link href={`/blog/${post.slug}`}>
-                    <motion.div whileHover={{ y: -8 }} transition={{ duration: 0.3 }} className="h-full">
-                      <Card className="h-full overflow-hidden border-2 hover:border-primary transition-colors group cursor-pointer pt-0">
+                    <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
+                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer pt-0 shadow-sm">
                         <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                           <Image
                             src={post.featuredImage || '/placeholder.png'}
                             alt={post.title}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-300 group-hover:scale-110"
+                            className="media-zoom object-cover"
                           />
                           {post.categories?.[0] && (
                             <span className="absolute top-3 left-3 z-10">
