@@ -1,6 +1,5 @@
 'use client'
 
-import DOMPurify from 'isomorphic-dompurify'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -60,8 +59,6 @@ function formatDate(dateString: string) {
 }
 
 export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
-  const sanitizedContent = DOMPurify.sanitize(post.content)
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -123,7 +120,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
           {/* Content */}
           <div
             className="blog-content"
-            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+            dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
           {/* Tags */}

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import sanitizeHtml from 'sanitize-html'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
@@ -57,7 +58,15 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
-    content: post.content,
+    content: sanitizeHtml(post.content || '', {
+      allowedTags: [...sanitizeHtml.defaults.allowedTags, 'img'],
+      allowedAttributes: {
+        ...sanitizeHtml.defaults.allowedAttributes,
+        a: ['href', 'name', 'target', 'rel'],
+        img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
+      },
+      allowedSchemes: ['http', 'https', 'mailto'],
+    }),
     featuredImage: post.featuredImage ?? null,
     categories: resolvedCategories.map((category: any) => ({
       id: String(category._id), name: category.name, slug: category.slug,
