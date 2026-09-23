@@ -9,33 +9,31 @@ import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/c
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+  const staticLastModified = new Date('2026-09-24T00:00:00.000Z')
 
   // Static routes
   const staticRoutes = [
-    { path: '',              priority: 1.0, freq: 'daily'   },
-    { path: '/shop',         priority: 0.9, freq: 'daily'   },
-    { path: '/about',        priority: 0.7, freq: 'monthly' },
-    { path: '/contact',      priority: 0.7, freq: 'monthly' },
-    { path: '/blog',         priority: 0.8, freq: 'daily'   },
-    { path: '/faq',          priority: 0.7, freq: 'monthly' },
-    { path: '/size-guide',   priority: 0.7, freq: 'monthly' },
-    { path: '/materials-colors', priority: 0.7, freq: 'monthly' },
-    { path: '/patches-embroidery', priority: 0.7, freq: 'monthly' },
-    { path: '/bulk-orders', priority: 0.7, freq: 'monthly' },
-    { path: '/bulk-orders/schools', priority: 0.7, freq: 'monthly' },
-    { path: '/bulk-orders/corporate', priority: 0.7, freq: 'monthly' },
-    { path: '/bulk-orders/private-label', priority: 0.7, freq: 'monthly' },
-    { path: '/shipping',     priority: 0.6, freq: 'monthly' },
-    { path: '/returns',      priority: 0.6, freq: 'monthly' },
-    { path: '/track-order',  priority: 0.5, freq: 'monthly' },
-    { path: '/privacy-policy',   priority: 0.3, freq: 'yearly'  },
-    { path: '/terms-of-service', priority: 0.3, freq: 'yearly'  },
-    { path: '/cookie-policy',    priority: 0.3, freq: 'yearly'  },
-    { path: '/register',     priority: 0.5, freq: 'monthly' },
-  ].map(({ path, priority, freq }) => ({
+    '',
+    '/shop',
+    '/about',
+    '/contact',
+    '/blog',
+    '/faq',
+    '/size-guide',
+    '/materials-colors',
+    '/patches-embroidery',
+    '/bulk-orders',
+    '/bulk-orders/schools',
+    '/bulk-orders/corporate',
+    '/bulk-orders/private-label',
+    '/shipping',
+    '/returns',
+    '/privacy-policy',
+    '/terms-of-service',
+    '/cookie-policy',
+  ].map((path) => ({
     url: `${baseUrl}${path}`,
-    changeFrequency: freq as 'daily' | 'monthly' | 'yearly',
-    priority,
+    lastModified: staticLastModified,
   }))
 
 
@@ -63,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         name: c.name,
         slug: c.slug,
         parentId: c.parentId ? String(c.parentId) : null,
-        updatedAt: new Date(),
+        updatedAt: c.updatedAt || staticLastModified,
       }))
 
       productsList = dbProducts.map((p: any) => ({
@@ -108,8 +106,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return {
       url: `${baseUrl}${buildCategoryUrl(chain)}`,
       lastModified: category.updatedAt,
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
     }
   })
 
@@ -120,23 +116,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return {
       url: `${baseUrl}${buildProductUrl({ slug: product.slug || product.id, categoryPath: chain })}`,
       lastModified: new Date(product.updatedAt),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
     }
   })
 
   const blogRoutes = blogPostsList.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: post.updatedAt,
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
   }))
 
   const blogCategoryRoutes = blogCategoriesList.map((category) => ({
     url: `${baseUrl}/blog/category/${category.slug}`,
     lastModified: category.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.5,
   }))
 
   return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes, ...blogCategoryRoutes]

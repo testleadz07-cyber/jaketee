@@ -9,7 +9,7 @@ import Faq from '@/models/Faq'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { getStaticCategoriesWithCount } from '@/lib/static-data'
-import { resolveDescendantIds } from '@/lib/categories'
+import { buildProductUrl, resolveAncestorChain, resolveDescendantIds } from '@/lib/categories'
 
 interface Props {
   params: Promise<{ slug: string[] }>
@@ -251,11 +251,25 @@ export default async function CatchAllLayout({ params }: Props) {
   // category
   const category = resolution.category
   let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; image?: string; parentId: string | null; _count: { products: number } }> = []
+  let initialProducts: any[] = []
+  let initialTotalProducts = 0
+  let initialInsights: { reviewCount: number; averageRating: number; reviews: any[]; faqs: any[] } = {
+    reviewCount: 0,
+    averageRating: 0,
+    reviews: [],
+    faqs: [],
+  }
   try {
     const db = await connectDB()
     if (db) {
       const rawCategories = await Category.find().lean()
-      const nodes = rawCategories.map((item: any) => ({ _id: String(item._id), parentId: item.parentId ? String(item.parentId) : null }))
+      const nodes = rawCategories.map((item: any) => ({
+        _id: String(item._id),
+        name: item.name,
+        slug: item.slug,
+        description: item.description || '',
+        parentId: item.parentId ? String(item.parentId) : null,
+      }))
       const counts = await Product.aggregate([{ $match: { inStock: true } }, { $group: { _id: '$categoryId', count: { $sum: 1 } } }])
       const countById = new Map<string, number>(counts.map((item: any) => [String(item._id), Number(item.count)]))
       initialCategories = rawCategories.map((item: any) => {
@@ -270,6 +284,92 @@ export default async function CatchAllLayout({ params }: Props) {
           _count: { products: resolveDescendantIds(nodes, id).reduce((sum, descendantId) => sum + (countById.get(descendantId) || 0), 0) },
         }
       })
+
+      const categoryId = String(category._id)
+      const descendantIds = resolveDescendantIds(nodes, categoryId)
+      const productFilter = { inStock: true, categoryId: { $in: descendantIds } }
+      const [rawProducts, total] = await Promise.all([
+        Product.find(productFilter).sort({ isFeatured: -1, createdAt: -1 }).limit(12).populate('categoryId', 'name slug').lean(),
+        Product.countDocuments(productFilter),
+      ])
+      initialTotalProducts = total
+      initialProducts = rawProducts.map((product: any) => {
+        const leafId = String(product.categoryId?._id || product.categoryId)
+        const categoryPath = resolveAncestorChain(nodes, leafId).map((item) => ({ name: item.name, slug: item.slug }))
+        return {
+          ...product,
+          id: String(product._id),
+          category: product.categoryId ? { name: product.categoryId.name, slug: product.categoryId.slug } : { name: category.name, slug: category.slug },
+          categoryPath,
+        }
+      })
+
+      const chain = resolveAncestorChain(nodes, categoryId)
+      const targets = chain.slice().reverse().flatMap((item) => {
+        const path = chain.slice(0, chain.indexOf(item) + 1).map((part) => part.slug).join('/')
+        return [item.slug, `/${item.slug}`, path, `/${path}`]
+      })
+      const matchedFaqs = await Faq.find({ displayPages: { $in: targets } }).limit(40).lean()
+      const faqs = matchedFaqs
+        .sort((a: any, b: any) => Number(a.order || 0) - Number(b.order || 0))
+        .slice(0, 10)
+        .map((faq: any) => ({
+          id: String(faq._id),
+          question: faq.question,
+          answer: faq.answer || [],
+          bullets: faq.bullets || [],
+          ordered: faq.ordered || [],
+        }))
+
+      const fallbackFaqs = [
+        [`What is included in the ${category.name} collection?`, category.description || `Browse the ${category.name} products shown on this page.`, '#category-products'],
+        [`How do I choose a size for ${category.name}?`, 'Use our size guide and check the options on each product page before ordering.', '/size-guide'],
+        [`Can I customize ${category.name}?`, 'Customization varies by product. Review its available options or contact our team.', '/contact'],
+        [`Which materials and colors are available for ${category.name}?`, 'Compare the available fabrics and colors in our materials guide.', '/materials-colors'],
+        [`Can patches or embroidery be added to ${category.name}?`, 'See our patches and embroidery guide for techniques and placement options.', '/patches-embroidery'],
+        [`Can I place a bulk order for ${category.name}?`, 'Schools, teams, and organizations can request coordinated bulk-order support.', '/bulk-orders'],
+        [`How is shipping calculated for ${category.name}?`, 'Review our shipping information for current delivery charges and timelines.', '/shipping'],
+        [`Can I return a customized ${category.name} item?`, 'Custom products have return restrictions, so review the policy before ordering.', '/returns'],
+        [`How should I compare products in this collection?`, 'Compare material, fit, price, and customization details on each product page.', '#category-products'],
+        [`Who can help with a ${category.name} order?`, 'Contact Jacketee with your size, quantity, material, and customization requirements.', '/contact'],
+      ]
+      const seenQuestions = new Set(faqs.map((faq) => faq.question.trim().toLowerCase()))
+      for (const [question, answer, href] of fallbackFaqs) {
+        if (faqs.length >= 10) break
+        if (seenQuestions.has(question.toLowerCase())) continue
+        seenQuestions.add(question.toLowerCase())
+        faqs.push({ id: `guide-${faqs.length}`, question, answer: [answer], bullets: [], ordered: [], href })
+      }
+
+      const allCategoryProducts = await Product.find({ categoryId: { $in: descendantIds } }, '_id name slug categoryId').lean()
+      const productIds = allCategoryProducts.map((product: any) => product._id)
+      let reviews: any[] = []
+      let reviewCount = 0
+      let averageRating = 0
+      if (productIds.length > 0) {
+        const reviewMatch = { productId: { $in: productIds }, status: 'approved' }
+        const [summary, latestReviews] = await Promise.all([
+          Review.aggregate([{ $match: reviewMatch }, { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } }]),
+          Review.find(reviewMatch).sort({ createdAt: -1 }).limit(2).lean(),
+        ])
+        reviewCount = Number(summary[0]?.count || 0)
+        averageRating = Number(summary[0]?.average || 0)
+        const productById = new Map(allCategoryProducts.map((product: any) => [String(product._id), product]))
+        reviews = latestReviews.map((review: any) => {
+          const product: any = productById.get(String(review.productId))
+          const productPath = product ? resolveAncestorChain(nodes, String(product.categoryId)) : []
+          return {
+            id: String(review._id),
+            rating: Number(review.rating),
+            title: review.title || '',
+            comment: review.comment,
+            userName: review.userName,
+            productName: product?.name || category.name,
+            productHref: product ? buildProductUrl({ slug: product.slug, categoryPath: productPath }) : '#category-products',
+          }
+        })
+      }
+      initialInsights = { faqs, reviewCount, averageRating, reviews }
     } else {
       initialCategories = getStaticCategoriesWithCount().map((item: any) => ({
         id: String(item.id), name: item.name, slug: item.slug, description: item.description || '', image: item.image || '',
@@ -305,7 +405,14 @@ export default async function CatchAllLayout({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <CategoryDetailView key={category.slug} slug={category.slug} initialCategories={initialCategories} />
+      <CategoryDetailView
+        key={category.slug}
+        slug={category.slug}
+        initialCategories={initialCategories}
+        initialProducts={initialProducts}
+        initialTotalProducts={initialTotalProducts}
+        initialInsights={initialInsights}
+      />
     </>
   )
 }

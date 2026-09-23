@@ -4,7 +4,7 @@ import { connectDB } from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { findStaticProduct, getStaticCategories } from '@/lib/static-data'
-import { resolveAncestorChain } from '@/lib/categories'
+import { resolveAncestorChain, toPublicCategorySlug, toStoredCategorySlug } from '@/lib/categories'
 
 interface ResolverCategory {
   _id: string
@@ -48,6 +48,7 @@ export type SlugResolution = ResolvedCategory | ResolvedProduct | ResolvedRedire
 export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugResolution> => {
   if (segments.length === 0) return { type: 'notfound' }
   const lastSegment = segments[segments.length - 1]
+  const storedLastSegment = toStoredCategorySlug(lastSegment)
 
   const db = await connectDB()
 
@@ -74,10 +75,10 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
   }
 
   // Try resolving as a category (chain) first.
-  const matchedCategory = categories.find((c) => c.slug === lastSegment)
+  const matchedCategory = categories.find((c) => c.slug === storedLastSegment)
   if (matchedCategory) {
     const chain = resolveAncestorChain(categories, matchedCategory._id)
-    const chainSlugs = chain.map((c) => c.slug)
+    const chainSlugs = chain.map((c) => toPublicCategorySlug(c.slug))
     const exactMatch = chainSlugs.length === segments.length && chainSlugs.every((s, i) => s === segments[i])
 
     if (exactMatch) {
@@ -112,7 +113,7 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
     ? String((rawCategoryId as any)._id ?? rawCategoryId)
     : null
   const productChain = leafCategoryId ? resolveAncestorChain(categories, leafCategoryId) : []
-  const productChainSlugs = productChain.map((c) => c.slug)
+  const productChainSlugs = productChain.map((c) => toPublicCategorySlug(c.slug))
   const expectedPrefix = segments.slice(0, -1)
   const prefixMatches =
     productChainSlugs.length === expectedPrefix.length &&

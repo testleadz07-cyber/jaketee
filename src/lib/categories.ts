@@ -89,6 +89,18 @@ export interface CategoryPathSegment {
   slug: string
 }
 
+const PUBLIC_CATEGORY_SLUGS: Record<string, string> = {
+  wool: 'all-wool',
+}
+
+export function toPublicCategorySlug(slug: string) {
+  return PUBLIC_CATEGORY_SLUGS[slug] || slug
+}
+
+export function toStoredCategorySlug(slug: string) {
+  return Object.entries(PUBLIC_CATEGORY_SLUGS).find(([, publicSlug]) => publicSlug === slug)?.[0] || slug
+}
+
 /**
  * Jacket-type top-level category slugs (independent categories, not children
  * of a "Jackets" parent - see fix-jackets-category-structure.ts). Used to scope
@@ -131,7 +143,7 @@ export const DEFAULT_VARSITY_MEASUREMENT_FIELDS = ['Chest', 'Shoulder', 'Sleeve 
  * by resolveAncestorChain).
  */
 export function buildCategoryUrl(categoryPath: CategoryPathSegment[]): string {
-  return '/' + categoryPath.map((c) => c.slug).join('/')
+  return '/' + categoryPath.map((c) => toPublicCategorySlug(c.slug)).join('/')
 }
 
 /**
@@ -140,6 +152,6 @@ export function buildCategoryUrl(categoryPath: CategoryPathSegment[]): string {
  * empty if the product has no resolvable category.
  */
 export function buildProductUrl(product: { slug: string; categoryPath?: CategoryPathSegment[] }): string {
-  const segments = [...(product.categoryPath || []).map((c) => c.slug), product.slug]
+  const segments = [...(product.categoryPath || []).map((c) => toPublicCategorySlug(c.slug)), product.slug]
   return '/' + segments.join('/')
 }

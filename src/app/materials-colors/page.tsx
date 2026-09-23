@@ -129,7 +129,7 @@ const materials: Material[] = [
     features: ['Durable', 'Wind Resistant', 'Classic Style'],
     text: 'Jacketee uses 24oz melton wool for varsity jackets. It is durable, warm, and maintains its shape over years of wear.',
     cta: 'Shop Melton Wool Jackets',
-    href: '/varsity-jackets/wool',
+    href: '/varsity-jackets/all-wool',
     swatchSet: 'commonSwatches',
   },
   {

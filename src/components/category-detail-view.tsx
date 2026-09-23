@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -48,6 +48,9 @@ interface Product {
 interface CategoryDetailViewProps {
   slug: string
   initialCategories?: Category[]
+  initialProducts?: Product[]
+  initialTotalProducts?: number
+  initialInsights?: CategoryInsights
 }
 
 interface CategoryInsights {
@@ -85,26 +88,34 @@ function isUsableHeroImage(image?: string | null) {
   return Boolean(image && image !== '/placeholder.png')
 }
 
-export function CategoryDetailView({ slug, initialCategories = [] }: CategoryDetailViewProps) {
+export function CategoryDetailView({
+  slug,
+  initialCategories = [],
+  initialProducts = [],
+  initialTotalProducts = 0,
+  initialInsights,
+}: CategoryDetailViewProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [loading, setLoading] = useState(initialProducts.length === 0)
   const [loadingMore, setLoadingMore] = useState(false)
   const [isMissing, setIsMissing] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalProducts, setTotalProducts] = useState(0)
+  const [totalProducts, setTotalProducts] = useState(initialTotalProducts)
   const [categoryHeroImage, setCategoryHeroImage] = useState<{ slug: string; image: string | null } | null>(null)
-  const [insights, setInsights] = useState<CategoryInsights | null>(null)
+  const [insights, setInsights] = useState<CategoryInsights | null>(initialInsights || null)
+  const skipInitialProductFetch = useRef(initialProducts.length > 0)
 
   useEffect(() => {
+    if (initialInsights) return
     let active = true
     fetch(`/api/category-insights/${encodeURIComponent(slug)}`)
       .then((response) => response.ok ? response.json() : EMPTY_INSIGHTS)
       .then((data) => { if (active) setInsights(data) })
       .catch((error) => { console.error('Error loading category insights:', error); if (active) setInsights(EMPTY_INSIGHTS) })
     return () => { active = false }
-  }, [slug])
+  }, [slug, initialInsights])
 
   const handleSortChange = (value: string) => {
     setSortBy(value)
@@ -114,6 +125,7 @@ export function CategoryDetailView({ slug, initialCategories = [] }: CategoryDet
   }
 
   useEffect(() => {
+    if (initialProducts.some((product) => isUsableHeroImage(product.images?.[0]?.url))) return
     let cancelled = false
 
     const loadHeroImage = async () => {
@@ -139,9 +151,14 @@ export function CategoryDetailView({ slug, initialCategories = [] }: CategoryDet
     return () => {
       cancelled = true
     }
-  }, [slug])
+  }, [slug, initialProducts])
 
   useEffect(() => {
+    if (skipInitialProductFetch.current && currentPage === 1 && sortBy === 'featured') {
+      skipInitialProductFetch.current = false
+      setLoading(false)
+      return
+    }
     let cancelled = false
 
     const load = async () => {
