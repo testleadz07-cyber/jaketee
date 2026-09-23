@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
       updateData.password = await hashPassword(newPassword)
     }
 
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password').lean()
+    const user = await User.findByIdAndUpdate(userId, updateData, { returnDocument: 'after' }).select('-password').lean()
 
     if (newPassword && user) {
       sendEmail({

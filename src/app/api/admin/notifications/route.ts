@@ -83,7 +83,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
     }
 
-    const updated = await Notification.findByIdAndUpdate(id, { read: true }, { new: true }).lean()
+    const updated = await Notification.findByIdAndUpdate(id, { read: true }, { returnDocument: 'after' }).lean()
     if (!updated) {
       return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
     }

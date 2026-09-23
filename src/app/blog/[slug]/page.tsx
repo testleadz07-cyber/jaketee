@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
+import '@/models/BlogCategory'
 import '@/models/Product'
 import BlogPostPage, { type BlogPostDetail } from './post-client'
 
@@ -17,7 +18,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],
     },
     { $inc: { views: 1 } },
-    { new: true }
+    { returnDocument: 'after' }
   )
     .populate('categories', 'name slug')
     .populate('taggedProducts', 'name slug price compareAtPrice images averageRating')

@@ -98,7 +98,7 @@ export async function PATCH(
       updateQuery.$push = $push
     }
 
-    const order = await Order.findByIdAndUpdate(id, updateQuery, { new: true }).lean()
+    const order = await Order.findByIdAndUpdate(id, updateQuery, { returnDocument: 'after' }).lean()
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })

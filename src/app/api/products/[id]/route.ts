@@ -87,7 +87,7 @@ export async function PUT(
       isFeatured: body.isFeatured,
       inStock: body.inStock,
       stockCount: body.stockCount || 100,
-    }, { new: true }).lean()
+    }, { returnDocument: 'after' }).lean()
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })

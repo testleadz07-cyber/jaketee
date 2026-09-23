@@ -58,7 +58,7 @@ export async function PUT(
     const category = await Category.findByIdAndUpdate(
       id,
       { name, slug, description, image, parentId: resolvedParentId },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean()
 
     if (!category) {

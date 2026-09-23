@@ -213,7 +213,7 @@ export async function PATCH(request: NextRequest) {
         order: Number.isFinite(Number(body.order)) ? Number(body.order) : 0,
         displayPages: normalizeDisplayPages(body.displayPages),
       },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
 
     if (!faq) {

@@ -54,7 +54,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const review = await Review.findByIdAndUpdate(id, { status }, { new: true })
+    const review = await Review.findByIdAndUpdate(id, { status }, { returnDocument: 'after' })
     if (!review) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 })
     }

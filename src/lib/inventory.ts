@@ -15,7 +15,7 @@ export async function decrementStockForOrder(
     const updated = await Product.findByIdAndUpdate(
       item.productId,
       { $inc: { stockCount: -quantity } },
-      { new: true }
+      { returnDocument: 'after' }
     )
 
     if (!updated) continue

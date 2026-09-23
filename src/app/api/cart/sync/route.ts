@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         remindersSent: [],
         lastReminderAt: undefined,
       },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     )
 
     return NextResponse.json({ synced: true })

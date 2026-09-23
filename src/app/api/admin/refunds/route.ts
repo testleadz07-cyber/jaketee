@@ -96,7 +96,7 @@ export async function PATCH(request: Request) {
     if (!id || !['approved', 'rejected'].includes(newStatus)) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
-    const updated = await RefundRequest.findByIdAndUpdate(id, { status: newStatus }, { new: true }).lean()
+    const updated = await RefundRequest.findByIdAndUpdate(id, { status: newStatus }, { returnDocument: 'after' }).lean()
     if (!updated) {
       return NextResponse.json({ error: 'Request not found' }, { status: 404 })
     }

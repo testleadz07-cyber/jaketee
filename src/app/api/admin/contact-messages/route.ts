@@ -91,7 +91,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Missing id or read flag' }, { status: 400 })
     }
 
-    const updated = await ContactMessage.findByIdAndUpdate(id, { read }, { new: true }).lean()
+    const updated = await ContactMessage.findByIdAndUpdate(id, { read }, { returnDocument: 'after' }).lean()
     if (!updated) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 })
     }

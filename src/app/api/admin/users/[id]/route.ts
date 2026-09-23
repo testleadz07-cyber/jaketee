@@ -198,7 +198,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
-    const user = await User.findByIdAndUpdate(id, update, { new: true, runValidators: true })
+    const user = await User.findByIdAndUpdate(id, update, { returnDocument: 'after', runValidators: true })
       .select('-password -resetPasswordToken -resetPasswordExpires')
 
     if (!user) {

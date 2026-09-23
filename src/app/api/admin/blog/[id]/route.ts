@@ -112,7 +112,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       update.publishedAt = body.publishedAt ? new Date(body.publishedAt) : undefined
     }
 
-    const post = await BlogPost.findByIdAndUpdate(id, update, { new: true }).populate(
+    const post = await BlogPost.findByIdAndUpdate(id, update, { returnDocument: 'after' }).populate(
       'categories',
       'name slug'
     )

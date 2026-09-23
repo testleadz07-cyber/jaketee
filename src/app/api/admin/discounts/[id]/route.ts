@@ -34,7 +34,7 @@ export async function PUT(
     if (usageLimit !== undefined) updateObj.usageLimit = usageLimit !== '' && usageLimit !== null ? Number(usageLimit) : null
     if (isActive !== undefined) updateObj.isActive = Boolean(isActive)
 
-    const discount = await Discount.findByIdAndUpdate(id, updateObj, { new: true }).lean()
+    const discount = await Discount.findByIdAndUpdate(id, updateObj, { returnDocument: 'after' }).lean()
 
     if (!discount) {
       return NextResponse.json({ error: 'Coupon not found.' }, { status: 404 })
