@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Script from 'next/script'
+import { usePathname } from 'next/navigation'
 import {
   COOKIE_CONSENT_UPDATED_EVENT,
   getStoredConsent,
@@ -27,10 +28,14 @@ function configureGoogleAnalytics() {
   window[`ga-disable-${measurementId}`] = false
   window.gtag('consent', 'update', { analytics_storage: 'granted' })
   window.gtag('js', new Date())
-  window.gtag('config', measurementId, { anonymize_ip: true })
+  window.gtag('config', measurementId, {
+    anonymize_ip: true,
+    send_page_view: false,
+  })
 }
 
 export function GoogleAnalytics() {
+  const pathname = usePathname()
   const [analyticsAllowed, setAnalyticsAllowed] = useState(false)
 
   useEffect(() => {
@@ -43,7 +48,7 @@ export function GoogleAnalytics() {
         window.gtag?.('consent', 'update', { analytics_storage: 'denied' })
       }
       setAnalyticsAllowed(allowed)
-      if (allowed && window.gtag) configureGoogleAnalytics()
+      if (allowed) configureGoogleAnalytics()
     }
 
     applyConsent(getStoredConsent())
@@ -54,6 +59,16 @@ export function GoogleAnalytics() {
     return () => window.removeEventListener(COOKIE_CONSENT_UPDATED_EVENT, handleConsentUpdate)
   }, [])
 
+  useEffect(() => {
+    if (!measurementId || !analyticsAllowed || !window.gtag) return
+
+    window.gtag('event', 'page_view', {
+      page_title: document.title,
+      page_location: window.location.href,
+      page_path: pathname,
+    })
+  }, [analyticsAllowed, pathname])
+
   if (!measurementId || !analyticsAllowed) return null
 
   return (
@@ -61,7 +76,6 @@ export function GoogleAnalytics() {
       id="jacketee-google-analytics"
       src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
       strategy="afterInteractive"
-      onLoad={configureGoogleAnalytics}
     />
   )
 }
