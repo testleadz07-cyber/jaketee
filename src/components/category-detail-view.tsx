@@ -26,6 +26,7 @@ interface Category {
   name: string
   slug: string
   description?: string
+  heading?: string
   image?: string
   parentId?: string | null
   _count?: { products: number }
@@ -50,6 +51,8 @@ interface CategoryDetailViewProps {
   initialCategories?: Category[]
   initialProducts?: Product[]
   initialTotalProducts?: number
+  initialPage?: number
+  pageSize?: number
   initialInsights?: CategoryInsights
 }
 
@@ -81,7 +84,7 @@ const CATEGORY_HERO_IMAGES: Record<string, string> = {
 }
 
 const DEFAULT_CATEGORY_HERO_IMAGE = CATEGORY_HERO_IMAGES['varsity-jackets']
-const PRODUCTS_PER_PAGE = 12
+const DEFAULT_PRODUCTS_PER_PAGE = 24
 const EMPTY_INSIGHTS: CategoryInsights = { reviewCount: 0, averageRating: 0, reviews: [], faqs: [] }
 
 function isUsableHeroImage(image?: string | null) {
@@ -93,6 +96,8 @@ export function CategoryDetailView({
   initialCategories = [],
   initialProducts = [],
   initialTotalProducts = 0,
+  initialPage = 1,
+  pageSize = DEFAULT_PRODUCTS_PER_PAGE,
   initialInsights,
 }: CategoryDetailViewProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
@@ -101,7 +106,7 @@ export function CategoryDetailView({
   const [loadingMore, setLoadingMore] = useState(false)
   const [isMissing, setIsMissing] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(initialPage)
   const [totalProducts, setTotalProducts] = useState(initialTotalProducts)
   const [categoryHeroImage, setCategoryHeroImage] = useState<{ slug: string; image: string | null } | null>(null)
   const [insights, setInsights] = useState<CategoryInsights | null>(initialInsights || null)
@@ -154,7 +159,7 @@ export function CategoryDetailView({
   }, [slug, initialProducts])
 
   useEffect(() => {
-    if (skipInitialProductFetch.current && currentPage === 1 && sortBy === 'featured') {
+    if (skipInitialProductFetch.current && currentPage === initialPage && sortBy === 'featured') {
       skipInitialProductFetch.current = false
       setLoading(false)
       return
@@ -183,7 +188,7 @@ export function CategoryDetailView({
 
         const params = new URLSearchParams({ category: slug })
         params.set('page', String(currentPage))
-        params.set('limit', String(PRODUCTS_PER_PAGE))
+        params.set('limit', String(pageSize))
         if (sortBy === 'price-asc') {
           params.set('sort', 'price')
           params.set('order', 'asc')
@@ -226,7 +231,7 @@ export function CategoryDetailView({
     return () => {
       cancelled = true
     }
-  }, [slug, sortBy, currentPage])
+  }, [slug, sortBy, currentPage, initialPage, pageSize])
 
   if (loading && categories.length === 0) {
     return (
@@ -266,6 +271,11 @@ export function CategoryDetailView({
   const subcategories = categories.filter((c) => c.parentId === category.id)
   const productCount = totalProducts || category._count?.products || products.length
   const canLoadMore = products.length < totalProducts
+  const totalPages = Math.max(1, Math.ceil(productCount / pageSize))
+  const currentPageForLinks = Math.min(Math.max(1, currentPage), totalPages)
+  const categoryUrl = buildCategoryUrl(ancestorChain)
+  const pageHref = (page: number) => (page <= 1 ? categoryUrl : `${categoryUrl}?page=${page}`)
+  const paginationPages = Array.from({ length: totalPages }, (_, index) => index + 1)
   const rootCategorySlug = ancestorChain[0]?.slug || category.slug
   const productHeroImage = products.find((product) => isUsableHeroImage(product.images?.[0]?.url))?.images[0]?.url
   const heroImage =
@@ -280,6 +290,7 @@ export function CategoryDetailView({
     { label: 'Patch ready', icon: BadgeCheck },
     { label: 'Size guidance', icon: Ruler },
   ]
+  const visibleFaqs = insights?.faqs.slice(0, 10) ?? []
 
   const breadcrumbItems = [
     ...ancestorChain.slice(0, -1).map((ancestor, index) => ({
@@ -308,7 +319,7 @@ export function CategoryDetailView({
                 Jacketee Collection
               </p>
               <h1 className="max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
-                {category.name}
+                {category.heading || category.name}
               </h1>
               {category.description && (
                 <p className="mt-5 max-w-2xl text-base leading-7 text-white/72 md:text-lg">
@@ -476,12 +487,41 @@ export function CategoryDetailView({
                 <Button
                   variant="outline"
                   size="lg"
+                  asChild
                   onClick={() => setCurrentPage((page) => page + 1)}
                   disabled={loadingMore}
                 >
-                  {loadingMore ? 'Loading...' : 'Load more products'}
+                  <Link href={pageHref(currentPage + 1)}>
+                    {loadingMore ? 'Loading...' : 'Load more products'}
+                  </Link>
                 </Button>
               </div>
+            )}
+
+            {totalPages > 1 && (
+              <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label={`${category.name} pagination`}>
+                {currentPageForLinks > 1 && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={pageHref(currentPageForLinks - 1)}>Previous</Link>
+                  </Button>
+                )}
+                {paginationPages.map((page) => (
+                  <Button
+                    key={page}
+                    asChild
+                    variant={page === currentPageForLinks ? 'default' : 'outline'}
+                    size="sm"
+                    aria-current={page === currentPageForLinks ? 'page' : undefined}
+                  >
+                    <Link href={pageHref(page)}>{page}</Link>
+                  </Button>
+                ))}
+                {currentPageForLinks < totalPages && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={pageHref(currentPageForLinks + 1)}>Next</Link>
+                  </Button>
+                )}
+              </nav>
             )}
           </>
         ) : (
@@ -526,7 +566,7 @@ export function CategoryDetailView({
           </div>
           {insights?.faqs.length ? (
             <Accordion type="single" collapsible className="max-w-4xl">
-              {insights.faqs.slice(0, 10).map((faq) => (
+              {visibleFaqs.map((faq) => (
                 <AccordionItem key={faq.id} value={faq.id}>
                   <AccordionTrigger className="text-left font-medium">{faq.question}</AccordionTrigger>
                   <AccordionContent className="space-y-2 text-sm leading-6 text-muted-foreground">

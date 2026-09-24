@@ -11,6 +11,9 @@ interface ResolverCategory {
   name: string
   slug: string
   description?: string
+  seoTitle?: string
+  seoDescription?: string
+  heading?: string
   image?: string
   parentId?: string | null
 }
@@ -60,6 +63,9 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
       name: c.name,
       slug: c.slug,
       description: c.description,
+      seoTitle: c.seoTitle,
+      seoDescription: c.seoDescription,
+      heading: c.heading,
       image: c.image,
       parentId: c.parentId ? String(c.parentId) : null,
     }))
@@ -69,6 +75,9 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
       name: c.name,
       slug: c.slug,
       description: c.description,
+      seoTitle: c.seoTitle,
+      seoDescription: c.seoDescription,
+      heading: c.heading,
       image: c.image,
       parentId: c.parentId ? String(c.parentId) : null,
     }))

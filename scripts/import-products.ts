@@ -17,8 +17,6 @@ interface SourceProduct {
   subCategory?: string
   inStock?: boolean
   stockCount?: number
-  rating?: number
-  reviewCount?: number
   tags?: string[]
 }
 
@@ -86,8 +84,6 @@ async function main() {
           compareAtPrice,
           categoryId,
           images,
-          averageRating: p.rating ?? 0,
-          reviewCount: p.reviewCount ?? 0,
           inStock: p.inStock ?? true,
           stockCount: p.stockCount ?? 100,
           tags: p.tags || [],

@@ -96,6 +96,19 @@ const featuredArticleSlugs = [
   'sports-teams-custom-jackets-award-nights-banquets',
 ]
 
+const homeFaqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: homeFaqs.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer,
+    },
+  })),
+}
+
 export default function Home({ categories, featuredProducts, newArrivals, categoryProducts }: {
   categories: Category[]
   featuredProducts: Product[]
@@ -169,6 +182,10 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeFaqJsonLd) }}
+      />
       <Header />
 
       <section className="relative min-h-[560px] overflow-hidden bg-zinc-950 text-white md:min-h-[680px]">
@@ -190,7 +207,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
               Custom jackets, patches, and embroidery
             </div>
             <h1 className="text-4xl font-black leading-tight md:text-6xl lg:text-7xl">
-              Custom Jackets Made To Stand Out
+              Custom Varsity Jackets, Designed Your Way
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/85 md:text-xl">
               Shop varsity, bomber, wool, satin, leather, patch, and embroidery-ready styles built for teams,

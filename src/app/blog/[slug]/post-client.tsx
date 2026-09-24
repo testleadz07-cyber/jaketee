@@ -41,6 +41,7 @@ export interface BlogPostDetail {
   tags: string[]
   author: { name: string }
   publishedAt: string
+  updatedAt: string
   views: number
   taggedProducts: TaggedProduct[]
   relatedPosts: RelatedPost[]
@@ -107,7 +108,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
             </span>
             <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
-              {formatDate(post.publishedAt)}
+              <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
             </span>
             <span className="flex items-center gap-1.5">
               <Eye className="h-4 w-4" />

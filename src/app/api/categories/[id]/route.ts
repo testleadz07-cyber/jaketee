@@ -23,7 +23,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { name, slug, description, image, parentId } = body
+    const { name, slug, description, seoTitle, seoDescription, heading, image, parentId } = body
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 })
@@ -57,7 +57,7 @@ export async function PUT(
 
     const category = await Category.findByIdAndUpdate(
       id,
-      { name, slug, description, image, parentId: resolvedParentId },
+      { name, slug, description, seoTitle, seoDescription, heading, image, parentId: resolvedParentId },
       { returnDocument: 'after' }
     ).lean()
 

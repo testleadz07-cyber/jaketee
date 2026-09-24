@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, slug, description, image, parentId } = body
+    const { name, slug, description, seoTitle, seoDescription, heading, image, parentId } = body
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 })
@@ -71,7 +71,16 @@ export async function POST(request: NextRequest) {
       resolvedParentId = parentId
     }
 
-    const category = await Category.create({ name, slug, description, image, parentId: resolvedParentId })
+    const category = await Category.create({
+      name,
+      slug,
+      description,
+      seoTitle,
+      seoDescription,
+      heading,
+      image,
+      parentId: resolvedParentId,
+    })
     return NextResponse.json({ ...category.toObject(), id: String(category._id) }, { status: 201 })
   } catch (error: any) {
     if (error.code === 11000) {

@@ -5,6 +5,9 @@ export const CATEGORIES = [
     name: 'Varsity Jackets',
     slug: 'varsity-jackets',
     description: 'Classic letterman-style varsity jackets.',
+    seoTitle: 'Custom Varsity Jackets | Design Your Letterman Jacket | Jacketee',
+    seoDescription: 'Shop custom varsity jackets in wool, leather, satin and more. Add chenille patches, names, numbers and embroidery. Individual and bulk team orders.',
+    heading: 'Custom Varsity Jackets',
     parentId: null as string | null,
   },
   {
@@ -13,6 +16,8 @@ export const CATEGORIES = [
     name: 'Wool & Leather',
     slug: 'wool-leather',
     description: 'Classic wool body with leather sleeves.',
+    seoTitle: 'Custom Wool & Leather Varsity Jackets | Jacketee',
+    heading: 'Custom Wool & Leather Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -21,6 +26,8 @@ export const CATEGORIES = [
     name: 'All Wool',
     slug: 'wool',
     description: 'Warm melton wool body for school jackets.',
+    seoTitle: 'Custom All Wool Varsity Jackets | Jacketee',
+    heading: 'Custom All Wool Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -29,6 +36,8 @@ export const CATEGORIES = [
     name: 'Faux Leather',
     slug: 'faux-leather',
     description: 'Vegan leather sleeve construction.',
+    seoTitle: 'Custom Faux Leather Varsity Jackets | Jacketee',
+    heading: 'Custom Faux Leather Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -37,6 +46,8 @@ export const CATEGORIES = [
     name: 'All Leather',
     slug: 'all-leather',
     description: 'Full-leather build with a heavy feel.',
+    seoTitle: 'Custom All Leather Varsity Jackets | Jacketee',
+    heading: 'Custom All Leather Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -45,6 +56,8 @@ export const CATEGORIES = [
     name: 'Hooded',
     slug: 'hooded',
     description: 'Varsity jackets with an attached hood.',
+    seoTitle: 'Custom Hooded Varsity Jackets | Jacketee',
+    heading: 'Custom Hooded Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -53,6 +66,8 @@ export const CATEGORIES = [
     name: 'Retro',
     slug: 'retro',
     description: 'Vintage-inspired colorways and cuts.',
+    seoTitle: 'Custom Retro Varsity Jackets | Jacketee',
+    heading: 'Custom Retro Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -61,6 +76,8 @@ export const CATEGORIES = [
     name: 'Satin',
     slug: 'satin',
     description: 'Lightweight satin with a glossy finish.',
+    seoTitle: 'Custom Satin Varsity Jackets | Jacketee',
+    heading: 'Custom Satin Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -69,6 +86,8 @@ export const CATEGORIES = [
     name: 'Fleece',
     slug: 'fleece',
     description: 'Soft fleece-body varsity jackets.',
+    seoTitle: 'Custom Fleece Varsity Jackets | Jacketee',
+    heading: 'Custom Fleece Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {
@@ -77,6 +96,8 @@ export const CATEGORIES = [
     name: 'Cotton Twill',
     slug: 'cotton-twill',
     description: 'Durable cotton twill construction.',
+    seoTitle: 'Custom Cotton Twill Varsity Jackets | Jacketee',
+    heading: 'Custom Cotton Twill Varsity Jackets',
     parentId: '6a6a0b0cea8a499382b304f6' as string | null,
   },
   {

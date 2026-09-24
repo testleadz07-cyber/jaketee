@@ -61,6 +61,21 @@ const organizationJsonLd = {
   name: "Jacketee",
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
+  sameAs: [
+    "https://www.facebook.com/your-jacketee-profile",
+    "https://www.instagram.com/your-jacketee-profile",
+    "https://www.linkedin.com/company/your-jacketee-profile",
+    "https://www.pinterest.com/your-jacketee-profile",
+    "https://www.tiktok.com/@your-jacketee-profile",
+    "https://www.youtube.com/@your-jacketee-profile",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    email: "support@jacketee.com",
+    url: `${SITE_URL}/contact`,
+    availableLanguage: ["en"],
+  },
 };
 
 const websiteJsonLd = {

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
 import CategoryModel from '@/models/Category'
@@ -5,6 +6,27 @@ import { resolveAncestorChain, resolveDescendantIds, type CategoryNode } from '@
 import ShopClient, { type Category, type Product } from './shop-client'
 
 export const dynamic = 'force-dynamic'
+
+const SHOP_TITLE = 'Shop All Custom Jackets | Varsity, Bomber & More | Jacketee'
+const SHOP_DESCRIPTION = 'Browse all custom jackets at Jacketee, including varsity, letterman, bomber, coach, puffer and denim styles. Add patches, embroidery and team colors.'
+
+export const metadata: Metadata = {
+  title: SHOP_TITLE,
+  description: SHOP_DESCRIPTION,
+  alternates: { canonical: 'https://www.jacketee.com/shop' },
+  openGraph: {
+    title: SHOP_TITLE,
+    description: SHOP_DESCRIPTION,
+    url: 'https://www.jacketee.com/shop',
+    siteName: 'Jacketee',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SHOP_TITLE,
+    description: SHOP_DESCRIPTION,
+  },
+}
 
 export default async function Page({ searchParams }: {
   searchParams: Promise<{ category?: string; search?: string }>

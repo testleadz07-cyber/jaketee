@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
 import CategoryModel from '@/models/Category'
@@ -6,6 +7,16 @@ import { curatedCategorySlugs } from '@/lib/curated-category-slugs'
 import Home, { type Category, type Product } from './home-client'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Custom Varsity Jackets & Letterman Jackets | Jacketee',
+  description: 'Design custom varsity jackets and letterman jackets with chenille patches, embroidery and your team colors. Bulk pricing for schools, teams and brands.',
+  alternates: { canonical: 'https://www.jacketee.com/' },
+  openGraph: {
+    title: 'Custom Varsity Jackets & Letterman Jackets | Jacketee',
+    description: 'Design custom varsity jackets and letterman jackets with chenille patches, embroidery and your team colors. Bulk pricing for schools, teams and brands.',
+  },
+}
 
 export default async function Page() {
   if (!(await connectDB())) throw new Error('Catalog is temporarily unavailable')

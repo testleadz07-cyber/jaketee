@@ -76,6 +76,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     tags: post.tags ?? [],
     author: { name: post.author?.name ?? 'Jacketee' },
     publishedAt: post.publishedAt?.toISOString() ?? '',
+    updatedAt: post.updatedAt?.toISOString() ?? post.publishedAt?.toISOString() ?? '',
     views: (post.views ?? 0) + 1,
     taggedProducts: resolvedProducts.map((product: any) => ({
       id: String(product._id),

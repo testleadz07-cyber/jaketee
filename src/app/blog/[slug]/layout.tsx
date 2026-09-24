@@ -89,17 +89,23 @@ export default async function BlogPostLayout({
   const pageUrl = `${SITE_URL}/blog/${slug}`
   const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
   const authorName = post.author?.name || 'Jacketee'
+  const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
+  const modifiedTime = post.updatedAt
+    ? new Date(post.updatedAt).toISOString()
+    : publishedTime
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.excerpt,
+    headline: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt,
     image: imageUrl,
-    url: pageUrl,
-    datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
-    dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
-    author: { '@type': 'Person', name: authorName },
+    datePublished: publishedTime,
+    dateModified: modifiedTime,
+    author: {
+      '@type': authorName.toLowerCase().includes('jacketee') ? 'Organization' : 'Person',
+      name: authorName,
+    },
     publisher: {
       '@type': 'Organization',
       name: 'Jacketee',

@@ -56,6 +56,9 @@ interface Category {
   name: string
   slug: string
   description?: string
+  seoTitle?: string
+  seoDescription?: string
+  heading?: string
   image?: string
   parentId?: string | null
   _count?: {
@@ -86,6 +89,9 @@ export default function AdminCategories() {
     name: '',
     slug: '',
     description: '',
+    seoTitle: '',
+    seoDescription: '',
+    heading: '',
     image: '',
     parentId: 'none'
   })
@@ -94,6 +100,9 @@ export default function AdminCategories() {
     name: '',
     slug: '',
     description: '',
+    seoTitle: '',
+    seoDescription: '',
+    heading: '',
     image: '',
     parentId: 'none'
   })
@@ -152,7 +161,7 @@ export default function AdminCategories() {
   // Opens the Add dialog with the parent implicitly set to whatever level
   // is currently being browsed — no dropdown-hunting required.
   const openAddDialog = () => {
-    setNewCategory({ name: '', slug: '', description: '', image: '', parentId: currentParentId || 'none' })
+    setNewCategory({ name: '', slug: '', description: '', seoTitle: '', seoDescription: '', heading: '', image: '', parentId: currentParentId || 'none' })
     setIsAddOpen(true)
   }
 
@@ -210,6 +219,9 @@ export default function AdminCategories() {
       name: category.name,
       slug: category.slug,
       description: category.description || '',
+      seoTitle: category.seoTitle || '',
+      seoDescription: category.seoDescription || '',
+      heading: category.heading || '',
       image: category.image || '',
       parentId: category.parentId || 'none'
     })
@@ -638,6 +650,34 @@ export default function AdminCategories() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="add-heading">H1 Heading</Label>
+              <Input
+                id="add-heading"
+                value={newCategory.heading}
+                onChange={e => setNewCategory(prev => ({ ...prev, heading: e.target.value }))}
+                placeholder="Optional custom page heading"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-seo-title">SEO Title</Label>
+              <Input
+                id="add-seo-title"
+                value={newCategory.seoTitle}
+                onChange={e => setNewCategory(prev => ({ ...prev, seoTitle: e.target.value }))}
+                placeholder="Optional title tag"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-seo-description">SEO Description</Label>
+              <Textarea
+                id="add-seo-description"
+                value={newCategory.seoDescription}
+                onChange={e => setNewCategory(prev => ({ ...prev, seoDescription: e.target.value }))}
+                placeholder="Optional meta description..."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="add-image">Image URL</Label>
               <Input
                 id="add-image"
@@ -721,6 +761,34 @@ export default function AdminCategories() {
                 value={editForm.description}
                 onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief summary of category contents..."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-heading">H1 Heading</Label>
+              <Input
+                id="edit-heading"
+                value={editForm.heading}
+                onChange={e => setEditForm(prev => ({ ...prev, heading: e.target.value }))}
+                placeholder="Optional custom page heading"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-seo-title">SEO Title</Label>
+              <Input
+                id="edit-seo-title"
+                value={editForm.seoTitle}
+                onChange={e => setEditForm(prev => ({ ...prev, seoTitle: e.target.value }))}
+                placeholder="Optional title tag"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-seo-description">SEO Description</Label>
+              <Textarea
+                id="edit-seo-description"
+                value={editForm.seoDescription}
+                onChange={e => setEditForm(prev => ({ ...prev, seoDescription: e.target.value }))}
+                placeholder="Optional meta description..."
                 rows={3}
               />
             </div>

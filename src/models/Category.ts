@@ -4,6 +4,9 @@ export interface ICategory extends Document {
   name: string
   slug: string
   description?: string
+  seoTitle?: string
+  seoDescription?: string
+  heading?: string
   image?: string
   parentId?: mongoose.Types.ObjectId | null
   createdAt: Date
@@ -15,6 +18,9 @@ const CategorySchema = new Schema<ICategory>(
     name: { type: String, required: true, unique: true },
     slug: { type: String, required: true, unique: true },
     description: { type: String },
+    seoTitle: { type: String },
+    seoDescription: { type: String },
+    heading: { type: String },
     image: { type: String },
     parentId: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
   },
