@@ -7,6 +7,7 @@ import { NewsletterPopup } from "@/components/newsletter-popup";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { SupportChatWidget } from "@/components/support-chat-widget";
 import { SessionTracker } from "@/components/SessionTracker";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -102,6 +103,7 @@ export default function RootLayout({
           <CookieConsentBanner />
           <SupportChatWidget />
           <SessionTracker />
+          <GoogleAnalytics />
           <Toaster />
         </Providers>
       </body>
