@@ -4,6 +4,7 @@ export interface IBlogCategory extends Document {
   name: string
   slug: string
   description?: string
+  image?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -13,6 +14,7 @@ const BlogCategorySchema = new Schema<IBlogCategory>(
     name: { type: String, required: true, unique: true },
     slug: { type: String, required: true, unique: true },
     description: { type: String },
+    image: { type: String },
   },
   { timestamps: true }
 )

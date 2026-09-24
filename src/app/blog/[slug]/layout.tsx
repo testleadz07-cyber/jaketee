@@ -1,7 +1,9 @@
 import { cache } from 'react'
 import { Metadata } from 'next'
+import Script from 'next/script'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
+import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
@@ -40,7 +42,7 @@ export async function generateMetadata({
   const pageUrl = `${SITE_URL}/blog/${slug}`
   const title = post.seoTitle || `${post.title} — Jacketee Blog`
   const description = (post.seoDescription || post.excerpt || '').slice(0, 160)
-  const imageUrl = post.ogImage || post.featuredImage || DEFAULT_IMAGE
+  const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
   const authorName = post.author?.name || 'Jacketee'
   const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
   const modifiedTime = post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined
@@ -85,7 +87,7 @@ export default async function BlogPostLayout({
   }
 
   const pageUrl = `${SITE_URL}/blog/${slug}`
-  const imageUrl = post.ogImage || post.featuredImage || DEFAULT_IMAGE
+  const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
   const authorName = post.author?.name || 'Jacketee'
 
   const articleJsonLd = {
@@ -108,7 +110,12 @@ export default async function BlogPostLayout({
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <Script
+        id={`blog-post-schema-${slug}`}
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       {children}
     </>
   )

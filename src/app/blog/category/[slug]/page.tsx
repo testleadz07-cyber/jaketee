@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { connectDB } from '@/lib/mongodb'
 import BlogCategory from '@/models/BlogCategory'
 import BlogPost from '@/models/BlogPost'
+import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import BlogCategoryPage, { type BlogPostSummary } from './category-client'
 
 export const dynamic = 'force-dynamic'
@@ -27,22 +28,23 @@ export default async function Page({ params, searchParams }: {
       { status: 'scheduled', publishedAt: { $lte: new Date() } },
     ],
   }
-  const [total, rawPosts] = await Promise.all([
+  const [total, rawPosts, imageCandidates] = await Promise.all([
     BlogPost.countDocuments(query),
     BlogPost.find(query)
       .populate('categories', 'name slug')
-      .select('title slug excerpt featuredImage categories author publishedAt')
+      .select('title slug excerpt featuredImage categories taggedProducts author publishedAt')
       .sort({ publishedAt: -1 })
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
       .lean(),
+    getBlogImageCandidates(),
   ])
   const posts: BlogPostSummary[] = rawPosts.map((post) => ({
     id: String(post._id),
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
-    featuredImage: post.featuredImage ?? null,
+    featuredImage: resolveBlogImage(post as any, imageCandidates),
     categories: (post.categories ?? []).map((item) => ({
       id: String(item._id), name: item.name, slug: item.slug,
     })),
@@ -51,7 +53,13 @@ export default async function Page({ params, searchParams }: {
   }))
 
   return <BlogCategoryPage
-    category={{ id: String(category._id), name: category.name, slug: category.slug, description: category.description }}
+    category={{
+      id: String(category._id),
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      image: category.image,
+    }}
     posts={posts} page={page} pages={Math.ceil(total / PAGE_SIZE)} total={total}
   />
 }

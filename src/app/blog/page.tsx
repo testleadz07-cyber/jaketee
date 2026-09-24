@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
+import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import BlogListPage, { type BlogCategory as CategorySummary, type BlogPostSummary } from './blog-list-client'
 
 export const dynamic = 'force-dynamic'
@@ -25,16 +26,17 @@ export default async function Page({ searchParams }: {
     ],
   }
 
-  const [total, rawPosts, rawCategories] = await Promise.all([
+  const [total, rawPosts, rawCategories, imageCandidates] = await Promise.all([
     BlogPost.countDocuments(query),
     BlogPost.find(query)
       .populate('categories', 'name slug')
-      .select('title slug excerpt featuredImage categories tags author publishedAt views')
+      .select('title slug excerpt featuredImage categories tags taggedProducts author publishedAt views')
       .sort({ publishedAt: -1 })
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
       .lean(),
     BlogCategory.find().select('name slug').sort({ name: 1 }).lean(),
+    getBlogImageCandidates(),
   ])
 
   const posts: BlogPostSummary[] = rawPosts.map((post) => ({
@@ -42,7 +44,7 @@ export default async function Page({ searchParams }: {
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
-    featuredImage: post.featuredImage ?? null,
+    featuredImage: resolveBlogImage(post as any, imageCandidates),
     categories: (post.categories ?? []).map((category) => ({
       id: String(category._id),
       name: category.name,

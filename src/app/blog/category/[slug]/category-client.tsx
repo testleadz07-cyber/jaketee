@@ -34,6 +34,7 @@ export interface BlogCategory {
   name: string
   slug: string
   description?: string
+  image?: string
 }
 
 function formatDate(dateString: string) {
@@ -60,22 +61,35 @@ export default function BlogCategoryPage({ category, posts, page, pages, total }
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
       <Header />
 
-      <section className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-background py-16 md:py-20">
-        <div className="container mx-auto px-4 relative">
+      <section className="relative overflow-hidden border-b bg-foreground py-16 text-background md:py-20">
+        {category.image && (
+          <>
+            <Image
+              src={category.image}
+              alt={`${category.name} articles`}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover opacity-45"
+            />
+            <div className="absolute inset-0 bg-black/55" />
+          </>
+        )}
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <Breadcrumbs
               className="justify-center mb-6"
               items={[{ label: 'Blog', href: '/blog' }, { label: category?.name || '' }]}
             />
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-6">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/25 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
               <Newspaper className="h-4 w-4" />
               Jacketee Journal
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+            <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
               {category?.name || 'Loading…'}
             </h1>
             {category?.description && (
-              <p className="text-lg text-muted-foreground">{category.description}</p>
+              <p className="text-lg text-white/85">{category.description}</p>
             )}
           </div>
         </div>

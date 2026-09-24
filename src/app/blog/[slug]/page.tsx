@@ -5,6 +5,7 @@ import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
 import Product from '@/models/Product'
 import BlogPostPage, { type BlogPostDetail } from './post-client'
+import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const post = rawPost as any
   const categoryIds = post.categories ?? []
   const productIds = post.taggedProducts ?? []
-  const [categories, taggedProducts] = await Promise.all([
+  const [categories, taggedProducts, imageCandidates] = await Promise.all([
     categoryIds.length
       ? BlogCategory.find({ _id: { $in: categoryIds } }).select('name slug').lean()
       : [],
@@ -31,6 +32,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           .select('name slug price compareAtPrice images averageRating')
           .lean()
       : [],
+    getBlogImageCandidates(),
     BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }),
   ])
   const categoriesById = new Map(categories.map((category: any) => [String(category._id), category]))
@@ -67,7 +69,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       },
       allowedSchemes: ['http', 'https', 'mailto'],
     }),
-    featuredImage: post.featuredImage ?? null,
+    featuredImage: resolveBlogImage({ ...post, categories: resolvedCategories }, imageCandidates),
     categories: resolvedCategories.map((category: any) => ({
       id: String(category._id), name: category.name, slug: category.slug,
     })),
@@ -89,7 +91,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       title: item.title,
       slug: item.slug,
       excerpt: item.excerpt,
-      featuredImage: item.featuredImage ?? null,
+      featuredImage: resolveBlogImage(item as any, imageCandidates),
       publishedAt: item.publishedAt?.toISOString() ?? '',
     })),
   }

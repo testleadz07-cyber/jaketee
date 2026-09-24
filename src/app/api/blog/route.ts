@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
+import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,21 +37,24 @@ export async function GET(request: NextRequest) {
       query.title = { $regex: search, $options: 'i' }
     }
 
-    const total = await BlogPost.countDocuments(query)
-    const posts = await BlogPost.find(query)
-      .populate('categories', 'name slug')
-      .select('-content')
-      .sort({ publishedAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean()
+    const [total, posts, imageCandidates] = await Promise.all([
+      BlogPost.countDocuments(query),
+      BlogPost.find(query)
+        .populate('categories', 'name slug')
+        .select('-content')
+        .sort({ publishedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      getBlogImageCandidates(),
+    ])
 
     const mapped = posts.map((p: any) => ({
       id: String(p._id),
       title: p.title,
       slug: p.slug,
       excerpt: p.excerpt,
-      featuredImage: p.featuredImage,
+      featuredImage: resolveBlogImage(p, imageCandidates),
       categories: (p.categories || []).map((c: any) => ({ id: String(c._id), name: c.name, slug: c.slug })),
       tags: p.tags,
       author: p.author,
