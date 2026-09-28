@@ -135,7 +135,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'cart-storage',
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown) => {
         const state = persistedState as CartStore
         if (!state?.items) return state
@@ -144,15 +144,22 @@ export const useCartStore = create<CartStore>()(
           items: state.items.map((item) => {
             const legacy = item.customization as any
             if (!legacy) return item
-            if (legacy.view) {
-              const side = { text: legacy.text, artworks: legacy.artwork ? [{ ...legacy.artwork, id: `legacy-${item.id}-${legacy.view}` }] : undefined }
-              return { ...item, customization: { [legacy.view]: side } }
-            }
-            const customization = { ...legacy }
+            const customization: any = legacy.view
+              ? { [legacy.view]: { text: legacy.text, artworks: legacy.artwork ? [{ ...legacy.artwork, id: `legacy-${item.id}-${legacy.view}` }] : undefined } }
+              : { ...legacy }
             for (const view of ['front', 'back'] as const) {
               const side = customization[view]
               if (side?.artwork && !side.artworks) {
                 customization[view] = { ...side, artworks: [{ ...side.artwork, id: `legacy-${item.id}-${view}` }], artwork: undefined }
+              }
+              const normalizedSide = customization[view]
+              if (normalizedSide?.text && !normalizedSide.text.fontStyle) normalizedSide.text.fontStyle = 'varsity'
+              if (normalizedSide?.artworks) {
+                normalizedSide.artworks = normalizedSide.artworks.map((artwork: any) => ({
+                  ...artwork,
+                  color: artwork.color || (artwork.source === 'catalog' ? '#ffffff' : undefined),
+                  fontStyle: artwork.fontStyle || (artwork.catalogId?.startsWith('letter-') || artwork.catalogId?.startsWith('number-') ? 'varsity' : undefined),
+                }))
               }
             }
             return { ...item, customization }

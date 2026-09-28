@@ -9,6 +9,7 @@ import { Slider } from '@/components/ui/slider'
 import { useToast } from '@/hooks/use-toast'
 import {
   artworkCatalog, artworkCategories, CatalogArtworkPreview, getCatalogArtworkDataUrl,
+  getJacketFontFamily, isLetterOrNumberArtwork, jacketFontStyles,
   type ArtworkCategory, type CatalogArtwork,
 } from '@/components/jacket-artwork-catalog'
 import type { JacketCustomization, JacketSideCustomization, JacketView } from '@/types/jacket-customization'
@@ -47,7 +48,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   const imageUrl = view === 'back' && images[1]?.url ? images[1].url : images[0]?.url
   const chestWidth = CHEST_WIDTHS[(selectedSize || 'M').toUpperCase()] || CHEST_WIDTHS.M
   const selectedArtwork = side.artworks?.find((artwork) => artwork.id === selectedArtworkId)
-  const artworkSourceKey = (side.artworks || []).map((artwork) => `${artwork.id}:${artwork.source}:${artwork.catalogId || artwork.url}`).join('|')
+  const artworkSourceKey = (side.artworks || []).map((artwork) => `${artwork.id}:${artwork.source}:${artwork.catalogId || artwork.url}:${artwork.color}:${artwork.fontStyle || ''}`).join('|')
   const visibleArtwork = useMemo(() => artworkCatalog.filter((item) =>
     item.category === category && (!query || item.name.toLowerCase().includes(query.toLowerCase()))
   ), [category, query])
@@ -74,7 +75,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
     let cancelled = false
     const loadImages = async () => {
       const entries = await Promise.all((side.artworks || []).map((artwork) => new Promise<[string, HTMLImageElement] | null>((resolve) => {
-        const source = artwork.source === 'catalog' ? getCatalogArtworkDataUrl(artwork.catalogId || '') : artwork.url
+        const source = artwork.source === 'catalog' ? getCatalogArtworkDataUrl(artwork.catalogId || '', artwork.color, artwork.fontStyle) : artwork.url
         if (!source) return resolve(null)
         const image = new window.Image()
         if (source.startsWith('https://')) image.crossOrigin = 'anonymous'
@@ -111,7 +112,21 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       const height = image.height * ratio
       const left = artwork.x * CANVAS_SIZE - width / 2
       const top = artwork.y * CANVAS_SIZE - height / 2
-      context.drawImage(image, left, top, width, height)
+      if (artwork.source === 'upload' && artwork.color) {
+        const tinted = document.createElement('canvas')
+        tinted.width = Math.max(1, Math.ceil(width))
+        tinted.height = Math.max(1, Math.ceil(height))
+        const tintContext = tinted.getContext('2d')
+        if (tintContext) {
+          tintContext.drawImage(image, 0, 0, tinted.width, tinted.height)
+          tintContext.globalCompositeOperation = 'source-in'
+          tintContext.fillStyle = artwork.color
+          tintContext.fillRect(0, 0, tinted.width, tinted.height)
+          context.drawImage(tinted, left, top, width, height)
+        }
+      } else {
+        context.drawImage(image, left, top, width, height)
+      }
       if (artwork.id === selectedArtworkId) {
         context.save()
         context.strokeStyle = '#2563eb'
@@ -125,7 +140,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       const sizeFactor = 42 / chestWidth
       const fontSize = side.text.size * sizeFactor
       context.save()
-      context.font = `600 ${fontSize}px Arial, sans-serif`
+      context.font = `600 ${fontSize}px ${getJacketFontFamily(side.text.fontStyle)}`
       context.textAlign = 'center'
       context.textBaseline = 'middle'
       context.lineWidth = Math.max(2, fontSize / 18)
@@ -138,13 +153,13 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   }, [artworkImages, background, chestWidth, selectedArtworkId, side])
 
   const updateText = (updates: Partial<NonNullable<JacketSideCustomization['text']>>) => {
-    updateSide({ text: { value: '', color: '#ffffff', size: 42, x: 0.5, y: 0.38, ...side.text, ...updates } })
+    updateSide({ text: { value: '', color: '#ffffff', fontStyle: 'varsity', size: 42, x: 0.5, y: 0.38, ...side.text, ...updates } })
   }
 
   const selectArtwork = (item: CatalogArtwork) => {
     if ((side.artworks?.length || 0) >= 12) return toast({ title: 'Artwork limit reached', description: 'You can add up to 12 artwork pieces on each side.', variant: 'destructive' })
     const id = crypto.randomUUID()
-    updateSide({ artworks: [...(side.artworks || []), { id, source: 'catalog', catalogId: item.id, name: item.name, widthInches: 5, x: 0.5, y: 0.55 }] })
+    updateSide({ artworks: [...(side.artworks || []), { id, source: 'catalog', catalogId: item.id, name: item.name, color: '#f8fafc', fontStyle: item.character ? 'varsity' : undefined, widthInches: 5, x: 0.5, y: 0.55 }] })
     setSelectedArtworkId(id)
   }
 
@@ -225,10 +240,14 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       <div className="space-y-3 border-t pt-4">
         <Label htmlFor="design-text" className="flex items-center gap-2"><Type className="h-4 w-4" /> {view} embroidered text</Label>
         <Input id="design-text" value={side.text?.value || ''} maxLength={maxTextLength} placeholder="Name, initials, or team" onChange={(event) => updateText({ value: event.target.value })} />
-        {!!side.text?.value && <div className="grid gap-4 sm:grid-cols-[1fr_9rem]">
-          <div className="space-y-2"><Label className="text-xs">Thread color</Label><div className="flex gap-2">
+        {!!side.text?.value && <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2"><Label className="text-xs">Thread color</Label><div className="flex flex-wrap items-center gap-2">
             {TEXT_COLORS.map((color) => <button key={color} type="button" title={color} aria-label={`Use ${color} thread`} onClick={() => updateText({ color })} className={`h-8 w-8 rounded-full border-2 ${side.text?.color === color ? 'ring-2 ring-primary ring-offset-2' : ''}`} style={{ backgroundColor: color }} />)}
+            <input type="color" value={side.text.color} onChange={(event) => updateText({ color: event.target.value })} className="h-8 w-10 cursor-pointer rounded border bg-background p-0.5" aria-label="Custom thread color" />
           </div></div>
+          <div className="space-y-2"><Label htmlFor="text-font" className="text-xs">Font style</Label><select id="text-font" value={side.text.fontStyle} onChange={(event) => updateText({ fontStyle: event.target.value as NonNullable<JacketSideCustomization['text']>['fontStyle'] })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+            {jacketFontStyles.map((font) => <option key={font.value} value={font.value}>{font.label}</option>)}
+          </select></div>
           <div className="space-y-2"><Label className="text-xs">Text size</Label><Slider min={24} max={72} step={2} value={[side.text?.size || 42]} onValueChange={([size]) => updateText({ size })} /></div>
         </div>}
       </div>
@@ -253,8 +272,19 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
           <div className="flex gap-2 overflow-x-auto pb-1">
             {side.artworks.map((artwork, index) => <button key={artwork.id} type="button" onClick={() => setSelectedArtworkId(artwork.id)} className={`min-w-20 rounded-md border px-2 py-1.5 text-xs ${selectedArtworkId === artwork.id ? 'border-primary bg-primary/5' : ''}`}><span className="block truncate">{index + 1}. {artwork.name}</span></button>)}
           </div>
-          {selectedArtwork && <div className="space-y-2"><div className="flex justify-between text-xs"><Label>Selected patch width</Label><span>{selectedArtwork.widthInches.toFixed(1)} in</span></div>
-            <Slider min={2} max={12} step={0.5} value={[selectedArtwork.widthInches]} onValueChange={([widthInches]) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, widthInches } : artwork) })} aria-label="Selected artwork width" />
+          {selectedArtwork && <div className="space-y-4 border-t pt-3">
+            <div className="space-y-2"><div className="flex justify-between text-xs"><Label>Selected patch width</Label><span>{selectedArtwork.widthInches.toFixed(1)} in</span></div>
+              <Slider min={2} max={12} step={0.5} value={[selectedArtwork.widthInches]} onValueChange={([widthInches]) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, widthInches } : artwork) })} aria-label="Selected artwork width" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2"><Label htmlFor="artwork-color" className="text-xs">Artwork color</Label><div className="flex items-center gap-2">
+                <input id="artwork-color" type="color" value={selectedArtwork.color || '#ffffff'} onChange={(event) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, color: event.target.value } : artwork) })} className="h-9 w-12 cursor-pointer rounded border bg-background p-0.5" />
+                <span className="text-xs uppercase text-muted-foreground">{selectedArtwork.color || 'Original'}</span>
+              </div></div>
+              {isLetterOrNumberArtwork(selectedArtwork.catalogId) && <div className="space-y-2"><Label htmlFor="artwork-font" className="text-xs">Letter / number font</Label><select id="artwork-font" value={selectedArtwork.fontStyle || 'varsity'} onChange={(event) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, fontStyle: event.target.value as NonNullable<JacketSideCustomization['text']>['fontStyle'] } : artwork) })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+                {jacketFontStyles.map((font) => <option key={font.value} value={font.value}>{font.label}</option>)}
+              </select></div>}
+            </div>
           </div>}
         </div>}
       </div>

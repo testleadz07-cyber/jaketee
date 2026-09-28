@@ -7,6 +7,7 @@ import {
   FaFootball, FaGraduationCap, FaHeart, FaMusic, FaPaw,
   FaShieldDog, FaStar, FaTrophy,
 } from 'react-icons/fa6'
+import type { JacketFontStyle } from '@/types/jacket-customization'
 
 export type ArtworkCategory = 'Animals' | 'Varsity' | 'Sports' | 'Symbols' | 'Letters' | 'Numbers'
 
@@ -53,13 +54,30 @@ export function CatalogArtworkPreview({ item, className = 'h-8 w-8' }: { item: C
   return <Icon className={className} aria-hidden="true" />
 }
 
-export function getCatalogArtworkDataUrl(id: string) {
+export const jacketFontStyles: Array<{ value: JacketFontStyle; label: string; family: string }> = [
+  { value: 'varsity', label: 'Varsity', family: 'Arial Black, Arial, sans-serif' },
+  { value: 'block', label: 'Block', family: 'Impact, Arial Black, sans-serif' },
+  { value: 'classic', label: 'Classic', family: 'Georgia, serif' },
+  { value: 'script', label: 'Script', family: 'Brush Script MT, Segoe Script, cursive' },
+  { value: 'sans', label: 'Modern Sans', family: 'Arial, sans-serif' },
+  { value: 'serif', label: 'Traditional Serif', family: 'Times New Roman, serif' },
+]
+
+export function getJacketFontFamily(style: JacketFontStyle = 'varsity') {
+  return jacketFontStyles.find((font) => font.value === style)?.family || jacketFontStyles[0].family
+}
+
+export function isLetterOrNumberArtwork(id?: string) {
+  return Boolean(id && (id.startsWith('letter-') || id.startsWith('number-')))
+}
+
+export function getCatalogArtworkDataUrl(id: string, color = '#f8fafc', fontStyle: JacketFontStyle = 'varsity') {
   const item = artworkCatalog.find((entry) => entry.id === id)
   if (!item) return null
   const Icon = item.icon
   const markup = item.character
-    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="73" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="76" font-weight="900" fill="#f8fafc" stroke="#111827" stroke-width="5" paint-order="stroke">${item.character}</text></svg>`
-    : Icon ? renderToStaticMarkup(<Icon color="#f8fafc" style={{ stroke: '#111827', strokeWidth: 10 }} />) : ''
+    ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="73" text-anchor="middle" font-family="${getJacketFontFamily(fontStyle)}" font-size="76" font-weight="900" fill="${color}" stroke="#111827" stroke-width="5" paint-order="stroke">${item.character}</text></svg>`
+    : Icon ? renderToStaticMarkup(<Icon color={color} />) : ''
   const normalized = markup.includes('xmlns=') ? markup : markup.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(normalized)}`
 }

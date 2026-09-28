@@ -57,6 +57,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
       text: {
         value: String,
         color: String,
+        fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
         size: Number,
         x: Number,
         y: Number,
@@ -67,6 +68,8 @@ const OrderItemSchema = new Schema<IOrderItem>(
         catalogId: String,
         url: String,
         name: String,
+        color: String,
+        fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
         widthInches: Number,
         x: Number,
         y: Number,
@@ -76,6 +79,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
         text: {
           value: String,
           color: String,
+          fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
           size: Number,
           x: Number,
           y: Number,
@@ -86,6 +90,8 @@ const OrderItemSchema = new Schema<IOrderItem>(
           catalogId: String,
           url: String,
           name: String,
+          color: String,
+          fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
           widthInches: Number,
           x: Number,
           y: Number,

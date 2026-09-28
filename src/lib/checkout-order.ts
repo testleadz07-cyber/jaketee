@@ -3,6 +3,8 @@ import Product from '@/models/Product'
 import Discount from '@/models/Discount'
 import type { JacketCustomization } from '@/types/jacket-customization'
 
+const JACKET_FONT_STYLES = new Set(['varsity', 'block', 'classic', 'script', 'sans', 'serif'])
+
 export class CheckoutError extends Error {
   constructor(message: string, public status = 400) {
     super(message)
@@ -60,13 +62,14 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
       const content = typeof text.value === 'string' ? text.value.trim() : ''
       if (content) {
         const color = typeof text.color === 'string' && /^#[0-9a-f]{6}$/i.test(text.color) ? text.color.toLowerCase() : ''
+        const fontStyle = typeof text.fontStyle === 'string' && JACKET_FONT_STYLES.has(text.fontStyle) ? text.fontStyle as NonNullable<typeof cleanSide.text>['fontStyle'] : 'varsity'
         const size = Number(text.size)
         const x = Number(text.x)
         const y = Number(text.y)
         if (content.length > maxTextLength || !color || !Number.isFinite(size) || size < 24 || size > 72 || !inUnitRange(x) || !inUnitRange(y)) {
           throw new CheckoutError('Invalid embroidered text design')
         }
-        cleanSide.text = { value: content, color, size, x, y }
+        cleanSide.text = { value: content, color, fontStyle, size, x, y }
       }
     }
 
@@ -81,6 +84,8 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
         const url = typeof art.url === 'string' ? art.url.trim() : undefined
         const catalogId = typeof art.catalogId === 'string' ? art.catalogId.trim() : undefined
         const name = typeof art.name === 'string' ? art.name.trim().slice(0, 80) : 'Artwork'
+        const color = typeof art.color === 'string' && /^#[0-9a-f]{6}$/i.test(art.color) ? art.color.toLowerCase() : source === 'catalog' ? '#ffffff' : undefined
+        const fontStyle = typeof art.fontStyle === 'string' && JACKET_FONT_STYLES.has(art.fontStyle) ? art.fontStyle as NonNullable<typeof cleanSide.artworks>[number]['fontStyle'] : undefined
         const widthInches = Number(art.widthInches)
         const x = Number(art.x)
         const y = Number(art.y)
@@ -91,7 +96,7 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
           throw new CheckoutError('Invalid jacket artwork')
         }
         ids.add(id)
-        return { id, source, catalogId, url, name, widthInches, x, y }
+        return { id, source, catalogId, url, name, color, fontStyle, widthInches, x, y }
       })
     }
 

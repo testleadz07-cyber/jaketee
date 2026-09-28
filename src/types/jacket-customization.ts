@@ -1,8 +1,10 @@
 export type JacketView = 'front' | 'back'
+export type JacketFontStyle = 'varsity' | 'block' | 'classic' | 'script' | 'sans' | 'serif'
 
 export interface JacketTextCustomization {
   value: string
   color: string
+  fontStyle: JacketFontStyle
   size: number
   x: number
   y: number
@@ -14,6 +16,8 @@ export interface JacketArtworkCustomization {
   catalogId?: string
   url?: string
   name: string
+  color?: string
+  fontStyle?: JacketFontStyle
   widthInches: number
   x: number
   y: number
