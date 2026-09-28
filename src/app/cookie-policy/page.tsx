@@ -9,7 +9,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { openCookiePreferences } from '@/lib/cookie-consent'
 import { Footer } from '@/components/footer'
 
-const LAST_UPDATED = 'July 8, 2026'
+const LAST_UPDATED = 'September 28, 2026'
 const SUPPORT_EMAIL = 'info@jacketee.com'
 
 const categories = [
@@ -32,7 +32,7 @@ const categories = [
     required: false,
     description:
       'These cookies help us understand how visitors interact with our site by collecting information anonymously, so we can measure and improve performance.',
-    examples: 'Page view and traffic analytics (only set if/when enabled).',
+    examples: 'Analytics cookies are set only with consent. Limited cookieless measurements may be sent if declined.',
   },
   {
     name: 'Marketing Cookies',
@@ -80,9 +80,10 @@ export default function CookiePolicyPage() {
               <section>
                 <h2 className="text-xl font-semibold mb-3 not-prose">2. How We Use Cookies</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  We use cookies to operate essential site features, remember your preferences, and — only with your
-                  consent — to understand site usage and support marketing. You can manage your preferences at any
-                  time below.
+                  We use cookies to operate essential site features and remember your preferences. With your consent,
+                  we use analytics cookies to understand site usage. If you decline them, limited cookieless page and
+                  performance measurements may still be collected. Marketing cookies remain consent-based. You can
+                  manage your preferences at any time below.
                 </p>
               </section>
 

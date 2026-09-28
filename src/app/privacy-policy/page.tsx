@@ -7,7 +7,7 @@ import { Shield, Mail } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Footer } from '@/components/footer'
 
-const LAST_UPDATED = 'July 8, 2026'
+const LAST_UPDATED = 'September 28, 2026'
 const SUPPORT_EMAIL = 'info@jacketee.com'
 
 const sections = [
@@ -44,7 +44,7 @@ const sections = [
   },
   {
     heading: '5. Cookies and Tracking Technologies',
-    body: `We use cookies and similar technologies to operate our site, remember your preferences, keep you signed in, and understand how our site is used. You can manage your cookie preferences at any time using the "Cookie Preferences" link in the footer. For full details on the categories of cookies we use and their purposes, see our Cookie Policy.`,
+    body: `We use cookies and similar technologies to operate our site, remember your preferences, keep you signed in, and understand how our site is used. If you decline analytics cookies, we may still collect limited cookieless information through Google Analytics, such as pages visited, approximate country, device and browser type, and website performance data. We use this information only in aggregate to understand and improve our website. We do not use it to directly identify or contact you, and we do not sell it. You can manage your cookie preferences at any time using the "Cookie Preferences" link in the footer. For full details, see our Cookie Policy.`,
   },
   {
     heading: '6. How We Share Your Information',

@@ -15,40 +15,50 @@ declare global {
   interface Window {
     dataLayer?: unknown[][]
     gtag?: (...args: unknown[]) => void
-    [key: `ga-disable-${string}`]: boolean | undefined
+    [key: `ga-configured-${string}`]: boolean | undefined
   }
 }
 
-function configureGoogleAnalytics() {
+function configureGoogleAnalytics(analyticsAllowed: boolean) {
   if (!measurementId) return
   window.dataLayer = window.dataLayer || []
   window.gtag = window.gtag || function gtag(...args: unknown[]) {
     window.dataLayer?.push(args)
   }
-  window[`ga-disable-${measurementId}`] = false
-  window.gtag('consent', 'update', { analytics_storage: 'granted' })
-  window.gtag('js', new Date())
-  window.gtag('config', measurementId, {
-    anonymize_ip: true,
-    send_page_view: false,
+  const alreadyConfigured = window[`ga-configured-${measurementId}`]
+  if (!alreadyConfigured) {
+    window.gtag('consent', 'default', {
+      analytics_storage: 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      wait_for_update: 500,
+    })
+  }
+
+  window.gtag('consent', 'update', {
+    analytics_storage: analyticsAllowed ? 'granted' : 'denied',
   })
+
+  if (!alreadyConfigured) {
+    window[`ga-configured-${measurementId}`] = true
+    window.gtag('js', new Date())
+    window.gtag('config', measurementId, {
+      anonymize_ip: true,
+      send_page_view: false,
+    })
+  }
 }
 
 export function GoogleAnalytics() {
   const pathname = usePathname()
-  const [analyticsAllowed, setAnalyticsAllowed] = useState(false)
+  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     const applyConsent = (consent: CookieConsent | null) => {
       const allowed = Boolean(consent?.analytics)
-      if (measurementId) {
-        window[`ga-disable-${measurementId}`] = !allowed
-      }
-      if (!allowed) {
-        window.gtag?.('consent', 'update', { analytics_storage: 'denied' })
-      }
-      setAnalyticsAllowed(allowed)
-      if (allowed) configureGoogleAnalytics()
+      configureGoogleAnalytics(allowed)
+      setInitialized(true)
     }
 
     applyConsent(getStoredConsent())
@@ -60,16 +70,16 @@ export function GoogleAnalytics() {
   }, [])
 
   useEffect(() => {
-    if (!measurementId || !analyticsAllowed || !window.gtag) return
+    if (!measurementId || !initialized || !window.gtag) return
 
     window.gtag('event', 'page_view', {
       page_title: document.title,
-      page_location: window.location.href,
+      page_location: `${window.location.origin}${pathname}`,
       page_path: pathname,
     })
-  }, [analyticsAllowed, pathname])
+  }, [initialized, pathname])
 
-  if (!measurementId || !analyticsAllowed) return null
+  if (!measurementId || !initialized) return null
 
   return (
     <Script
