@@ -34,6 +34,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/:path*",
+        has: [{ type: "host", value: "jacketee.com" }],
+        destination: "https://www.jacketee.com/:path*",
+        permanent: true,
+      },
+      {
         source: "/favicon.ico",
         destination: "/logo.png",
         permanent: true,

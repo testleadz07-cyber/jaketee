@@ -4,7 +4,7 @@ import Subscriber from '@/models/Subscriber'
 import { createNotification } from '@/lib/notifications'
 import { newsletterSubscriptionTemplate, sendEmail } from '@/lib/email'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const NEWSLETTER_DISCOUNT_CODE = 'WELCOME15'
 
 export async function POST(request: NextRequest) {

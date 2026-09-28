@@ -8,7 +8,7 @@ import { getStaticProducts, getStaticCategories } from '@/lib/static-data'
 import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
   const staticLastModified = new Date('2026-09-24T00:00:00.000Z')
 
   // Static routes
@@ -20,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/blog',
     '/faq',
     '/size-guide',
+    '/track-order',
     '/materials-colors',
     '/patches-embroidery',
     '/bulk-orders',

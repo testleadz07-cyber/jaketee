@@ -4,7 +4,7 @@ import { connectDB } from '@/lib/mongodb'
 import BlogCategory from '@/models/BlogCategory'
 import BlogPost from '@/models/BlogPost'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 
 const getCategory = cache(async (slug: string) => {

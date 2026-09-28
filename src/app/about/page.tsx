@@ -6,7 +6,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const heroImage = 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1788899943/clothaa/exports/patches-embroidery/hero__varsity-jacket-patches-embroidery-hero.jpg'
 
 export const metadata: Metadata = {

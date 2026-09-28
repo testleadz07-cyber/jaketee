@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/patches-embroidery`
 const legacyAssetBrand = ['clo', 'thaa'].join('')
 const baseAssetPath = `https://res.cloudinary.com/dhdfbl8pc/image/upload`

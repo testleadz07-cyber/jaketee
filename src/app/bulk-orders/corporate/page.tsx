@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { BulkOrderResources } from '@/components/bulk-order-resources'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders/corporate`
 
 export const metadata: Metadata = {

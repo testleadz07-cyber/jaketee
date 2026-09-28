@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://jacketee.com";
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.jacketee.com";
 const HOME_TITLE = "Custom Varsity & Bomber Jackets | Jacketee";
 const HOME_DESCRIPTION = "Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.";
 const verification: Metadata["verification"] = {

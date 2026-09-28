@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/materials-colors`
 const legacyAssetBrand = ['clo', 'thaa'].join('')
 const legacyAltAssetBrand = ['Clo', 'thoo'].join('')

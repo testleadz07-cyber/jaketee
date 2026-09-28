@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { JacketSizeReference } from '@/components/jacket-size-reference'
 import { SizeGuideResources } from '@/components/size-guide-resources'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
 export const metadata: Metadata = {
   title: 'Jacket Size Guide | Jacketee',

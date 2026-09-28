@@ -16,7 +16,7 @@ interface Props {
   searchParams: Promise<{ page?: string | string[] }>
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 const CATEGORY_PRODUCTS_PER_PAGE = 24
 

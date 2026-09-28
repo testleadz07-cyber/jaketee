@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
 export const metadata: Metadata = {
   title: 'Custom Varsity & Bomber Jackets | Jacketee',

@@ -6,22 +6,22 @@ Jacketee is an online store for varsity, bomber, leather, puffer, and other jack
 
 ## Public Pages
 
-- Homepage: https://jacketee.com/
-- Product catalog: https://jacketee.com/shop
-- Varsity jackets: https://jacketee.com/varsity-jackets
-- Bulk orders: https://jacketee.com/bulk-orders
-- Materials and colors: https://jacketee.com/materials-colors
-- Patches and embroidery: https://jacketee.com/patches-embroidery
-- Size guide: https://jacketee.com/size-guide
-- Jacketee blog: https://jacketee.com/blog
-- Frequently asked questions: https://jacketee.com/faq
-- Shipping information: https://jacketee.com/shipping
-- Returns and exchanges: https://jacketee.com/returns
-- Order tracking: https://jacketee.com/track-order
-- Contact and customer support: https://jacketee.com/contact
-- Privacy policy: https://jacketee.com/privacy-policy
-- Terms of service: https://jacketee.com/terms-of-service
-- Cookie policy: https://jacketee.com/cookie-policy
+- Homepage: https://www.jacketee.com/
+- Product catalog: https://www.jacketee.com/shop
+- Varsity jackets: https://www.jacketee.com/varsity-jackets
+- Bulk orders: https://www.jacketee.com/bulk-orders
+- Materials and colors: https://www.jacketee.com/materials-colors
+- Patches and embroidery: https://www.jacketee.com/patches-embroidery
+- Size guide: https://www.jacketee.com/size-guide
+- Jacketee blog: https://www.jacketee.com/blog
+- Frequently asked questions: https://www.jacketee.com/faq
+- Shipping information: https://www.jacketee.com/shipping
+- Returns and exchanges: https://www.jacketee.com/returns
+- Order tracking: https://www.jacketee.com/track-order
+- Contact and customer support: https://www.jacketee.com/contact
+- Privacy policy: https://www.jacketee.com/privacy-policy
+- Terms of service: https://www.jacketee.com/terms-of-service
+- Cookie policy: https://www.jacketee.com/cookie-policy
 
 ## Product Information
 
@@ -52,6 +52,6 @@ The following areas are private or operational and should not be crawled, indexe
 
 ## Discovery
 
-- Short AI-readable guide: https://jacketee.com/llms.txt
-- XML sitemap: https://jacketee.com/sitemap.xml
-- Robots policy: https://jacketee.com/robots.txt
+- Short AI-readable guide: https://www.jacketee.com/llms.txt
+- XML sitemap: https://www.jacketee.com/sitemap.xml
+- Robots policy: https://www.jacketee.com/robots.txt
