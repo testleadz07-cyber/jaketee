@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { JacketSizeGuide } from '@/components/jacket-size-guide'
+import { JacketDesignCanvas } from '@/components/jacket-design-canvas'
+import { getCustomizedViews, hasJacketCustomization, type JacketCustomization } from '@/types/jacket-customization'
 
 export interface JacketCustomizerVariant {
   id?: string
@@ -28,6 +30,7 @@ const OPTION_GROUP_ORDER = ['Style', 'Material', 'Color', 'Lining']
 
 interface JacketCustomizerProps {
   product: JacketCustomizerProduct
+  images: Array<{ url: string; alt?: string | null }>
   selectedVariants: Record<string, string>
   onSelectVariant: (groupName: string, value: string, image?: string | null) => void
   basePrice: number
@@ -35,12 +38,13 @@ interface JacketCustomizerProps {
   onQuantityChange: (quantity: number) => void
   addedToCart: boolean
   inStock: boolean
-  onAddToCart: (extraVariants: Array<{ name: string; value: string }>, extraFee: number) => void
+  onAddToCart: (extraVariants: Array<{ name: string; value: string }>, extraFee: number, customization?: JacketCustomization) => void
   wishlistButton?: ReactNode
 }
 
 export function JacketCustomizer({
   product,
+  images,
   selectedVariants,
   onSelectVariant,
   basePrice,
@@ -52,7 +56,7 @@ export function JacketCustomizer({
   wishlistButton,
 }: JacketCustomizerProps) {
   const [stepIndex, setStepIndex] = useState(0)
-  const [monogramText, setMonogramText] = useState('')
+  const [customization, setCustomization] = useState<JacketCustomization>({})
   const [sizingMode, setSizingMode] = useState<'standard' | 'measure'>('standard')
   const [measurements, setMeasurements] = useState<Record<string, string>>({})
 
@@ -72,40 +76,37 @@ export function JacketCustomizer({
 
   const optionSteps = OPTION_GROUP_ORDER.filter((name) => groupedVariants[name]?.length)
 
-  type Step = { type: 'option'; name: string } | { type: 'monogram' } | { type: 'sizing' } | { type: 'review' }
+  type Step = { type: 'option'; name: string } | { type: 'design' } | { type: 'sizing' } | { type: 'review' }
   const steps: Step[] = [
     ...optionSteps.map((name): Step => ({ type: 'option', name })),
-    ...(embroideryAvailable ? [{ type: 'monogram' } as Step] : []),
+    { type: 'design' },
     ...(hasSize || hasMeasurements ? [{ type: 'sizing' } as Step] : []),
     { type: 'review' },
   ]
 
   const currentStep = steps[stepIndex]
-  const monogramFee = monogramText.trim() && embroideryAvailable ? product.embroidery!.fee : 0
-  const totalPrice = basePrice + monogramFee
+  const customizationFee = hasJacketCustomization(customization) && embroideryAvailable ? product.embroidery!.fee : 0
+  const totalPrice = basePrice + customizationFee
 
   const goNext = () => setStepIndex((i) => Math.min(i + 1, steps.length - 1))
   const goBack = () => setStepIndex((i) => Math.max(i - 1, 0))
 
   const stepLabel = (step: Step) => {
     if (step.type === 'option') return step.name
-    if (step.type === 'monogram') return 'Monogram'
+    if (step.type === 'design') return 'Design'
     if (step.type === 'sizing') return 'Sizing'
     return 'Review'
   }
 
   const handleAddToCart = () => {
     const extraVariants: Array<{ name: string; value: string }> = []
-    if (monogramText.trim()) {
-      extraVariants.push({ name: 'Monogram', value: monogramText.trim() })
-    }
     if (sizingMode === 'measure') {
       for (const field of product.measurementFields || []) {
         const value = measurements[field]
         if (value) extraVariants.push({ name: `Measurement: ${field}`, value: `${value}in` })
       }
     }
-    onAddToCart(extraVariants, monogramFee)
+    onAddToCart(extraVariants, customizationFee, hasJacketCustomization(customization) ? customization : undefined)
   }
 
   const isMultiStep = steps.length > 1
@@ -175,20 +176,22 @@ export function JacketCustomizer({
             </div>
           )}
 
-          {currentStep.type === 'monogram' && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium block">
-                Monogram / Embroidery (optional{product.embroidery?.fee ? ` — +$${product.embroidery.fee.toFixed(2)}` : ''})
-              </Label>
-              <Input
-                placeholder="e.g. J.D."
-                value={monogramText}
-                maxLength={product.embroidery?.maxChars || 20}
-                onChange={(e) => setMonogramText(e.target.value)}
+          {currentStep.type === 'design' && (
+            <div className="space-y-3">
+              <div>
+                <Label className="text-sm font-medium">Live customization</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Add embroidered text or artwork and position it on the jacket.
+                  {product.embroidery?.fee ? ` A $${product.embroidery.fee.toFixed(2)} customization fee applies.` : ''}
+                </p>
+              </div>
+              <JacketDesignCanvas
+                images={images}
+                maxTextLength={product.embroidery?.maxChars || 24}
+                selectedSize={selectedVariants.Size}
+                value={customization}
+                onChange={setCustomization}
               />
-              <p className="text-xs text-muted-foreground">
-                {monogramText.length}/{product.embroidery?.maxChars || 20} characters
-              </p>
             </div>
           )}
 
@@ -292,12 +295,16 @@ export function JacketCustomizer({
                     </div>
                   ) : null
                 )}
-              {monogramText.trim() && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Monogram</span>
-                  <span className="font-medium">{monogramText.trim()}</span>
-                </div>
-              )}
+              {getCustomizedViews(customization).map((view) => {
+                const side = customization[view]!
+                return (
+                  <div key={view} className="border-t pt-2 first:border-t-0 first:pt-0">
+                    <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{view}</p>
+                    {side.text?.value.trim() && <div className="flex justify-between text-sm"><span>Embroidery</span><span className="font-medium">{side.text.value.trim()}</span></div>}
+                    {!!side.artworks?.length && <div className="flex justify-between text-sm"><span>Artwork</span><span className="max-w-[60%] text-right font-medium">{side.artworks.length} piece{side.artworks.length === 1 ? '' : 's'}</span></div>}
+                  </div>
+                )
+              })}
             </div>
           )}
         </motion.div>

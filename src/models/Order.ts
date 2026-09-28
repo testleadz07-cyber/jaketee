@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import type { JacketCustomization } from '@/types/jacket-customization'
 
 export interface IOrderItem {
   productId: string
@@ -7,6 +8,7 @@ export interface IOrderItem {
   price: number
   quantity: number
   variants: Array<{ name: string; value: string }>
+  customization?: JacketCustomization
 }
 
 export interface IOrder extends Document {
@@ -50,6 +52,46 @@ const OrderItemSchema = new Schema<IOrderItem>(
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
     variants: [{ name: String, value: String }],
+    customization: {
+      front: {
+      text: {
+        value: String,
+        color: String,
+        size: Number,
+        x: Number,
+        y: Number,
+      },
+      artworks: [{
+        id: String,
+        source: { type: String, enum: ['catalog', 'upload'] },
+        catalogId: String,
+        url: String,
+        name: String,
+        widthInches: Number,
+        x: Number,
+        y: Number,
+      }],
+      },
+      back: {
+        text: {
+          value: String,
+          color: String,
+          size: Number,
+          x: Number,
+          y: Number,
+        },
+        artworks: [{
+          id: String,
+          source: { type: String, enum: ['catalog', 'upload'] },
+          catalogId: String,
+          url: String,
+          name: String,
+          widthInches: Number,
+          x: Number,
+          y: Number,
+        }],
+      },
+    },
   },
   { _id: false }
 )

@@ -37,6 +37,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import type { JacketCustomization } from '@/types/jacket-customization'
 
 export interface ProductDetailData {
   id: string
@@ -194,7 +195,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
   const handleAddToCart = (
     extraVariants: Array<{ name: string; value: string }> = [],
-    extraFee: number = 0
+    extraFee: number = 0,
+    customization?: JacketCustomization
   ) => {
     const variantCombination = getSelectedVariantCombination()
     const combined = [...(variantCombination || []), ...extraVariants]
@@ -207,6 +209,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
       price,
       image: product.images?.[0]?.url || '/placeholder.png',
       variants,
+      customization,
       quantity,
     })
 
@@ -322,7 +325,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-contain"
-                    priority
+                    loading="eager"
+                    fetchPriority="high"
                   />
                   <span className="absolute bottom-4 right-4 rounded-md bg-background/90 p-2"><ZoomIn className="h-5 w-5" /></span>
                 </button>
@@ -463,6 +467,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                 <div>
                   <JacketCustomizer
                   product={product}
+                  images={product.images}
                   selectedVariants={selectedVariants}
                   onSelectVariant={handleSelectCustomizerVariant}
                   basePrice={getPrice()}

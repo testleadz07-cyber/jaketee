@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import Product from '@/models/Product'
 import Discount from '@/models/Discount'
+import type { JacketCustomization } from '@/types/jacket-customization'
 
 export class CheckoutError extends Error {
   constructor(message: string, public status = 400) {
@@ -37,6 +38,71 @@ interface CheckoutItemInput {
   price: number
   quantity: number
   variants?: Array<{ name: string; value: string }>
+  customization?: JacketCustomization
+}
+
+function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCustomization | undefined {
+  if (value == null) return undefined
+  if (!value || typeof value !== 'object') throw new CheckoutError('Invalid jacket customization')
+  const input = value as Record<string, unknown>
+  const output: JacketCustomization = {}
+
+  for (const view of ['front', 'back'] as const) {
+    const rawSide = input[view]
+    if (rawSide == null) continue
+    if (typeof rawSide !== 'object') throw new CheckoutError(`Invalid ${view} jacket customization`)
+    const side = rawSide as Record<string, unknown>
+    const cleanSide: NonNullable<JacketCustomization[typeof view]> = {}
+
+    if (side.text != null) {
+      if (typeof side.text !== 'object') throw new CheckoutError('Invalid embroidered text design')
+      const text = side.text as Record<string, unknown>
+      const content = typeof text.value === 'string' ? text.value.trim() : ''
+      if (content) {
+        const color = typeof text.color === 'string' && /^#[0-9a-f]{6}$/i.test(text.color) ? text.color.toLowerCase() : ''
+        const size = Number(text.size)
+        const x = Number(text.x)
+        const y = Number(text.y)
+        if (content.length > maxTextLength || !color || !Number.isFinite(size) || size < 24 || size > 72 || !inUnitRange(x) || !inUnitRange(y)) {
+          throw new CheckoutError('Invalid embroidered text design')
+        }
+        cleanSide.text = { value: content, color, size, x, y }
+      }
+    }
+
+    if (side.artworks != null) {
+      if (!Array.isArray(side.artworks) || side.artworks.length > 12) throw new CheckoutError('Invalid jacket artwork collection')
+      const ids = new Set<string>()
+      cleanSide.artworks = side.artworks.map((rawArtwork) => {
+        if (!rawArtwork || typeof rawArtwork !== 'object') throw new CheckoutError('Invalid jacket artwork')
+        const art = rawArtwork as Record<string, unknown>
+        const id = typeof art.id === 'string' ? art.id.trim() : ''
+        const source = art.source === 'catalog' || art.source === 'upload' ? art.source : null
+        const url = typeof art.url === 'string' ? art.url.trim() : undefined
+        const catalogId = typeof art.catalogId === 'string' ? art.catalogId.trim() : undefined
+        const name = typeof art.name === 'string' ? art.name.trim().slice(0, 80) : 'Artwork'
+        const widthInches = Number(art.widthInches)
+        const x = Number(art.x)
+        const y = Number(art.y)
+        const validSource = source === 'upload'
+          ? Boolean(url && /^https:\/\//i.test(url) && url.length <= 1000)
+          : Boolean(catalogId && /^[a-z0-9-]{1,40}$/i.test(catalogId))
+        if (!/^[a-z0-9-]{1,80}$/i.test(id) || ids.has(id) || !source || !validSource || !name || !Number.isFinite(widthInches) || widthInches < 2 || widthInches > 12 || !inUnitRange(x) || !inUnitRange(y)) {
+          throw new CheckoutError('Invalid jacket artwork')
+        }
+        ids.add(id)
+        return { id, source, catalogId, url, name, widthInches, x, y }
+      })
+    }
+
+    if (cleanSide.text || cleanSide.artworks?.length) output[view] = cleanSide
+  }
+
+  return output.front || output.back ? output : undefined
+}
+
+function inUnitRange(value: number) {
+  return Number.isFinite(value) && value >= 0.08 && value <= 0.92
 }
 
 export async function resolveCheckoutItems(rawItems: unknown) {
@@ -83,6 +149,8 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     if (!option) throw new CheckoutError('A selected jacket option is unavailable')
     unitPrice += Number(option.priceAdjust || 0)
   }
+  const customization = sanitizeCustomization(input.customization, Number(product.embroidery?.maxChars || 24))
+  if (customization && product.embroidery?.available) unitPrice += Number(product.embroidery.fee || 0)
   unitPrice = Number(unitPrice.toFixed(2))
   if (!Number.isFinite(unitPrice) || unitPrice < 0 || Math.abs(Number(input.price) - unitPrice) > 0.01) {
     throw new CheckoutError('Jacket price has changed. Refresh your cart before checking out.', 409)
@@ -95,6 +163,7 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     price: unitPrice,
     quantity: 1,
     variants: variants.map((variant) => ({ name: variant.name.trim(), value: variant.value.trim() })),
+    customization,
   }]
 }
 

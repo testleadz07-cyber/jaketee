@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import { useCartStore } from '@/store/cart'
 import {
   Drawer,
@@ -20,13 +20,15 @@ import { useToast } from '@/hooks/use-toast'
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Tag, X, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getCustomizedViews } from '@/types/jacket-customization'
+
+const subscribeToHydration = () => () => undefined
 
 export function CartDrawer() {
   const { 
     items, 
     removeItem, 
     updateQuantity, 
-    getTotalItems, 
     getTotalPrice,
     appliedPromo,
     setAppliedPromo,
@@ -38,6 +40,10 @@ export function CartDrawer() {
   const [isValidating, setIsValidating] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
   const { toast } = useToast()
+  const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false)
+  const visibleItems = hydrated ? items : []
+  const visiblePromo = hydrated ? appliedPromo : null
+  const visibleItemCount = visibleItems.reduce((total, item) => total + item.quantity, 0)
 
   // Coupon self-healing check: if subtotal falls below minOrderValue, remove it.
   useEffect(() => {
@@ -96,18 +102,18 @@ export function CartDrawer() {
     })
   }
 
-  const subtotal = getTotalPrice()
-  const total = getDiscountedTotalPrice()
-  const discountAmount = appliedPromo ? subtotal - total : 0
+  const subtotal = hydrated ? getTotalPrice() : 0
+  const total = hydrated ? getDiscountedTotalPrice() : 0
+  const discountAmount = visiblePromo ? subtotal - total : 0
 
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button variant="outline" size="icon" className="relative" aria-label={`Open shopping cart with ${getTotalItems()} items`}>
+        <Button variant="outline" size="icon" className="relative" aria-label={`Open shopping cart with ${visibleItemCount} items`}>
           <ShoppingBag className="h-5 w-5" />
-          {items.length > 0 && (
+          {visibleItems.length > 0 && (
             <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {getTotalItems()}
+              {visibleItemCount}
             </span>
           )}
         </Button>
@@ -116,7 +122,7 @@ export function CartDrawer() {
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            Shopping Cart ({getTotalItems()} items)
+            Shopping Cart ({visibleItemCount} items)
           </DrawerTitle>
           <DrawerDescription>
             Review your items before checkout
@@ -124,7 +130,7 @@ export function CartDrawer() {
         </DrawerHeader>
 
         <ScrollArea className="flex-1 min-h-0 px-4">
-          {items.length === 0 ? (
+          {visibleItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Your cart is empty</p>
@@ -134,7 +140,7 @@ export function CartDrawer() {
             </div>
           ) : (
             <div className="space-y-4 py-4">
-              {items.map((item) => (
+              {visibleItems.map((item) => (
                 <div
                   key={item.id}
                   className="flex gap-4 rounded-lg border p-4 bg-card"
@@ -154,6 +160,16 @@ export function CartDrawer() {
                     <p className="text-sm text-muted-foreground text-xs">
                       {item.variants.map(v => `${v.name}: ${v.value}`).join(', ')}
                     </p>
+                    {item.customization && (
+                      <div className="text-xs font-medium text-primary">
+                        {getCustomizedViews(item.customization).map((view) => (
+                          <p key={view} className="capitalize">
+                            {view}: {item.customization?.[view]?.text?.value || ''}
+                            {item.customization?.[view]?.artworks?.length ? `${item.customization?.[view]?.text?.value ? ' + ' : ''}${item.customization[view]?.artworks?.length} artwork piece${item.customization[view]!.artworks!.length === 1 ? '' : 's'}` : ''}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                     <p className="font-bold text-primary">
                       ${item.price.toFixed(2)}
                     </p>
@@ -204,11 +220,11 @@ export function CartDrawer() {
         <Separator />
 
         <DrawerFooter className="flex-col gap-4 shrink-0 max-h-[45vh] overflow-y-auto">
-          {items.length > 0 && (
+          {visibleItems.length > 0 && (
             <>
               {/* Promo input or display */}
               <div className="w-full py-1">
-                {!appliedPromo ? (
+                {!visiblePromo ? (
                   <form onSubmit={handleApplyPromo} className="space-y-1.5">
                     <div className="flex gap-2">
                       <Input
@@ -231,10 +247,10 @@ export function CartDrawer() {
                     <div className="flex items-center gap-1.5 font-medium">
                       <Tag className="h-3.5 w-3.5 text-emerald-600" />
                       <span>
-                        Code <span className="font-bold">{appliedPromo.code}</span> applied
-                        {appliedPromo.discountType === 'percentage' && ` (-${appliedPromo.discountValue}%)`}
-                        {appliedPromo.discountType === 'fixed' && ` (-$${appliedPromo.discountValue.toFixed(2)})`}
-                        {appliedPromo.freeShipping && ' (Free Shipping)'}
+                        Code <span className="font-bold">{visiblePromo.code}</span> applied
+                        {visiblePromo.discountType === 'percentage' && ` (-${visiblePromo.discountValue}%)`}
+                        {visiblePromo.discountType === 'fixed' && ` (-$${visiblePromo.discountValue.toFixed(2)})`}
+                        {visiblePromo.freeShipping && ' (Free Shipping)'}
                       </span>
                     </div>
                     <Button
@@ -255,13 +271,13 @@ export function CartDrawer() {
                   <span>Subtotal</span>
                   <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>
                 </div>
-                {appliedPromo && discountAmount > 0 && (
+                {visiblePromo && discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-medium">
-                    <span>Discount ({appliedPromo.code})</span>
+                    <span>Discount ({visiblePromo.code})</span>
                     <span>-${discountAmount.toFixed(2)}</span>
                   </div>
                 )}
-                {appliedPromo?.freeShipping && (
+                {visiblePromo?.freeShipping && (
                   <div className="flex justify-between text-emerald-600 font-medium">
                     <span>Shipping Coupon</span>
                     <span>FREE</span>

@@ -303,7 +303,8 @@ export default function CheckoutPage() {
                   image: item.image,
                   price: item.price,
                   quantity: item.quantity,
-                  variants: item.variants
+                  variants: item.variants,
+                  customization: item.customization
                 })),
                 shippingAddress: {
                   name: shippingName,
@@ -399,7 +400,8 @@ export default function CheckoutPage() {
         image: item.image,
         price: item.price,
         quantity: item.quantity,
-        variants: item.variants
+        variants: item.variants,
+        customization: item.customization
       })),
       shippingAddress: {
         name: shippingName,

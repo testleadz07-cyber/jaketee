@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { JacketCustomization } from '@/types/jacket-customization'
 
 export interface CartItem {
   id: string
@@ -12,6 +13,7 @@ export interface CartItem {
     name: string
     value: string
   }>
+  customization?: JacketCustomization
 }
 
 export interface AppliedPromo {
@@ -45,11 +47,11 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (item) =>
         set((state) => {
-          const variantKey = item.variants.map(v => `${v.name}:${v.value}`).sort().join('|')
+          const variantKey = `${item.variants.map(v => `${v.name}:${v.value}`).sort().join('|')}|${JSON.stringify(item.customization || null)}`
 
           const existingItem = state.items.find(
             (i) => {
-              const existingKey = i.variants.map(v => `${v.name}:${v.value}`).sort().join('|')
+              const existingKey = `${i.variants.map(v => `${v.name}:${v.value}`).sort().join('|')}|${JSON.stringify(i.customization || null)}`
               return i.productId === item.productId && existingKey === variantKey
             }
           )
@@ -133,6 +135,30 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'cart-storage',
+      version: 2,
+      migrate: (persistedState: unknown) => {
+        const state = persistedState as CartStore
+        if (!state?.items) return state
+        return {
+          ...state,
+          items: state.items.map((item) => {
+            const legacy = item.customization as any
+            if (!legacy) return item
+            if (legacy.view) {
+              const side = { text: legacy.text, artworks: legacy.artwork ? [{ ...legacy.artwork, id: `legacy-${item.id}-${legacy.view}` }] : undefined }
+              return { ...item, customization: { [legacy.view]: side } }
+            }
+            const customization = { ...legacy }
+            for (const view of ['front', 'back'] as const) {
+              const side = customization[view]
+              if (side?.artwork && !side.artworks) {
+                customization[view] = { ...side, artworks: [{ ...side.artwork, id: `legacy-${item.id}-${view}` }], artwork: undefined }
+              }
+            }
+            return { ...item, customization }
+          }),
+        }
+      },
     }
   )
 )
