@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import urlRedirects from "./src/data/url-redirects.json";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -33,6 +34,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      ...urlRedirects.map(({ source, destination }) => ({
+        source,
+        destination,
+        statusCode: 301 as const,
+      })),
       {
         source: "/:path*",
         has: [{ type: "host", value: "jacketee.com" }],

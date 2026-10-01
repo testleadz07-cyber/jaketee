@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CartDrawer } from '@/components/cart-drawer'
-import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, Tags, User, UserCheck, X } from 'lucide-react'
+import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, Tags, User, UserCheck, Users, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
@@ -57,6 +57,20 @@ const bulkOrderLinks: NavLink[] = [
   { href: '/bulk-orders/private-label', label: 'Private Label', description: 'Custom production for brands and resellers', icon: Tags },
 ]
 
+const customJacketLinks: NavLink[] = [
+  { href: '/custom-letterman-jackets', label: 'Custom Letterman Jackets', description: 'School letters, awards, chenille, and names' },
+  { href: '/custom-bomber-jackets', label: 'Custom Bomber Jackets', description: 'Design leather, satin, nylon, or suede bombers' },
+  { href: '/custom-coach-jackets', label: 'Custom Coach Jackets', description: 'Team, staff, event, and brand designs' },
+  { href: '/custom-denim-jackets', label: 'Custom Denim Jackets', description: 'Embroidery, patches, and back artwork' },
+  { href: '/custom-puffer-jackets', label: 'Custom Puffer Jackets', description: 'Logo outerwear for cold-weather groups' },
+  { href: '/custom-hoodies', label: 'Custom Hoodies', description: 'Leavers, teams, names, and lettering' },
+  { href: '/varsity-jackets/oversized', label: 'Oversized Varsity Jackets', description: 'Relaxed varsity fits with custom artwork' },
+  { href: '/varsity-jackets/vintage', label: 'Vintage Varsity Jackets', description: 'Heritage colors, chenille, and retro details' },
+  { href: '/bulk-orders/sorority-fraternity', label: 'Sorority & Fraternity Jackets', description: 'Authorized chapter letters and member details' },
+  { href: '/bulk-orders/senior-class', label: 'Senior Class Jackets', description: 'Graduation-year jackets with student details' },
+  { href: '/bulk-orders/cheer', label: 'Custom Cheer Jackets', description: 'Squad jackets for athletes and coaches' },
+]
+
 const supportLinks: NavLink[] = [
   { href: '/size-guide', label: 'Size Guide', description: 'Sizing help before you order', icon: Ruler },
   { href: '/track-order', label: 'Track Order', description: 'Check order status and delivery updates', icon: Package },
@@ -73,6 +87,7 @@ interface SearchSuggestion {
   thumbnail: string
   price: number
   compareAtPrice: number | null
+  compareAtPriceVerified?: boolean
   categoryPath?: Array<{ name: string; slug: string }>
 }
 
@@ -215,11 +230,11 @@ export function Header() {
         <ChevronDown className="h-4 w-4" />
       </button>
       <div
-        className="invisible absolute left-0 top-full z-50 w-56 pt-1 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        className={`invisible absolute left-0 top-full z-50 pt-1 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 ${links.length > 8 ? 'w-[30rem]' : 'w-56'}`}
       >
-        <div className="rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
-          {allLink && <div className="border-b pb-1 mb-1">{renderDesktopMenuLink(allLink)}</div>}
-          {links.map(renderDesktopMenuLink)}
+        <div className="max-h-[calc(100vh-6rem)] overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+          {allLink && <div className="mb-1 border-b pb-1">{renderDesktopMenuLink(allLink)}</div>}
+          <div className={links.length > 8 ? 'grid grid-cols-2' : undefined}>{links.map(renderDesktopMenuLink)}</div>
         </div>
       </div>
     </div>
@@ -256,7 +271,7 @@ export function Header() {
                     <span className="text-sm font-semibold text-primary">
                       ${product.price.toFixed(2)}
                     </span>
-                    {product.compareAtPrice && (
+                    {product.compareAtPriceVerified && product.compareAtPrice && product.compareAtPrice > product.price && (
                       <span className="text-xs text-muted-foreground line-through">
                         ${product.compareAtPrice.toFixed(2)}
                       </span>
@@ -295,8 +310,9 @@ export function Header() {
               <BrandLogo priority />
             </Link>
 
-            <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
+            <nav className="hidden items-center gap-1 xl:flex" aria-label="Main navigation">
               {renderDesktopMenu('Varsity Jackets', varsitySubcategoryLinks, { href: '/varsity-jackets', label: 'All Varsity Jackets', description: '' })}
+              {renderDesktopMenu('Custom Jackets', customJacketLinks)}
               {renderDesktopMenu('Other Styles', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
               {renderDesktopMenu('Bulk Order', bulkOrderLinks, { href: '/bulk-orders', label: 'All Bulk Orders', description: '' })}
               {renderDesktopMenu('Support', supportLinks)}
@@ -410,7 +426,7 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="xl:hidden"
               aria-label="Open menu"
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(true)}
@@ -456,7 +472,7 @@ export function Header() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-[999] lg:hidden"
+            className="fixed inset-0 z-[999] xl:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -544,6 +560,7 @@ export function Header() {
                   { href: '/varsity-jackets', label: 'All Varsity Jackets', description: 'Classic custom letterman styles' },
                   ...varsitySubcategoryLinks,
                 ])}
+                {renderMobileSection('Custom Jackets', customJacketLinks)}
                 {renderMobileSection('Other Styles', otherStyleLinks)}
                 {renderMobileSection('Bulk Order', bulkOrderLinks)}
                 {renderMobileSection('Support', supportLinks)}

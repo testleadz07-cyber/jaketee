@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2, Send } from 'lucide-react'
+import { BadgeCheck, Factory, Loader2, LockKeyhole, RotateCcw, Send, Star } from 'lucide-react'
 import Link from 'next/link'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
@@ -47,10 +47,25 @@ const legalLinks: FooterLink[] = [
   { href: '/contact', label: 'Support' },
 ]
 
+const customJacketLinks: FooterLink[] = [
+  { href: '/custom-letterman-jackets', label: 'Custom Letterman Jackets' },
+  { href: '/custom-bomber-jackets', label: 'Custom Bomber Jackets' },
+  { href: '/custom-coach-jackets', label: 'Custom Coach Jackets' },
+  { href: '/custom-denim-jackets', label: 'Custom Denim Jackets' },
+  { href: '/custom-puffer-jackets', label: 'Custom Puffer Jackets' },
+  { href: '/custom-hoodies', label: 'Custom Hoodies' },
+  { href: '/varsity-jackets/oversized', label: 'Oversized Varsity Jackets' },
+  { href: '/varsity-jackets/vintage', label: 'Vintage Varsity Jackets' },
+  { href: '/bulk-orders/senior-class', label: 'Senior Class Jackets' },
+  { href: '/bulk-orders/sorority-fraternity', label: 'Sorority & Fraternity Jackets' },
+  { href: '/bulk-orders/cheer', label: 'Custom Cheer Jackets' },
+]
+
 export function Footer() {
   const [categories, setCategories] = useState<Category[]>(() => getStaticCategories())
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [approvedReviewCount, setApprovedReviewCount] = useState<number | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -64,6 +79,23 @@ export function Footer() {
       .catch(() => {
         if (isMounted) setCategories(getStaticCategories())
       })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    fetch('/api/reviews/stats')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && typeof data?.approvedReviewCount === 'number') {
+          setApprovedReviewCount(data.approvedReviewCount)
+        }
+      })
+      .catch(() => undefined)
 
     return () => {
       isMounted = false
@@ -161,8 +193,31 @@ export function Footer() {
 
   return (
     <footer className="mt-auto border-t bg-card text-card-foreground">
+      <div className="border-b bg-background">
+        <div className="container mx-auto grid grid-cols-2 gap-px bg-border md:grid-cols-4">
+          <Link href="/checkout" className="flex min-h-24 items-center gap-3 bg-background px-4 py-5">
+            <LockKeyhole className="h-5 w-5 shrink-0" />
+            <span><strong className="block text-sm">Secure checkout</strong><span className="text-xs text-muted-foreground">Protected payment flow</span></span>
+          </Link>
+          <Link href="/returns" className="flex min-h-24 items-center gap-3 bg-background px-4 py-5">
+            <RotateCcw className="h-5 w-5 shrink-0" />
+            <span><strong className="block text-sm">Eligible returns</strong><span className="text-xs text-muted-foreground">10-day request window</span></span>
+          </Link>
+          <Link href="/about" className="flex min-h-24 items-center gap-3 bg-background px-4 py-5">
+            <Factory className="h-5 w-5 shrink-0" />
+            <span><strong className="block text-sm">In-house production</strong><span className="text-xs text-muted-foreground">Made in our Sialkot factory</span></span>
+          </Link>
+          <Link href="/shop" className="flex min-h-24 items-center gap-3 bg-background px-4 py-5">
+            {approvedReviewCount && approvedReviewCount > 0 ? <BadgeCheck className="h-5 w-5 shrink-0" /> : <Star className="h-5 w-5 shrink-0" />}
+            <span>
+              <strong className="block text-sm">Customer reviews</strong>
+              <span className="text-xs text-muted-foreground">{approvedReviewCount === null ? 'Moderated customer feedback' : approvedReviewCount > 0 ? `${approvedReviewCount} approved ${approvedReviewCount === 1 ? 'review' : 'reviews'}` : 'Be the first to review'}</span>
+            </span>
+          </Link>
+        </div>
+      </div>
       <div className="container mx-auto px-4 pb-24 pt-10 md:pb-16 md:pt-14">
-        <div className="grid gap-8 md:grid-cols-[1.15fr_0.85fr_1fr_1fr] md:gap-12">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-[1.1fr_0.9fr_0.9fr_0.9fr_1.1fr] lg:gap-10">
           <div className="space-y-4 md:max-w-xs">
             <Link href="/" aria-label="Jacketee home" className="inline-block"><BrandLogo /></Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
@@ -170,7 +225,7 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="space-y-3 md:order-4">
+          <div className="space-y-3 lg:order-5">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Stay Updated</h3>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
               Get custom jacket updates, subscriber offers, and design guides.
@@ -188,6 +243,11 @@ export function Footer() {
             {renderLinkList(customerCareLinks)}
           </div>
 
+          <div className="hidden space-y-4 md:block">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Custom Jackets</h3>
+            {renderLinkList(customJacketLinks)}
+          </div>
+
           <Accordion type="multiple" className="border-y md:hidden">
             <AccordionItem value="categories">
               <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider hover:no-underline">
@@ -200,6 +260,12 @@ export function Footer() {
                 Customer Care
               </AccordionTrigger>
               <AccordionContent>{renderLinkList(customerCareLinks)}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="custom-jackets">
+              <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider hover:no-underline">
+                Custom Jackets
+              </AccordionTrigger>
+              <AccordionContent>{renderLinkList(customJacketLinks)}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="legal">
               <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider hover:no-underline">

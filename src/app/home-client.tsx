@@ -20,6 +20,7 @@ export interface Product {
   description: string
   price: number
   compareAtPrice?: number | null
+  compareAtPriceVerified?: boolean
   images: Array<{ url: string; alt: string }>
   category?: {
     name: string
@@ -210,7 +211,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
               Custom Varsity Jackets, Designed Your Way
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/85 md:text-xl">
-              Shop varsity, bomber, wool, satin, leather, patch, and embroidery-ready styles built for teams,
+              Shop custom varsity jackets, bomber, wool, satin, leather, patch, and embroidery-ready styles built for teams,
               brands, schools, and everyday wear.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">

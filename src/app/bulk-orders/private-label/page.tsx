@@ -7,6 +7,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { FulfillmentNotice } from '@/components/fulfillment-notice'
 import { BulkOrderResources } from '@/components/bulk-order-resources'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
@@ -81,6 +82,8 @@ export default function PrivateLabelBulkOrdersPage() {
             </div>
           </div>
         </section>
+
+        <FulfillmentNotice bulk />
 
         <section className="container mx-auto px-4 py-12 md:py-16">
           <div className="grid gap-4 md:grid-cols-3">

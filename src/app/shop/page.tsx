@@ -89,6 +89,7 @@ export default async function Page({ searchParams }: {
     description: item.description ?? '',
     price: item.price,
     compareAtPrice: item.compareAtPrice ?? null,
+    compareAtPriceVerified: item.compareAtPriceVerified ?? false,
     images: (item.images ?? []).map((image) => ({ url: image.url, alt: image.alt ?? item.name })),
     category: item.categoryId && typeof item.categoryId === 'object' && 'name' in item.categoryId
       ? { name: String(item.categoryId.name), slug: String(item.categoryId.slug) }

@@ -177,7 +177,7 @@ export function JacketSizeReference() {
             </div>
           </div>
           <div className="flex flex-col gap-4">
-            <div className="relative aspect-[4/5] overflow-hidden bg-muted"><Image src={photo} alt="Varsity jacket showing the silhouette to compare with your own garment" fill sizes="(max-width: 1024px) 100vw, 35vw" className="object-contain" unoptimized /></div>
+            <div className="relative aspect-[4/5] overflow-hidden bg-muted"><Image src={photo} alt="Varsity jacket showing the silhouette to compare with your own garment" fill sizes="(max-width: 1024px) 100vw, 35vw" className="object-contain" /></div>
             <div className="flex items-start gap-2 text-sm text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><p>Tall entries appear only where listed in the reference chart. Availability and actual dimensions vary by product.</p></div>
           </div>
         </div>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Star, Loader2, MessageSquare, ShieldAlert, Upload, X, ImageIcon, VideoIcon } from 'lucide-react'
+import { Star, Loader2, MessageSquare, ShieldAlert, ShieldCheck, Upload, X, ImageIcon, VideoIcon } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface Review {
@@ -18,6 +18,7 @@ interface Review {
   title?: string
   comment: string
   createdAt: string
+  isVerified?: boolean
   images?: string[]
   videos?: string[]
 }
@@ -243,7 +244,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className="text-2xl font-semibold">Customer reviews</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{allReviews.length ? `${allReviews.length} customer ${allReviews.length === 1 ? 'review' : 'reviews'}` : 'No reviews yet'}</p>
+          {!loading && <p className="mt-1 text-sm text-muted-foreground">{allReviews.length ? `${allReviews.length} customer ${allReviews.length === 1 ? 'review' : 'reviews'}` : 'Be the first to review this product'}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-4">
           {allReviews.length > 0 && <div className="flex items-center gap-3">
@@ -301,16 +302,16 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
       {/* Review List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-            <span className="text-sm text-muted-foreground">Loading reviews...</span>
-          </div>
+          <div className="min-h-20" aria-busy="true" aria-label="Loading customer reviews" />
         ) : reviews.length === 0 ? (
-          <div className="flex items-center gap-3 border-y py-5">
+          <div className="flex items-center justify-between gap-4 border-y py-5">
+            <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 shrink-0 text-muted-foreground" />
             <h3 className="text-sm font-medium">
-              {ratingFilter > 0 ? `No ${ratingFilter}-star reviews yet` : 'No reviews yet'}
+              {ratingFilter > 0 ? `No ${ratingFilter}-star reviews yet` : 'Be the first to review this product'}
             </h3>
+            </div>
+            {ratingFilter === 0 && <Button type="button" size="sm" onClick={() => setReviewFormOpen(true)}>Write a review</Button>}
           </div>
         ) : (
           <div className="divide-y border-y">
@@ -320,6 +321,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{review.userName}</span>
+                      {review.isVerified && <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700"><ShieldCheck className="h-3.5 w-3.5" />Verified purchase</span>}
                       <span className="text-xs text-muted-foreground">
                         {new Date(review.createdAt).toLocaleDateString(undefined, {
                           year: 'numeric',

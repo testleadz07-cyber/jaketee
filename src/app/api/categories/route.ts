@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, slug, description, seoTitle, seoDescription, heading, image, parentId } = body
+    const { name, slug, description, seoTitle, seoDescription, heading, introShort, introLong, image, parentId } = body
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 })
@@ -78,6 +78,8 @@ export async function POST(request: NextRequest) {
       seoTitle,
       seoDescription,
       heading,
+      introShort,
+      introLong,
       image,
       parentId: resolvedParentId,
     })

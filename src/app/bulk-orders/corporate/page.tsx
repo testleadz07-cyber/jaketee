@@ -7,15 +7,16 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { FulfillmentNotice } from '@/components/fulfillment-notice'
 import { BulkOrderResources } from '@/components/bulk-order-resources'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders/corporate`
 
 export const metadata: Metadata = {
-  title: 'Corporate Custom Jacket Bulk Orders | Jacketee',
+  title: 'Corporate Varsity Jackets & Company Orders | Jacketee',
   description:
-    'Corporate bulk jacket orders for branded uniforms, staff apparel, event merch, onboarding kits, and office teams. Plan logos, materials, sizing, and delivery.',
+    'Order corporate varsity jackets and custom company jackets for uniforms, events and office teams. Plan logos, materials, sizing and delivery.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Corporate Custom Jacket Bulk Orders | Jacketee',
@@ -55,9 +56,9 @@ export default function CorporateBulkOrdersPage() {
             />
             <div className="max-w-3xl">
               <Badge className="mb-5 bg-white/10 text-white hover:bg-white/10">Corporate office and teams</Badge>
-              <h1 className="text-4xl font-black leading-tight md:text-6xl">Corporate Custom Jacket Bulk Orders</h1>
+              <h1 className="text-4xl font-black leading-tight md:text-6xl">Corporate Varsity Jackets</h1>
               <p className="mt-6 text-lg leading-8 text-white/75">
-                Create branded jackets for staff, events, onboarding, client gifts, and office programs with clear logo placement and consistent sizing.
+                Corporate varsity jackets give staff, events, onboarding, client gifts, and office programs clear logo placement and consistent sizing.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg" className="bg-white text-black hover:bg-white/90">
@@ -73,6 +74,8 @@ export default function CorporateBulkOrdersPage() {
             </div>
           </div>
         </section>
+
+        <FulfillmentNotice bulk />
 
         <section className="container mx-auto px-4 py-12 md:py-16">
           <div className="grid gap-4 md:grid-cols-3">

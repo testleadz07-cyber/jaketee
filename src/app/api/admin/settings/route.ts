@@ -22,7 +22,10 @@ export async function GET() {
     if (!settings) {
       settings = await StoreSettings.create({})
     }
-    return NextResponse.json({ lowStockThreshold: settings.lowStockThreshold })
+    return NextResponse.json({
+      lowStockThreshold: settings.lowStockThreshold,
+      reviewRequestDelayDays: settings.reviewRequestDelayDays,
+    })
   } catch (error) {
     console.error('GET /api/admin/settings error:', error)
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
@@ -36,19 +39,30 @@ export async function PUT(request: Request) {
   }
   try {
     await ensureDB()
-    const { lowStockThreshold } = await request.json()
+    const { lowStockThreshold, reviewRequestDelayDays } = await request.json()
     const parsed = Number(lowStockThreshold)
+    const parsedReviewDelay = Number(reviewRequestDelayDays)
     if (isNaN(parsed) || parsed < 0) {
       return NextResponse.json({ error: 'Invalid lowStockThreshold' }, { status: 400 })
     }
+    if (!Number.isInteger(parsedReviewDelay) || parsedReviewDelay < 0 || parsedReviewDelay > 90) {
+      return NextResponse.json({ error: 'Review request delay must be a whole number from 0 to 90' }, { status: 400 })
+    }
     let settings = await StoreSettings.findOne()
     if (!settings) {
-      settings = await StoreSettings.create({ lowStockThreshold: parsed })
+      settings = await StoreSettings.create({
+        lowStockThreshold: parsed,
+        reviewRequestDelayDays: parsedReviewDelay,
+      })
     } else {
       settings.lowStockThreshold = parsed
+      settings.reviewRequestDelayDays = parsedReviewDelay
       await settings.save()
     }
-    return NextResponse.json({ lowStockThreshold: settings.lowStockThreshold })
+    return NextResponse.json({
+      lowStockThreshold: settings.lowStockThreshold,
+      reviewRequestDelayDays: settings.reviewRequestDelayDays,
+    })
   } catch (error) {
     console.error('PUT /api/admin/settings error:', error)
     return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 })

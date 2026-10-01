@@ -1,9 +1,9 @@
 import { cache } from 'react'
 import { Metadata } from 'next'
-import Script from 'next/script'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
+import { cleanMetaText, pageMetaDescription } from '@/lib/seo-metadata'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
@@ -41,7 +41,10 @@ export async function generateMetadata({
 
   const pageUrl = `${SITE_URL}/blog/${slug}`
   const title = post.seoTitle || `${post.title} — Jacketee Blog`
-  const description = (post.seoDescription || post.excerpt || '').slice(0, 160)
+  const description = pageMetaDescription(
+    post.seoDescription || post.excerpt,
+    `Read ${cleanMetaText(post.title)} on the Jacketee blog for practical guidance on custom jackets, materials, fit and ordering.`
+  )
   const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
   const authorName = post.author?.name || 'Jacketee'
   const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
@@ -96,7 +99,9 @@ export default async function BlogPostLayout({
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
+    '@type': ['Article', 'BlogPosting'],
+    url: pageUrl,
+    inLanguage: 'en',
     headline: post.seoTitle || post.title,
     description: post.seoDescription || post.excerpt,
     image: imageUrl,
@@ -108,6 +113,7 @@ export default async function BlogPostLayout({
     },
     publisher: {
       '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
       name: 'Jacketee',
       logo: { '@type': 'ImageObject', url: DEFAULT_IMAGE },
     },
@@ -116,10 +122,9 @@ export default async function BlogPostLayout({
 
   return (
     <>
-      <Script
+      <script
         id={`blog-post-schema-${slug}`}
         type="application/ld+json"
-        strategy="beforeInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
       {children}

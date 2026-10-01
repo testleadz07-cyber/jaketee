@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       const products = await Product.find(filter)
         .sort({ name: 1 })
         .limit(8)
-        .select('name slug price compareAtPrice images categoryId')
+        .select('name slug price compareAtPrice compareAtPriceVerified images categoryId')
         .populate('categoryId', 'name slug')
         .lean()
 
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
         thumbnail: p.images?.[0]?.url || '/placeholder.png',
         price: p.price,
         compareAtPrice: p.compareAtPrice ?? null,
+        compareAtPriceVerified: p.compareAtPriceVerified ?? false,
         categoryPath: p.categoryId
           ? resolveAncestorChain(categoryChainNodes, String(p.categoryId._id)).map((c) => ({ name: c.name, slug: c.slug }))
           : [],
@@ -66,6 +67,7 @@ export async function GET(request: NextRequest) {
         thumbnail: p.images?.[0]?.url || '/placeholder.png',
         price: p.price,
         compareAtPrice: p.compareAtPrice ?? null,
+        compareAtPriceVerified: p.compareAtPriceVerified ?? false,
         categoryPath: p.categoryPath || [],
       }))
 

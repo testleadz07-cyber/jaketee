@@ -7,6 +7,8 @@ export interface ICategory extends Document {
   seoTitle?: string
   seoDescription?: string
   heading?: string
+  introShort?: string
+  introLong?: string
   image?: string
   parentId?: mongoose.Types.ObjectId | null
   createdAt: Date
@@ -21,6 +23,8 @@ const CategorySchema = new Schema<ICategory>(
     seoTitle: { type: String },
     seoDescription: { type: String },
     heading: { type: String },
+    introShort: { type: String },
+    introLong: { type: String },
     image: { type: String },
     parentId: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
   },

@@ -13,6 +13,7 @@ interface Product {
   description: string
   price: number
   compareAtPrice?: number | null
+  compareAtPriceVerified?: boolean
   images: Array<{ url: string; alt: string }>
   category: {
     name: string;

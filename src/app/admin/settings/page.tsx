@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react'
 export default function SettingsPage() {
   const { toast } = useToast()
   const [threshold, setThreshold] = useState<number | ''>('')
+  const [reviewDelayDays, setReviewDelayDays] = useState<number | ''>('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -20,6 +21,7 @@ export default function SettingsPage() {
         if (!res.ok) throw new Error('Failed to fetch settings')
         const data = await res.json()
         setThreshold(data.lowStockThreshold)
+        setReviewDelayDays(data.reviewRequestDelayDays)
       } catch (error) {
         console.error(error)
         toast({
@@ -35,7 +37,7 @@ export default function SettingsPage() {
   }, [])
 
   const handleSave = async () => {
-    if (threshold === '' || typeof threshold !== 'number') {
+    if (threshold === '' || typeof threshold !== 'number' || reviewDelayDays === '' || typeof reviewDelayDays !== 'number') {
       toast({
         title: 'Invalid value',
         description: 'Please enter a valid number.',
@@ -48,11 +50,12 @@ export default function SettingsPage() {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lowStockThreshold: threshold }),
+        body: JSON.stringify({ lowStockThreshold: threshold, reviewRequestDelayDays: reviewDelayDays }),
       })
       if (!res.ok) throw new Error('Failed to save')
       const data = await res.json()
       setThreshold(data.lowStockThreshold)
+      setReviewDelayDays(data.reviewRequestDelayDays)
       toast({
         title: 'Success',
         description: 'Low‑stock threshold updated.',
@@ -91,6 +94,20 @@ export default function SettingsPage() {
           onChange={e => setThreshold(e.target.value === '' ? '' : Number(e.target.value))}
           className="w-full"
         />
+        <label htmlFor="review-request-delay" className="block text-sm font-medium text-foreground">
+          Review request delay after delivery (days)
+        </label>
+        <Input
+          id="review-request-delay"
+          type="number"
+          min={0}
+          max={90}
+          step={1}
+          value={reviewDelayDays}
+          onChange={e => setReviewDelayDays(e.target.value === '' ? '' : Number(e.target.value))}
+          className="w-full"
+        />
+        <p className="text-sm text-muted-foreground">Use 0 to send on the next scheduled sweep after delivery.</p>
         <Button onClick={handleSave} disabled={saving} className="mt-2">
           {saving ? 'Saving...' : 'Save'}
         </Button>

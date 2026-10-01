@@ -74,11 +74,17 @@ export async function PUT(
     }
 
     const body = await request.json()
+    if (body.compareAtPriceVerified && (!body.compareAtPrice || Number(body.compareAtPrice) <= Number(body.price))) {
+      return NextResponse.json({ error: 'A verified compare-at price must be greater than the selling price' }, { status: 400 })
+    }
     const product = await Product.findByIdAndUpdate(id, {
       name: body.name,
       description: body.description,
+      seoTitle: body.seoTitle || '',
+      seoDescription: body.seoDescription || '',
       price: body.price,
       compareAtPrice: body.compareAtPrice || null,
+      compareAtPriceVerified: Boolean(body.compareAtPriceVerified),
       categoryId: body.categoryId,
       images: body.images || [],
       variants: body.variants || [],

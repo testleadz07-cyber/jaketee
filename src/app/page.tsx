@@ -15,6 +15,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Custom Varsity Jackets & Letterman Jackets | Jacketee',
     description: 'Design custom varsity jackets and letterman jackets with chenille patches, embroidery and your team colors. Bulk pricing for schools, teams and brands.',
+    url: 'https://www.jacketee.com/',
+    siteName: 'Jacketee',
+    type: 'website',
+    images: [{ url: 'https://www.jacketee.com/opengraph-image', width: 1200, height: 630, alt: 'Jacketee custom varsity and letterman jackets' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Custom Varsity Jackets & Letterman Jackets | Jacketee',
+    description: 'Design custom varsity jackets and letterman jackets with chenille patches, embroidery and your team colors. Bulk pricing for schools, teams and brands.',
+    images: ['https://www.jacketee.com/opengraph-image'],
   },
 }
 
@@ -83,6 +93,7 @@ export default async function Page() {
       description: item.description ?? '',
       price: item.price,
       compareAtPrice: item.compareAtPrice ?? null,
+      compareAtPriceVerified: item.compareAtPriceVerified ?? false,
       images: (item.images ?? []).map((image) => ({ url: image.url, alt: image.alt ?? item.name })),
       category: productCategory ? { name: String(productCategory.name), slug: String(productCategory.slug) } : undefined,
       categoryPath: productCategory

@@ -59,6 +59,8 @@ interface Category {
   seoTitle?: string
   seoDescription?: string
   heading?: string
+  introShort?: string
+  introLong?: string
   image?: string
   parentId?: string | null
   _count?: {
@@ -92,6 +94,8 @@ export default function AdminCategories() {
     seoTitle: '',
     seoDescription: '',
     heading: '',
+    introShort: '',
+    introLong: '',
     image: '',
     parentId: 'none'
   })
@@ -103,6 +107,8 @@ export default function AdminCategories() {
     seoTitle: '',
     seoDescription: '',
     heading: '',
+    introShort: '',
+    introLong: '',
     image: '',
     parentId: 'none'
   })
@@ -161,7 +167,7 @@ export default function AdminCategories() {
   // Opens the Add dialog with the parent implicitly set to whatever level
   // is currently being browsed — no dropdown-hunting required.
   const openAddDialog = () => {
-    setNewCategory({ name: '', slug: '', description: '', seoTitle: '', seoDescription: '', heading: '', image: '', parentId: currentParentId || 'none' })
+    setNewCategory({ name: '', slug: '', description: '', seoTitle: '', seoDescription: '', heading: '', introShort: '', introLong: '', image: '', parentId: currentParentId || 'none' })
     setIsAddOpen(true)
   }
 
@@ -222,6 +228,8 @@ export default function AdminCategories() {
       seoTitle: category.seoTitle || '',
       seoDescription: category.seoDescription || '',
       heading: category.heading || '',
+      introShort: category.introShort || '',
+      introLong: category.introLong || '',
       image: category.image || '',
       parentId: category.parentId || 'none'
     })
@@ -606,7 +614,7 @@ export default function AdminCategories() {
 
       {/* Add Dialog */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{currentCategory ? 'Add Subcategory' : 'Add Category'}</DialogTitle>
             <DialogDescription>Create a new category for products in the catalog.</DialogDescription>
@@ -678,6 +686,26 @@ export default function AdminCategories() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="add-intro-short">Short Introduction</Label>
+              <Textarea
+                id="add-intro-short"
+                value={newCategory.introShort}
+                onChange={e => setNewCategory(prev => ({ ...prev, introShort: e.target.value }))}
+                placeholder="40-60 words shown above the product grid"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-intro-long">Long Category Guide</Label>
+              <Textarea
+                id="add-intro-long"
+                value={newCategory.introLong}
+                onChange={e => setNewCategory(prev => ({ ...prev, introLong: e.target.value }))}
+                placeholder="Use ### for section headings and Markdown links"
+                rows={12}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="add-image">Image URL</Label>
               <Input
                 id="add-image"
@@ -700,7 +728,7 @@ export default function AdminCategories() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
             <DialogDescription>Update details for this product category.</DialogDescription>
@@ -790,6 +818,26 @@ export default function AdminCategories() {
                 onChange={e => setEditForm(prev => ({ ...prev, seoDescription: e.target.value }))}
                 placeholder="Optional meta description..."
                 rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-intro-short">Short Introduction</Label>
+              <Textarea
+                id="edit-intro-short"
+                value={editForm.introShort}
+                onChange={e => setEditForm(prev => ({ ...prev, introShort: e.target.value }))}
+                placeholder="40-60 words shown above the product grid"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-intro-long">Long Category Guide</Label>
+              <Textarea
+                id="edit-intro-long"
+                value={editForm.introLong}
+                onChange={e => setEditForm(prev => ({ ...prev, introLong: e.target.value }))}
+                placeholder="Use ### for section headings and Markdown links"
+                rows={12}
               />
             </div>
             <div className="space-y-2">

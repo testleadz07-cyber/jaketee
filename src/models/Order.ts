@@ -39,6 +39,9 @@ export interface IOrder extends Document {
   trackingNumber?: string
   carrier?: 'UPS' | 'FedEx' | 'USPS' | 'DHL' | 'Other'
   estimatedDelivery?: Date
+  deliveredAt?: Date
+  reviewRequestSentAt?: Date
+  reviewRequestClaimedAt?: Date
   statusHistory: Array<{ status: string; timestamp: Date; note?: string }>
   createdAt: Date
   updatedAt: Date
@@ -149,6 +152,9 @@ const OrderSchema = new Schema<IOrder>(
     trackingNumber: { type: String },
     carrier: { type: String, enum: ['UPS', 'FedEx', 'USPS', 'DHL', 'Other'] },
     estimatedDelivery: { type: Date },
+    deliveredAt: { type: Date },
+    reviewRequestSentAt: { type: Date },
+    reviewRequestClaimedAt: { type: Date },
     statusHistory: { type: [StatusHistorySchema], default: [] },
   },
   { timestamps: true }

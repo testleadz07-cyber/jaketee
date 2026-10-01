@@ -83,6 +83,9 @@ export async function PATCH(
     }
 
     if (status && status !== existingOrder.status) {
+      if (status === 'delivered' && !existingOrder.deliveredAt) {
+        update.deliveredAt = new Date()
+      }
       update.$push = {
         statusHistory: {
           status,

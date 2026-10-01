@@ -24,8 +24,11 @@ export interface IProduct extends Document {
   name: string
   slug: string
   description: string
+  seoTitle?: string
+  seoDescription?: string
   price: number
   compareAtPrice?: number
+  compareAtPriceVerified: boolean
   categoryId: mongoose.Types.ObjectId
   category?: { _id: string; name: string; slug: string }
   images: IProductImage[]
@@ -72,8 +75,11 @@ const ProductSchema = new Schema<IProduct>(
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     description: { type: String, required: true },
+    seoTitle: { type: String, trim: true },
+    seoDescription: { type: String, trim: true },
     price: { type: Number, required: true },
     compareAtPrice: { type: Number },
+    compareAtPriceVerified: { type: Boolean, default: false },
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
     images: [ProductImageSchema],
     variants: [ProductVariantSchema],

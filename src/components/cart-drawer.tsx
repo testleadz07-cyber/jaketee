@@ -18,6 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Tag, X, Loader2 } from 'lucide-react'
+import { fulfillmentConfig } from '@/config/fulfillment'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getCustomizedViews } from '@/types/jacket-customization'
@@ -223,6 +224,11 @@ export function CartDrawer() {
           {visibleItems.length > 0 && (
             <>
               {/* Promo input or display */}
+              <div className="w-full border-b pb-3 text-xs leading-5 text-muted-foreground">
+                <strong className="text-foreground">Production and delivery:</strong> {fulfillmentConfig.individualProduction} {fulfillmentConfig.individualDelivery}
+                <span className="mt-1 block">{fulfillmentConfig.singleJacketShipping} {fulfillmentConfig.multipleJacketShipping}</span>
+              </div>
+
               <div className="w-full py-1">
                 {!visiblePromo ? (
                   <form onSubmit={handleApplyPromo} className="space-y-1.5">

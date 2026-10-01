@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { ShoppingBag, CheckCircle, Package, ArrowRight, Calendar, MapPin, CreditCard, Download } from 'lucide-react'
 import Link from 'next/link'
+import { getCustomizedViews, type JacketCustomization } from '@/types/jacket-customization'
 
 interface OrderItem {
   productId: string
@@ -20,6 +21,7 @@ interface OrderItem {
   price: number
   quantity: number
   variants: Array<{ name: string; value: string }>
+  customization?: JacketCustomization
 }
 
 interface Order {
@@ -239,6 +241,14 @@ function ConfirmationContent() {
                       <p className="text-xs text-muted-foreground">
                         {item.variants.map((v) => `${v.name}: ${v.value}`).join(', ')}
                       </p>
+                      {getCustomizedViews(item.customization).map((view) => (
+                        <p key={view} className="text-xs text-muted-foreground">
+                          {view[0].toUpperCase()}{view.slice(1)}: {item.customization?.[view]?.text?.value || ''}
+                          {item.customization?.[view]?.artworks?.length
+                            ? `${item.customization?.[view]?.text?.value ? ' + ' : ''}${item.customization[view]?.artworks?.map((artwork) => artwork.name).join(', ')}`
+                            : ''}
+                        </p>
+                      ))}
                       <p className="text-xs font-medium mt-1">
                         Qty: {item.quantity} • ${item.price.toFixed(2)}
                       </p>

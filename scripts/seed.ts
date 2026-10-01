@@ -47,6 +47,7 @@ async function seed() {
       description: prod.description,
       price: prod.price,
       compareAtPrice: prod.compareAtPrice || undefined,
+      compareAtPriceVerified: Boolean(prod.compareAtPrice && prod.compareAtPrice > prod.price),
       categoryId,
       images: prod.images.map((img) => ({
         url: img.url,

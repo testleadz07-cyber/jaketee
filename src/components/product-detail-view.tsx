@@ -38,6 +38,9 @@ import {
 import Link from 'next/link'
 import Image from 'next/image'
 import type { JacketCustomization } from '@/types/jacket-customization'
+import { getDisplayCompareAtPrice } from '@/lib/pricing'
+import { buildProductFaqs, type ProductFaq as ProductFaqData } from '@/lib/product-faqs'
+import { FulfillmentNotice } from '@/components/fulfillment-notice'
 
 export interface ProductDetailData {
   id: string
@@ -48,6 +51,7 @@ export interface ProductDetailData {
   careInstructions?: string
   price: number
   compareAtPrice?: number | null
+  compareAtPriceVerified?: boolean
   inStock: boolean
   isFeatured: boolean
   category: {
@@ -74,14 +78,6 @@ export interface ProductDetailData {
   averageRating?: number
   reviewCount?: number
   stockCount?: number
-}
-
-export interface ProductFaqData {
-  id: string
-  question: string
-  answer: string[]
-  bullets: string[]
-  ordered: string[]
 }
 
 function getDefaultVariants(variants: ProductDetailData['variants']): Record<string, string> {
@@ -150,6 +146,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
       description: product.description,
       price: product.price,
       compareAtPrice: product.compareAtPrice,
+      compareAtPriceVerified: product.compareAtPriceVerified,
       images: (product.images || []).map((img) => ({
         url: img.url,
         alt: img.alt || '',
@@ -182,8 +179,9 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
   }
 
   const getCompareAtPrice = () => {
-    if (!product.compareAtPrice) return null
-    return product.compareAtPrice + getSelectedVariantPriceAdjust()
+    const compareAtPrice = getDisplayCompareAtPrice(product)
+    if (!compareAtPrice) return null
+    return compareAtPrice + getSelectedVariantPriceAdjust()
   }
 
   const getDiscount = () => {
@@ -236,29 +234,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
   const isJacket = isJacketCategoryPath(categoryPath)
   const categoryName = categoryPath.at(-1)?.name || product.category.name
   const sizeVariants = Object.entries(groupedVariants).find(([name]) => name.toLowerCase() === 'size')?.[1] || []
-  const fallbackFaqs: ProductFaqData[] = [
-    ...(isJacket || sizeVariants.length > 0 ? [{
-      id: 'fit',
-      question: `How do I choose the right size for ${categoryName}?`,
-      answer: ['Use the size guide beside the price to measure your chest, shoulders, sleeves, and jacket length. For measurements of this exact style, contact our team before ordering.'],
-      bullets: [], ordered: [],
-    }] : []),
-    {
-      id: 'options',
-      question: `What options are available for this ${categoryName.toLowerCase()} style?`,
-      answer: ['Available selections, when offered, are shown in the product details and purchase controls above. Contact our team if you need an option that is not listed.'],
-      bullets: [], ordered: [],
-    },
-    {
-      id: 'delivery',
-      question: 'Where can I check shipping and return eligibility?',
-      answer: ['See the shipping and returns links beside the purchase controls for current delivery details and exclusions for personalized items.'],
-      bullets: [], ordered: [],
-    },
-  ]
-  const productFaqs = [...faqs, ...fallbackFaqs.filter((fallback) =>
-    !faqs.some((faq) => faq.question.toLowerCase() === fallback.question.toLowerCase())
-  )].slice(0, 4)
+  const productFaqs = buildProductFaqs(faqs, categoryName, isJacket || sizeVariants.length > 0)
 
   const handleSelectCustomizerVariant = (groupName: string, value: string, image?: string | null) => {
     setSelectedVariants((prev) => ({ ...prev, [groupName]: value }))
@@ -325,8 +301,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-contain"
-                    loading="eager"
-                    fetchPriority="high"
+                    priority
                   />
                   <span className="absolute bottom-4 right-4 rounded-md bg-background/90 p-2"><ZoomIn className="h-5 w-5" /></span>
                 </button>
@@ -445,6 +420,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
               <section className="rounded-md border bg-muted/35 px-4 py-5 sm:px-5" aria-labelledby="product-details-heading">
                 <h2 id="product-details-heading" className="text-lg font-semibold">Product details</h2>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">Explore {product.name}, including its materials, available options, sizing, and customization details.</p>
                 <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{product.description}</p>
                 {product.specificationDetails && <details className="mt-4 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Specifications</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.specificationDetails}</p></details>}
                 {product.careInstructions && <details className="mt-3 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Care instructions</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.careInstructions}</p></details>}
@@ -540,6 +516,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
               <Separator />
 
+              <FulfillmentNotice compact />
+
               {/* Quantity and Add to Cart */}
               {!isJacket && (
                 <div className="space-y-4">
@@ -611,7 +589,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
               <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
                 <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                   <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-                  <span><strong className="block">Shipping</strong><span className="text-muted-foreground">Free standard shipping over $50. View delivery details.</span></span>
+                  <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
                 </Link>
                 <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                   <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />

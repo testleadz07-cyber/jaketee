@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { returnDocument: 'after' }
     )
       .populate('categories', 'name slug')
-      .populate('taggedProducts', 'name slug price compareAtPrice images averageRating')
+      .populate('taggedProducts', 'name slug price compareAtPrice compareAtPriceVerified images averageRating')
       .lean()
 
     if (!post) {
@@ -54,6 +54,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         slug: tp.slug,
         price: tp.price,
         compareAtPrice: tp.compareAtPrice,
+        compareAtPriceVerified: tp.compareAtPriceVerified ?? false,
         thumbnail: tp.images?.[0]?.url || null,
         averageRating: tp.averageRating,
       })),

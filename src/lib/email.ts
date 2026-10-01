@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import type { JacketCustomization } from '@/types/jacket-customization'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
 const BRAND_NAME = 'Jacketee'
@@ -147,21 +148,34 @@ function emailLayout({
 export function orderConfirmationTemplate(order: {
   orderNumber: string
   userName: string
-  items: Array<{ name: string; quantity: number; price: number; variant: { name: string; value: string } }>
+  items: Array<{ name: string; quantity: number; price: number; variant: { name: string; value: string }; customization?: JacketCustomization }>
   total: number
   shippingAddress: { name: string; street: string; city: string; state: string; zip: string; country: string }
 }) {
   const itemsHtml = order.items
     .map(
-      (item) => `
+      (item) => {
+        const customization = (['front', 'back'] as const)
+          .map((view) => {
+            const side = item.customization?.[view]
+            const details = [
+              side?.text?.value ? `Text: ${side.text.value}` : '',
+              ...(side?.artworks || []).map((artwork) => `Artwork: ${artwork.name}`),
+            ].filter(Boolean)
+            return details.length ? `${view[0].toUpperCase()}${view.slice(1)} - ${details.join(', ')}` : ''
+          })
+          .filter(Boolean)
+        return `
         <tr>
           <td style="padding: 14px 0; border-bottom: 1px solid #e4e4e7;">
             <p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 700;">${escapeHtml(item.name)}</p>
             <p style="margin: 4px 0 0; color: #71717a; font-size: 12px;">${escapeHtml(item.variant.name)}: ${escapeHtml(item.variant.value)}</p>
+            ${customization.map((detail) => `<p style="margin: 4px 0 0; color: #52525b; font-size: 12px;">${escapeHtml(detail)}</p>`).join('')}
           </td>
           <td style="padding: 14px 10px; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 14px; text-align: center;">${item.quantity}</td>
           <td style="padding: 14px 0; border-bottom: 1px solid #e4e4e7; color: #18181b; font-size: 14px; font-weight: 700; text-align: right;">${money(item.price * item.quantity)}</td>
         </tr>`
+      }
     )
     .join('')
 
@@ -382,6 +396,34 @@ export function abandonedCartTemplate(data: {
       `,
     }),
   }
+}
+
+export function reviewRequestTemplate(data: {
+  userName: string
+  orderNumber: string
+  products: Array<{ name: string; reviewUrl: string }>
+}) {
+  const productRows = data.products
+    .map((product) => `<li style="margin: 0 0 8px;"><a href="${escapeHtml(product.reviewUrl)}" style="color: #18181b; font-weight: 700;">${escapeHtml(product.name)}</a></li>`)
+    .join('')
+  const primaryReviewUrl = data.products[0]?.reviewUrl || APP_URL
+
+  return emailLayout({
+    eyebrow: 'Share your experience',
+    title: `How did your order turn out, ${data.userName}?`,
+    preview: `Tell us what you think about your Jacketee order ${data.orderNumber}.`,
+    children: `
+      <p style="margin: 0 0 16px; color: #3f3f46; font-size: 15px; line-height: 1.7;">
+        Your order has arrived, and we would value your honest feedback. Reviews help other customers choose the right jacket and help our team improve.
+      </p>
+      ${detailBox(
+        'Order details',
+        `<p style="margin: 0 0 10px; color: #52525b; font-size: 14px;">Order: <strong style="color: #18181b;">${escapeHtml(data.orderNumber)}</strong></p><ul style="margin: 0; padding-left: 20px; color: #52525b; font-size: 14px; line-height: 1.6;">${productRows}</ul>`
+      )}
+      ${primaryButton('Write a Review', primaryReviewUrl)}
+      <p style="margin: 0; color: #71717a; font-size: 13px; line-height: 1.6;">Please share only your genuine experience. Your review will appear after moderation.</p>
+    `,
+  })
 }
 
 export function contactFormTemplate(data: { name: string; email: string; subject: string; message: string }) {

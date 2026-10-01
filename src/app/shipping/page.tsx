@@ -3,6 +3,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { PolicyResources } from '@/components/policy-resources'
+import { fulfillmentConfig } from '@/config/fulfillment'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,19 +21,26 @@ export default function ShippingPage() {
           <div className="mt-5 grid gap-6 sm:grid-cols-2">
             <div className="border-l-2 border-foreground pl-5">
               <h3 className="font-semibold">One jacket</h3>
-              <p className="mt-1 text-muted-foreground">$30 USD shipping.</p>
+              <p className="mt-1 text-muted-foreground">{fulfillmentConfig.singleJacketShipping}</p>
             </div>
             <div className="border-l-2 border-foreground pl-5">
               <h3 className="font-semibold">Two or more jackets</h3>
-              <p className="mt-1 text-muted-foreground">Shipping is quoted based on quantity and total package weight. Contact us for a quote before placing your order.</p>
+              <p className="mt-1 text-muted-foreground">{fulfillmentConfig.multipleJacketShipping} Contact us before placing your order.</p>
             </div>
           </div>
         </section>
 
         <section className="border-t py-8" aria-labelledby="shipping-timing">
           <h2 id="shipping-timing" className="text-2xl font-semibold">Production & delivery</h2>
-          <p className="mt-4 max-w-3xl text-muted-foreground">Bulk orders of 10 or more jackets typically take 3-4 weeks in total, including production and delivery. We confirm the schedule before production begins. For individual orders, ask our team for the current production and delivery estimate.</p>
+          <p className="mt-4 max-w-3xl text-muted-foreground">{fulfillmentConfig.bulkProductionDelivery} We confirm the schedule before production begins.</p>
+          <p className="mt-4 max-w-3xl text-muted-foreground"><strong className="text-foreground">Individual and custom orders:</strong> {fulfillmentConfig.individualProduction} {fulfillmentConfig.individualDelivery}</p>
           <p className="mt-4 text-muted-foreground">Tracking details are sent when your order ships. Delivery times can vary by destination and customs processing.</p>
+        </section>
+
+        <section className="border-t py-8" aria-labelledby="international-shipping">
+          <h2 id="international-shipping" className="text-2xl font-semibold">United States, United Kingdom, and Canada</h2>
+          <p className="mt-4 max-w-3xl text-muted-foreground">{fulfillmentConfig.internationalShipping} Share the full destination when requesting a quote so Jacketee can confirm the available service, charge, and current estimate.</p>
+          <p className="mt-4 max-w-3xl text-muted-foreground">Custom items do not automatically receive free shipping based on order value. {fulfillmentConfig.freeShipping}</p>
         </section>
 
         <section className="border-t py-8" aria-labelledby="shipping-help">

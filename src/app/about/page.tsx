@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Mail, MapPin } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Factory, Mail, MapPin, Phone } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
@@ -10,12 +10,12 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const heroImage = 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1788899943/clothaa/exports/patches-embroidery/hero__varsity-jacket-patches-embroidery-hero.jpg'
 
 export const metadata: Metadata = {
-  title: 'About Jacketee | Custom Jackets for Teams, Brands & Individuals',
-  description: 'Learn about Jacketee, our custom jacket options, order process, and support for individual, school, corporate, and private label orders.',
+  title: 'About Jacketee | Custom Jacket Factory & Team',
+  description: 'Meet Jacketee, founded in 2026 in Sialkot, Pakistan. Learn about our in-house jacket production, customization options, and customer support.',
   alternates: { canonical: `${siteUrl}/about` },
   openGraph: {
     title: 'About Jacketee',
-    description: 'Custom jackets, patches, embroidery, and bulk-order support for teams, brands, schools, and individuals.',
+    description: 'Jacketee makes custom jackets in its own factory in Sialkot, Pakistan, with in-house cutting, stitching, embroidery, quality checks, and packing.',
     url: `${siteUrl}/about`,
     siteName: 'Jacketee',
     type: 'website',
@@ -42,18 +42,46 @@ export default function AboutPage() {
       <Header />
       <main className="flex-1">
         <section className="relative flex min-h-[430px] items-center overflow-hidden bg-zinc-950 text-white md:min-h-[520px]">
-          <Image src={heroImage} alt="Custom varsity jacket with patches and embroidery" fill priority sizes="100vw" className="object-cover object-center" unoptimized />
+          <Image src={heroImage} alt="Custom varsity jacket with patches and embroidery" fill priority sizes="100vw" className="object-cover object-center" />
           <div className="absolute inset-0 bg-black/55" />
           <div className="container relative mx-auto px-4 py-14">
             <Breadcrumbs items={[{ label: 'About' }]} className="mb-8 text-white/80" />
             <div className="max-w-2xl">
               <h1 className="text-4xl font-bold md:text-6xl">About Jacketee</h1>
               <p className="mt-5 text-base leading-8 text-white/90 md:text-lg">
-                Jacketee brings jacket styles and custom options together for individuals, teams, schools, and brands. Start with the fit and fabric you want, then make the details your own.
+                Founded in 2026, Jacketee makes custom jackets for individuals, teams, schools, organizations, and brands from our own factory in Sialkot, Pakistan.
               </p>
               <Link href="/shop" className="mt-7 inline-flex h-11 items-center gap-2 bg-white px-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-white/90">
                 Explore jackets <ArrowRight className="h-4 w-4" />
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b bg-background py-12 md:py-16">
+          <div className="container mx-auto grid gap-10 px-4 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+            <div>
+              <p className="text-sm font-semibold uppercase text-muted-foreground">Our story</p>
+              <h2 className="mt-2 text-2xl font-bold md:text-3xl">Built in Sialkot, made for your idea</h2>
+            </div>
+            <div className="space-y-5 leading-7 text-muted-foreground">
+              <p>Jacketee was founded in 2026 to make custom jacket ordering clearer. Customers can choose a style, compare materials and colors, and personalize their jacket with logos, names, numbers, embroidery, and custom patches.</p>
+              <p>We are based in Adalat Garh, Sialkot, Punjab, Pakistan. Sialkot has an established manufacturing and export community spanning leather products, jackets, gloves, sportswear, and textiles. Jacketee builds on that local production knowledge while serving modern individual and group orders.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b bg-muted/30 py-12 md:py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl">
+              <Factory className="h-7 w-7" />
+              <h2 className="mt-4 text-2xl font-bold md:text-3xl">Production under our roof</h2>
+              <p className="mt-4 leading-7 text-muted-foreground">Our factory handles pattern preparation and cutting, stitching and assembly, embroidery, custom patchwork, quality checks, and packing. We also work with trusted material suppliers and production partners when a project requires specialist support or sourcing.</p>
+            </div>
+            <div className="mt-8 grid gap-x-8 gap-y-4 border-t pt-7 sm:grid-cols-2 lg:grid-cols-3">
+              {['Pattern preparation & cutting', 'Stitching & assembly', 'Embroidery', 'Custom patchwork', 'Quality checks', 'Packing'].map((item) => (
+                <div key={item} className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="h-4 w-4 shrink-0" /><span>{item}</span></div>
+              ))}
             </div>
           </div>
         </section>
@@ -145,8 +173,9 @@ export default function AboutPage() {
               <h2 className="text-2xl font-bold md:text-3xl">Talk to Jacketee</h2>
               <p className="mt-3 max-w-xl text-white/70">Have a design, sizing, or bulk-order question? Tell us what you are planning and we will help you find the next step.</p>
               <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/80">
-                <span className="inline-flex items-center gap-2"><Mail className="h-4 w-4" />info@jacketee.com</span>
-                <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4" />Adalatghar, Sialkot</span>
+                <a href="mailto:info@jacketee.com" className="inline-flex items-center gap-2 hover:text-white"><Mail className="h-4 w-4" />info@jacketee.com</a>
+                <a href="tel:+923187328027" className="inline-flex items-center gap-2 hover:text-white"><Phone className="h-4 w-4" />+92 318 7328027</a>
+                <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4" />Adalat Garh, Sialkot, Punjab, Pakistan</span>
               </div>
             </div>
             <Link href="/contact" className="inline-flex h-11 items-center justify-center gap-2 bg-white px-5 text-sm font-semibold text-zinc-950 hover:bg-white/90">Contact us <ArrowRight className="h-4 w-4" /></Link>

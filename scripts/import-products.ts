@@ -4,6 +4,7 @@ import path from 'path'
 import { connectDB } from '../src/lib/mongodb'
 import Product from '../src/models/Product'
 import Category from '../src/models/Category'
+import { productImageAlt } from '../src/lib/image-alt'
 
 interface SourceProduct {
   name: string
@@ -66,12 +67,12 @@ async function main() {
     const uniqueImageUrls = Array.from(new Set(allImageUrls))
     const images = uniqueImageUrls.map((url, order) => ({
       url,
-      alt: stripBranding(p.name),
+      alt: productImageAlt(stripBranding(p.name), url, order),
       order,
     }))
 
-    const compareAtPrice =
-      p.originalPrice && p.originalPrice > p.price ? p.originalPrice : undefined
+    const compareAtPrice = p.price
+    const salePrice = Math.round(p.price * 0.85 * 100) / 100
 
     const result = await Product.findOneAndUpdate(
       { slug: p.slug },
@@ -80,8 +81,9 @@ async function main() {
           name: stripBranding(p.name),
           slug: p.slug,
           description: stripBranding(p.description),
-          price: p.price,
+          price: salePrice,
           compareAtPrice,
+          compareAtPriceVerified: true,
           categoryId,
           images,
           inStock: p.inStock ?? true,

@@ -5,9 +5,9 @@ export const CATEGORIES = [
     name: 'Varsity Jackets',
     slug: 'varsity-jackets',
     description: 'Classic letterman-style varsity jackets.',
-    seoTitle: 'Custom Varsity Jackets | Design Your Letterman Jacket | Jacketee',
-    seoDescription: 'Shop custom varsity jackets in wool, leather, satin and more. Add chenille patches, names, numbers and embroidery. Individual and bulk team orders.',
-    heading: 'Custom Varsity Jackets',
+    seoTitle: 'Personalized Letterman Jackets | Design Yours | Jacketee',
+    seoDescription: 'Shop personalized letterman jackets in wool, leather, satin and more. Add chenille patches, names, numbers and embroidery for individual or team orders.',
+    heading: 'Personalized Letterman Jackets',
     parentId: null as string | null,
   },
   {

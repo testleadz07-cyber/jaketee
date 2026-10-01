@@ -9,14 +9,16 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Calendar, User, Eye, Star, Tag } from 'lucide-react'
+import { ArrowRight, Calendar, User, Eye, Star, Tag } from 'lucide-react'
 
 interface TaggedProduct {
   id: string
   name: string
   slug: string
+  href: string
   price: number
   compareAtPrice?: number | null
+  compareAtPriceVerified?: boolean
   thumbnail: string | null
   averageRating?: number
 }
@@ -45,6 +47,7 @@ export interface BlogPostDetail {
   views: number
   taggedProducts: TaggedProduct[]
   relatedPosts: RelatedPost[]
+  recommendedShop: { href: string; label: string }
 }
 
 function formatDate(dateString: string) {
@@ -124,6 +127,33 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
+          <section className="mt-10 border-y py-7" aria-labelledby="blog-resources-heading">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold uppercase text-muted-foreground">Continue planning</p>
+                <h2 id="blog-resources-heading" className="mt-1 text-2xl font-semibold">Jacket guides and support</h2>
+              </div>
+              <Link href={post.recommendedShop.href} className="inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">
+                Shop {post.recommendedShop.label.toLowerCase()} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-6 grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                ['/materials-colors', 'Materials & colors', 'Compare fabrics, finishes, and color choices.'],
+                ['/patches-embroidery', 'Patches & embroidery', 'Plan lettering, logos, and artwork placement.'],
+                ['/size-guide', 'Size guide', 'Measure carefully before choosing a jacket size.'],
+                ['/about', 'About Jacketee', 'Learn about our factory and production approach.'],
+                ['/faq', 'Ordering FAQs', 'Review common customization and order questions.'],
+                ['/contact', 'Contact our team', 'Ask about a design, product, or order requirement.'],
+              ].map(([href, label, description]) => (
+                <Link key={href} href={href} className="group min-h-28 bg-background p-4 hover:bg-muted/40">
+                  <span className="flex items-center justify-between font-semibold">{label}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></span>
+                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{description}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
           {/* Tags */}
           {post.tags?.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 mt-8 pt-8 border-t">
@@ -143,7 +173,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
               <h2 className="text-2xl font-bold mb-6">Shop This Post</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {post.taggedProducts.map((product) => (
-                  <Link key={product.id} href={`/product/${product.slug}`}>
+                  <Link key={product.id} href={product.href}>
                     <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
                       <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer pt-0 shadow-sm">
                         <div className="relative aspect-square overflow-hidden bg-muted">
@@ -171,7 +201,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                             <span className="text-xl font-bold text-primary">
                               ${product.price.toFixed(2)}
                             </span>
-                            {product.compareAtPrice && (
+                            {product.compareAtPriceVerified && product.compareAtPrice && product.compareAtPrice > product.price && (
                               <span className="text-sm text-muted-foreground line-through">
                                 ${product.compareAtPrice.toFixed(2)}
                               </span>

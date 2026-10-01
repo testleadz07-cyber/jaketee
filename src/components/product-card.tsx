@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useWishlistStore } from '@/store/wishlist'
 import { buildProductUrl } from '@/lib/categories'
+import { getDisplayCompareAtPrice } from '@/lib/pricing'
 
 interface ProductCardProps {
   product: {
@@ -18,6 +19,7 @@ interface ProductCardProps {
     description: string
     price: number
     compareAtPrice?: number | null
+    compareAtPriceVerified?: boolean
     images: Array<{ url: string; alt: string }>
     category?: {
       name: string
@@ -35,10 +37,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const imageUrl = product.images[0]?.url || '/placeholder.png'
 
+  const displayCompareAtPrice = getDisplayCompareAtPrice(product)
   const discount =
-    product.compareAtPrice && product.compareAtPrice > product.price
+    displayCompareAtPrice
       ? Math.round(
-          ((product.compareAtPrice - product.price) / product.compareAtPrice) *
+          ((displayCompareAtPrice - product.price) / displayCompareAtPrice) *
             100
         )
       : 0
@@ -118,9 +121,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 <span className="text-2xl font-bold text-primary">
                   ${product.price.toFixed(2)}
                 </span>
-                {product.compareAtPrice && (
+                {displayCompareAtPrice && (
                   <span className="text-sm text-muted-foreground line-through">
-                    ${product.compareAtPrice.toFixed(2)}
+                    ${displayCompareAtPrice.toFixed(2)}
                   </span>
                 )}
               </div>

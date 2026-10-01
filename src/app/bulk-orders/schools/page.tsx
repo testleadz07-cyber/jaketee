@@ -7,15 +7,16 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { FulfillmentNotice } from '@/components/fulfillment-notice'
 import { BulkOrderResources } from '@/components/bulk-order-resources'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders/schools`
 
 export const metadata: Metadata = {
-  title: 'School Varsity Jacket Bulk Orders | Jacketee',
+  title: 'School Letterman Jackets & Team Orders | Jacketee',
   description:
-    'Bulk varsity jacket ordering for schools, teams, clubs, seniors, alumni, and achievement programs. Plan sizing, colors, patches, names, and numbers.',
+    'Order school letterman jackets and team varsity jackets for clubs, seniors, alumni and achievement programs. Plan colors, patches, names and sizing.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'School Varsity Jacket Bulk Orders | Jacketee',
@@ -55,9 +56,9 @@ export default function SchoolBulkOrdersPage() {
             />
             <div className="max-w-3xl">
               <Badge className="mb-5 bg-white/10 text-white hover:bg-white/10">Schools, teams, and clubs</Badge>
-              <h1 className="text-4xl font-black leading-tight md:text-6xl">School Varsity Jacket Bulk Orders</h1>
+              <h1 className="text-4xl font-black leading-tight md:text-6xl">School Letterman Jackets</h1>
               <p className="mt-6 text-lg leading-8 text-white/75">
-                Organize class, team, club, and alumni jackets with consistent colors, clean artwork, clear sizing, and personalization rules.
+                School letterman jackets help classes, teams, clubs, and alumni coordinate colors, artwork, sizing, names, numbers, and achievement details.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg" className="bg-white text-black hover:bg-white/90">
@@ -73,6 +74,8 @@ export default function SchoolBulkOrdersPage() {
             </div>
           </div>
         </section>
+
+        <FulfillmentNotice bulk />
 
         <section className="container mx-auto px-4 py-12 md:py-16">
           <div className="grid gap-4 md:grid-cols-3">

@@ -22,6 +22,12 @@ const geistMono = Geist_Mono({
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.jacketee.com";
 const HOME_TITLE = "Custom Varsity & Bomber Jackets | Jacketee";
 const HOME_DESCRIPTION = "Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.";
+const DEFAULT_SOCIAL_IMAGE = {
+  url: `${SITE_URL}/opengraph-image`,
+  width: 1200,
+  height: 630,
+  alt: "Jacketee custom varsity and letterman jackets",
+};
 const verification: Metadata["verification"] = {
   ...(process.env.GOOGLE_SITE_VERIFICATION
     ? { google: process.env.GOOGLE_SITE_VERIFICATION }
@@ -35,7 +41,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
-  keywords: ["Jacketee", "custom jackets", "varsity jackets", "bomber jackets", "jacket patches", "jacket embroidery", "bulk jacket orders"],
   authors: [{ name: "Jacketee Team" }],
   verification: Object.keys(verification).length > 0 ? verification : undefined,
   icons: {
@@ -47,32 +52,43 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: "Jacketee",
     type: "website",
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
+    images: [DEFAULT_SOCIAL_IMAGE.url],
   },
 };
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
   name: "Jacketee",
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
+  foundingDate: "2026",
+  email: "info@jacketee.com",
+  telephone: "+92 318 7328027",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Adalat Garh",
+    addressRegion: "Punjab",
+    addressCountry: "PK",
+  },
   sameAs: [
-    "https://www.facebook.com/your-jacketee-profile",
-    "https://www.instagram.com/your-jacketee-profile",
-    "https://www.linkedin.com/company/your-jacketee-profile",
-    "https://www.pinterest.com/your-jacketee-profile",
-    "https://www.tiktok.com/@your-jacketee-profile",
-    "https://www.youtube.com/@your-jacketee-profile",
+    "https://www.facebook.com/jacketeeofficial",
+    "https://www.instagram.com/jack_etee/",
+    "https://www.tiktok.com/@jacketeeofficial",
+    "https://www.youtube.com/@jacketeeofficial",
   ],
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer support",
-    email: "support@jacketee.com",
+    telephone: "+92 318 7328027",
+    email: "info@jacketee.com",
     url: `${SITE_URL}/contact`,
     availableLanguage: ["en"],
   },
@@ -83,6 +99,7 @@ const websiteJsonLd = {
   "@type": "WebSite",
   name: "Jacketee",
   url: SITE_URL,
+  publisher: { "@id": `${SITE_URL}/#organization` },
   potentialAction: {
     "@type": "SearchAction",
     target: {

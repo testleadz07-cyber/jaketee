@@ -24,6 +24,7 @@ import {
   DEFAULT_VARSITY_EMBROIDERY,
   DEFAULT_VARSITY_MEASUREMENT_FIELDS,
 } from '@/lib/categories'
+import { productImageAlt } from '@/lib/image-alt'
 
 interface Category {
   id: string
@@ -110,8 +111,11 @@ export default function NewProduct() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    seoTitle: '',
+    seoDescription: '',
     price: '',
     compareAtPrice: '',
+    compareAtPriceVerified: false,
     categoryId: '',
     imageUrls: [] as string[],
     isFeatured: false,
@@ -168,10 +172,13 @@ export default function NewProduct() {
       name: formData.name,
       slug,
       description: formData.description,
+      seoTitle: formData.seoTitle,
+      seoDescription: formData.seoDescription,
       price: parseFloat(formData.price),
       compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
+      compareAtPriceVerified: formData.compareAtPriceVerified,
       categoryId: formData.categoryId,
-      images: formData.imageUrls.map((url, idx) => ({ url, alt: formData.name, order: idx })),
+      images: formData.imageUrls.map((url, idx) => ({ url, alt: productImageAlt(formData.name, url, idx), order: idx })),
       variants: variants.map(v => ({
         name: v.name.trim(),
         value: v.value.trim(),
@@ -282,6 +289,16 @@ export default function NewProduct() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="seoTitle">SEO Title</Label>
+                  <Input id="seoTitle" maxLength={60} value={formData.seoTitle} onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })} disabled={submitting} placeholder="Generated from the product name when blank" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seoDescription">SEO Description</Label>
+                  <Textarea id="seoDescription" rows={3} maxLength={155} value={formData.seoDescription} onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })} disabled={submitting} placeholder="Generated from product and category details when blank" />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="price">Price ($) *</Label>
@@ -305,6 +322,17 @@ export default function NewProduct() {
                       onChange={(e) => setFormData({ ...formData, compareAtPrice: e.target.value })}
                       disabled={submitting}
                     />
+                    <div className="flex items-start gap-2 pt-1">
+                      <Checkbox
+                        id="compareAtPriceVerified"
+                        checked={formData.compareAtPriceVerified}
+                        onCheckedChange={(checked) => setFormData({ ...formData, compareAtPriceVerified: checked === true })}
+                        disabled={submitting || !formData.compareAtPrice}
+                      />
+                      <Label htmlFor="compareAtPriceVerified" className="text-xs font-normal leading-5">
+                        Verified previous price. I confirm this price was genuinely offered and supporting documentation is retained.
+                      </Label>
+                    </div>
                   </div>
                 </div>
 

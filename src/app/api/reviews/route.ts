@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Product from '@/models/Product'
 import mongoose from 'mongoose'
+import Order from '@/models/Order'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
 
     if (!productId) {
       return NextResponse.json({ error: 'ProductId is required' }, { status: 400 })
+    }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return NextResponse.json({ error: 'Invalid productId' }, { status: 400 })
     }
 
     const db = await connectDB()
@@ -59,13 +63,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { productId, rating, title, comment, images, videos } = body
+    const ratingNumber = Number(rating)
+    const cleanTitle = typeof title === 'string' ? title.trim() : ''
+    const cleanComment = typeof comment === 'string' ? comment.trim() : ''
 
-    if (!productId || !rating || !comment) {
+    if (!productId || !ratingNumber || !cleanComment) {
       return NextResponse.json({ error: 'ProductId, rating, and comment are required' }, { status: 400 })
     }
 
-    if (rating < 1 || rating > 5) {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return NextResponse.json({ error: 'Invalid productId' }, { status: 400 })
+    }
+
+    if (!Number.isInteger(ratingNumber) || ratingNumber < 1 || ratingNumber > 5) {
       return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 })
+    }
+    if (cleanTitle.length > 120 || cleanComment.length > 3000) {
+      return NextResponse.json({ error: 'Review title or comment is too long' }, { status: 400 })
     }
 
     const db = await connectDB()
@@ -81,18 +95,23 @@ export async function POST(request: NextRequest) {
 
     const userId = (session.user as any).id
     const userName = session.user.name || 'Anonymous'
+    const isVerifiedPurchase = Boolean(await Order.exists({
+      userId,
+      status: 'delivered',
+      'items.productId': String(productId),
+    }))
 
     // Create the review
     const review = await Review.create({
       productId,
       userId,
       userName,
-      rating,
-      title,
-      comment,
-      isVerified: false, // Default false, admin can verify later
-      images: Array.isArray(images) ? images.filter((u: any) => typeof u === 'string') : [],
-      videos: Array.isArray(videos) ? videos.filter((u: any) => typeof u === 'string') : [],
+      rating: ratingNumber,
+      title: cleanTitle || undefined,
+      comment: cleanComment,
+      isVerified: isVerifiedPurchase,
+      images: Array.isArray(images) ? images.filter((u: any) => typeof u === 'string').slice(0, 5) : [],
+      videos: Array.isArray(videos) ? videos.filter((u: any) => typeof u === 'string').slice(0, 2) : [],
       status: 'pending', // New reviews require admin moderation before they appear publicly
     })
 

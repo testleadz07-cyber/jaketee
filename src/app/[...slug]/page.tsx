@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { permanentRedirect, notFound } from 'next/navigation'
 import { resolveSlugPath } from '@/lib/route-resolver'
-import { ProductDetailView, type ProductDetailData, type ProductFaqData } from '@/components/product-detail-view'
+import { ProductDetailView, type ProductDetailData } from '@/components/product-detail-view'
 import { CategoryDetailView } from '@/components/category-detail-view'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
@@ -9,7 +9,9 @@ import Faq from '@/models/Faq'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { getStaticCategoriesWithCount } from '@/lib/static-data'
-import { buildProductUrl, resolveAncestorChain, resolveDescendantIds } from '@/lib/categories'
+import { buildProductUrl, isJacketCategoryPath, resolveAncestorChain, resolveDescendantIds } from '@/lib/categories'
+import { pageMetaDescription, productMetaDescription, productMetaTitle, socialImageUrl } from '@/lib/seo-metadata'
+import { buildProductFaqs, productFaqAnswerText, type ProductFaq as ProductFaqData } from '@/lib/product-faqs'
 
 interface Props {
   params: Promise<{ slug: string[] }>
@@ -49,16 +51,22 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
   if (resolution.type === 'product') {
     const product = resolution.product
-    const title = `${product.name} - Jacketee`
-    const description = (product.description || '').slice(0, 160)
-    const imageUrl = product.images?.[0]?.url
+    const title = productMetaTitle(product.name, product.seoTitle)
+    const description = productMetaDescription({
+      name: product.name,
+      categoryName: product.categoryPath?.at(-1)?.name || product.categoryId?.name,
+      customDescription: product.seoDescription,
+    })
+    const imageUrl = socialImageUrl(product.images?.[0]?.url)
+    const imageAlt = product.images?.[0]?.alt || product.name
 
     return {
       title,
       description,
       alternates: { canonical: canonicalUrl },
-      openGraph: { title, description, ...(imageUrl ? { images: [{ url: imageUrl }] } : {}), type: 'website', url: canonicalUrl },
-      twitter: { card: 'summary_large_image', title, description, ...(imageUrl ? { images: [imageUrl] } : {}) },
+      openGraph: { title, description, images: [{ url: imageUrl, width: 1200, height: 630, alt: imageAlt }], url: canonicalUrl },
+      twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
+      other: { 'og:type': 'product' },
     }
   }
 
@@ -68,17 +76,17 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const title = category.seoTitle
       ? `${category.seoTitle}${pageTitleSuffix}`
       : `${category.name}${pageTitleSuffix} - Jacketee`
-    const descriptionSource = category.seoDescription || category.description
-    const description = descriptionSource
-      ? descriptionSource.slice(0, 160)
-      : `Shop ${category.name} at Jacketee`
-    const imageUrl = category.image || DEFAULT_IMAGE
+    const description = pageMetaDescription(
+      category.seoDescription || category.description,
+      `Shop ${category.name} at Jacketee. Compare available styles, materials, sizing and customization options for individual and group jacket orders.`
+    )
+    const imageUrl = socialImageUrl(category.image || DEFAULT_IMAGE)
 
     return {
       title,
       description,
       alternates: { canonical: canonicalUrl },
-      openGraph: { title, description, images: [{ url: imageUrl }], type: 'website', url: canonicalUrl },
+      openGraph: { title, description, images: [{ url: imageUrl, width: 1200, height: 630, alt: category.name }], type: 'website', url: canonicalUrl },
       twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
     }
   }
@@ -166,6 +174,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       careInstructions: product.careInstructions || undefined,
       price: Number(product.price || 0),
       compareAtPrice: product.compareAtPrice == null ? null : Number(product.compareAtPrice),
+      compareAtPriceVerified: Boolean(product.compareAtPriceVerified),
       inStock: Boolean(product.inStock),
       isFeatured: Boolean(product.isFeatured),
       category: categoryPath.at(-1) || { name: product.categoryId?.name || 'Shop', slug: product.categoryId?.slug || 'shop' },
@@ -211,7 +220,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       ...(initialProduct.images.length > 0 && { image: initialProduct.images.map((img) => img.url) }),
       sku: String(product._id || product.id || product.slug),
       url: canonicalUrl,
-      brand: { '@type': 'Brand', name: 'Jacketee' },
+      brand: { '@type': 'Brand', '@id': `${SITE_URL}/#brand`, name: 'Jacketee', url: SITE_URL },
       ...(categoryPath.length > 0 && { category: categoryPath[categoryPath.length - 1].name }),
       offers: {
         '@type': 'Offer',
@@ -220,7 +229,23 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         price: price.toFixed(2),
         availability,
         itemCondition: 'https://schema.org/NewCondition',
-        seller: { '@type': 'Organization', name: 'Jacketee' },
+        seller: { '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: 'Jacketee', url: SITE_URL },
+        shippingDetails: {
+          '@type': 'OfferShippingDetails',
+          shippingLabel: 'One-jacket standard shipping',
+          shippingRate: { '@type': 'MonetaryAmount', value: '30.00', currency: 'USD' },
+          shippingDestination: ['US', 'GB', 'CA'].map((country) => ({ '@type': 'DefinedRegion', addressCountry: country })),
+        },
+        hasMerchantReturnPolicy: {
+          '@type': 'MerchantReturnPolicy',
+          applicableCountry: ['US', 'GB', 'CA'],
+          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+          merchantReturnDays: 10,
+          returnMethod: 'https://schema.org/ReturnByMail',
+          returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+          restockingFee: { '@type': 'MonetaryAmount', value: '35.00', currency: 'USD' },
+          url: `${SITE_URL}/returns`,
+        },
       },
     }
 
@@ -266,18 +291,34 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         },
       ],
     }
+    const categoryName = categoryPath.at(-1)?.name || product.categoryId?.name || 'Jackets'
+    const visibleProductFaqs = buildProductFaqs(
+      productFaqs,
+      categoryName,
+      isJacketCategoryPath(categoryPath) || initialProduct.variants.some((variant) => variant.name.toLowerCase() === 'size')
+    )
+    const faqJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: visibleProductFaqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: productFaqAnswerText(faq) },
+      })),
+    }
 
     return (
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         <ProductDetailView key={product.slug} slug={product.slug} initialProduct={initialProduct} faqs={productFaqs} />
       </>
     )
   }
 
   const category = resolution.category
-  let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; heading?: string; image?: string; parentId: string | null; _count: { products: number } }> = []
+  let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; heading?: string; introShort?: string; introLong?: string; image?: string; parentId: string | null; _count: { products: number } }> = []
   let initialProducts: any[] = []
   let initialTotalProducts = 0
   let initialInsights: { reviewCount: number; averageRating: number; reviews: any[]; faqs: any[] } = {
@@ -296,6 +337,8 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         slug: item.slug,
         description: item.description || '',
         heading: item.heading || '',
+        introShort: item.introShort || '',
+        introLong: item.introLong || '',
         parentId: item.parentId ? String(item.parentId) : null,
       }))
       const counts = await Product.aggregate([{ $match: { inStock: true } }, { $group: { _id: '$categoryId', count: { $sum: 1 } } }])
@@ -308,6 +351,8 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           slug: item.slug,
           description: item.description || '',
           heading: item.heading || '',
+          introShort: item.introShort || '',
+          introLong: item.introLong || '',
           image: item.image || '',
           parentId: item.parentId ? String(item.parentId) : null,
           _count: { products: resolveDescendantIds(nodes, id).reduce((sum, descendantId) => sum + (countById.get(descendantId) || 0), 0) },
@@ -337,6 +382,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           description: product.description || '',
           price: Number(product.price || 0),
           compareAtPrice: product.compareAtPrice == null ? null : Number(product.compareAtPrice),
+          compareAtPriceVerified: Boolean(product.compareAtPriceVerified),
           images: (product.images || []).map((image: any) => ({
             url: image.url,
             alt: image.alt || '',
@@ -416,7 +462,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       initialInsights = { faqs, reviewCount, averageRating, reviews }
     } else {
       initialCategories = getStaticCategoriesWithCount().map((item: any) => ({
-        id: String(item.id), name: item.name, slug: item.slug, description: item.description || '', heading: item.heading || '', image: item.image || '',
+        id: String(item.id), name: item.name, slug: item.slug, description: item.description || '', heading: item.heading || '', introShort: item.introShort || '', introLong: item.introLong || '', image: item.image || '',
         parentId: item.parentId ? String(item.parentId) : null, _count: item._count,
       }))
     }
@@ -429,6 +475,16 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
     name: requestedPage > 1 ? `${category.name} - Page ${requestedPage}` : category.name,
     description: category.description || `Shop ${category.name} at Jacketee`,
     url: canonicalUrl,
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: initialProducts.length,
+      itemListElement: initialProducts.map((product, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: product.name,
+        url: `${SITE_URL}${buildProductUrl(product)}`,
+      })),
+    },
   }
 
   const breadcrumbJsonLd = {

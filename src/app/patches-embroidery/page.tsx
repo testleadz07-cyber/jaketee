@@ -25,9 +25,9 @@ const patchAsset = (version: number, fileName: string, exported = false) =>
 const heroImage = patchAsset(1788899943, 'hero__varsity-jacket-patches-embroidery-hero.jpg', true)
 
 export const metadata: Metadata = {
-  title: 'Varsity Jacket Patches & Embroidery Guide | Jacketee',
+  title: 'Chenille Patches for Letterman Jackets | Jacketee',
   description:
-    'Compare chenille, felt, embroidered, woven, leather, puff, tackle twill, DTF, screen print, HTV, sublimation, and woven label options for custom jackets.',
+    'Compare chenille patches for letterman jackets, varsity jacket embroidery, felt, tackle twill, printing and label options for custom jacket designs.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Varsity Jacket Patches & Embroidery Guide | Jacketee',
@@ -394,10 +394,10 @@ export default function PatchesEmbroideryPage() {
               <div className="max-w-3xl">
                 <Badge variant="secondary" className="mb-4">For U.S. schools, teams, clubs, and brands</Badge>
                 <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-                  Varsity Jacket Patches & Embroidery
+                  Chenille Patches for Letterman Jackets
                 </h1>
                 <p className="mt-5 text-lg md:text-xl text-muted-foreground leading-relaxed">
-                  Compare patch placement, patch types, embroidery, and printing methods before choosing the right look for your custom jacket.
+                  Chenille patches for letterman jackets add raised letters, mascots, names, and achievement details. Compare placement, embroidery, and printing methods.
                 </p>
                 <div className="mt-7 flex flex-wrap gap-3">
                   <Button asChild size="lg">

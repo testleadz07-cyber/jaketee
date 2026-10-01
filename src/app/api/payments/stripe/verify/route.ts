@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
           variant: item.variants && item.variants.length > 0
             ? item.variants[0]
             : { name: 'Standard', value: 'Default' },
+          customization: item.customization,
         }))
 
         const emailHtml = orderConfirmationTemplate({

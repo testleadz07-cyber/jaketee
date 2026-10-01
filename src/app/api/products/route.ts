@@ -125,18 +125,25 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, slug, description, price, compareAtPrice, categoryId, images, variants, embroidery, measurementFields, isFeatured, inStock } = body
+    const { name, slug, description, seoTitle, seoDescription, price, compareAtPrice, compareAtPriceVerified, categoryId, images, variants, embroidery, measurementFields, isFeatured, inStock } = body
 
     if (!name || !slug || !price || !categoryId) {
       return NextResponse.json({ error: 'Name, slug, price, and categoryId are required' }, { status: 400 })
+    }
+
+    if (compareAtPriceVerified && (!compareAtPrice || Number(compareAtPrice) <= Number(price))) {
+      return NextResponse.json({ error: 'A verified compare-at price must be greater than the selling price' }, { status: 400 })
     }
 
     const product = await Product.create({
       name,
       slug,
       description: description || '',
+      seoTitle: seoTitle || '',
+      seoDescription: seoDescription || '',
       price,
       compareAtPrice: compareAtPrice || null,
+      compareAtPriceVerified: Boolean(compareAtPriceVerified),
       categoryId,
       images: images || [],
       variants: variants || [],

@@ -71,6 +71,7 @@ async function markOrderPaid(order: InstanceType<typeof Order>, paypalCaptureId:
       variant: item.variants && item.variants.length > 0
         ? item.variants[0]
         : { name: 'Standard', value: 'Default' },
+      customization: item.customization,
     }))
 
     const emailHtml = orderConfirmationTemplate({

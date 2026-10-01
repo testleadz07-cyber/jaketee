@@ -244,6 +244,14 @@ export default function EditProduct() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" rows={4} value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} disabled={saving} />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="seoTitle">SEO Title</Label>
+                <Input id="seoTitle" maxLength={60} value={product.seoTitle || ''} onChange={(e) => setProduct({ ...product, seoTitle: e.target.value })} disabled={saving} placeholder="Generated from the product name when blank" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seoDescription">SEO Description</Label>
+                <Textarea id="seoDescription" rows={3} maxLength={155} value={product.seoDescription || ''} onChange={(e) => setProduct({ ...product, seoDescription: e.target.value })} disabled={saving} placeholder="Generated from product and category details when blank" />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="price">Price ($)</Label>
@@ -252,6 +260,17 @@ export default function EditProduct() {
                 <div className="space-y-2">
                   <Label htmlFor="compareAtPrice">Compare At Price ($)</Label>
                   <Input id="compareAtPrice" type="number" step="0.01" value={product.compareAtPrice || ''} onChange={(e) => setProduct({ ...product, compareAtPrice: e.target.value ? parseFloat(e.target.value) : null })} disabled={saving} />
+                  <div className="flex items-start gap-2 pt-1">
+                    <Checkbox
+                      id="compareAtPriceVerified"
+                      checked={Boolean(product.compareAtPriceVerified)}
+                      onCheckedChange={(checked) => setProduct({ ...product, compareAtPriceVerified: checked === true })}
+                      disabled={saving || !product.compareAtPrice}
+                    />
+                    <Label htmlFor="compareAtPriceVerified" className="text-xs font-normal leading-5">
+                      Verified previous price. I confirm this price was genuinely offered and supporting documentation is retained.
+                    </Label>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

@@ -7,14 +7,15 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { FulfillmentNotice } from '@/components/fulfillment-notice'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders`
 
 export const metadata: Metadata = {
-  title: 'Bulk Custom Jacket Orders | Jacketee',
+  title: 'Bulk Varsity Jackets & Wholesale Orders | Jacketee',
   description:
-    'Plan school, corporate, team, and private label bulk jacket orders with Jacketee. Compare order paths, artwork needs, sizing, samples, and production steps.',
+    'Order bulk varsity jackets for schools, teams, companies and private labels. Compare artwork, sizing, samples, wholesale pricing and production steps.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Bulk Custom Jacket Orders | Jacketee',
@@ -74,9 +75,9 @@ export default function BulkOrdersPage() {
             <Breadcrumbs items={[{ label: 'Bulk Orders' }]} className="mb-8 text-white/70" />
             <div className="max-w-3xl">
               <Badge className="mb-5 bg-white/10 text-white hover:bg-white/10">Bulk jacket programs</Badge>
-              <h1 className="text-4xl font-black leading-tight md:text-6xl">Bulk Custom Jacket Orders</h1>
+              <h1 className="text-4xl font-black leading-tight md:text-6xl">Bulk Varsity Jacket Orders</h1>
               <p className="mt-6 text-lg leading-8 text-white/75">
-                Build a clear jacket program for schools, companies, teams, and brands. Jacketee helps organize the style,
+                Bulk varsity jackets give schools, companies, teams, and brands one coordinated program. Jacketee helps organize the style,
                 artwork, sizing, proofing, and production details before your order moves forward.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -93,6 +94,8 @@ export default function BulkOrdersPage() {
             </div>
           </div>
         </section>
+
+        <FulfillmentNotice bulk />
 
         <section className="container mx-auto px-4 py-12 md:py-16">
           <div className="grid gap-4 md:grid-cols-3">

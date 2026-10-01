@@ -27,6 +27,8 @@ interface Category {
   slug: string
   description?: string
   heading?: string
+  introShort?: string
+  introLong?: string
   image?: string
   parentId?: string | null
   _count?: { products: number }
@@ -39,6 +41,7 @@ interface Product {
   description: string
   price: number
   compareAtPrice?: number | null
+  compareAtPriceVerified?: boolean
   images: Array<{ url: string; alt: string }>
   category: { name: string; slug: string }
   categoryPath?: Array<{ name: string; slug: string }>
@@ -89,6 +92,34 @@ const EMPTY_INSIGHTS: CategoryInsights = { reviewCount: 0, averageRating: 0, rev
 
 function isUsableHeroImage(image?: string | null) {
   return Boolean(image && image !== '/placeholder.png')
+}
+
+function renderInlineLinks(text: string) {
+  const parts = text.split(/(\[[^\]]+\]\([^\)]+\))/g)
+  return parts.map((part, index) => {
+    const match = part.match(/^\[([^\]]+)\]\(([^\)]+)\)$/)
+    return match
+      ? <Link key={`${match[2]}-${index}`} href={match[2]} className="font-medium text-foreground underline underline-offset-4">{match[1]}</Link>
+      : part
+  })
+}
+
+function CategoryLongContent({ content }: { content: string }) {
+  return (
+    <div className="grid gap-x-12 gap-y-8 md:grid-cols-2">
+      {content.split(/\n\n+/).map((block, index) => {
+        const lines = block.trim().split('\n')
+        const heading = lines[0].startsWith('### ') ? lines.shift()?.slice(4) : null
+        const body = lines.join(' ').trim()
+        return (
+          <section key={`${heading || 'paragraph'}-${index}`}>
+            {heading && <h3 className="text-lg font-semibold">{heading}</h3>}
+            {body && <p className={`${heading ? 'mt-3' : ''} leading-7 text-muted-foreground`}>{renderInlineLinks(body)}</p>}
+          </section>
+        )
+      })}
+    </div>
+  )
 }
 
 export function CategoryDetailView({
@@ -277,6 +308,15 @@ export function CategoryDetailView({
   const pageHref = (page: number) => (page <= 1 ? categoryUrl : `${categoryUrl}?page=${page}`)
   const paginationPages = Array.from({ length: totalPages }, (_, index) => index + 1)
   const rootCategorySlug = ancestorChain[0]?.slug || category.slug
+  const customLandingByCategory: Record<string, { href: string; label: string }> = {
+    'varsity-jackets': { href: '/custom-letterman-jackets', label: 'custom letterman jackets' },
+    'bomber-jackets': { href: '/custom-bomber-jackets', label: 'custom bomber jackets' },
+    'coach-jackets': { href: '/custom-coach-jackets', label: 'custom coach jackets' },
+    'denim-jackets': { href: '/custom-denim-jackets', label: 'custom denim jackets' },
+    'puffer-jackets': { href: '/custom-puffer-jackets', label: 'custom puffer jackets' },
+    'fleece-hoodies': { href: '/custom-hoodies', label: 'custom hoodies' },
+  }
+  const customLanding = customLandingByCategory[rootCategorySlug]
   const productHeroImage = products.find((product) => isUsableHeroImage(product.images?.[0]?.url))?.images[0]?.url
   const heroImage =
     (categoryHeroImage?.slug === slug ? categoryHeroImage.image : null) ||
@@ -326,6 +366,11 @@ export function CategoryDetailView({
                   {category.description}
                 </p>
               )}
+              {customLanding && (
+                <Link href={customLanding.href} className="mt-4 w-fit text-sm font-semibold text-white underline underline-offset-4">
+                  Plan {customLanding.label}
+                </Link>
+              )}
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button asChild className="bg-white text-black hover:bg-white/90">
                   <a href="#category-products">
@@ -359,7 +404,7 @@ export function CategoryDetailView({
               {heroImage ? (
                 <Image
                   src={heroImage}
-                  alt={category.name}
+                  alt={`${category.name} collection featured jacket`}
                   fill
                   sizes="(max-width: 1024px) 100vw, 45vw"
                   quality={70}
@@ -400,7 +445,7 @@ export function CategoryDetailView({
                     <div>
                       <h3 className="font-semibold">{sub.name}</h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {sub._count?.products || 0} products
+                        {sub._count?.products || 0} {(sub._count?.products || 0) === 1 ? 'product' : 'products'}
                       </p>
                     </div>
                     <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
@@ -417,8 +462,7 @@ export function CategoryDetailView({
           <div>
             <p className="text-xs font-semibold uppercase text-muted-foreground">Collection guide</p>
             <h2 id="collection-overview-heading" className="mt-2 text-2xl font-semibold">About {category.name}</h2>
-            {category.description && <p className="mt-4 leading-7 text-muted-foreground">{category.description}</p>}
-            <p className="mt-3 leading-7 text-muted-foreground">{CATEGORY_OVERVIEW[rootCategorySlug] || `Compare the product details, available options, and fit information for the ${category.name} styles in this collection.`}</p>
+            <p className="mt-4 leading-7 text-muted-foreground">{category.introShort || category.description || CATEGORY_OVERVIEW[rootCategorySlug] || `Compare the product details, available options, and fit information for the ${category.name} styles in this collection.`}</p>
             <p className="mt-4 text-sm text-muted-foreground">Product specifications and customization options vary by style. Open a product page for its exact details.</p>
           </div>
           <div className="lg:border-l lg:pl-10">
@@ -536,6 +580,18 @@ export function CategoryDetailView({
         )}
           </div>
         </section>
+
+        {category.introLong && (
+          <section className="store-section store-section--plain" aria-labelledby="category-long-guide-heading">
+            <div className="section-shell">
+              <div className="mb-8 max-w-3xl border-b pb-5">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Category guide</p>
+                <h2 id="category-long-guide-heading" className="mt-2 text-2xl font-semibold">About {category.heading || category.name}</h2>
+              </div>
+              <CategoryLongContent content={category.introLong} />
+            </div>
+          </section>
+        )}
 
       <section className="store-section store-section--plain" aria-labelledby="category-reviews-heading">
         <div className="section-shell">
