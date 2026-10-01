@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,7 @@ import { Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag, ShoppingCar
 import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import { JacketDesignCanvas } from '@/components/jacket-design-canvas'
 import { getCustomizedViews, hasJacketCustomization, type JacketCustomization } from '@/types/jacket-customization'
+import { getCatalogArtworkCategory, isLetterOrNumberArtwork, type ArtworkCategory } from '@/components/jacket-artwork-catalog'
 
 export interface JacketCustomizerVariant {
   id?: string
@@ -27,6 +28,42 @@ export interface JacketCustomizerProduct {
 }
 
 const OPTION_GROUP_ORDER = ['Style', 'Material', 'Color', 'Lining']
+const PKR_PER_USD = 277.1
+const TEXT_EMBROIDERY_FEE_PKR = 5000
+const UPLOADED_ARTWORK_FEE_PKR = 5000
+const ARTWORK_FEES_PKR: Partial<Record<ArtworkCategory, number>> = {
+  Letters: 1000,
+  Numbers: 1000,
+  Flags: 3000,
+  Badges: 3000,
+  Mascots: 3500,
+  Symbols: 3500,
+  Sports: 3000,
+  Animals: 4000,
+  Varsity: 2000,
+}
+
+function pkrToUsd(amount: number) {
+  return Math.round((amount / PKR_PER_USD) * 100) / 100
+}
+
+function getCustomizationFee(customization: JacketCustomization) {
+  let feePkr = 0
+  for (const side of [customization.front, customization.back]) {
+    if (!side) continue
+    if (side.text?.value.trim()) feePkr += TEXT_EMBROIDERY_FEE_PKR
+    for (const artwork of side.artworks || []) {
+      if (artwork.source === 'upload') {
+        feePkr += UPLOADED_ARTWORK_FEE_PKR
+        continue
+      }
+      const category = getCatalogArtworkCategory(artwork.catalogId)
+      if (category) feePkr += ARTWORK_FEES_PKR[category] || 0
+      else if (isLetterOrNumberArtwork(artwork.catalogId)) feePkr += ARTWORK_FEES_PKR.Letters || 0
+    }
+  }
+  return pkrToUsd(feePkr)
+}
 
 interface JacketCustomizerProps {
   product: JacketCustomizerProduct
@@ -40,7 +77,9 @@ interface JacketCustomizerProps {
   inStock: boolean
   onAddToCart: (extraVariants: Array<{ name: string; value: string }>, extraFee: number, customization?: JacketCustomization) => void
   onBuyNow?: (extraVariants: Array<{ name: string; value: string }>, extraFee: number, customization?: JacketCustomization) => void
+  purchaseNotice?: ReactNode
   wishlistButton?: ReactNode
+  onCustomizationFeeChange?: (fee: number) => void
 }
 
 export function JacketCustomizer({
@@ -55,7 +94,9 @@ export function JacketCustomizer({
   inStock,
   onAddToCart,
   onBuyNow,
+  purchaseNotice,
   wishlistButton,
+  onCustomizationFeeChange,
 }: JacketCustomizerProps) {
   const [stepIndex, setStepIndex] = useState(0)
   const [customization, setCustomization] = useState<JacketCustomization>({})
@@ -87,8 +128,12 @@ export function JacketCustomizer({
   ]
 
   const currentStep = steps[stepIndex]
-  const customizationFee = hasJacketCustomization(customization) && embroideryAvailable ? product.embroidery!.fee : 0
+  const customizationFee = hasJacketCustomization(customization) ? getCustomizationFee(customization) : 0
   const totalPrice = basePrice + customizationFee
+
+  useEffect(() => {
+    onCustomizationFeeChange?.(customizationFee)
+  }, [customizationFee, onCustomizationFeeChange])
 
   const goNext = () => setStepIndex((i) => Math.min(i + 1, steps.length - 1))
   const goBack = () => setStepIndex((i) => Math.max(i - 1, 0))
@@ -127,8 +172,79 @@ export function JacketCustomizer({
 
   const isMultiStep = steps.length > 1
 
+  const purchaseControls = (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="text-sm font-medium">Quantity:</span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
+            disabled={quantity <= 1}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <span className="w-12 text-center text-lg font-semibold">{quantity}</span>
+          <Button variant="outline" size="icon" onClick={() => onQuantityChange(quantity + 1)}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <Button size="lg" className="h-14 text-base sm:text-lg" onClick={handleAddToCart} disabled={!inStock}>
+          <AnimatePresence mode="wait">
+            {addedToCart ? (
+              <motion.div
+                key="added"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex items-center gap-2"
+              >
+                <Check className="h-5 w-5" />
+                Added to Cart!
+              </motion.div>
+            ) : (
+              <motion.div
+                key="add"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex items-center gap-2"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                Add to Cart - ${(totalPrice * quantity).toFixed(2)}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Button>
+        {onBuyNow && (
+          <Button size="lg" className="h-14 bg-red-700 text-base font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800 sm:text-lg" onClick={handleBuyNow} disabled={!inStock}>
+            <ShoppingBag className="h-5 w-5 mr-2" />
+            Buy Now
+          </Button>
+        )}
+        <div className="justify-self-center sm:justify-self-auto">{wishlistButton}</div>
+      </div>
+      {customizationFee > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
+          <span className="text-muted-foreground">Customization added</span>
+          <span className="font-semibold">+${customizationFee.toFixed(2)} USD</span>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <div className="space-y-4">
+      {purchaseControls}
+
+      {purchaseNotice}
+
+      <Separator />
+
       {/* Step progress */}
       {isMultiStep && (
         <div className="flex flex-wrap gap-2">
@@ -197,8 +313,7 @@ export function JacketCustomizer({
               <div>
                 <Label className="text-sm font-medium">Live customization</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Add embroidered text or artwork and position it on the jacket.
-                  {product.embroidery?.fee ? ` A $${product.embroidery.fee.toFixed(2)} customization fee applies.` : ''}
+                  Add embroidered text or artwork and position it on the jacket. Customization pricing updates per item.
                 </p>
               </div>
               <JacketDesignCanvas
@@ -267,7 +382,7 @@ export function JacketCustomizer({
               {hasMeasurements && (!hasSize || sizingMode === 'measure') && (
                 <div>
                   <Label className="text-sm font-medium block mb-2">Body Measurements (inches)</Label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {product.measurementFields!.map((field) => (
                       <div key={field} className="space-y-1">
                         <Label className="text-xs text-muted-foreground">{field}</Label>
@@ -321,6 +436,12 @@ export function JacketCustomizer({
                   </div>
                 )
               })}
+              {customizationFee > 0 && (
+                <div className="flex justify-between border-t pt-2 text-sm">
+                  <span className="text-muted-foreground">Customization fee</span>
+                  <span className="font-semibold">${customizationFee.toFixed(2)}</span>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
@@ -328,7 +449,7 @@ export function JacketCustomizer({
 
       {/* Nav (only shown when there's more than one step to move between) */}
       {isMultiStep && (
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between gap-3 pt-2">
           <Button type="button" variant="outline" size="sm" onClick={goBack} disabled={stepIndex === 0}>
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
@@ -342,65 +463,6 @@ export function JacketCustomizer({
         </div>
       )}
 
-      <Separator />
-
-      {/* Quantity and Add to Cart - always visible, on every step */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium">Quantity:</span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <span className="w-12 text-center text-lg font-semibold">{quantity}</span>
-            <Button variant="outline" size="icon" onClick={() => onQuantityChange(quantity + 1)}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <Button size="lg" className="flex-1 h-14 text-lg" onClick={handleAddToCart} disabled={!inStock}>
-            <AnimatePresence mode="wait">
-              {addedToCart ? (
-                <motion.div
-                  key="added"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="flex items-center gap-2"
-                >
-                  <Check className="h-5 w-5" />
-                  Added to Cart!
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="add"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="flex items-center gap-2"
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                  Add to Cart - ${(totalPrice * quantity).toFixed(2)}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Button>
-          {onBuyNow && (
-            <Button size="lg" variant="secondary" className="flex-1 h-14 text-lg" onClick={handleBuyNow} disabled={!inStock}>
-              <ShoppingBag className="h-5 w-5 mr-2" />
-              Buy Now
-            </Button>
-          )}
-          {wishlistButton}
-        </div>
-      </div>
     </div>
   )
 }

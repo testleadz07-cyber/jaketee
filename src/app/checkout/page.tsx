@@ -17,6 +17,7 @@ import { useCartStore } from '@/store/cart'
 import { useToast } from '@/hooks/use-toast'
 import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, X, Tag, MapPin, Plus, Check } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { getCustomizedViews, type JacketCustomization } from '@/types/jacket-customization'
 
 interface SavedAddress {
   label: string
@@ -34,6 +35,20 @@ declare global {
   interface Window {
     paypal?: any
   }
+}
+
+function getCustomizationSummary(customization?: JacketCustomization) {
+  if (!customization) return []
+  return getCustomizedViews(customization).map((view) => {
+    const side = customization[view]
+    const details: string[] = []
+    if (side?.text?.value?.trim()) details.push(`Text: ${side.text.value.trim()}`)
+    if (side?.artworks?.length) {
+      const names = side.artworks.map((artwork) => artwork.name).filter(Boolean)
+      details.push(`${side.artworks.length} artwork piece${side.artworks.length === 1 ? '' : 's'}${names.length ? `: ${names.join(', ')}` : ''}`)
+    }
+    return { view, details }
+  }).filter((entry) => entry.details.length > 0)
 }
 
 function CheckoutContent() {
@@ -777,8 +792,10 @@ function CheckoutContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2">
-                        {mounted && checkoutItems.map((item) => (
-                          <div key={item.id} className="flex gap-4 items-center bg-muted/10 p-3 rounded-lg border">
+                        {mounted && checkoutItems.map((item) => {
+                          const customizationSummary = getCustomizationSummary(item.customization)
+                          return (
+                          <div key={item.id} className="flex gap-4 items-start bg-muted/10 p-3 rounded-lg border">
                             <div className="relative h-16 w-16 overflow-hidden rounded bg-muted flex-shrink-0">
                               <Image src={item.image || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-cover" />
                             </div>
@@ -787,6 +804,18 @@ function CheckoutContent() {
                               <p className="text-xs text-muted-foreground">
                                 {item.variants.map((v) => `${v.name}: ${v.value}`).join(', ')}
                               </p>
+                              {customizationSummary.length > 0 && (
+                                <div className="mt-2 rounded-md border bg-background/60 p-2 text-xs">
+                                  <p className="mb-1 font-semibold text-foreground">Customization</p>
+                                  <div className="space-y-1 text-muted-foreground">
+                                    {customizationSummary.map(({ view, details }) => (
+                                      <p key={view}>
+                                        <span className="font-medium capitalize text-foreground">{view}:</span> {details.join(' | ')}
+                                      </p>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                               <p className="text-xs font-medium mt-1">
                                 Qty: {item.quantity} • ${item.price.toFixed(2)}
                               </p>
@@ -795,7 +824,8 @@ function CheckoutContent() {
                               ${(item.price * item.quantity).toFixed(2)}
                             </div>
                           </div>
-                        ))}
+                          )
+                        })}
                       </div>
 
                       <Separator />
@@ -972,6 +1002,35 @@ function CheckoutContent() {
                 <CardTitle className="text-lg">Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {mounted && checkoutItems.length > 0 && (
+                  <div className="space-y-3">
+                    {checkoutItems.map((item) => {
+                      const customizationSummary = getCustomizationSummary(item.customization)
+                      return (
+                        <div key={item.id} className="rounded-md border bg-muted/10 p-3 text-sm">
+                          <div className="flex justify-between gap-3">
+                            <span className="min-w-0 truncate font-medium">{item.name}</span>
+                            <span className="shrink-0 font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">Qty {item.quantity} at ${item.price.toFixed(2)}</p>
+                          {customizationSummary.length > 0 && (
+                            <div className="mt-2 space-y-1 border-t pt-2 text-xs text-muted-foreground">
+                              <p className="font-semibold text-foreground">Customization</p>
+                              {customizationSummary.map(({ view, details }) => (
+                                <p key={view}>
+                                  <span className="font-medium capitalize text-foreground">{view}:</span> {details.join(' | ')}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                <Separator />
+
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>

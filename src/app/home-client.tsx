@@ -215,6 +215,12 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
               brands, schools, and everyday wear.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="h-12 bg-red-700 px-6 text-base font-bold text-white shadow-lg hover:bg-red-800">
+                <Link href="/custom-letterman-jackets">
+                  Start Custom Design
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
               <Button asChild size="lg" className="h-12 px-6 text-base">
                 <Link href="/shop">
                   Shop Jackets
@@ -248,6 +254,42 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
       </section>
 
       <main className="flex-1">
+        <section className="store-section store-section--contrast">
+          <div className="section-shell">
+            <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+              <div>
+                <p className="text-sm font-semibold uppercase text-white/65">Design your own</p>
+                <h2 className="mt-2 text-3xl font-bold md:text-4xl">Start a custom jacket design</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
+                  Choose a jacket style, add letters, patches, embroidery, names, numbers, or uploaded artwork.
+                </p>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <Button asChild size="lg" className="bg-red-700 text-white hover:bg-red-800">
+                    <Link href="/custom-letterman-jackets">Custom Letterman / Varsity</Link>
+                  </Button>
+                  <Button asChild size="lg" variant="secondary">
+                    <Link href="/custom-puffer-jackets">Custom Puffer</Link>
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  ['Custom bomber jacket', '/custom-bomber-jackets'],
+                  ['Custom coach jacket', '/custom-coach-jackets'],
+                  ['Patches & embroidery', '/patches-embroidery'],
+                  ['Materials & colors', '/materials-colors'],
+                ].map(([label, href]) => (
+                  <Link key={href} href={href} className="group flex min-h-20 items-center justify-between rounded-md border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10">
+                    {label}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="store-section store-section--plain store-section--accent">
           <div className="section-shell">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -348,12 +390,17 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
 
         <section className="store-section store-section--plain store-section--accent">
           <div className="section-shell">
-          <div className="mb-8">
-            <p className="text-sm font-semibold uppercase text-muted-foreground">Make it yours</p>
-            <h2 className="mt-2 text-3xl font-bold md:text-4xl">Explore custom options</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Compare jacket materials, then plan the patches and embroidery that make the design your own.
-            </p>
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase text-muted-foreground">Make it yours</p>
+              <h2 className="mt-2 text-3xl font-bold md:text-4xl">Explore custom options</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Compare jacket materials, then plan the patches and embroidery that make the design your own.
+              </p>
+            </div>
+            <Button asChild className="bg-red-700 text-white hover:bg-red-800">
+              <Link href="/custom-letterman-jackets">Start Custom Design</Link>
+            </Button>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <Link

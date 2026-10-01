@@ -58,17 +58,10 @@ const bulkOrderLinks: NavLink[] = [
 ]
 
 const customJacketLinks: NavLink[] = [
-  { href: '/custom-letterman-jackets', label: 'Custom Letterman Jackets', description: 'School letters, awards, chenille, and names' },
-  { href: '/custom-bomber-jackets', label: 'Custom Bomber Jackets', description: 'Design leather, satin, nylon, or suede bombers' },
-  { href: '/custom-coach-jackets', label: 'Custom Coach Jackets', description: 'Team, staff, event, and brand designs' },
-  { href: '/custom-denim-jackets', label: 'Custom Denim Jackets', description: 'Embroidery, patches, and back artwork' },
-  { href: '/custom-puffer-jackets', label: 'Custom Puffer Jackets', description: 'Logo outerwear for cold-weather groups' },
-  { href: '/custom-hoodies', label: 'Custom Hoodies', description: 'Leavers, teams, names, and lettering' },
-  { href: '/varsity-jackets/oversized', label: 'Oversized Varsity Jackets', description: 'Relaxed varsity fits with custom artwork' },
-  { href: '/varsity-jackets/vintage', label: 'Vintage Varsity Jackets', description: 'Heritage colors, chenille, and retro details' },
-  { href: '/bulk-orders/sorority-fraternity', label: 'Sorority & Fraternity Jackets', description: 'Authorized chapter letters and member details' },
-  { href: '/bulk-orders/senior-class', label: 'Senior Class Jackets', description: 'Graduation-year jackets with student details' },
-  { href: '/bulk-orders/cheer', label: 'Custom Cheer Jackets', description: 'Squad jackets for athletes and coaches' },
+  { href: '/custom-letterman-jackets', label: 'Custom Letterman / Varsity Jacket', description: 'School letters, awards, chenille, and names' },
+  { href: '/custom-puffer-jackets', label: 'Custom Puffer Jacket', description: 'Logo outerwear for cold-weather groups' },
+  { href: '/custom-coach-jackets', label: 'Custom Coach', description: 'Team, staff, event, and brand designs' },
+  { href: '/custom-bomber-jackets', label: 'Custom Bomber Jacket', description: 'Design leather, satin, nylon, or suede bombers' },
 ]
 
 const supportLinks: NavLink[] = [
@@ -312,7 +305,7 @@ export function Header() {
 
             <nav className="hidden items-center gap-1 xl:flex" aria-label="Main navigation">
               {renderDesktopMenu('Varsity Jackets', varsitySubcategoryLinks, { href: '/varsity-jackets', label: 'All Varsity Jackets', description: '' })}
-              {renderDesktopMenu('Custom Jackets', customJacketLinks)}
+              {renderDesktopMenu('Design your own', customJacketLinks)}
               {renderDesktopMenu('Other Styles', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
               {renderDesktopMenu('Bulk Order', bulkOrderLinks, { href: '/bulk-orders', label: 'All Bulk Orders', description: '' })}
               {renderDesktopMenu('Support', supportLinks)}
@@ -560,7 +553,7 @@ export function Header() {
                   { href: '/varsity-jackets', label: 'All Varsity Jackets', description: 'Classic custom letterman styles' },
                   ...varsitySubcategoryLinks,
                 ])}
-                {renderMobileSection('Custom Jackets', customJacketLinks)}
+                {renderMobileSection('Design your own', customJacketLinks)}
                 {renderMobileSection('Other Styles', otherStyleLinks)}
                 {renderMobileSection('Bulk Order', bulkOrderLinks)}
                 {renderMobileSection('Support', supportLinks)}

@@ -91,8 +91,8 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
         const y = Number(art.y)
         const validSource = source === 'upload'
           ? Boolean(url && /^https:\/\//i.test(url) && url.length <= 1000)
-          : Boolean(catalogId && /^[a-z0-9-]{1,40}$/i.test(catalogId))
-        if (!/^[a-z0-9-]{1,80}$/i.test(id) || ids.has(id) || !source || !validSource || !name || !Number.isFinite(widthInches) || widthInches < 2 || widthInches > 12 || !inUnitRange(x) || !inUnitRange(y)) {
+          : Boolean(catalogId && /^[a-z0-9-]{1,80}$/i.test(catalogId))
+        if (!/^[a-z0-9-]{1,80}$/i.test(id) || ids.has(id) || !source || !validSource || !name || !Number.isFinite(widthInches) || widthInches < 2 || widthInches > 6 || !inUnitRange(x) || !inUnitRange(y)) {
           throw new CheckoutError('Invalid jacket artwork')
         }
         ids.add(id)

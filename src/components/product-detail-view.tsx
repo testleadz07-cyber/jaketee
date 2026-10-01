@@ -22,18 +22,19 @@ import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
-import { JacketCustomizer } from '@/components/jacket-customizer'
 import {
   Star,
   Check,
   Minus,
   Plus,
   ShoppingCart,
+  ShoppingBag,
   Truck,
   RefreshCw,
   Heart,
   ZoomIn,
   Ruler,
+  Palette,
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -271,11 +272,6 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
   const sizeVariants = Object.entries(groupedVariants).find(([name]) => name.toLowerCase() === 'size')?.[1] || []
   const productFaqs = buildProductFaqs(faqs, categoryName, isJacket || sizeVariants.length > 0)
 
-  const handleSelectCustomizerVariant = (groupName: string, value: string, image?: string | null) => {
-    setSelectedVariants((prev) => ({ ...prev, [groupName]: value }))
-    if (image) setOverrideImage(image)
-  }
-
   const wishlistButton = (
     <Button
       variant="outline"
@@ -475,21 +471,100 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
               </section>
 
               {isJacket && (
-                <div>
-                  <JacketCustomizer
-                  product={product}
-                  images={product.images}
-                  selectedVariants={selectedVariants}
-                  onSelectVariant={handleSelectCustomizerVariant}
-                  basePrice={getPrice()}
-                  quantity={quantity}
-                  onQuantityChange={setQuantity}
-                  addedToCart={addedToCart}
-                  inStock={product.inStock}
-                  onAddToCart={handleAddToCart}
-                  onBuyNow={handleBuyNow}
-                  wishlistButton={wishlistButton}
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-medium">Quantity:</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          disabled={quantity <= 1}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="w-12 text-center text-lg font-semibold">{quantity}</span>
+                        <Button variant="outline" size="icon" onClick={() => setQuantity(quantity + 1)}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        size="lg"
+                        className="flex-1 h-14 text-lg"
+                        onClick={() => handleAddToCart()}
+                        disabled={!product.inStock}
+                      >
+                        <AnimatePresence mode="wait">
+                          {addedToCart ? (
+                            <motion.div
+                              key="added-jacket"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              className="flex items-center gap-2"
+                            >
+                              <Check className="h-5 w-5" />
+                              Added to Cart!
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="add-jacket"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              className="flex items-center gap-2"
+                            >
+                              <ShoppingCart className="h-5 w-5" />
+                              Add to Cart -
+                              ${(getPrice() * quantity).toFixed(2)}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </Button>
+                      <Button
+                        size="lg"
+                        className="flex-1 h-14 bg-red-700 text-lg font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800"
+                        onClick={() => handleBuyNow()}
+                        disabled={!product.inStock}
+                      >
+                        <ShoppingBag className="h-5 w-5" />
+                        Buy Now
+                      </Button>
+                      {wishlistButton}
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border bg-muted/30 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h2 className="text-lg font-semibold">Want a custom design?</h2>
+                        <p className="mt-1 text-sm text-muted-foreground">Open the design studio to add embroidery, artwork, measurements, and jacket options.</p>
+                      </div>
+                      <Link href={`/customize/${product.slug}`} className="shrink-0">
+                        <Button size="lg" className="w-full sm:w-auto" disabled={!product.inStock}>
+                          <Palette className="mr-2 h-5 w-5" />
+                          Customize Design
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <FulfillmentNotice compact />
+
+                  <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
+                    <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                      <Truck className="mt-0.5 h-5 w-5 shrink-0" />
+                      <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
+                    </Link>
+                    <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                      <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
+                      <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
+                    </Link>
+                  </div>
                 </div>
               )}
 
@@ -552,7 +627,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
               <Separator />
 
-              <FulfillmentNotice compact />
+              {!isJacket && <FulfillmentNotice compact />}
 
               {/* Quantity and Add to Cart */}
               {!isJacket && (
@@ -619,11 +694,11 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     </Button>
                     <Button
                       size="lg"
-                      variant="secondary"
-                      className="flex-1 h-14 text-lg"
+                      className="flex-1 h-14 bg-red-700 text-lg font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800"
                       onClick={() => handleBuyNow()}
                       disabled={!product.inStock}
                     >
+                      <ShoppingBag className="h-5 w-5" />
                       Buy Now
                     </Button>
                     {wishlistButton}
@@ -631,16 +706,18 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                 </div>
               )}
 
-              <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
-                <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
-                  <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-                  <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
-                </Link>
-                <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
-                  <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
-                  <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
-                </Link>
-              </div>
+              {!isJacket && (
+                <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
+                  <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                    <Truck className="mt-0.5 h-5 w-5 shrink-0" />
+                    <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
+                  </Link>
+                  <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                    <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
+                    <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
+                  </Link>
+                </div>
+              )}
             </motion.div>
           </div>
 

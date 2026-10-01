@@ -401,7 +401,7 @@ export default function PatchesEmbroideryPage() {
                 </p>
                 <div className="mt-7 flex flex-wrap gap-3">
                   <Button asChild size="lg">
-                    <Link href="/design-your-own">
+                    <Link href="/custom-letterman-jackets">
                       Online Jacket Builder
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
@@ -592,7 +592,7 @@ export default function PatchesEmbroideryPage() {
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg">
-                  <Link href="/design-your-own">
+                  <Link href="/custom-letterman-jackets">
                     <Scissors className="mr-2 h-4 w-4" />
                     Start Designing
                   </Link>

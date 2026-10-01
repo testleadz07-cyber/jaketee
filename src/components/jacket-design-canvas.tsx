@@ -159,8 +159,17 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   const selectArtwork = (item: CatalogArtwork) => {
     if ((side.artworks?.length || 0) >= 12) return toast({ title: 'Artwork limit reached', description: 'You can add up to 12 artwork pieces on each side.', variant: 'destructive' })
     const id = crypto.randomUUID()
-    updateSide({ artworks: [...(side.artworks || []), { id, source: 'catalog', catalogId: item.id, name: item.name, color: '#f8fafc', fontStyle: item.character ? 'varsity' : undefined, widthInches: 5, x: 0.5, y: 0.55 }] })
+    updateSide({ artworks: [...(side.artworks || []), { id, source: 'catalog', catalogId: item.id, name: item.name, color: item.color || '#1e40af', fontStyle: item.character ? (item.fontStyle || 'varsity') : undefined, widthInches: 2.5, x: 0.5, y: 0.55 }] })
     setSelectedArtworkId(id)
+  }
+
+  const removeArtwork = (artworkId: string) => {
+    updateSide({ artworks: side.artworks?.filter((artwork) => artwork.id !== artworkId) })
+    if (selectedArtworkId === artworkId) setSelectedArtworkId(null)
+  }
+
+  const removeSelectedArtwork = () => {
+    if (selectedArtwork) removeArtwork(selectedArtwork.id)
   }
 
   const pointerPosition = (event: PointerEvent<HTMLCanvasElement>) => {
@@ -203,7 +212,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       if (!response.ok) throw new Error(result.error || 'Artwork upload failed')
       if ((side.artworks?.length || 0) >= 12) throw new Error('You can add up to 12 artwork pieces on each side.')
       const id = crypto.randomUUID()
-      updateSide({ artworks: [...(side.artworks || []), { id, source: 'upload', url: result.url, name: file.name.slice(0, 80), widthInches: 5, x: 0.5, y: 0.55 }] })
+      updateSide({ artworks: [...(side.artworks || []), { id, source: 'upload', url: result.url, name: file.name.slice(0, 80), widthInches: 2.5, x: 0.5, y: 0.55 }] })
       setSelectedArtworkId(id)
     } catch (error) {
       toast({ title: 'Could not add artwork', description: error instanceof Error ? error.message : 'Try again shortly.', variant: 'destructive' })
@@ -215,7 +224,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex rounded-md border p-1" aria-label="Jacket view">
           {(['front', 'back'] as const).map((item) => (
             <Button key={item} type="button" size="sm" variant={view === item ? 'default' : 'ghost'} onClick={() => { setView(item); setSelectedArtworkId(null) }} className="relative capitalize">
@@ -253,15 +262,15 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       </div>
 
       <div className="space-y-3 border-t pt-4">
-        <div className="flex items-center justify-between"><Label className="flex items-center gap-2"><ImagePlus className="h-4 w-4" /> Artwork library</Label>
-          {selectedArtwork && <Button type="button" size="icon" variant="ghost" title="Remove selected artwork" onClick={() => { updateSide({ artworks: side.artworks?.filter((artwork) => artwork.id !== selectedArtwork.id) }); setSelectedArtworkId(null) }}><X className="h-4 w-4" /></Button>}
+        <div className="flex flex-wrap items-center justify-between gap-2"><Label className="flex items-center gap-2"><ImagePlus className="h-4 w-4" /> Artwork library</Label>
+          {selectedArtwork && <Button type="button" size="sm" variant="ghost" title="Remove selected artwork" onClick={removeSelectedArtwork}><X className="mr-2 h-4 w-4" /> Remove</Button>}
         </div>
         <div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search artwork" className="pl-9" /></div>
         <div className="flex gap-1 overflow-x-auto pb-1">
-          {artworkCategories.map((item) => <Button key={item} type="button" size="sm" variant={category === item ? 'secondary' : 'ghost'} onClick={() => setCategory(item)}>{item}</Button>)}
+          {artworkCategories.map((item) => <Button key={item} type="button" size="sm" variant={category === item ? 'secondary' : 'ghost'} onClick={() => setCategory(item)} className="flex-none">{item}</Button>)}
         </div>
-        <div className="grid max-h-56 grid-cols-4 gap-2 overflow-y-auto pr-1 sm:grid-cols-6">
-          {visibleArtwork.map((item) => <button key={item.id} type="button" title={`Add ${item.name}`} aria-label={`Add ${item.name}`} onClick={() => selectArtwork(item)} className="flex aspect-square items-center justify-center rounded-md border bg-background p-2 transition-colors hover:border-primary"><CatalogArtworkPreview item={item} /></button>)}
+        <div className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:max-h-56 sm:grid-cols-6">
+          {visibleArtwork.map((item) => <button key={item.id} type="button" title={`Add ${item.name}`} aria-label={`Add ${item.name}`} onClick={() => selectArtwork(item)} className="flex aspect-square min-h-20 items-center justify-center rounded-md border bg-background p-2 transition-colors hover:border-primary sm:min-h-0"><CatalogArtworkPreview item={item} className="h-10 w-10 sm:h-8 sm:w-8" /></button>)}
         </div>
         <input ref={fileRef} type="file" className="hidden" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleArtworkUpload(event.target.files?.[0])} />
         <Button type="button" variant="outline" className="w-full" disabled={isUploading} onClick={() => fileRef.current?.click()}>
@@ -270,11 +279,39 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
         {!!side.artworks?.length && <div className="space-y-2 rounded-md border p-3">
           <div className="flex items-center justify-between text-xs"><Label>Artwork on {view}</Label><span>{side.artworks.length}/12</span></div>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {side.artworks.map((artwork, index) => <button key={artwork.id} type="button" onClick={() => setSelectedArtworkId(artwork.id)} className={`min-w-20 rounded-md border px-2 py-1.5 text-xs ${selectedArtworkId === artwork.id ? 'border-primary bg-primary/5' : ''}`}><span className="block truncate">{index + 1}. {artwork.name}</span></button>)}
+            {side.artworks.map((artwork, index) => (
+              <div key={artwork.id} className={`flex min-w-40 items-center gap-1 rounded-md border px-2 py-2 text-xs sm:min-w-32 sm:py-1.5 ${selectedArtworkId === artwork.id ? 'border-primary bg-primary/5' : ''}`}>
+                <button type="button" onClick={() => setSelectedArtworkId(artwork.id)} className="min-w-0 flex-1 text-left">
+                  <span className="block truncate">{index + 1}. {artwork.name}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    removeArtwork(artwork.id)
+                  }}
+                  className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:p-1"
+                  aria-label={`Remove ${artwork.name}`}
+                  title={`Remove ${artwork.name}`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
           </div>
           {selectedArtwork && <div className="space-y-4 border-t pt-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium">Selected: {selectedArtwork.name}</p>
+                <p className="text-xs text-muted-foreground">Remove it to choose a different flag, letter, symbol, or uploaded artwork.</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={removeSelectedArtwork}>
+                <X className="mr-2 h-4 w-4" />
+                Remove selected
+              </Button>
+            </div>
             <div className="space-y-2"><div className="flex justify-between text-xs"><Label>Selected patch width</Label><span>{selectedArtwork.widthInches.toFixed(1)} in</span></div>
-              <Slider min={2} max={12} step={0.5} value={[selectedArtwork.widthInches]} onValueChange={([widthInches]) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, widthInches } : artwork) })} aria-label="Selected artwork width" />
+              <Slider min={2} max={6} step={0.5} value={[Math.min(selectedArtwork.widthInches, 6)]} onValueChange={([widthInches]) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, widthInches } : artwork) })} aria-label="Selected artwork width" />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2"><Label htmlFor="artwork-color" className="text-xs">Artwork color</Label><div className="flex items-center gap-2">
