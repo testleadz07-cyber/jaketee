@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { ShoppingBag, CheckCircle, Package, ArrowRight, Calendar, MapPin, CreditCard, Download } from 'lucide-react'
 import Link from 'next/link'
 import { getCustomizedViews, type JacketCustomization } from '@/types/jacket-customization'
+import { useCartStore } from '@/store/cart'
 
 interface OrderItem {
   productId: string
@@ -49,6 +50,8 @@ function ConfirmationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session } = useSession()
+  const clearCart = useCartStore((state) => state.clearCart)
+  const clearDirectOrderItem = useCartStore((state) => state.clearDirectOrderItem)
   const orderId = searchParams.get('id') || searchParams.get('orderId')
   const sessionId = searchParams.get('session_id')
   
@@ -58,6 +61,12 @@ function ConfirmationContent() {
   const [verificationError, setVerificationError] = useState<string | null>(null)
   const [downloadingInvoice, setDownloadingInvoice] = useState(false)
   const [lookupEmail, setLookupEmail] = useState('')
+
+  useEffect(() => {
+    if (!order) return
+    clearCart()
+    clearDirectOrderItem()
+  }, [order?._id, clearCart, clearDirectOrderItem])
 
   useEffect(() => {
     if (!orderId) {

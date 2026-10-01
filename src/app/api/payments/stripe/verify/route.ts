@@ -23,9 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize Stripe SDK on demand
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2025-01-27-ac' as any,
-    })
+    const stripe = new Stripe(stripeSecretKey)
 
     const { sessionId, orderId } = await request.json()
 

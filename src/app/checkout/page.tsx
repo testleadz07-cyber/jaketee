@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/header'
@@ -36,13 +36,19 @@ declare global {
   }
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   
-  const { items, getTotalPrice, clearCart, appliedPromo, setAppliedPromo, clearAppliedPromo, getDiscountedTotalPrice } = useCartStore()
-  const jacketCount = items.reduce((count, item) => count + item.quantity, 0)
+  const { items, directOrderItem, clearCart, clearDirectOrderItem, appliedPromo, setAppliedPromo, clearAppliedPromo } = useCartStore()
+  const isDirectOrder = searchParams.get('mode') === 'buy-now'
+  const checkoutItems = isDirectOrder ? (directOrderItem ? [directOrderItem] : []) : items
+  const subtotal = checkoutItems.reduce((total, item) => total + item.price * item.quantity, 0)
+  const discountAmount = appliedPromo && subtotal >= appliedPromo.minOrderValue ? appliedPromo.discountAmount : 0
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount)
+  const jacketCount = checkoutItems.reduce((count, item) => count + item.quantity, 0)
   const shippingAmount = jacketCount === 1 && !appliedPromo?.freeShipping ? 30 : 0
 
   const [mounted, setMounted] = useState(false)
@@ -95,10 +101,10 @@ export default function CheckoutPage() {
 
   // Redirect if cart is empty
   useEffect(() => {
-    if (items.length === 0) {
+    if (mounted && checkoutItems.length === 0) {
       router.push('/')
     }
-  }, [items, router])
+  }, [mounted, checkoutItems.length, router])
 
   // Fetch PayPal Config and User Profile on mount
   useEffect(() => {
@@ -114,7 +120,7 @@ export default function CheckoutPage() {
 
   // Coupon validity self-healing on checkout page
   useEffect(() => {
-    if (appliedPromo && getTotalPrice() < appliedPromo.minOrderValue) {
+    if (appliedPromo && subtotal < appliedPromo.minOrderValue) {
       const code = appliedPromo.code
       clearAppliedPromo()
       toast({
@@ -123,7 +129,7 @@ export default function CheckoutPage() {
         variant: 'destructive',
       })
     }
-  }, [items, appliedPromo, getTotalPrice, clearAppliedPromo, toast])
+  }, [subtotal, appliedPromo, clearAppliedPromo, toast])
 
   const handleApplyPromo = async () => {
     if (!promoCodeInput.trim()) return
@@ -133,7 +139,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/discounts/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: promoCodeInput, subtotal: getTotalPrice() }),
+        body: JSON.stringify({ code: promoCodeInput, subtotal }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -297,7 +303,7 @@ export default function CheckoutPage() {
               body: JSON.stringify({
                 email: shippingEmail,
                 promoCode: appliedPromo?.code,
-                items: items.map(item => ({
+                items: checkoutItems.map(item => ({
                   productId: item.productId,
                   name: item.name,
                   image: item.image,
@@ -345,7 +351,11 @@ export default function CheckoutPage() {
                 // The order was already created (and marked paid) by
                 // /api/payments/create-order + /api/payments/capture above,
                 // so just clear the cart and go to the confirmation page.
-                clearCart()
+                if (isDirectOrder) {
+                  clearDirectOrderItem()
+                } else {
+                  clearCart()
+                }
                 router.push(`/order-confirmation?id=${paypalDbOrderIdRef.current}`)
                 setIsSubmittingOrder(false)
               } else {
@@ -394,7 +404,7 @@ export default function CheckoutPage() {
 
     const payload = {
       email: shippingEmail,
-      items: items.map(item => ({
+      items: checkoutItems.map(item => ({
         productId: item.productId,
         name: item.name,
         image: item.image,
@@ -767,7 +777,7 @@ export default function CheckoutPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-2">
-                        {mounted && items.map((item) => (
+                        {mounted && checkoutItems.map((item) => (
                           <div key={item.id} className="flex gap-4 items-center bg-muted/10 p-3 rounded-lg border">
                             <div className="relative h-16 w-16 overflow-hidden rounded bg-muted flex-shrink-0">
                               <Image src={item.image || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-cover" />
@@ -965,12 +975,12 @@ export default function CheckoutPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${mounted ? getTotalPrice().toFixed(2) : '0.00'}</span>
+                    <span className="font-medium">${mounted ? subtotal.toFixed(2) : '0.00'}</span>
                   </div>
                   {appliedPromo && (
                     <div className="flex justify-between text-emerald-600 font-medium">
                       <span>Discount ({appliedPromo.code})</span>
-                      <span>-${mounted ? (getTotalPrice() - getDiscountedTotalPrice()).toFixed(2) : '0.00'}</span>
+                      <span>-${mounted ? discountAmount.toFixed(2) : '0.00'}</span>
                     </div>
                   )}
                   {appliedPromo?.freeShipping && (
@@ -1043,7 +1053,7 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between items-baseline font-bold text-xl pt-2">
                   <span>Total</span>
-                  <span className="text-primary">{jacketCount > 1 ? 'Quote required' : `$${mounted ? (getDiscountedTotalPrice() + shippingAmount).toFixed(2) : '0.00'}`}</span>
+                  <span className="text-primary">{jacketCount > 1 ? 'Quote required' : `$${mounted ? (discountedSubtotal + shippingAmount).toFixed(2) : '0.00'}`}</span>
                 </div>
               </CardContent>
             </Card>
@@ -1057,5 +1067,25 @@ export default function CheckoutPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
+          <Card className="border-2">
+            <CardContent className="flex items-center justify-center py-16">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">Loading checkout...</span>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }

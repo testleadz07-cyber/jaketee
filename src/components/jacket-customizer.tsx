@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag, ShoppingCart } from 'lucide-react'
 import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import { JacketDesignCanvas } from '@/components/jacket-design-canvas'
 import { getCustomizedViews, hasJacketCustomization, type JacketCustomization } from '@/types/jacket-customization'
@@ -39,6 +39,7 @@ interface JacketCustomizerProps {
   addedToCart: boolean
   inStock: boolean
   onAddToCart: (extraVariants: Array<{ name: string; value: string }>, extraFee: number, customization?: JacketCustomization) => void
+  onBuyNow?: (extraVariants: Array<{ name: string; value: string }>, extraFee: number, customization?: JacketCustomization) => void
   wishlistButton?: ReactNode
 }
 
@@ -53,6 +54,7 @@ export function JacketCustomizer({
   addedToCart,
   inStock,
   onAddToCart,
+  onBuyNow,
   wishlistButton,
 }: JacketCustomizerProps) {
   const [stepIndex, setStepIndex] = useState(0)
@@ -98,7 +100,7 @@ export function JacketCustomizer({
     return 'Review'
   }
 
-  const handleAddToCart = () => {
+  const getOrderDetails = () => {
     const extraVariants: Array<{ name: string; value: string }> = []
     if (sizingMode === 'measure') {
       for (const field of product.measurementFields || []) {
@@ -106,7 +108,21 @@ export function JacketCustomizer({
         if (value) extraVariants.push({ name: `Measurement: ${field}`, value: `${value}in` })
       }
     }
-    onAddToCart(extraVariants, customizationFee, hasJacketCustomization(customization) ? customization : undefined)
+    return {
+      extraVariants,
+      extraFee: customizationFee,
+      customization: hasJacketCustomization(customization) ? customization : undefined,
+    }
+  }
+
+  const handleAddToCart = () => {
+    const details = getOrderDetails()
+    onAddToCart(details.extraVariants, details.extraFee, details.customization)
+  }
+
+  const handleBuyNow = () => {
+    const details = getOrderDetails()
+    onBuyNow?.(details.extraVariants, details.extraFee, details.customization)
   }
 
   const isMultiStep = steps.length > 1
@@ -348,7 +364,7 @@ export function JacketCustomizer({
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <Button size="lg" className="flex-1 h-14 text-lg" onClick={handleAddToCart} disabled={!inStock}>
             <AnimatePresence mode="wait">
               {addedToCart ? (
@@ -376,6 +392,12 @@ export function JacketCustomizer({
               )}
             </AnimatePresence>
           </Button>
+          {onBuyNow && (
+            <Button size="lg" variant="secondary" className="flex-1 h-14 text-lg" onClick={handleBuyNow} disabled={!inStock}>
+              <ShoppingBag className="h-5 w-5 mr-2" />
+              Buy Now
+            </Button>
+          )}
           {wishlistButton}
         </div>
       </div>

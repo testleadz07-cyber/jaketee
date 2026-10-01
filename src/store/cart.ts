@@ -27,8 +27,11 @@ export interface AppliedPromo {
 
 interface CartStore {
   items: CartItem[]
+  directOrderItem: CartItem | null
   appliedPromo: AppliedPromo | null
   addItem: (item: Omit<CartItem, 'id' | 'quantity'> & { quantity?: number }) => void
+  setDirectOrderItem: (item: Omit<CartItem, 'id'>) => void
+  clearDirectOrderItem: () => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
@@ -43,6 +46,7 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      directOrderItem: null,
       appliedPromo: null,
 
       addItem: (item) =>
@@ -75,6 +79,18 @@ export const useCartStore = create<CartStore>()(
             ],
           }
         }),
+
+      setDirectOrderItem: (item) =>
+        set({
+          directOrderItem: {
+            ...item,
+            id: crypto.randomUUID(),
+            quantity: 1,
+          },
+          appliedPromo: null,
+        }),
+
+      clearDirectOrderItem: () => set({ directOrderItem: null }),
 
       removeItem: (id) =>
         set((state) => ({

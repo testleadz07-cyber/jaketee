@@ -37,6 +37,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import type { JacketCustomization } from '@/types/jacket-customization'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
 import { buildProductFaqs, type ProductFaq as ProductFaqData } from '@/lib/product-faqs'
@@ -96,6 +97,7 @@ interface ProductDetailViewProps {
 
 export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDetailViewProps) {
   const { data: session } = useSession()
+  const router = useRouter()
 
   const [product, setProduct] = useState<ProductDetailData>(initialProduct)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -109,6 +111,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const addItem = useCartStore((state) => state.addItem)
+  const setDirectOrderItem = useCartStore((state) => state.setDirectOrderItem)
   const addRecentlyViewed = useRecentlyViewedStore((state) => state.addItem)
 
   function groupVariants(variants: ProductDetailData['variants']) {
@@ -221,6 +224,38 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2000)
+  }
+
+  const handleBuyNow = (
+    extraVariants: Array<{ name: string; value: string }> = [],
+    extraFee: number = 0,
+    customization?: JacketCustomization
+  ) => {
+    const variantCombination = getSelectedVariantCombination()
+    const combined = [...(variantCombination || []), ...extraVariants]
+    const variants = combined.length > 0 ? combined : [{ name: 'Standard', value: 'Default' }]
+    const price = getPrice() + extraFee
+
+    setDirectOrderItem({
+      productId: product.id,
+      name: product.name,
+      price,
+      image: product.images?.[0]?.url || '/placeholder.png',
+      variants,
+      customization,
+      quantity: 1,
+    })
+
+    logUserActivity('begin_checkout', {
+      source: 'buy_now',
+      productId: product.id,
+      name: product.name,
+      price,
+      quantity: 1,
+      variants,
+    })
+
+    router.push('/checkout?mode=buy-now')
   }
 
   const groupedVariants = groupVariants(product.variants)
@@ -452,6 +487,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                   addedToCart={addedToCart}
                   inStock={product.inStock}
                   onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
                   wishlistButton={wishlistButton}
                   />
                 </div>
@@ -547,7 +583,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     </div>
                   </div>
 
-                  <div className="flex gap-4">
+                  <div className="flex gap-3">
                     <Button
                       size="lg"
                       className="flex-1 h-14 text-lg"
@@ -580,6 +616,15 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                           </motion.div>
                         )}
                       </AnimatePresence>
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      className="flex-1 h-14 text-lg"
+                      onClick={() => handleBuyNow()}
+                      disabled={!product.inStock}
+                    >
+                      Buy Now
                     </Button>
                     {wishlistButton}
                   </div>
