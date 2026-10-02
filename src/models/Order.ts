@@ -23,7 +23,7 @@ export interface IOrder extends Document {
   total: number
   promoCode?: string
   discountAmount?: number
-  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
+  status: 'pending' | 'paid' | 'in_production' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
   paymentMethod: 'paypal' | 'stripe' | 'cash' | 'bank_transfer' | 'other'
   paymentStatus?: 'unpaid' | 'paid' | 'partially_paid'
   paymentId?: string
@@ -144,7 +144,7 @@ const OrderSchema = new Schema<IOrder>(
     discountAmount: { type: Number, default: 0 },
     status: {
       type: String,
-      enum: ['pending', 'paid', 'shipped', 'in_transit', 'delivered', 'cancelled'],
+      enum: ['pending', 'paid', 'in_production', 'shipped', 'in_transit', 'delivered', 'cancelled'],
       default: 'pending',
     },
     paymentMethod: { type: String, enum: ['paypal', 'stripe', 'cash', 'bank_transfer', 'other'], default: 'paypal' },

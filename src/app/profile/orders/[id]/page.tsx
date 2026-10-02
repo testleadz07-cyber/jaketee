@@ -22,6 +22,7 @@ import {
   ExternalLink,
   ClipboardList,
   Download,
+  Settings,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -45,7 +46,7 @@ interface OrderDetail {
   id?: string
   orderNumber: string
   createdAt: string
-  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
+  status: 'pending' | 'paid' | 'in_production' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
   total: number
   subtotal: number
   shipping: number
@@ -85,6 +86,7 @@ const carrierTrackingUrl = (carrier: string | undefined, trackingNumber: string)
 // Map raw order status to the customer-facing progression step
 const STEPS = [
   { key: 'placed', label: 'Order Placed', icon: ClipboardList },
+  { key: 'in_production', label: 'In Production', icon: Settings },
   { key: 'shipped', label: 'Shipped', icon: Package },
   { key: 'in_transit', label: 'In Transit', icon: Truck },
   { key: 'delivered', label: 'Delivered', icon: CheckCircle2 },
@@ -95,14 +97,37 @@ const statusToStepIndex = (status: string) => {
     case 'pending':
     case 'paid':
       return 0
-    case 'shipped':
+    case 'in_production':
       return 1
-    case 'in_transit':
+    case 'shipped':
       return 2
-    case 'delivered':
+    case 'in_transit':
       return 3
+    case 'delivered':
+      return 4
     default:
       return 0
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-amber-100 text-amber-800 border-amber-200'
+    case 'paid':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    case 'in_production':
+      return 'bg-orange-100 text-orange-800 border-orange-200'
+    case 'shipped':
+      return 'bg-blue-100 text-blue-800 border-blue-200'
+    case 'in_transit':
+      return 'bg-purple-100 text-purple-800 border-purple-200'
+    case 'delivered':
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200'
+    case 'cancelled':
+      return 'bg-rose-100 text-rose-800 border-rose-200'
+    default:
+      return 'bg-muted text-muted-foreground'
   }
 }
 
@@ -232,15 +257,7 @@ export default function OrderTrackingPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Badge
-                className={
-                  isCancelled
-                    ? 'bg-rose-100 text-rose-800 border-rose-200'
-                    : order.status === 'delivered'
-                    ? 'bg-indigo-100 text-indigo-800 border-indigo-200'
-                    : 'bg-blue-100 text-blue-800 border-blue-200'
-                }
-              >
+              <Badge className={getStatusColor(order.status)}>
                 {order.status.replace('_', ' ').toUpperCase()}
               </Badge>
               <Button

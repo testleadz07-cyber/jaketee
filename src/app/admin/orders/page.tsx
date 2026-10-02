@@ -64,7 +64,7 @@ interface Order {
   id?: string
   orderNumber: string
   createdAt: string
-  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
+  status: 'pending' | 'paid' | 'in_production' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
   total: number
   subtotal: number
   shipping: number
@@ -389,6 +389,8 @@ export default function AdminOrders() {
         return <Badge className="bg-amber-100 text-amber-800 border-amber-200">PENDING</Badge>
       case 'paid':
         return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">PAID</Badge>
+      case 'in_production':
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-200">IN PRODUCTION</Badge>
       case 'shipped':
         return <Badge className="bg-blue-100 text-blue-800 border-blue-200">SHIPPED</Badge>
       case 'in_transit':
@@ -736,7 +738,7 @@ export default function AdminOrders() {
     )
   }
 
-  const tabsList = ['all', 'pending', 'paid', 'shipped', 'in_transit', 'delivered', 'cancelled']
+  const tabsList = ['all', 'pending', 'paid', 'in_production', 'shipped', 'in_transit', 'delivered', 'cancelled']
 
   // Step indicators for the modal
   const steps = [
@@ -795,7 +797,7 @@ export default function AdminOrders() {
                 : 'border-transparent hover:bg-muted text-muted-foreground hover:text-foreground'
             }`}
           >
-            {tab === 'in_transit' ? 'In Transit' : tab}
+            {tab === 'in_transit' ? 'In Transit' : tab === 'in_production' ? 'In Production' : tab}
           </button>
         ))}
       </div>
@@ -884,6 +886,7 @@ export default function AdminOrders() {
                             >
                               <option value="pending">Pending Payment</option>
                               <option value="paid">Paid (Order Placed)</option>
+                              <option value="in_production">In Production</option>
                               <option value="shipped">Shipped</option>
                               <option value="in_transit">In Transit</option>
                               <option value="delivered">Delivered</option>
@@ -1431,6 +1434,7 @@ export default function AdminOrders() {
                   >
                     <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
+                    <option value="in_production">In Production</option>
                     <option value="shipped">Shipped</option>
                     <option value="in_transit">In Transit</option>
                     <option value="delivered">Delivered</option>

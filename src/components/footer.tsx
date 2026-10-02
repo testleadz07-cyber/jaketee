@@ -29,6 +29,7 @@ interface FooterLink {
 const customerCareLinks: FooterLink[] = [
   { href: '/about', label: 'About Jacketee' },
   { href: '/shop', label: 'Shop All' },
+  { href: '/how-to-customize', label: 'How to Customize' },
   { href: '/blog', label: 'Blog' },
   { href: '/faq', label: 'FAQ' },
   { href: '/size-guide', label: 'Size Guide' },

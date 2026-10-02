@@ -102,7 +102,7 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
   // ---------- Header band ----------
   page.drawRectangle({ x: 0, y: PAGE_HEIGHT - 96, width: PAGE_WIDTH, height: 96, color: ACCENT })
   drawText('Jacketee', MARGIN, PAGE_HEIGHT - 45, { font: fontBold, size: 22, color: WHITE })
-  drawText('123 Fifth Avenue, New York, NY 10160, USA', MARGIN, PAGE_HEIGHT - 63, {
+  drawText('Adalat Garh, Sialkot, Punjab, Pakistan', MARGIN, PAGE_HEIGHT - 63, {
     size: 9,
     color: rgb(0.85, 0.85, 0.87),
   })
@@ -158,35 +158,75 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
   const col2X = MARGIN + colWidth + 20
   const col3X = MARGIN + (colWidth + 20) * 2
 
-  const blockTop = y
-  drawText('BILLED TO', col1X, blockTop, { font: fontBold, size: 9, color: MUTED })
-  drawText(order.userName, col1X, blockTop - 16, { font: fontBold, size: 10 })
-  drawText(order.userEmail, col1X, blockTop - 30, { size: 9, color: MUTED })
+  const drawTextWrapped = (
+    text: string,
+    x: number,
+    startY: number,
+    maxWidth: number,
+    opts: { font?: PDFFont; size?: number; color?: RGB; align?: 'left' | 'right' } = {}
+  ): number => {
+    const font = opts.font ?? fontRegular
+    const size = opts.size ?? 10
+    const words = text.split(' ')
+    let currentY = startY
+    let currentLine = ''
 
-  drawText('SHIPPED TO', col2X, blockTop, { font: fontBold, size: 9, color: MUTED })
-  drawText(order.shippingAddress.name, col2X, blockTop - 16, { font: fontBold, size: 10 })
-  drawText(order.shippingAddress.street, col2X, blockTop - 30, { size: 9, color: MUTED })
-  drawText(
-    `${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}`,
-    col2X,
-    blockTop - 42,
-    { size: 9, color: MUTED }
-  )
-  drawText(order.shippingAddress.country, col2X, blockTop - 54, { size: 9, color: MUTED })
-
-  drawText('PAYMENT', col3X, blockTop, { font: fontBold, size: 9, color: MUTED })
-  drawText(
-    order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A',
-    col3X,
-    blockTop - 16,
-    { font: fontBold, size: 10 }
-  )
-  drawText(`Order Date: ${formatDate(order.createdAt)}`, col3X, blockTop - 30, { size: 9, color: MUTED })
-  if (order.promoCode) {
-    drawText(`Promo: ${order.promoCode}`, col3X, blockTop - 42, { size: 9, color: MUTED })
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i]
+      const testLine = currentLine ? `${currentLine} ${word}` : word
+      if (font.widthOfTextAtSize(testLine, size) > maxWidth && currentLine) {
+        drawText(currentLine, x, currentY, opts)
+        currentY -= (size + 4)
+        currentLine = word
+      } else {
+        currentLine = testLine
+      }
+    }
+    if (currentLine) {
+      drawText(currentLine, x, currentY, opts)
+      currentY -= (size + 4)
+    }
+    return currentY
   }
 
-  y = blockTop - 70
+  const blockTop = y
+  
+  // Column 1
+  drawText('BILLED TO', col1X, blockTop, { font: fontBold, size: 9, color: MUTED })
+  let y1 = blockTop - 16
+  y1 = drawTextWrapped(order.userName, col1X, y1, colWidth, { font: fontBold, size: 10 })
+  y1 = drawTextWrapped(order.userEmail, col1X, y1, colWidth, { size: 9, color: MUTED })
+
+  // Column 2
+  drawText('SHIPPED TO', col2X, blockTop, { font: fontBold, size: 9, color: MUTED })
+  let y2 = blockTop - 16
+  y2 = drawTextWrapped(order.shippingAddress.name, col2X, y2, colWidth, { font: fontBold, size: 10 })
+  y2 = drawTextWrapped(order.shippingAddress.street, col2X, y2, colWidth, { size: 9, color: MUTED })
+  y2 = drawTextWrapped(
+    `${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}`,
+    col2X,
+    y2,
+    colWidth,
+    { size: 9, color: MUTED }
+  )
+  y2 = drawTextWrapped(order.shippingAddress.country, col2X, y2, colWidth, { size: 9, color: MUTED })
+
+  // Column 3
+  drawText('PAYMENT', col3X, blockTop, { font: fontBold, size: 9, color: MUTED })
+  let y3 = blockTop - 16
+  y3 = drawTextWrapped(
+    order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A',
+    col3X,
+    y3,
+    colWidth,
+    { font: fontBold, size: 10 }
+  )
+  y3 = drawTextWrapped(`Order Date: ${formatDate(order.createdAt)}`, col3X, y3, colWidth, { size: 9, color: MUTED })
+  if (order.promoCode) {
+    y3 = drawTextWrapped(`Promo: ${order.promoCode}`, col3X, y3, colWidth, { size: 9, color: MUTED })
+  }
+
+  y = Math.min(y1, y2, y3) - 10
   drawLine(MARGIN, y, PAGE_WIDTH - MARGIN)
   y -= 24
 

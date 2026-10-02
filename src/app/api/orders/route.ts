@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payment status' }, { status: 400 })
     }
 
-    const validStatuses = ['pending', 'paid', 'shipped', 'in_transit', 'delivered', 'cancelled']
+    const validStatuses = ['pending', 'paid', 'in_production', 'shipped', 'in_transit', 'delivered', 'cancelled']
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid order status' }, { status: 400 })
     }

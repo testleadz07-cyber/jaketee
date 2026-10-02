@@ -42,7 +42,7 @@ interface Order {
   _id: string
   orderNumber: string
   createdAt: string
-  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
+  status: 'pending' | 'paid' | 'in_production' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
   total: number
   subtotal: number
   shipping: number
@@ -418,6 +418,8 @@ export default function ProfilePage() {
         return 'bg-amber-100 text-amber-800 border-amber-200'
       case 'paid':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+      case 'in_production':
+        return 'bg-orange-100 text-orange-800 border-orange-200'
       case 'shipped':
         return 'bg-blue-100 text-blue-800 border-blue-200'
       case 'in_transit':

@@ -3,7 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ShoppingCart, Star, Heart } from 'lucide-react'
+import { Star, Heart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -139,18 +139,6 @@ export function ProductCard({ product, listingPosition }: ProductCardProps) {
                   </span>
                 )}
               </div>
-
-              <Button
-                size="icon"
-                aria-label={`View ${product.name}`}
-                className="rounded-full"
-                onClick={(e) => {
-                  e.preventDefault()
-                  // Will be handled by product detail page
-                }}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
             </div>
           </CardContent>
         </Card>

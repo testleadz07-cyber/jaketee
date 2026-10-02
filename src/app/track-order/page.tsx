@@ -24,6 +24,7 @@ import {
   ClipboardList,
   Search,
   Download,
+  Settings,
 } from 'lucide-react'
 
 interface OrderItem {
@@ -45,7 +46,7 @@ interface OrderDetail {
   id: string
   orderNumber: string
   createdAt: string
-  status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
+  status: 'pending' | 'paid' | 'in_production' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
   total: number
   subtotal: number
   shipping: number
@@ -83,6 +84,7 @@ const carrierTrackingUrl = (carrier: string | undefined, trackingNumber: string)
 
 const STEPS = [
   { key: 'placed', label: 'Order Placed', icon: ClipboardList },
+  { key: 'in_production', label: 'In Production', icon: Settings },
   { key: 'shipped', label: 'Shipped', icon: Package },
   { key: 'in_transit', label: 'In Transit', icon: Truck },
   { key: 'delivered', label: 'Delivered', icon: CheckCircle2 },
@@ -93,14 +95,37 @@ const statusToStepIndex = (status: string) => {
     case 'pending':
     case 'paid':
       return 0
-    case 'shipped':
+    case 'in_production':
       return 1
-    case 'in_transit':
+    case 'shipped':
       return 2
-    case 'delivered':
+    case 'in_transit':
       return 3
+    case 'delivered':
+      return 4
     default:
       return 0
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-amber-100 text-amber-800 border-amber-200'
+    case 'paid':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    case 'in_production':
+      return 'bg-orange-100 text-orange-800 border-orange-200'
+    case 'shipped':
+      return 'bg-blue-100 text-blue-800 border-blue-200'
+    case 'in_transit':
+      return 'bg-purple-100 text-purple-800 border-purple-200'
+    case 'delivered':
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200'
+    case 'cancelled':
+      return 'bg-rose-100 text-rose-800 border-rose-200'
+    default:
+      return 'bg-muted text-muted-foreground'
   }
 }
 
@@ -280,15 +305,7 @@ export default function TrackOrderPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge
-                    className={
-                      isCancelled
-                        ? 'bg-rose-100 text-rose-800 border-rose-200'
-                        : order.status === 'delivered'
-                        ? 'bg-indigo-100 text-indigo-800 border-indigo-200'
-                        : 'bg-blue-100 text-blue-800 border-blue-200'
-                    }
-                  >
+                  <Badge className={getStatusColor(order.status)}>
                     {order.status.replace('_', ' ').toUpperCase()}
                   </Badge>
                   <Button
@@ -467,97 +484,7 @@ export default function TrackOrderPage() {
                 </Card>
               )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 border-2">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Package className="h-5 w-5 text-primary" />
-                      Ordered Items
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex gap-4 items-center bg-card p-3 rounded-lg border">
-                        <div className="relative h-16 w-16 overflow-hidden rounded bg-muted flex-shrink-0">
-                          <Image src={item.image || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold truncate">{item.name}</p>
-                          {item.variants && item.variants.length > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              {item.variants.map((v) => `${v.name}: ${v.value}`).join(', ')}
-                            </p>
-                          )}
-                          <p className="text-sm font-medium mt-1">
-                            Qty: {item.quantity} • ${item.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-right font-bold text-primary">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
 
-                <div className="space-y-6">
-                  <Card className="border-2">
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        Shipping Address
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm space-y-1">
-                      <p className="font-semibold">{order.shippingAddress.name}</p>
-                      <p className="text-muted-foreground">{order.shippingAddress.street}</p>
-                      <p className="text-muted-foreground">
-                        {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}
-                      </p>
-                      <p className="text-muted-foreground">{order.shippingAddress.country}</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-2">
-                    <CardHeader>
-                      <CardTitle className="text-base">Order Totals</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>${order.subtotal.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Shipping</span>
-                        <span>{order.shipping === 0 ? 'FREE' : `$${order.shipping.toFixed(2)}`}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax</span>
-                        <span>${order.tax.toFixed(2)}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-bold text-base text-primary pt-1">
-                        <span>Total</span>
-                        <span>${order.total.toFixed(2)}</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-1.5 mt-2"
-                        onClick={handleDownloadInvoice}
-                        disabled={downloadingInvoice}
-                      >
-                        {downloadingInvoice ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Download className="h-3.5 w-3.5" />
-                        )}
-                        Download Invoice / Receipt
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
             </motion.div>
           )}
         </motion.div>

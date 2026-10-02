@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CartDrawer } from '@/components/cart-drawer'
-import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, Tags, User, UserCheck, Users, X } from 'lucide-react'
+import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, Sparkles, Tags, User, UserCheck, Users, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { WhatsAppHelp } from '@/components/whatsapp-help'
@@ -66,6 +66,7 @@ const customJacketLinks: NavLink[] = [
 ]
 
 const supportLinks: NavLink[] = [
+  { href: '/how-to-customize', label: 'How to Customize', description: 'Step-by-step guide to customizing any jacket', icon: Sparkles },
   { href: '/size-guide', label: 'Size Guide', description: 'Sizing help before you order', icon: Ruler },
   { href: '/track-order', label: 'Track Order', description: 'Check order status and delivery updates', icon: Package },
   { href: '/materials-colors', label: 'Materials', description: 'Compare fabrics, finishes, and color options' },
