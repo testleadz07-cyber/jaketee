@@ -1,0 +1,40 @@
+{
+  "_id": "6a9efd050faef0e1af3011a4",
+  "slug": "screen-print-coach-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc09f67a6c3a3788c39e",
+  "compareAtPrice": 162,
+  "createdAt": "2026-09-07T18:05:57.697Z",
+  "description": "Lightweight and practical coach jacket perfect for teams, brands, and event crews.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264982/jacketee/products/screen-print-coach-jacket/screen-print-coach-jacket-main.jpg",
+      "alt": "Screen Print Coach Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264980/jacketee/products/screen-print-coach-jacket/screen-print-coach-jacket-back.jpg",
+      "alt": "Screen Print Coach Jacket - back view",
+      "order": 1
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Screen Print Coach Jacket",
+  "price": 137.7,
+  "reviewCount": 0,
+  "stockCount": 27,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:52.440Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Coach Jacket",
+  "category": "coach-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Screen Print Coach Jacket from our Coach Jackets collection. Review materials, sizing and customization options, then request a free design mockup",
+  "seoTitle": "Custom Screen Print Coach Jacket | Jacketee"
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949225/jacketee/products/black-wool-and-cream-vegan-leather-jacket/oykembvky5jdf51hihls.png",
+      "publicId": "jacketee/products/black-wool-and-cream-vegan-leather-jacket/oykembvky5jdf51hihls",
+      "alt": "Black Wool and Cream Vegan Leather Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949227/jacketee/products/black-wool-and-cream-vegan-leather-jacket/dtl655rbfenco2icfiuw.png",
+      "publicId": "jacketee/products/black-wool-and-cream-vegan-leather-jacket/dtl655rbfenco2icfiuw",
+      "alt": "Black Wool and Cream Vegan Leather Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949228/jacketee/products/black-wool-and-cream-vegan-leather-jacket/rahahn2qyayn97dn0fbr.png",
+      "publicId": "jacketee/products/black-wool-and-cream-vegan-leather-jacket/rahahn2qyayn97dn0fbr",
+      "alt": "Black Wool and Cream Vegan Leather Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949229/jacketee/products/black-wool-and-cream-vegan-leather-jacket/qvwr8mo5banrvolbk77c.png",
+      "publicId": "jacketee/products/black-wool-and-cream-vegan-leather-jacket/qvwr8mo5banrvolbk77c",
+      "alt": "Black Wool and Cream Vegan Leather Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

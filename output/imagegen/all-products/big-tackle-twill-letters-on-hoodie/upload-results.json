@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940184/jacketee/products/big-tackle-twill-letters-on-hoodie/kxi9ejl9a9wdeoq7bl8k.png",
+      "publicId": "jacketee/products/big-tackle-twill-letters-on-hoodie/kxi9ejl9a9wdeoq7bl8k",
+      "alt": "Big Tackle Twill Letters On Hoodie Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940187/jacketee/products/big-tackle-twill-letters-on-hoodie/cu7ll3izlmvckb9vqyzt.png",
+      "publicId": "jacketee/products/big-tackle-twill-letters-on-hoodie/cu7ll3izlmvckb9vqyzt",
+      "alt": "Big Tackle Twill Letters On Hoodie Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940188/jacketee/products/big-tackle-twill-letters-on-hoodie/bvyocluyx14pwvghdwlx.png",
+      "publicId": "jacketee/products/big-tackle-twill-letters-on-hoodie/bvyocluyx14pwvghdwlx",
+      "alt": "Big Tackle Twill Letters On Hoodie Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940190/jacketee/products/big-tackle-twill-letters-on-hoodie/gnlar7mweueqvwtwfzxj.png",
+      "publicId": "jacketee/products/big-tackle-twill-letters-on-hoodie/gnlar7mweueqvwtwfzxj",
+      "alt": "Big Tackle Twill Letters On Hoodie Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

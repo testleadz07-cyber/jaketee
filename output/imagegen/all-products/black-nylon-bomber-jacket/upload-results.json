@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937938/jacketee/products/black-nylon-bomber-jacket/ndsysb7j7radh8xhzymn.png",
+      "publicId": "jacketee/products/black-nylon-bomber-jacket/ndsysb7j7radh8xhzymn",
+      "alt": "Black Nylon Bomber Jacket for Mens Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937939/jacketee/products/black-nylon-bomber-jacket/h22jjqolg0ikdbvph6tx.png",
+      "publicId": "jacketee/products/black-nylon-bomber-jacket/h22jjqolg0ikdbvph6tx",
+      "alt": "Black Nylon Bomber Jacket for Mens Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937941/jacketee/products/black-nylon-bomber-jacket/sgdxjyzvteof6yxxwrar.png",
+      "publicId": "jacketee/products/black-nylon-bomber-jacket/sgdxjyzvteof6yxxwrar",
+      "alt": "Black Nylon Bomber Jacket for Mens Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937942/jacketee/products/black-nylon-bomber-jacket/rp7iz8brufhgyoe84cii.png",
+      "publicId": "jacketee/products/black-nylon-bomber-jacket/rp7iz8brufhgyoe84cii",
+      "alt": "Black Nylon Bomber Jacket for Mens Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

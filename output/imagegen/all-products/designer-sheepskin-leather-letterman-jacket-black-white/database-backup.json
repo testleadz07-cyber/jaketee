@@ -1,0 +1,56 @@
+{
+  "_id": "6a9efcfe0faef0e1af30116b",
+  "slug": "designer-sheepskin-leather-letterman-jacket-black-white",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc07f67a6c3a3788c394",
+  "compareAtPrice": 180,
+  "createdAt": "2026-09-07T18:05:50.344Z",
+  "description": "Genuine sheepskin leather all around.\n Soft finish with smooth lining inside.\n Customize colors, collar, and patch zones.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264679/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/designer-sheepskin-leather-letterman-jacket-black-white-main.png",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264676/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/designer-sheepskin-leather-letterman-jacket-black-white-back.png",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264682/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/designer-sheepskin-leather-letterman-jacket-black-white-side.png",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264678/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/designer-sheepskin-leather-letterman-jacket-black-white-detail-1.png",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Designer Sheepskin Leather Letterman Jacket Black & White",
+  "price": 153,
+  "reviewCount": 0,
+  "stockCount": 9,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:43.475Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nSheep Leather\nSheep leather varsity and fashion jackets are softer and need gentle care. Dust them with a clean, dry cloth after use. For small marks, dab with a damp cloth and a drop of mild leather cleaner. Let the jacket dry on a hanger at normal room temperature. Use a light, soft leather conditioner made for fine skins.\n\nDo: Test any cleaner on a hidden seam first.\nDo: Keep the jacket away from oils, perfume, and hair spray.\nDo not: Scrub hard, bend the leather sharply, or use rough tools.\nDo not: Machine wash or use bleach.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Specifications\nBody & Sleeve Material: Sheep Leather\nLining: Quilted Polyester with Dacron Fill\nClosure: Coated Steel Snap Buttons\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Designer Sheepskin Leather Letterman Jacket Black & White from our Wool & Leather collection. Review materials, sizing and customization options, then",
+  "seoTitle": "Custom Designer Sheepskin Leather Letterman | Jacketee"
+}

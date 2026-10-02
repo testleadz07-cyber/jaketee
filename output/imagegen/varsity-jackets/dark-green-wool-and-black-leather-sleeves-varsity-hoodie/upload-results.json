@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892695/jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/zwme8pvqhowsqcy7ohwm.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/zwme8pvqhowsqcy7ohwm",
+      "alt": "Dark Green Wool and Black Leather Sleeves Varsity Hoodie Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892698/jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/p8bdamebpi4kyyplmtzn.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/p8bdamebpi4kyyplmtzn",
+      "alt": "Dark Green Wool and Black Leather Sleeves Varsity Hoodie Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892703/jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/trudhbnwhu0emvg7jgoy.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/trudhbnwhu0emvg7jgoy",
+      "alt": "Dark Green Wool and Black Leather Sleeves Varsity Hoodie Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892720/jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/e1cxlqk29fdwhkxhn5s7.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-leather-sleeves-varsity-hoodie/e1cxlqk29fdwhkxhn5s7",
+      "alt": "Dark Green Wool and Black Leather Sleeves Varsity Hoodie Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

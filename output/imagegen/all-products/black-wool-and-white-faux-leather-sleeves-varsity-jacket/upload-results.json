@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942017/jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/qgpuo7feufatseahky9w.png",
+      "publicId": "jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/qgpuo7feufatseahky9w",
+      "alt": "Black Wool and White Faux Leather Sleeves Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942018/jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/feitvhtmtp22bnmbjbmb.png",
+      "publicId": "jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/feitvhtmtp22bnmbjbmb",
+      "alt": "Black Wool and White Faux Leather Sleeves Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942019/jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/paefjrjb0uypjnwbi6gd.png",
+      "publicId": "jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/paefjrjb0uypjnwbi6gd",
+      "alt": "Black Wool and White Faux Leather Sleeves Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942020/jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/rhxmex2ocsnv74yfcyvx.png",
+      "publicId": "jacketee/products/black-wool-and-white-faux-leather-sleeves-varsity-jacket/rhxmex2ocsnv74yfcyvx",
+      "alt": "Black Wool and White Faux Leather Sleeves Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938782/jacketee/products/royal-blue-coach-jacket-for-men-and-women/gty9qbclfy3h1bstmnat.png",
+      "publicId": "jacketee/products/royal-blue-coach-jacket-for-men-and-women/gty9qbclfy3h1bstmnat",
+      "alt": "Royal Blue Coach Jacket For Men And Women Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938783/jacketee/products/royal-blue-coach-jacket-for-men-and-women/u0nmvezw6qckgjitf7gh.png",
+      "publicId": "jacketee/products/royal-blue-coach-jacket-for-men-and-women/u0nmvezw6qckgjitf7gh",
+      "alt": "Royal Blue Coach Jacket For Men And Women Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938784/jacketee/products/royal-blue-coach-jacket-for-men-and-women/bnks8tn1m6z8cxrocu1e.png",
+      "publicId": "jacketee/products/royal-blue-coach-jacket-for-men-and-women/bnks8tn1m6z8cxrocu1e",
+      "alt": "Royal Blue Coach Jacket For Men And Women Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938785/jacketee/products/royal-blue-coach-jacket-for-men-and-women/yzqkqivp4gcoypi1dulb.png",
+      "publicId": "jacketee/products/royal-blue-coach-jacket-for-men-and-women/yzqkqivp4gcoypi1dulb",
+      "alt": "Royal Blue Coach Jacket For Men And Women Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

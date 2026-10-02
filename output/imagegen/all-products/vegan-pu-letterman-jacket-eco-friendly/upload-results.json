@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941201/jacketee/products/vegan-pu-letterman-jacket-eco-friendly/oda2igsnvw3rfkjakp8j.png",
+      "publicId": "jacketee/products/vegan-pu-letterman-jacket-eco-friendly/oda2igsnvw3rfkjakp8j",
+      "alt": "Vegan PU Letterman Jacket (Eco Friendly) Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941203/jacketee/products/vegan-pu-letterman-jacket-eco-friendly/luwied3uvlcl2qewid4f.png",
+      "publicId": "jacketee/products/vegan-pu-letterman-jacket-eco-friendly/luwied3uvlcl2qewid4f",
+      "alt": "Vegan PU Letterman Jacket (Eco Friendly) Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941203/jacketee/products/vegan-pu-letterman-jacket-eco-friendly/fhpeq9ce2hjdhdhikllm.png",
+      "publicId": "jacketee/products/vegan-pu-letterman-jacket-eco-friendly/fhpeq9ce2hjdhdhikllm",
+      "alt": "Vegan PU Letterman Jacket (Eco Friendly) Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941205/jacketee/products/vegan-pu-letterman-jacket-eco-friendly/aetyqehd6tcceyuy7wkr.png",
+      "publicId": "jacketee/products/vegan-pu-letterman-jacket-eco-friendly/aetyqehd6tcceyuy7wkr",
+      "alt": "Vegan PU Letterman Jacket (Eco Friendly) Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

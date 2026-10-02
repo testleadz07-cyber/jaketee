@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890909/jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/p9og4pnvjsvvgiqfpq5x.png",
+      "publicId": "jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/p9og4pnvjsvvgiqfpq5x",
+      "alt": "Black Retro Varsity Jacket in Cowhide Leather Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890910/jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/balspoutwk5z0ojqbzi7.png",
+      "publicId": "jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/balspoutwk5z0ojqbzi7",
+      "alt": "Black Retro Varsity Jacket in Cowhide Leather Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890911/jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/gs2cuma9s7cer8lmc5zc.png",
+      "publicId": "jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/gs2cuma9s7cer8lmc5zc",
+      "alt": "Black Retro Varsity Jacket in Cowhide Leather Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890912/jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/fytiygc0ht5bvgxx9t32.png",
+      "publicId": "jacketee/products/black-retro-varsity-jacket-in-cowhide-leather/fytiygc0ht5bvgxx9t32",
+      "alt": "Black Retro Varsity Jacket in Cowhide Leather Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

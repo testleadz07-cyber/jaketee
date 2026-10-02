@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949652/jacketee/products/red-and-royal-blue-wool-varsity-jacket/echz7c2dteg8rqtql7un.png",
+      "publicId": "jacketee/products/red-and-royal-blue-wool-varsity-jacket/echz7c2dteg8rqtql7un",
+      "alt": "Red and Royal Blue Wool Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949654/jacketee/products/red-and-royal-blue-wool-varsity-jacket/xyr8krwvcmct6j9z7klc.png",
+      "publicId": "jacketee/products/red-and-royal-blue-wool-varsity-jacket/xyr8krwvcmct6j9z7klc",
+      "alt": "Red and Royal Blue Wool Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949655/jacketee/products/red-and-royal-blue-wool-varsity-jacket/jen3kseqtsocqu5rsnxf.png",
+      "publicId": "jacketee/products/red-and-royal-blue-wool-varsity-jacket/jen3kseqtsocqu5rsnxf",
+      "alt": "Red and Royal Blue Wool Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949656/jacketee/products/red-and-royal-blue-wool-varsity-jacket/bt8lwlyubq4chxsrfcdm.png",
+      "publicId": "jacketee/products/red-and-royal-blue-wool-varsity-jacket/bt8lwlyubq4chxsrfcdm",
+      "alt": "Red and Royal Blue Wool Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

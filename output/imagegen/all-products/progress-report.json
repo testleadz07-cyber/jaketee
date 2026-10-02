@@ -1,0 +1,733 @@
+{
+  "verifiedAt": "2026-10-02T14:23:50.792Z",
+  "totalProducts": 108,
+  "completedCount": 88,
+  "completedWithStockSeven": 88,
+  "newlyCompletedFromSnapshot": 49,
+  "pendingCount": 20,
+  "heldForReferences": 10,
+  "usageLimit": {
+    "type": "usage_limit_reached",
+    "resetAtUtc": "2026-10-02T19:58:58.000Z",
+    "nextSourceIndex": 59
+  },
+  "completed": [
+    {
+      "id": "6a9efcfb0faef0e1af301155",
+      "name": "Kelly Green Wool and White Leather Sleeves Varsity Jacket",
+      "slug": "kelly-green-wool-and-white-leather-sleeves-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfb0faef0e1af301156",
+      "name": "Old Gold Wool and Black Leather Sleeves Letterman Jacket",
+      "slug": "old-gold-wool-and-black-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfb0faef0e1af301157",
+      "name": "Red Wool Letterman Jacket",
+      "slug": "red-wool-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfc0faef0e1af301158",
+      "name": "Red and Royal Blue Wool Varsity Jacket",
+      "slug": "red-and-royal-blue-wool-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfc0faef0e1af301159",
+      "name": "Gold Wool Varsity Jacket",
+      "slug": "gold-wool-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfc0faef0e1af30115a",
+      "name": "Black Wool and Cream Vegan Leather Jacket",
+      "slug": "black-wool-and-cream-vegan-leather-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfc0faef0e1af30115b",
+      "name": "Dark Green Wool and Black Faux Leather Sleeves Letterman Jacket",
+      "slug": "dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfc0faef0e1af30115c",
+      "name": "All Black Wool and Leather Sleeves Varsity Jacket",
+      "slug": "all-black-wool-and-leather-sleeves-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfc0faef0e1af30115d",
+      "name": "Black Wool and Gold Leather Sleeves Letterman Jacket",
+      "slug": "black-wool-and-gold-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfc0faef0e1af301160",
+      "name": "Royal Blue Wool and White Leather Sleeves Letterman Jacket",
+      "slug": "royal-blue-wool-and-white-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301162",
+      "name": "Navy Blue Wool Letterman Jacket",
+      "slug": "navy-blue-wool-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301163",
+      "name": "Grey Wool Varsity Jacket",
+      "slug": "grey-wool-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301164",
+      "name": "Baby Pink Varsity Jackets",
+      "slug": "baby-pink-varsity-jackets",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301165",
+      "name": "Green Wool Varsity Jacket",
+      "slug": "green-wool-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301166",
+      "name": "Black Wool and Teal Leather Sleeves Varsity Jacket",
+      "slug": "black-wool-and-teal-leather-sleeves-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301167",
+      "name": "Royal Blue Wool and Gold Leather Sleeves Letterman Jacket",
+      "slug": "royal-blue-wool-and-gold-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301168",
+      "name": "Black Wool and Pink Leather Sleeves Letterman Jacket",
+      "slug": "black-wool-and-pink-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af301169",
+      "name": "Dark Purple Wool and Black Leather Sleeves Varsity Hoodie",
+      "slug": "dark-purple-wool-and-black-leather-sleeves-varsity-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af30116a",
+      "name": "Purple Wool and Gold Leather Sleeves Letterman Jacket",
+      "slug": "purple-wool-and-gold-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af30116b",
+      "name": "Designer Sheepskin Leather Letterman Jacket Black & White",
+      "slug": "designer-sheepskin-leather-letterman-jacket-black-white",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af30116c",
+      "name": "Premium Nappa Leather Letterman Jacket Red & Gold",
+      "slug": "premium-nappa-leather-letterman-jacket-red-gold",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af30116d",
+      "name": "Red Wool and Black Faux Leather Sleeves Letterman Jacket",
+      "slug": "red-wool-and-black-faux-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af30116e",
+      "name": "Black Wool and White Faux Leather Sleeves Varsity Jacket",
+      "slug": "black-wool-and-white-faux-leather-sleeves-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af30116f",
+      "name": "Black Wool and Red Faux Leather Sleeves Letterman Jacket",
+      "slug": "black-wool-and-red-faux-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af301170",
+      "name": "Heather Gray Wool Vinyl Sleeves Jacket",
+      "slug": "heather-gray-wool-vinyl-sleeves-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcfe0faef0e1af301171",
+      "name": "Dark Green Wool and Gold Leather Sleeves Letterman Jacket",
+      "slug": "dark-green-wool-and-gold-leather-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301172",
+      "name": "Vegan PU Letterman Jacket (Eco Friendly)",
+      "slug": "vegan-pu-letterman-jacket-eco-friendly",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301173",
+      "name": "Cotton Fleece Varsity Jackets Schools Seniors Affordable",
+      "slug": "cotton-fleece-varsity-jackets-schools-seniors-affordable",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301174",
+      "name": "Lightweight Cotton Varsity Jacket",
+      "slug": "lightweight-cotton-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301175",
+      "name": "Orange & White Wool Varsity Jacket",
+      "slug": "orange-white-wool-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301176",
+      "name": "Stylish Satin Varsity Jacket with Piping",
+      "slug": "satin-varsity-jacket-with-piping",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301177",
+      "name": "Classic Maroon All-Wool Varsity Jacket",
+      "slug": "classic-melton-wool-varsity-letterman-jackets-high-schools",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301178",
+      "name": "Camel Brown Wool and White Leather Sleeves Varsity Jacket with Hood",
+      "slug": "camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efcff0faef0e1af301179",
+      "name": "Orange Wool and Black Leather Sleeves Hooded Jacket",
+      "slug": "orange-wool-and-black-leather-sleeves-hooded-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af30117a",
+      "name": "Red Wool and White Leather Sleeves Varsity Jacket with Hood",
+      "slug": "red-wool-white-leather-sleeves-varsity-jacket-with-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af30117b",
+      "name": "Light Grey Wool and Black Leather Sleeves Varsity Hoodie",
+      "slug": "light-grey-wool-and-black-leather-sleeves-varsity-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af30117c",
+      "name": "Blue & Orange Vinyl Sleeves Letterman Jacket",
+      "slug": "blue-orange-vinyl-sleeves-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af30117d",
+      "name": "Red Wool Varsity Jacket With Hood Black Leather Sleeves",
+      "slug": "red-wool-varsity-jacket-with-hood-black-leather-sleeves",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af30117e",
+      "name": "Red Cotton Varsity Jacket",
+      "slug": "red-cotton-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af30117f",
+      "name": "Red and White Cotton Twill Jacket",
+      "slug": "red-and-white-cotton-twill-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af301180",
+      "name": "All-Leather Nappa Varsity Jacket Gold & Black",
+      "slug": "all-leather-nappa-varsity-jacket-gold-black",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af301181",
+      "name": "Kelly Green Wool and Black Leather Sleeves Hooded Letterman Jacket",
+      "slug": "kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd000faef0e1af301182",
+      "name": "Denim Varsity Jacket Cotton Twill Sleeves",
+      "slug": "denim-varsity-jacket-cotton-twill-sleeves",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd010faef0e1af301183",
+      "name": "Custom Puffer Jacket in Black",
+      "slug": "puffer-jacket-zippered-black",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd010faef0e1af301184",
+      "name": "Red Puffer Jacket For Mens And Women",
+      "slug": "red-puffer-jacket-for-mens-and-women",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd010faef0e1af301185",
+      "name": "Colorblock Puffer Jacket for Men and Women",
+      "slug": "colorblock-puffer-jacket-for-men-and-women",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd010faef0e1af301186",
+      "name": "Black Puffer Jacket For Mens",
+      "slug": "black-puffer-jacket-for-mens",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd010faef0e1af301187",
+      "name": "Hot Pink Wool and Black Leather Sleeves Varsity Jacket with Hood",
+      "slug": "hot-pink-wool-and-black-leather-sleeves-varsity-jacket-with-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd010faef0e1af301188",
+      "name": "Maroon Letterman Jacket Hood",
+      "slug": "maroon-letterman-jacket-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd010faef0e1af301189",
+      "name": "Hoodie Letterman Jacket For Girls",
+      "slug": "hoodie-letterman-jacket-for-girls",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af30118a",
+      "name": "Dark Maroon Wool and Black Leather Sleeves Hooded Letterman Jacket",
+      "slug": "dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af30118b",
+      "name": "Dark Gray Wool and Black Leather Sleeves Varsity Jacket with Hood",
+      "slug": "dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af30118c",
+      "name": "Dark Green Wool and Black Leather Sleeves Varsity Hoodie",
+      "slug": "dark-green-wool-and-black-leather-sleeves-varsity-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af30118d",
+      "name": "Old Gold Wool and White Leather Sleeves Hooded Varsity Jacket",
+      "slug": "old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af30118e",
+      "name": "Sky Blue Wool and White Leather Sleeves Varsity Hoodie",
+      "slug": "sky-blue-wool-and-white-leather-sleeves-varsity-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af30118f",
+      "name": "Dark Brown Wool and Black Leather Sleeves Hooded Varsity Jacket",
+      "slug": "dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af301190",
+      "name": "Baby Pink Wool and Black Leather Sleeves Varsity Hoodie",
+      "slug": "baby-pink-wool-and-black-leather-sleeves-varsity-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd020faef0e1af301191",
+      "name": "Orange Wool and White Leather Sleeves Varsity Jacket with Hood",
+      "slug": "orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd030faef0e1af301192",
+      "name": "Baby Pink Letterman Jacket With Hood",
+      "slug": "baby-pink-letterman-jacket-with-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd030faef0e1af301193",
+      "name": "Black Retro Varsity Jacket in Cowhide Leather",
+      "slug": "black-retro-varsity-jacket-in-cowhide-leather",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd030faef0e1af301194",
+      "name": "Black and Gold Retro Leather Letterman Jacket with Shirt Collar",
+      "slug": "black-and-gold-retro-leather-letterman-jacket-with-shirt-collar",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd030faef0e1af301195",
+      "name": "Camel Brown Wool and Black Leather Sleeves Letterman Jacket with Hood",
+      "slug": "camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd030faef0e1af301196",
+      "name": "Varsity Jacket with Standup Collar Black and White Cowhide Leather",
+      "slug": "varsity-jacket-with-standup-collar-black-and-white-cowhide-leather",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd030faef0e1af301197",
+      "name": "Yorkshire Felt Lettering On Hoodie",
+      "slug": "yorkshire-felt-lettering-on-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd040faef0e1af30119c",
+      "name": "Red Wool and Black Leather Sleeves Varsity Hoodie",
+      "slug": "red-wool-and-black-leather-sleeves-varsity-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd040faef0e1af30119d",
+      "name": "Big Tackle Twill Letters On Hoodie",
+      "slug": "big-tackle-twill-letters-on-hoodie",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd040faef0e1af3011a0",
+      "name": "Customizable Zipper Fleece Hoodie In Red",
+      "slug": "customizable-zipper-fleece-hoodie-in-red",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd050faef0e1af3011a1",
+      "name": "Stylish Denim Jacket For Womens",
+      "slug": "stylish-denim-jacket-for-womens",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd050faef0e1af3011a2",
+      "name": "Denim Jacket For Mens And Women",
+      "slug": "denim-jacket-for-mens-and-women",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd050faef0e1af3011a3",
+      "name": "Custom Denim Jacket For Mens",
+      "slug": "custom-denim-jacket-for-mens",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd050faef0e1af3011a4",
+      "name": "Screen Print Coach Jacket",
+      "slug": "screen-print-coach-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd050faef0e1af3011a6",
+      "name": "Black Coach Jacket",
+      "slug": "black-coach-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd060faef0e1af3011a8",
+      "name": "Coach Jacket Red Nylon Twill",
+      "slug": "coach-jacket-red-nylon-twill",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd060faef0e1af3011a9",
+      "name": "Royal Blue Coach Jacket For Men And Women",
+      "slug": "royal-blue-coach-jacket-for-men-and-women",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd060faef0e1af3011aa",
+      "name": "Sky Blue Satin Bomber Jacket Women",
+      "slug": "sky-blue-satin-bomber-jacket-womens",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd060faef0e1af3011ab",
+      "name": "Red Satin Bomber Jacket",
+      "slug": "red-satin-bomber-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd060faef0e1af3011ac",
+      "name": "Nylon Bomber Jacket in Royal Blue",
+      "slug": "royal-blue-nylon-bomber-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd060faef0e1af3011ad",
+      "name": "Black Nylon Bomber Jacket for Mens",
+      "slug": "black-nylon-bomber-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd060faef0e1af3011ae",
+      "name": "Royal Blue Soft-Shell Bomber Jacket",
+      "slug": "royal-blue-softshell-bomber-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011af",
+      "name": "Stylish Softshell Bomber Jacket with Panels",
+      "slug": "softshell-bomber-jacket-with-panels",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011b0",
+      "name": "Stylish Black Sheep Leather Bomber Jacket",
+      "slug": "stylish-black-sheep-leather-bomber-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011b1",
+      "name": "Bomber Jacket With Piping Satin Women Girls Mens",
+      "slug": "bomber-jacket-with-piping-satin-women-girls-mens",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011b2",
+      "name": "Red Sheep Leather Bomber Jacket",
+      "slug": "red-sheep-leather-bomber-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011b3",
+      "name": "Leather Jacket Bomber Sheep Mens",
+      "slug": "leather-jacket-bomber-sheep-mens",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011b4",
+      "name": "Camel Brown Suede Leather Bomber Jacket",
+      "slug": "camel-brown-suede-leather-bomber-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011b6",
+      "name": "Navy Blue Puffer Jacket",
+      "slug": "navy-blue-puffer-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd070faef0e1af3011b7",
+      "name": "Black Wool and White Leather Sleeves Varsity Hoodie Jacket",
+      "slug": "black-wool-and-white-leather-sleeves-varsity-hoodie-jacket",
+      "stockCount": 7
+    },
+    {
+      "id": "6a9efd080faef0e1af3011b8",
+      "name": "Blue Denim Jacket",
+      "slug": "blue-denim-jacket",
+      "stockCount": 7
+    }
+  ],
+  "pending": [
+    {
+      "id": "6a9efcfa0faef0e1af30114a",
+      "name": "Luxurious All-Black Nappa Leather Letterman Jacket",
+      "slug": "all-black-nappa-leather-letterman-jacket",
+      "stockCount": 9,
+      "sourceIndex": 68,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfa0faef0e1af30114b",
+      "name": "Black Wool and Yellow Leather Sleeves Letterman Jacket",
+      "slug": "black-wool-and-yellow-leather-sleeves-letterman-jacket",
+      "stockCount": 13,
+      "sourceIndex": 67,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfa0faef0e1af30114c",
+      "name": "Red Wool and Gold Leather Sleeves Letterman Jacket",
+      "slug": "red-wool-and-gold-leather-sleeves-letterman-jacket",
+      "stockCount": 23,
+      "sourceIndex": 66,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfa0faef0e1af30114d",
+      "name": "Black Wool and Black Leather Sleeves Letterman Jacket",
+      "slug": "black-wool-and-black-leather-sleeves-letterman-jacket",
+      "stockCount": 34,
+      "sourceIndex": 65,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfa0faef0e1af30114e",
+      "name": "Red Wool and Black Leather Sleeves Letterman Jacket",
+      "slug": "red-wool-and-black-leather-sleeves-letterman-jacket",
+      "stockCount": 7,
+      "sourceIndex": 64,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfa0faef0e1af30114f",
+      "name": "Royal Blue Wool and Red Leather Sleeves Letterman Jacket",
+      "slug": "royal-blue-wool-and-red-leather-sleeves-letterman-jacket",
+      "stockCount": 54,
+      "sourceIndex": 63,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfb0faef0e1af301150",
+      "name": "Black Wool and White Leather Sleeves Letterman Jacket",
+      "slug": "black-wool-and-white-leather-sleeves-letterman-jacket",
+      "stockCount": 46,
+      "sourceIndex": 62,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfb0faef0e1af301152",
+      "name": "Baby Pink & Sky Blue Wool Varsity Jacket",
+      "slug": "baby-pink-sky-blue-wool-varsity-jacket-women",
+      "stockCount": 29,
+      "sourceIndex": 61,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfb0faef0e1af301153",
+      "name": "Cardinal Wool Varsity Jacket",
+      "slug": "cardinal-wool-varsity-jacket",
+      "stockCount": 15,
+      "sourceIndex": 60,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfb0faef0e1af301154",
+      "name": "Green Wool and White Leather Sleeves Hooded Varsity Jacket",
+      "slug": "green-wool-and-white-leather-sleeves-hooded-varsity-jacket",
+      "stockCount": 13,
+      "sourceIndex": 59,
+      "reason": "Image generation usage limit reached.",
+      "localDraftViews": [
+        "Front View"
+      ]
+    },
+    {
+      "id": "6a9efcfc0faef0e1af30115e",
+      "name": "Maroon Wool and White Leather Sleeves Letterman Jacket",
+      "slug": "maroon-wool-and-white-leather-sleeves-letterman-jacket",
+      "stockCount": 34,
+      "sourceIndex": 49,
+      "reason": "Only front references; matching rear missing.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfc0faef0e1af30115f",
+      "name": "Black and Red Wool Varsity Jacket",
+      "slug": "black-and-red-wool-varsity-jacket",
+      "stockCount": 33,
+      "sourceIndex": 48,
+      "reason": "Only front references; matching rear missing.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efcfd0faef0e1af301161",
+      "name": "Sky Blue Wool Varsity Jacket",
+      "slug": "sky-blue-wool-varsity-jacket",
+      "stockCount": 13,
+      "sourceIndex": 46,
+      "reason": "Only front references; matching rear missing.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efd030faef0e1af301198",
+      "name": "Wool And Leather Hoodie",
+      "slug": "wool-and-leather-hoodie",
+      "stockCount": 16,
+      "sourceIndex": 23,
+      "reason": "References mix hooded and nonhooded garments; matching rear missing.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efd040faef0e1af301199",
+      "name": "Fleece Leavers Hoodie Cream Navy Athletic Gold",
+      "slug": "fleece-leavers-hoodie-cream-navy-athletic-gold",
+      "stockCount": 11,
+      "sourceIndex": 22,
+      "reason": "References disagree on stripe layout, sleeves, and closure.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efd040faef0e1af30119a",
+      "name": "Dtf Print On Hoodie",
+      "slug": "dtf-print-on-hoodie",
+      "stockCount": 17,
+      "sourceIndex": 21,
+      "reason": "Only cropped front; full garment references missing.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efd040faef0e1af30119b",
+      "name": "Chenille Hoodie Chest Badge Circle",
+      "slug": "chenille-hoodie-chest-badge-circle",
+      "stockCount": 37,
+      "sourceIndex": 20,
+      "reason": "Only cropped chest detail; full garment references missing.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efd040faef0e1af30119e",
+      "name": "Seniors Zipper Fleece Hoodie In Royal Blue And Light Grey",
+      "slug": "seniors-zipper-fleece-hoodie-in-royal-blue-and-light-grey",
+      "stockCount": 15,
+      "sourceIndex": 18,
+      "reason": "References disagree on hood, hem, and pocket trim.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efd050faef0e1af3011a5",
+      "name": "High School Football Coach Navy Coach Jacket Sideline",
+      "slug": "high-school-football-coach-navy-coach-jacket-sideline",
+      "stockCount": 53,
+      "sourceIndex": 15,
+      "reason": "Front references change logos and construction; matching rear missing.",
+      "localDraftViews": []
+    },
+    {
+      "id": "6a9efd050faef0e1af3011a7",
+      "name": "Black & Orange Hooded Jacket",
+      "slug": "black-orange-hooded-jacket",
+      "stockCount": 24,
+      "sourceIndex": 13,
+      "reason": "Conflicting garments; matching rear reference missing.",
+      "localDraftViews": [
+        "Front View",
+        "Back View",
+        "Right Sleeve View",
+        "Left Sleeve View"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+[
+  {
+    "_id": "6a9efd050faef0e1af3011a1",
+    "slug": "stylish-denim-jacket-for-womens",
+    "description": "Durable denim jacket with classic style and excellent customization potential.",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265023/jacketee/products/stylish-denim-jacket-for-womens/stylish-denim-jacket-for-womens-main.png",
+        "alt": "Stylish Denim Jacket For Womens - primary product view",
+        "order": 0
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265018/jacketee/products/stylish-denim-jacket-for-womens/stylish-denim-jacket-for-womens-back.png",
+        "alt": "Stylish Denim Jacket For Womens - back view",
+        "order": 1
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265024/jacketee/products/stylish-denim-jacket-for-womens/stylish-denim-jacket-for-womens-side.png",
+        "alt": "Stylish Denim Jacket For Womens - side view",
+        "order": 2
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265019/jacketee/products/stylish-denim-jacket-for-womens/stylish-denim-jacket-for-womens-detail-1.png",
+        "alt": "Stylish Denim Jacket For Womens - detail view 1",
+        "order": 3
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265021/jacketee/products/stylish-denim-jacket-for-womens/stylish-denim-jacket-for-womens-detail-2.png",
+        "alt": "Stylish Denim Jacket For Womens - detail view 2",
+        "order": 4
+      }
+    ],
+    "name": "Stylish Denim Jacket For Womens"
+  },
+  {
+    "_id": "6a9efd050faef0e1af3011a2",
+    "slug": "denim-jacket-for-mens-and-women",
+    "description": "Durable denim jacket with classic style and excellent customization potential.",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264667/jacketee/products/denim-jacket-for-mens-and-women/denim-jacket-for-mens-and-women-main.png",
+        "alt": "Denim Jacket For Mens And Women - primary product view",
+        "order": 0
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264663/jacketee/products/denim-jacket-for-mens-and-women/denim-jacket-for-mens-and-women-back.png",
+        "alt": "Denim Jacket For Mens And Women - back view",
+        "order": 1
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264669/jacketee/products/denim-jacket-for-mens-and-women/denim-jacket-for-mens-and-women-side.png",
+        "alt": "Denim Jacket For Mens And Women - side view",
+        "order": 2
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264664/jacketee/products/denim-jacket-for-mens-and-women/denim-jacket-for-mens-and-women-detail-1.jpg",
+        "alt": "Denim Jacket For Mens And Women - detail view 1",
+        "order": 3
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264666/jacketee/products/denim-jacket-for-mens-and-women/denim-jacket-for-mens-and-women-detail-2.png",
+        "alt": "Denim Jacket For Mens And Women - detail view 2",
+        "order": 4
+      }
+    ],
+    "name": "Denim Jacket For Mens And Women"
+  },
+  {
+    "_id": "6a9efd050faef0e1af3011a3",
+    "slug": "custom-denim-jacket-for-mens",
+    "description": "Durable denim jacket with classic style and excellent customization potential.",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264604/jacketee/products/custom-denim-jacket-for-mens/custom-denim-jacket-for-mens-main.png",
+        "alt": "Custom Denim Jacket For Mens - primary product view",
+        "order": 0
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264601/jacketee/products/custom-denim-jacket-for-mens/custom-denim-jacket-for-mens-back.png",
+        "alt": "Custom Denim Jacket For Mens - back view",
+        "order": 1
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264606/jacketee/products/custom-denim-jacket-for-mens/custom-denim-jacket-for-mens-side.png",
+        "alt": "Custom Denim Jacket For Mens - side view",
+        "order": 2
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264603/jacketee/products/custom-denim-jacket-for-mens/custom-denim-jacket-for-mens-detail-1.png",
+        "alt": "Custom Denim Jacket For Mens - detail view 1",
+        "order": 3
+      }
+    ],
+    "name": "Custom Denim Jacket For Mens"
+  },
+  {
+    "_id": "6a9efd080faef0e1af3011b8",
+    "slug": "blue-denim-jacket",
+    "description": "Durable denim jacket with easy-to-style custom potential.",
+    "images": [
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264466/jacketee/products/blue-denim-jacket/blue-denim-jacket-main.png",
+        "alt": "Blue Denim Jacket - primary product view",
+        "order": 0
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264463/jacketee/products/blue-denim-jacket/blue-denim-jacket-back.png",
+        "alt": "Blue Denim Jacket - back view",
+        "order": 1
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264468/jacketee/products/blue-denim-jacket/blue-denim-jacket-side.png",
+        "alt": "Blue Denim Jacket - side view",
+        "order": 2
+      },
+      {
+        "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264465/jacketee/products/blue-denim-jacket/blue-denim-jacket-detail-1.png",
+        "alt": "Blue Denim Jacket - detail view 1",
+        "order": 3
+      }
+    ],
+    "name": "Blue Denim Jacket"
+  }
+]

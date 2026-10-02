@@ -1,0 +1,40 @@
+{
+  "_id": "6a9efcff0faef0e1af301177",
+  "slug": "classic-melton-wool-varsity-letterman-jackets-high-schools",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc07f67a6c3a3788c395",
+  "compareAtPrice": 60,
+  "createdAt": "2026-09-07T18:05:51.765Z",
+  "description": "Premium varsity and letterman jacket available in wool, leather, satin, and fleece. Perfect for schools, teams, and groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264514/jacketee/products/classic-melton-wool-varsity-letterman-jackets-high-schools/classic-melton-wool-varsity-letterman-jackets-high-schools-main.jpg",
+      "alt": "Classic Maroon All-Wool Varsity Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264513/jacketee/products/classic-melton-wool-varsity-letterman-jackets-high-schools/classic-melton-wool-varsity-letterman-jackets-high-schools-back.jpg",
+      "alt": "Classic Maroon All-Wool Varsity Jacket - back view",
+      "order": 1
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Classic Maroon All-Wool Varsity Jacket",
+  "price": 51,
+  "reviewCount": 0,
+  "stockCount": 13,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:45.497Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Classic Maroon All-Wool Varsity Jacket from our All Wool collection. Review materials, sizing and customization options, then request a free design",
+  "seoTitle": "Custom Classic Maroon All-Wool Varsity Jacket - | Jacketee"
+}

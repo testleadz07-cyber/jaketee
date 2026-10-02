@@ -1,0 +1,51 @@
+{
+  "_id": "6a9efcfc0faef0e1af301159",
+  "slug": "gold-wool-varsity-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc07f67a6c3a3788c395",
+  "compareAtPrice": 60,
+  "createdAt": "2026-09-07T18:05:48.220Z",
+  "description": "Premium quality Melton Wool body & sleeves.\n Diamond quilted lining for superior warmth.\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264702/jacketee/products/gold-wool-varsity-jacket/gold-wool-varsity-jacket-main.png",
+      "alt": "Gold Wool Varsity Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264701/jacketee/products/gold-wool-varsity-jacket/gold-wool-varsity-jacket-back.png",
+      "alt": "Gold Wool Varsity Jacket - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264704/jacketee/products/gold-wool-varsity-jacket/gold-wool-varsity-jacket-side.png",
+      "alt": "Gold Wool Varsity Jacket - side view",
+      "order": 2
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Gold Wool Varsity Jacket",
+  "price": 51,
+  "reviewCount": 0,
+  "stockCount": 28,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:40.570Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nMelton Wool\nCare for your melton wool varsity jacket like a suit, not a hoodie. Brush off dust after each game or class. Spot clean marks with cool water and a tiny bit of wool soap. If it needs a wash, use cold water, gentle motion, and short time. Lay the jacket flat on a towel and shape the ribs and cuffs while damp. Keep it away from heat and strong sun.\n\nDo: Use a soft clothes brush after wearing.\nDo: Air the jacket in shade, not sun.\nDo not: Machine wash on heavy cycle or use bleach.\nDo not: Tumble dry or hang it soaking wet.\nQuilted / Polyester Linings\nQuilted polyester linings sit inside varsity, bomber, and puffer jackets. They add light padding and need gentle care. Turn the jacket inside out so the lining is on the outside. Wash in cold water, gentle cycle, and mild detergent. Avoid long, hard spins so the fill stays even. Shake the jacket after washing to spread the padding, then hang to dry.\n\nDo: Smooth the lining by hand while it is still damp.\nDo: Store the jacket fully dry to prevent odor and mildew.\nDo not: Twist or wring the quilted parts.\nDo not: Use high dryer heat, which can damage the fill.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Body & Sleeve Material: Melton Wool\nLining: Quilted Polyester with Dacron Fill\nClosure: Coated Steel Snap Buttons\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Gold Wool Varsity Jacket from our All Wool collection. Review materials, sizing and customization options, then request a free design mockup before",
+  "seoTitle": "Custom Gold Wool Varsity Jacket - All Wool | Jacketee"
+}

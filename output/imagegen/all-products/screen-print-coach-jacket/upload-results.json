@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939771/jacketee/products/screen-print-coach-jacket/r7m2iddq7gmk3hu8gkff.png",
+      "publicId": "jacketee/products/screen-print-coach-jacket/r7m2iddq7gmk3hu8gkff",
+      "alt": "Screen Print Coach Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939772/jacketee/products/screen-print-coach-jacket/bx7ahcnolupudj6lvkkv.png",
+      "publicId": "jacketee/products/screen-print-coach-jacket/bx7ahcnolupudj6lvkkv",
+      "alt": "Screen Print Coach Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939774/jacketee/products/screen-print-coach-jacket/ov2yfpxisqco7rxefmt2.png",
+      "publicId": "jacketee/products/screen-print-coach-jacket/ov2yfpxisqco7rxefmt2",
+      "alt": "Screen Print Coach Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939775/jacketee/products/screen-print-coach-jacket/m7loodgfmpbgu2iivqq1.png",
+      "publicId": "jacketee/products/screen-print-coach-jacket/m7loodgfmpbgu2iivqq1",
+      "alt": "Screen Print Coach Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

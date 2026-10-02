@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936768/jacketee/products/red-sheep-leather-bomber-jacket/h68qquyh60gyjhbc2q4s.png",
+      "publicId": "jacketee/products/red-sheep-leather-bomber-jacket/h68qquyh60gyjhbc2q4s",
+      "alt": "Red Sheep Leather Bomber Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936769/jacketee/products/red-sheep-leather-bomber-jacket/rcotxlnr0mgw6qshxej5.png",
+      "publicId": "jacketee/products/red-sheep-leather-bomber-jacket/rcotxlnr0mgw6qshxej5",
+      "alt": "Red Sheep Leather Bomber Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936770/jacketee/products/red-sheep-leather-bomber-jacket/lq8nbdn5rjus2zulfovx.png",
+      "publicId": "jacketee/products/red-sheep-leather-bomber-jacket/lq8nbdn5rjus2zulfovx",
+      "alt": "Red Sheep Leather Bomber Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936771/jacketee/products/red-sheep-leather-bomber-jacket/nbzwenpduhofeck9p65n.png",
+      "publicId": "jacketee/products/red-sheep-leather-bomber-jacket/nbzwenpduhofeck9p65n",
+      "alt": "Red Sheep Leather Bomber Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

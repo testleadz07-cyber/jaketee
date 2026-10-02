@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937030/jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/xj633atfxzv7uh6pdcip.png",
+      "publicId": "jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/xj633atfxzv7uh6pdcip",
+      "alt": "Bomber Jacket With Piping Satin Women Girls Mens Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937031/jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/ajnbkdj5ysgvoqvj53cn.png",
+      "publicId": "jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/ajnbkdj5ysgvoqvj53cn",
+      "alt": "Bomber Jacket With Piping Satin Women Girls Mens Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937032/jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/eoqfbwmm18lydcr8m7k9.png",
+      "publicId": "jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/eoqfbwmm18lydcr8m7k9",
+      "alt": "Bomber Jacket With Piping Satin Women Girls Mens Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937033/jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/lzwlvzvzrj8byjxegsd0.png",
+      "publicId": "jacketee/products/bomber-jacket-with-piping-satin-women-girls-mens/lzwlvzvzrj8byjxegsd0",
+      "alt": "Bomber Jacket With Piping Satin Women Girls Mens Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

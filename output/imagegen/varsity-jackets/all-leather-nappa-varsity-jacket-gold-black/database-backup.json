@@ -1,0 +1,113 @@
+{
+  "_id": "6a9efd000faef0e1af301180",
+  "slug": "all-leather-nappa-varsity-jacket-gold-black",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c397",
+  "compareAtPrice": 180,
+  "createdAt": "2026-09-07T18:05:52.831Z",
+  "description": "Genuine sheepskin leather all around.\n Soft finish with smooth lining inside.\n Customize colors, collar, and patch zones.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264331/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/all-leather-nappa-varsity-jacket-gold-black-main.png",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264329/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/all-leather-nappa-varsity-jacket-gold-black-back.png",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264334/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/all-leather-nappa-varsity-jacket-gold-black-side.png",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264330/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/all-leather-nappa-varsity-jacket-gold-black-detail-1.png",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "All-Leather Nappa Varsity Jacket Gold & Black",
+  "price": 153,
+  "reviewCount": 0,
+  "stockCount": 48,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:46.930Z",
+  "variants": [
+    {
+      "name": "Material",
+      "value": "Genuine Leather",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    },
+    {
+      "name": "Material",
+      "value": "Faux Leather",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    },
+    {
+      "name": "Color",
+      "value": "Black",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    },
+    {
+      "name": "Color",
+      "value": "Brown",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    },
+    {
+      "name": "Size",
+      "value": "S",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    },
+    {
+      "name": "Size",
+      "value": "M",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    },
+    {
+      "name": "Size",
+      "value": "L",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    },
+    {
+      "name": "Size",
+      "value": "XL",
+      "priceAdjust": 0,
+      "inStock": true,
+      "image": null
+    }
+  ],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nSheep Leather\nSheep leather varsity and fashion jackets are softer and need gentle care. Dust them with a clean, dry cloth after use. For small marks, dab with a damp cloth and a drop of mild leather cleaner. Let the jacket dry on a hanger at normal room temperature. Use a light, soft leather conditioner made for fine skins.\n\nDo: Test any cleaner on a hidden seam first.\nDo: Keep the jacket away from oils, perfume, and hair spray.\nDo not: Scrub hard, bend the leather sharply, or use rough tools.\nDo not: Machine wash or use bleach.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Specifications\nBody & Sleeve Material: Sheep Leather\nLining: Quilted Polyester with Dacron Fill\nClosure: Coated Steel Snap Buttons\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop All-Leather Nappa Varsity Jacket Gold & Black from our All Leather collection. Review materials, sizing and customization options, then request a free",
+  "seoTitle": "Custom All-Leather Nappa Varsity Jacket Gold & | Jacketee"
+}

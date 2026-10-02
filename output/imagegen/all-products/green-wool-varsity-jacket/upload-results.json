@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946510/jacketee/products/green-wool-varsity-jacket/clmz04uu79ylbzzhe9nn.png",
+      "publicId": "jacketee/products/green-wool-varsity-jacket/clmz04uu79ylbzzhe9nn",
+      "alt": "Green Wool Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946511/jacketee/products/green-wool-varsity-jacket/y93jfarb0v8jfwdizkjy.png",
+      "publicId": "jacketee/products/green-wool-varsity-jacket/y93jfarb0v8jfwdizkjy",
+      "alt": "Green Wool Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946512/jacketee/products/green-wool-varsity-jacket/fnyo05kmsei9kl7qfslf.png",
+      "publicId": "jacketee/products/green-wool-varsity-jacket/fnyo05kmsei9kl7qfslf",
+      "alt": "Green Wool Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946513/jacketee/products/green-wool-varsity-jacket/txvx8vq5avjkkg8exipi.png",
+      "publicId": "jacketee/products/green-wool-varsity-jacket/txvx8vq5avjkkg8exipi",
+      "alt": "Green Wool Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

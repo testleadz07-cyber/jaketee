@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891931/jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/ggcchmn48wrpu9dxlqxp.png",
+      "publicId": "jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/ggcchmn48wrpu9dxlqxp",
+      "alt": "Dark Brown Wool and Black Leather Sleeves Hooded Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891932/jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/quxjtuuriubexgtvq9xm.png",
+      "publicId": "jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/quxjtuuriubexgtvq9xm",
+      "alt": "Dark Brown Wool and Black Leather Sleeves Hooded Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891934/jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/dh5b6gwiai4nfv5lrdi0.png",
+      "publicId": "jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/dh5b6gwiai4nfv5lrdi0",
+      "alt": "Dark Brown Wool and Black Leather Sleeves Hooded Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891935/jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/wdnrqqka8yqk85vh3pis.png",
+      "publicId": "jacketee/products/dark-brown-wool-and-black-leather-sleeves-hooded-varsity-jacket/wdnrqqka8yqk85vh3pis",
+      "alt": "Dark Brown Wool and Black Leather Sleeves Hooded Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

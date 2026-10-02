@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938996/jacketee/products/coach-jacket-red-nylon-twill/t6va7kfgsu9bjdevxvtj.png",
+      "publicId": "jacketee/products/coach-jacket-red-nylon-twill/t6va7kfgsu9bjdevxvtj",
+      "alt": "Coach Jacket Red Nylon Twill Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938997/jacketee/products/coach-jacket-red-nylon-twill/dj60cpfmmbl3we0ygcly.png",
+      "publicId": "jacketee/products/coach-jacket-red-nylon-twill/dj60cpfmmbl3we0ygcly",
+      "alt": "Coach Jacket Red Nylon Twill Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938998/jacketee/products/coach-jacket-red-nylon-twill/cvub7msbodvyzbqi5g6e.png",
+      "publicId": "jacketee/products/coach-jacket-red-nylon-twill/cvub7msbodvyzbqi5g6e",
+      "alt": "Coach Jacket Red Nylon Twill Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938999/jacketee/products/coach-jacket-red-nylon-twill/ggsktge5pvmpovar5j12.png",
+      "publicId": "jacketee/products/coach-jacket-red-nylon-twill/ggsktge5pvmpovar5j12",
+      "alt": "Coach Jacket Red Nylon Twill Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

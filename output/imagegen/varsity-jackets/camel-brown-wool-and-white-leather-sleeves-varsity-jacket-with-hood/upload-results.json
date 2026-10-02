@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896543/jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/grkepwzac03nckrovst6.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/grkepwzac03nckrovst6",
+      "alt": "Camel Brown Wool and White Leather Sleeves Varsity Jacket with Hood Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896544/jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/gl41ksfgygel10dna2xa.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/gl41ksfgygel10dna2xa",
+      "alt": "Camel Brown Wool and White Leather Sleeves Varsity Jacket with Hood Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896545/jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/bbdckm2oayatrvnbe2ej.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/bbdckm2oayatrvnbe2ej",
+      "alt": "Camel Brown Wool and White Leather Sleeves Varsity Jacket with Hood Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896546/jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/kpzmoecq8tsyyde5fy3g.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-white-leather-sleeves-varsity-jacket-with-hood/kpzmoecq8tsyyde5fy3g",
+      "alt": "Camel Brown Wool and White Leather Sleeves Varsity Jacket with Hood Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

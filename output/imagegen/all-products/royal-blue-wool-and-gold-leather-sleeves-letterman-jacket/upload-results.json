@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946096/jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/zocaew5tqtivd7nod0gl.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/zocaew5tqtivd7nod0gl",
+      "alt": "Royal Blue Wool and Gold Leather Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946097/jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/zoqti7xhv03grezohx0t.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/zoqti7xhv03grezohx0t",
+      "alt": "Royal Blue Wool and Gold Leather Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946098/jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/x4xfqelblpboy9vj6fz2.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/x4xfqelblpboy9vj6fz2",
+      "alt": "Royal Blue Wool and Gold Leather Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946099/jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/duzzf0xyfjknwqbtm3bw.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-gold-leather-sleeves-letterman-jacket/duzzf0xyfjknwqbtm3bw",
+      "alt": "Royal Blue Wool and Gold Leather Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

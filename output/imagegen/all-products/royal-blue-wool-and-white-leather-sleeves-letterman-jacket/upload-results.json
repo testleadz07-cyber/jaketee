@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947475/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/bonf1teckxbqjmy9avbv.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/bonf1teckxbqjmy9avbv",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947477/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/wcpzgl11u4emehuczg1o.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/wcpzgl11u4emehuczg1o",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947479/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/j0nxw740oqgtzmltxtio.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/j0nxw740oqgtzmltxtio",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947480/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/gbhigm1srrqponxyzeat.png",
+      "publicId": "jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/gbhigm1srrqponxyzeat",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

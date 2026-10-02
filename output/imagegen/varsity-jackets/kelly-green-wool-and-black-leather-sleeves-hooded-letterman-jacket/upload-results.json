@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894275/jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/q4k6makf8jf6k2jplese.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/q4k6makf8jf6k2jplese",
+      "alt": "Kelly Green Wool and Black Leather Sleeves Hooded Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894276/jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/ojb3v5tmuzobfsovu04d.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/ojb3v5tmuzobfsovu04d",
+      "alt": "Kelly Green Wool and Black Leather Sleeves Hooded Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894277/jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/pmc64zpjgbrqbwyvz1bx.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/pmc64zpjgbrqbwyvz1bx",
+      "alt": "Kelly Green Wool and Black Leather Sleeves Hooded Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894279/jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/bjfznfbigovvtzmsegqt.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-black-leather-sleeves-hooded-letterman-jacket/bjfznfbigovvtzmsegqt",
+      "alt": "Kelly Green Wool and Black Leather Sleeves Hooded Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

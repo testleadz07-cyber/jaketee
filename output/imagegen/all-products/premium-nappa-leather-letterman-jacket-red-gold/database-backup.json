@@ -1,0 +1,56 @@
+{
+  "_id": "6a9efcfe0faef0e1af30116c",
+  "slug": "premium-nappa-leather-letterman-jacket-red-gold",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c397",
+  "compareAtPrice": 180,
+  "createdAt": "2026-09-07T18:05:50.463Z",
+  "description": "Premium quality Sheep Leather body & sleeves.\n Lightweight 100% cotton lining inside.\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264862/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/premium-nappa-leather-letterman-jacket-red-gold-main.png",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264858/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/premium-nappa-leather-letterman-jacket-red-gold-back.png",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264864/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/premium-nappa-leather-letterman-jacket-red-gold-side.png",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264860/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/premium-nappa-leather-letterman-jacket-red-gold-detail-1.png",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Premium Nappa Leather Letterman Jacket Red & Gold",
+  "price": 153,
+  "reviewCount": 0,
+  "stockCount": 18,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:43.633Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nSheep Leather\nSheep leather varsity and fashion jackets are softer and need gentle care. Dust them with a clean, dry cloth after use. For small marks, dab with a damp cloth and a drop of mild leather cleaner. Let the jacket dry on a hanger at normal room temperature. Use a light, soft leather conditioner made for fine skins.\n\nDo: Test any cleaner on a hidden seam first.\nDo: Keep the jacket away from oils, perfume, and hair spray.\nDo not: Scrub hard, bend the leather sharply, or use rough tools.\nDo not: Machine wash or use bleach.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Specifications\nBody & Sleeve Material: Sheep Leather\nLining: 100% cotton lining inside\nClosure: Coated Steel Snap Buttons\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Premium Nappa Leather Letterman Jacket Red & Gold from our All Leather collection. Review materials, sizing and customization options, then request a",
+  "seoTitle": "Custom Premium Nappa Leather Letterman Jacket Red | Jacketee"
+}

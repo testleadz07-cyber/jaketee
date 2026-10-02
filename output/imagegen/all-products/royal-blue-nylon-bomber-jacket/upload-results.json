@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938151/jacketee/products/royal-blue-nylon-bomber-jacket/cbmxuvm6ykemhoezv84i.png",
+      "publicId": "jacketee/products/royal-blue-nylon-bomber-jacket/cbmxuvm6ykemhoezv84i",
+      "alt": "Nylon Bomber Jacket in Royal Blue Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938152/jacketee/products/royal-blue-nylon-bomber-jacket/cywdgttotgje0va562ie.png",
+      "publicId": "jacketee/products/royal-blue-nylon-bomber-jacket/cywdgttotgje0va562ie",
+      "alt": "Nylon Bomber Jacket in Royal Blue Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938153/jacketee/products/royal-blue-nylon-bomber-jacket/lzflhr39eooy4qzpahet.png",
+      "publicId": "jacketee/products/royal-blue-nylon-bomber-jacket/lzflhr39eooy4qzpahet",
+      "alt": "Nylon Bomber Jacket in Royal Blue Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938154/jacketee/products/royal-blue-nylon-bomber-jacket/kxanvsbb3g6qjdbzznay.png",
+      "publicId": "jacketee/products/royal-blue-nylon-bomber-jacket/kxanvsbb3g6qjdbzznay",
+      "alt": "Nylon Bomber Jacket in Royal Blue Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

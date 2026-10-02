@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947185/jacketee/products/navy-blue-wool-letterman-jacket/wl2gbthyxxzc8rfoors5.png",
+      "publicId": "jacketee/products/navy-blue-wool-letterman-jacket/wl2gbthyxxzc8rfoors5",
+      "alt": "Navy Blue Wool Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947187/jacketee/products/navy-blue-wool-letterman-jacket/lsclxgczjfum12mok1kz.png",
+      "publicId": "jacketee/products/navy-blue-wool-letterman-jacket/lsclxgczjfum12mok1kz",
+      "alt": "Navy Blue Wool Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947188/jacketee/products/navy-blue-wool-letterman-jacket/rawo24evtu0vwxeifoyz.png",
+      "publicId": "jacketee/products/navy-blue-wool-letterman-jacket/rawo24evtu0vwxeifoyz",
+      "alt": "Navy Blue Wool Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790947189/jacketee/products/navy-blue-wool-letterman-jacket/nym04qjhptmtkq2ut0zz.png",
+      "publicId": "jacketee/products/navy-blue-wool-letterman-jacket/nym04qjhptmtkq2ut0zz",
+      "alt": "Navy Blue Wool Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

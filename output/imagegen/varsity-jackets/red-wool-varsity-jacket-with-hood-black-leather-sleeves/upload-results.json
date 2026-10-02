@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895097/jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/rvfdslvz2drghm6qkrkx.png",
+      "publicId": "jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/rvfdslvz2drghm6qkrkx",
+      "alt": "Red Wool Varsity Jacket With Hood Black Leather Sleeves Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895098/jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/vpmlmkucjc2g8vbgygsi.png",
+      "publicId": "jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/vpmlmkucjc2g8vbgygsi",
+      "alt": "Red Wool Varsity Jacket With Hood Black Leather Sleeves Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895099/jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/bo3hqckvydlu9b7i92dt.png",
+      "publicId": "jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/bo3hqckvydlu9b7i92dt",
+      "alt": "Red Wool Varsity Jacket With Hood Black Leather Sleeves Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895100/jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/tkgboljbthhig7ollnna.png",
+      "publicId": "jacketee/products/red-wool-varsity-jacket-with-hood-black-leather-sleeves/tkgboljbthhig7ollnna",
+      "alt": "Red Wool Varsity Jacket With Hood Black Leather Sleeves Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

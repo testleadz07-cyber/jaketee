@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895863/jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/ildfu8f3mm0bwekokqki.png",
+      "publicId": "jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/ildfu8f3mm0bwekokqki",
+      "alt": "Light Grey Wool and Black Leather Sleeves Varsity Hoodie Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895865/jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/vrdhqjf1yl2xwygyelgq.png",
+      "publicId": "jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/vrdhqjf1yl2xwygyelgq",
+      "alt": "Light Grey Wool and Black Leather Sleeves Varsity Hoodie Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895866/jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/a3bbg4llp6a8sdclyyv8.png",
+      "publicId": "jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/a3bbg4llp6a8sdclyyv8",
+      "alt": "Light Grey Wool and Black Leather Sleeves Varsity Hoodie Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895868/jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/xjxddwhvp77zmpgegutn.png",
+      "publicId": "jacketee/products/light-grey-wool-and-black-leather-sleeves-varsity-hoodie/xjxddwhvp77zmpgegutn",
+      "alt": "Light Grey Wool and Black Leather Sleeves Varsity Hoodie Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

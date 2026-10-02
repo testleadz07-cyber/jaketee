@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950895/jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/olrgzrlvqad5jw0lfiij.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/olrgzrlvqad5jw0lfiij",
+      "alt": "Kelly Green Wool and White Leather Sleeves Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950897/jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/yl68r0qaz8diilysfyvm.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/yl68r0qaz8diilysfyvm",
+      "alt": "Kelly Green Wool and White Leather Sleeves Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950898/jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/c2mich0mys2udrpoktll.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/c2mich0mys2udrpoktll",
+      "alt": "Kelly Green Wool and White Leather Sleeves Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950900/jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/gqerxpvbwe3kznewzcsb.png",
+      "publicId": "jacketee/products/kelly-green-wool-and-white-leather-sleeves-varsity-jacket/gqerxpvbwe3kznewzcsb",
+      "alt": "Kelly Green Wool and White Leather Sleeves Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

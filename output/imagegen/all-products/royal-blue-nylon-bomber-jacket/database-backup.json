@@ -1,0 +1,76 @@
+{
+  "_id": "6a9efd060faef0e1af3011ac",
+  "slug": "royal-blue-nylon-bomber-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c39d",
+  "compareAtPrice": 165,
+  "createdAt": "2026-09-07T18:05:58.757Z",
+  "description": "Premium quality Nylon body & sleeves.\n Diamond quilted lining for superior warmth.\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264589/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-main.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264581/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-back.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264590/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-side.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264582/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-detail-1.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - detail view 1",
+      "order": 3
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264584/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-detail-2.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - detail view 2",
+      "order": 4
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264585/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-detail-3.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - detail view 3",
+      "order": 5
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264587/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-detail-4.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - detail view 4",
+      "order": 6
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264588/jacketee/products/custom-bomber-jackets/custom-bomber-jackets-detail-5.png",
+      "alt": "Nylon Bomber Jacket in Royal Blue - detail view 5",
+      "order": 7
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Nylon Bomber Jacket in Royal Blue",
+  "price": 140.25,
+  "reviewCount": 0,
+  "stockCount": 54,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:53.693Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nNylon\nNylon shells are common on bomber, coach, and puffer jackets. They are light and dry fast but dislike high heat. Wash in cold water on a gentle cycle with mild detergent. Rinse well so no soap film stays on the shell. Shake out and hang to dry. Use low heat only if you must use a dryer.\n\nDo: Spot clean small stains with mild soap before a full wash.\nDo: Close all zips and snaps before washing.\nDo not: Use bleach or strong stain sprays.\nDo not: Iron on high heat or expose to open flame.\nQuilted / Polyester Linings\nQuilted polyester linings sit inside varsity, bomber, and puffer jackets. They add light padding and need gentle care. Turn the jacket inside out so the lining is on the outside. Wash in cold water, gentle cycle, and mild detergent. Avoid long, hard spins so the fill stays even. Shake the jacket after washing to spread the padding, then hang to dry.\n\nDo: Smooth the lining by hand while it is still damp.\nDo: Store the jacket fully dry to prevent odor and mildew.\nDo not: Twist or wring the quilted parts.\nDo not: Use high dryer heat, which can damage the fill.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Specifications\nBody & Sleeve Material: Nylon\nLining: Quilted Polyester with Dacron Fill\nClosure: Original YKK zipper\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Bomber Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "bomber-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Nylon Bomber Jacket in Royal Blue from our Bomber Jackets collection. Review materials, sizing and customization options, then request a free design",
+  "seoTitle": "Custom Nylon Bomber Jacket in Royal Blue | Jacketee"
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892678/jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/wnfjl8x8a7ihqw3pqeqd.png",
+      "publicId": "jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/wnfjl8x8a7ihqw3pqeqd",
+      "alt": "Old Gold Wool and White Leather Sleeves Hooded Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892684/jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/zauqekeijcpvboc9pmde.png",
+      "publicId": "jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/zauqekeijcpvboc9pmde",
+      "alt": "Old Gold Wool and White Leather Sleeves Hooded Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892686/jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/amjqkigspatrldzfoftp.png",
+      "publicId": "jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/amjqkigspatrldzfoftp",
+      "alt": "Old Gold Wool and White Leather Sleeves Hooded Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892688/jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/ynv9fbjvuxojc7xyz3cj.png",
+      "publicId": "jacketee/products/old-gold-wool-and-white-leather-sleeves-hooded-varsity-jacket/ynv9fbjvuxojc7xyz3cj",
+      "alt": "Old Gold Wool and White Leather Sleeves Hooded Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

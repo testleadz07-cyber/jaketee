@@ -1,0 +1,55 @@
+{
+  "_id": "6a9efd030faef0e1af301197",
+  "slug": "yorkshire-felt-lettering-on-hoodie",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc09f67a6c3a3788c3a0",
+  "createdAt": "2026-09-07T18:05:55.893Z",
+  "description": "Soft and comfortable fleece hoodie or sweatshirt. Great for seniors and team groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265051/jacketee/products/yorkshire-felt-lettering-on-hoodie/yorkshire-felt-lettering-on-hoodie-main.jpg",
+      "alt": "Yorkshire Felt Lettering On Hoodie - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265046/jacketee/products/yorkshire-felt-lettering-on-hoodie/yorkshire-felt-lettering-on-hoodie-back.jpg",
+      "alt": "Yorkshire Felt Lettering On Hoodie - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265052/jacketee/products/yorkshire-felt-lettering-on-hoodie/yorkshire-felt-lettering-on-hoodie-side.jpg",
+      "alt": "Yorkshire Felt Lettering On Hoodie - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265047/jacketee/products/yorkshire-felt-lettering-on-hoodie/yorkshire-felt-lettering-on-hoodie-detail-1.jpg",
+      "alt": "Yorkshire Felt Lettering On Hoodie - detail view 1",
+      "order": 3
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790265049/jacketee/products/yorkshire-felt-lettering-on-hoodie/yorkshire-felt-lettering-on-hoodie-detail-2.jpg",
+      "alt": "Yorkshire Felt Lettering On Hoodie - detail view 2",
+      "order": 4
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Yorkshire Felt Lettering On Hoodie",
+  "price": 232.9,
+  "reviewCount": 0,
+  "stockCount": 17,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:50.546Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Hoodies",
+  "category": "fleece-hoodies",
+  "compareAtPrice": 274,
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Yorkshire Felt Lettering On Hoodie from our Fleece Hoodies collection. Review materials, sizing and customization options, then request a free design",
+  "seoTitle": "Custom Yorkshire Felt Lettering On Hoodie - | Jacketee"
+}

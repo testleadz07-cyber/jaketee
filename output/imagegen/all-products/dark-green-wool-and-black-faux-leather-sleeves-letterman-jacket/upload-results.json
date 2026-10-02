@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948479/jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/a1jy7yrgg4c1qqfl610n.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/a1jy7yrgg4c1qqfl610n",
+      "alt": "Dark Green Wool and Black Faux Leather Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948480/jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/epkqvozatliecvmzgwbr.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/epkqvozatliecvmzgwbr",
+      "alt": "Dark Green Wool and Black Faux Leather Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948481/jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/fxszbe7aimucrjvs2b5s.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/fxszbe7aimucrjvs2b5s",
+      "alt": "Dark Green Wool and Black Faux Leather Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948483/jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/ixnnqpvsn2ylt99edwp4.png",
+      "publicId": "jacketee/products/dark-green-wool-and-black-faux-leather-sleeves-letterman-jacket/ixnnqpvsn2ylt99edwp4",
+      "alt": "Dark Green Wool and Black Faux Leather Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

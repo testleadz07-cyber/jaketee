@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890713/jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/osaojxpqxdkiqevfphad.png",
+      "publicId": "jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/osaojxpqxdkiqevfphad",
+      "alt": "Black and Gold Retro Leather Letterman Jacket with Shirt Collar Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890714/jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/p7pgkbadatnlf4bqhl7m.png",
+      "publicId": "jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/p7pgkbadatnlf4bqhl7m",
+      "alt": "Black and Gold Retro Leather Letterman Jacket with Shirt Collar Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890715/jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/nfzqflythtwsee3r0ih6.png",
+      "publicId": "jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/nfzqflythtwsee3r0ih6",
+      "alt": "Black and Gold Retro Leather Letterman Jacket with Shirt Collar Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890716/jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/smidj24sckxzyhnix8e8.png",
+      "publicId": "jacketee/products/black-and-gold-retro-leather-letterman-jacket-with-shirt-collar/smidj24sckxzyhnix8e8",
+      "alt": "Black and Gold Retro Leather Letterman Jacket with Shirt Collar Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

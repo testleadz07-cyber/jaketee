@@ -1,0 +1,56 @@
+{
+  "_id": "6a9efd070faef0e1af3011b4",
+  "slug": "camel-brown-suede-leather-bomber-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c39d",
+  "compareAtPrice": 168,
+  "createdAt": "2026-09-07T18:05:59.704Z",
+  "description": "Premium quality Suede Leather body & sleeves.\n Lightweight 100% cotton lining inside.\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264879/jacketee/products/premium-quality-suede-bomber-jacket/premium-quality-suede-bomber-jacket-main.png",
+      "alt": "Camel Brown Suede Leather Bomber Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264876/jacketee/products/premium-quality-suede-bomber-jacket/premium-quality-suede-bomber-jacket-back.png",
+      "alt": "Camel Brown Suede Leather Bomber Jacket - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264880/jacketee/products/premium-quality-suede-bomber-jacket/premium-quality-suede-bomber-jacket-side.png",
+      "alt": "Camel Brown Suede Leather Bomber Jacket - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264877/jacketee/products/premium-quality-suede-bomber-jacket/premium-quality-suede-bomber-jacket-detail-1.png",
+      "alt": "Camel Brown Suede Leather Bomber Jacket - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Camel Brown Suede Leather Bomber Jacket",
+  "price": 142.8,
+  "reviewCount": 0,
+  "stockCount": 26,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:54.999Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Sheep Leather\nSheep leather varsity and fashion jackets are softer and need gentle care. Dust them with a clean, dry cloth after use. For small marks, dab with a damp cloth and a drop of mild leather cleaner. Let the jacket dry on a hanger at normal room temperature. Use a light, soft leather conditioner made for fine skins.\n\nDo: Test any cleaner on a hidden seam first.\nDo: Keep the jacket away from oils, perfume, and hair spray.\nDo not: Scrub hard, bend the leather sharply, or use rough tools.\nDo not: Machine wash or use bleach.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Body & Sleeve Material: Suede Leather\nLining: 100% cotton lining inside\nClosure: Original YKK zipper\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Bomber Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "bomber-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Camel Brown Suede Leather Bomber Jacket from our Bomber Jackets collection. Review materials, sizing and customization options, then request a free",
+  "seoTitle": "Custom Camel Brown Suede Leather Bomber Jacket | Jacketee"
+}

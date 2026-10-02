@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942988/jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/ltt081n4jwbzunr5fcqo.png",
+      "publicId": "jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/ltt081n4jwbzunr5fcqo",
+      "alt": "Purple Wool and Gold Leather Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942989/jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/lrh3cd45lbnfo6zg9cua.png",
+      "publicId": "jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/lrh3cd45lbnfo6zg9cua",
+      "alt": "Purple Wool and Gold Leather Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942990/jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/fobnvjlqyehofhs6xxvx.png",
+      "publicId": "jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/fobnvjlqyehofhs6xxvx",
+      "alt": "Purple Wool and Gold Leather Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942991/jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/dzywpg9a5vk9j3wekqep.png",
+      "publicId": "jacketee/products/purple-wool-and-gold-leather-sleeves-letterman-jacket/dzywpg9a5vk9j3wekqep",
+      "alt": "Purple Wool and Gold Leather Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

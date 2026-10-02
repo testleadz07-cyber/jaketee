@@ -1,0 +1,40 @@
+{
+  "_id": "6a9efd010faef0e1af301189",
+  "slug": "hoodie-letterman-jacket-for-girls",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c398",
+  "compareAtPrice": 80,
+  "createdAt": "2026-09-07T18:05:54.066Z",
+  "description": "Premium varsity and letterman jacket available in wool, leather, satin, and fleece. Perfect for schools, teams, and groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264746/jacketee/products/hoodie-letterman-jacket-for-girls/hoodie-letterman-jacket-for-girls-main.jpg",
+      "alt": "Hoodie Letterman Jacket For Girls - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264744/jacketee/products/hoodie-letterman-jacket-for-girls/hoodie-letterman-jacket-for-girls-back.jpg",
+      "alt": "Hoodie Letterman Jacket For Girls - back view",
+      "order": 1
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Hoodie Letterman Jacket For Girls",
+  "price": 68,
+  "reviewCount": 0,
+  "stockCount": 15,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:48.340Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Letterman Jacket",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Hoodie Letterman Jacket For Girls from our Hooded collection. Review materials, sizing and customization options, then request a free design mockup",
+  "seoTitle": "Custom Hoodie Letterman Jacket For Girls - Hooded | Jacketee"
+}

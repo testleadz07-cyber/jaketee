@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790943162/jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/cm1nn4pejwrtzqklprij.png",
+      "publicId": "jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/cm1nn4pejwrtzqklprij",
+      "alt": "Dark Purple Wool and Black Leather Sleeves Varsity Hoodie Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790943163/jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/uok9iygihueayjntzref.png",
+      "publicId": "jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/uok9iygihueayjntzref",
+      "alt": "Dark Purple Wool and Black Leather Sleeves Varsity Hoodie Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790943164/jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/qnqe0nqupwru4cjsqjjl.png",
+      "publicId": "jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/qnqe0nqupwru4cjsqjjl",
+      "alt": "Dark Purple Wool and Black Leather Sleeves Varsity Hoodie Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790943166/jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/q1trmbhze6ly1zhvgeyg.png",
+      "publicId": "jacketee/products/dark-purple-wool-and-black-leather-sleeves-varsity-hoodie/q1trmbhze6ly1zhvgeyg",
+      "alt": "Dark Purple Wool and Black Leather Sleeves Varsity Hoodie Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

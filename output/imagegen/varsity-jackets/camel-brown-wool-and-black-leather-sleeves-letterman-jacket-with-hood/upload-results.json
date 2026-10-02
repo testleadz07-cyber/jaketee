@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890538/jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/nnep1szqy2y80er5foq0.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/nnep1szqy2y80er5foq0",
+      "alt": "Camel Brown Wool and Black Leather Sleeves Letterman Jacket with Hood Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890540/jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/amtjo85ix1cslsmohp5c.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/amtjo85ix1cslsmohp5c",
+      "alt": "Camel Brown Wool and Black Leather Sleeves Letterman Jacket with Hood Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890541/jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/lhwpkfkvrjjsptqpttlp.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/lhwpkfkvrjjsptqpttlp",
+      "alt": "Camel Brown Wool and Black Leather Sleeves Letterman Jacket with Hood Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890543/jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/fjubwdvo7znzmmj0wtlj.png",
+      "publicId": "jacketee/products/camel-brown-wool-and-black-leather-sleeves-letterman-jacket-with-hood/fjubwdvo7znzmmj0wtlj",
+      "alt": "Camel Brown Wool and Black Leather Sleeves Letterman Jacket with Hood Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

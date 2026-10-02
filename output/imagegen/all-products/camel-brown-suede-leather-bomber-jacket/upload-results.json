@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936371/jacketee/products/camel-brown-suede-leather-bomber-jacket/pnkahqppvzxqm29malvz.png",
+      "publicId": "jacketee/products/camel-brown-suede-leather-bomber-jacket/pnkahqppvzxqm29malvz",
+      "alt": "Camel Brown Suede Leather Bomber Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936372/jacketee/products/camel-brown-suede-leather-bomber-jacket/zict4phxndgeqs6celz2.png",
+      "publicId": "jacketee/products/camel-brown-suede-leather-bomber-jacket/zict4phxndgeqs6celz2",
+      "alt": "Camel Brown Suede Leather Bomber Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936373/jacketee/products/camel-brown-suede-leather-bomber-jacket/r0lqhz8ry8f1oz1z66c7.png",
+      "publicId": "jacketee/products/camel-brown-suede-leather-bomber-jacket/r0lqhz8ry8f1oz1z66c7",
+      "alt": "Camel Brown Suede Leather Bomber Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936374/jacketee/products/camel-brown-suede-leather-bomber-jacket/lavvmckfbwysmpytn9xe.png",
+      "publicId": "jacketee/products/camel-brown-suede-leather-bomber-jacket/lavvmckfbwysmpytn9xe",
+      "alt": "Camel Brown Suede Leather Bomber Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

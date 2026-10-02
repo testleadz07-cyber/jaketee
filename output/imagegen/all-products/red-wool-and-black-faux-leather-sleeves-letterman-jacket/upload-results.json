@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942206/jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/ed9vwh1fjpism7cepszj.png",
+      "publicId": "jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/ed9vwh1fjpism7cepszj",
+      "alt": "Red Wool and Black Faux Leather Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942208/jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/z9udjxik2gwx4thgdkpk.png",
+      "publicId": "jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/z9udjxik2gwx4thgdkpk",
+      "alt": "Red Wool and Black Faux Leather Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942209/jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/cq9vyari84pmlrrwswrb.png",
+      "publicId": "jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/cq9vyari84pmlrrwswrb",
+      "alt": "Red Wool and Black Faux Leather Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942210/jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/woui0htozgmmkidzkqmv.png",
+      "publicId": "jacketee/products/red-wool-and-black-faux-leather-sleeves-letterman-jacket/woui0htozgmmkidzkqmv",
+      "alt": "Red Wool and Black Faux Leather Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

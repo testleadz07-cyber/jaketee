@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894083/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/adfqcgegfbegu96ggrjx.png",
+      "publicId": "jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/adfqcgegfbegu96ggrjx",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894084/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/cfray7wdzbdxzecltmfr.png",
+      "publicId": "jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/cfray7wdzbdxzecltmfr",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894085/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/inhu1lbhkf2cituxxq3q.png",
+      "publicId": "jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/inhu1lbhkf2cituxxq3q",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894086/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/hzd1zihugfpvsx2aezwi.png",
+      "publicId": "jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/hzd1zihugfpvsx2aezwi",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

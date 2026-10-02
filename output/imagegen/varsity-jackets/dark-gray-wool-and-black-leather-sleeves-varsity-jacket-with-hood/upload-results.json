@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892911/jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/w2u1s3e5ydtbsi1xfcte.png",
+      "publicId": "jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/w2u1s3e5ydtbsi1xfcte",
+      "alt": "Dark Gray Wool and Black Leather Sleeves Varsity Jacket with Hood Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892912/jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/laa23q5bieinjlclxlez.png",
+      "publicId": "jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/laa23q5bieinjlclxlez",
+      "alt": "Dark Gray Wool and Black Leather Sleeves Varsity Jacket with Hood Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892913/jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/qzywzcfj2e1poawrcbl8.png",
+      "publicId": "jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/qzywzcfj2e1poawrcbl8",
+      "alt": "Dark Gray Wool and Black Leather Sleeves Varsity Jacket with Hood Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892914/jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/h5pcwuphu0tyvltw2not.png",
+      "publicId": "jacketee/products/dark-gray-wool-and-black-leather-sleeves-varsity-jacket-with-hood/h5pcwuphu0tyvltw2not",
+      "alt": "Dark Gray Wool and Black Leather Sleeves Varsity Jacket with Hood Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

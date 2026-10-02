@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950024/jacketee/products/red-wool-letterman-jacket/tvkobfhkcphvfrmm6xke.png",
+      "publicId": "jacketee/products/red-wool-letterman-jacket/tvkobfhkcphvfrmm6xke",
+      "alt": "Red Wool Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950027/jacketee/products/red-wool-letterman-jacket/e1ssmbwdr2evcschpyk8.png",
+      "publicId": "jacketee/products/red-wool-letterman-jacket/e1ssmbwdr2evcschpyk8",
+      "alt": "Red Wool Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950028/jacketee/products/red-wool-letterman-jacket/siyoaltcsr14ntpvvkzg.png",
+      "publicId": "jacketee/products/red-wool-letterman-jacket/siyoaltcsr14ntpvvkzg",
+      "alt": "Red Wool Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950029/jacketee/products/red-wool-letterman-jacket/crqpvhagfnkfblngujvx.png",
+      "publicId": "jacketee/products/red-wool-letterman-jacket/crqpvhagfnkfblngujvx",
+      "alt": "Red Wool Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

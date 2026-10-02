@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937419/jacketee/products/softshell-bomber-jacket-with-panels/fry22vtcilpc3nhwf7e5.png",
+      "publicId": "jacketee/products/softshell-bomber-jacket-with-panels/fry22vtcilpc3nhwf7e5",
+      "alt": "Stylish Softshell Bomber Jacket with Panels Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937425/jacketee/products/softshell-bomber-jacket-with-panels/dw2vvhhsctc3wgblrzhw.png",
+      "publicId": "jacketee/products/softshell-bomber-jacket-with-panels/dw2vvhhsctc3wgblrzhw",
+      "alt": "Stylish Softshell Bomber Jacket with Panels Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937428/jacketee/products/softshell-bomber-jacket-with-panels/dtvy4m2rir6ddrdow95e.png",
+      "publicId": "jacketee/products/softshell-bomber-jacket-with-panels/dtvy4m2rir6ddrdow95e",
+      "alt": "Stylish Softshell Bomber Jacket with Panels Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937430/jacketee/products/softshell-bomber-jacket-with-panels/tej6bqd0dx04xinhvuso.png",
+      "publicId": "jacketee/products/softshell-bomber-jacket-with-panels/tej6bqd0dx04xinhvuso",
+      "alt": "Stylish Softshell Bomber Jacket with Panels Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942634/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/zoffm66ejj5xouoawpyi.png",
+      "publicId": "jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/zoffm66ejj5xouoawpyi",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942637/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/gwqdpm4cxm2gblv6uxsd.png",
+      "publicId": "jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/gwqdpm4cxm2gblv6uxsd",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942638/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/oti6wsu8ylhwmlaermro.png",
+      "publicId": "jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/oti6wsu8ylhwmlaermro",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942639/jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/cyz1xftthafvgtwwdk9p.png",
+      "publicId": "jacketee/products/designer-sheepskin-leather-letterman-jacket-black-white/cyz1xftthafvgtwwdk9p",
+      "alt": "Designer Sheepskin Leather Letterman Jacket Black & White Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

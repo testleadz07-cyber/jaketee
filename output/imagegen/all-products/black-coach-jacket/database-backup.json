@@ -1,0 +1,60 @@
+{
+  "_id": "6a9efd050faef0e1af3011a6",
+  "slug": "black-coach-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc09f67a6c3a3788c39e",
+  "compareAtPrice": 258,
+  "createdAt": "2026-09-07T18:05:57.931Z",
+  "description": "Lightweight and practical coach jacket perfect for teams, brands, and event crews.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264598/jacketee/products/custom-coach-jackets/custom-coach-jackets-main.jpg",
+      "alt": "Black Coach Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264592/jacketee/products/custom-coach-jackets/custom-coach-jackets-back.jpg",
+      "alt": "Black Coach Jacket - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264599/jacketee/products/custom-coach-jackets/custom-coach-jackets-side.jpg",
+      "alt": "Black Coach Jacket - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264594/jacketee/products/custom-coach-jackets/custom-coach-jackets-detail-1.jpg",
+      "alt": "Black Coach Jacket - detail view 1",
+      "order": 3
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264595/jacketee/products/custom-coach-jackets/custom-coach-jackets-detail-2.jpg",
+      "alt": "Black Coach Jacket - detail view 2",
+      "order": 4
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264596/jacketee/products/custom-coach-jackets/custom-coach-jackets-detail-3.jpg",
+      "alt": "Black Coach Jacket - detail view 3",
+      "order": 5
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Black Coach Jacket",
+  "price": 219.3,
+  "reviewCount": 0,
+  "stockCount": 31,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:52.755Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Coach Jacket",
+  "category": "coach-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Black Coach Jacket from our Coach Jackets collection. Review materials, sizing and customization options, then request a free design mockup before",
+  "seoTitle": "Custom Black Coach Jacket | Jacketee"
+}

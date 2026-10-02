@@ -1,0 +1,40 @@
+{
+  "_id": "6a9efd030faef0e1af301192",
+  "slug": "baby-pink-letterman-jacket-with-hood",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c398",
+  "compareAtPrice": 80,
+  "createdAt": "2026-09-07T18:05:55.164Z",
+  "description": "Premium varsity and letterman jacket available in wool, leather, satin, and fleece. Perfect for schools, teams, and groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264337/jacketee/products/baby-pink-letterman-jacket-with-hood/baby-pink-letterman-jacket-with-hood-main.jpg",
+      "alt": "Baby Pink Letterman Jacket With Hood - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264336/jacketee/products/baby-pink-letterman-jacket-with-hood/baby-pink-letterman-jacket-with-hood-back.jpg",
+      "alt": "Baby Pink Letterman Jacket With Hood - back view",
+      "order": 1
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Baby Pink Letterman Jacket With Hood",
+  "price": 68,
+  "reviewCount": 0,
+  "stockCount": 15,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:49.761Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Letterman Jacket",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Baby Pink Letterman Jacket With Hood from our Hooded collection. Review materials, sizing and customization options, then request a free design mockup",
+  "seoTitle": "Custom Baby Pink Letterman Jacket With Hood - | Jacketee"
+}

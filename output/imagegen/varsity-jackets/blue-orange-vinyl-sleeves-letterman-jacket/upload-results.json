@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895600/jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/h5mqybyo7jrhy3brkpsh.png",
+      "publicId": "jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/h5mqybyo7jrhy3brkpsh",
+      "alt": "Blue & Orange Vinyl Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895609/jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/cgc3axywcfpokbcjvplg.png",
+      "publicId": "jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/cgc3axywcfpokbcjvplg",
+      "alt": "Blue & Orange Vinyl Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895617/jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/hdcsi1h1kpqaj7cqxvft.png",
+      "publicId": "jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/hdcsi1h1kpqaj7cqxvft",
+      "alt": "Blue & Orange Vinyl Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790895633/jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/bzj79hximcjqosjuir9r.png",
+      "publicId": "jacketee/products/blue-orange-vinyl-sleeves-letterman-jacket/bzj79hximcjqosjuir9r",
+      "alt": "Blue & Orange Vinyl Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893135/jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/yny92yd5hehz3h4m2x0r.png",
+      "publicId": "jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/yny92yd5hehz3h4m2x0r",
+      "alt": "Dark Maroon Wool and Black Leather Sleeves Hooded Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893139/jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/jmwdng2jjgjugvddh2c3.png",
+      "publicId": "jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/jmwdng2jjgjugvddh2c3",
+      "alt": "Dark Maroon Wool and Black Leather Sleeves Hooded Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893146/jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/yjw4aij8sd45rfgbkovw.png",
+      "publicId": "jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/yjw4aij8sd45rfgbkovw",
+      "alt": "Dark Maroon Wool and Black Leather Sleeves Hooded Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893160/jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/tmcbcygnfrxiyqnj6ha7.png",
+      "publicId": "jacketee/products/dark-maroon-wool-and-black-leather-sleeves-hooded-letterman-jacket/tmcbcygnfrxiyqnj6ha7",
+      "alt": "Dark Maroon Wool and Black Leather Sleeves Hooded Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

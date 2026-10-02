@@ -1,0 +1,40 @@
+{
+  "_id": "6a9efd010faef0e1af301188",
+  "slug": "maroon-letterman-jacket-hood",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c398",
+  "compareAtPrice": 80,
+  "createdAt": "2026-09-07T18:05:53.949Z",
+  "description": "Premium varsity and letterman jacket available in wool, leather, satin, and fleece. Perfect for schools, teams, and groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264803/jacketee/products/maroon-letterman-jacket-hood/maroon-letterman-jacket-hood-main.jpg",
+      "alt": "Maroon Letterman Jacket Hood - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264802/jacketee/products/maroon-letterman-jacket-hood/maroon-letterman-jacket-hood-back.jpg",
+      "alt": "Maroon Letterman Jacket Hood - back view",
+      "order": 1
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Maroon Letterman Jacket Hood",
+  "price": 68,
+  "reviewCount": 0,
+  "stockCount": 17,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:48.185Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Letterman Jacket",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Maroon Letterman Jacket Hood from our Hooded collection. Review materials, sizing and customization options, then request a free design mockup before",
+  "seoTitle": "Custom Maroon Letterman Jacket Hood - Hooded | Jacketee"
+}

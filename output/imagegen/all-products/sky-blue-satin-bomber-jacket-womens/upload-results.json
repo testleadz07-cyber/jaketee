@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938565/jacketee/products/sky-blue-satin-bomber-jacket-womens/kuug4dnu3bnt4itqrtjt.png",
+      "publicId": "jacketee/products/sky-blue-satin-bomber-jacket-womens/kuug4dnu3bnt4itqrtjt",
+      "alt": "Sky Blue Satin Bomber Jacket Women Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938566/jacketee/products/sky-blue-satin-bomber-jacket-womens/svzzkzhfmlczzty6u1us.png",
+      "publicId": "jacketee/products/sky-blue-satin-bomber-jacket-womens/svzzkzhfmlczzty6u1us",
+      "alt": "Sky Blue Satin Bomber Jacket Women Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938567/jacketee/products/sky-blue-satin-bomber-jacket-womens/bvyecjj8r35jezjqcbyj.png",
+      "publicId": "jacketee/products/sky-blue-satin-bomber-jacket-womens/bvyecjj8r35jezjqcbyj",
+      "alt": "Sky Blue Satin Bomber Jacket Women Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790938568/jacketee/products/sky-blue-satin-bomber-jacket-womens/l7npd5wlqr3zof2j678f.png",
+      "publicId": "jacketee/products/sky-blue-satin-bomber-jacket-womens/l7npd5wlqr3zof2j678f",
+      "alt": "Sky Blue Satin Bomber Jacket Women Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

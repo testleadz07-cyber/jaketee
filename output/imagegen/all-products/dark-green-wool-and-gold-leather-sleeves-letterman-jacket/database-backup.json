@@ -1,0 +1,59 @@
+{
+  "_id": "6a9efcfe0faef0e1af301171",
+  "slug": "dark-green-wool-and-gold-leather-sleeves-letterman-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc07f67a6c3a3788c394",
+  "compareAtPrice": 70,
+  "createdAt": "2026-09-07T18:05:51.058Z",
+  "description": "Premium varsity and letterman jacket available in wool, leather, satin, and fleece. Perfect for schools, teams, and groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264644/jacketee/products/dark-green-wool-and-gold-leather-sleeves-letterman-jacket/dark-green-wool-and-gold-leather-sleeves-letterman-jacket-main.png",
+      "alt": "Dark Green Wool and Gold Leather Sleeves Letterman Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264639/jacketee/products/dark-green-wool-and-gold-leather-sleeves-letterman-jacket/dark-green-wool-and-gold-leather-sleeves-letterman-jacket-back.png",
+      "alt": "Dark Green Wool and Gold Leather Sleeves Letterman Jacket - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264647/jacketee/products/dark-green-wool-and-gold-leather-sleeves-letterman-jacket/dark-green-wool-and-gold-leather-sleeves-letterman-jacket-side.png",
+      "alt": "Dark Green Wool and Gold Leather Sleeves Letterman Jacket - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264641/jacketee/products/dark-green-wool-and-gold-leather-sleeves-letterman-jacket/dark-green-wool-and-gold-leather-sleeves-letterman-jacket-detail-1.png",
+      "alt": "Dark Green Wool and Gold Leather Sleeves Letterman Jacket - detail view 1",
+      "order": 3
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264643/jacketee/products/dark-green-wool-and-gold-leather-sleeves-letterman-jacket/dark-green-wool-and-gold-leather-sleeves-letterman-jacket-detail-2.png",
+      "alt": "Dark Green Wool and Gold Leather Sleeves Letterman Jacket - detail view 2",
+      "order": 4
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Dark Green Wool and Gold Leather Sleeves Letterman Jacket",
+  "price": 59.5,
+  "reviewCount": 0,
+  "stockCount": 42,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:44.462Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Dark Green Wool and Gold Leather Sleeves Letterman Jacket from our Wool & Leather collection. Review materials, sizing and customization options, then",
+  "seoTitle": "Custom Dark Green Wool and Gold Leather Sleeves | Jacketee"
+}

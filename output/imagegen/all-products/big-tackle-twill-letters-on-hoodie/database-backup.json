@@ -1,0 +1,45 @@
+{
+  "_id": "6a9efd040faef0e1af30119d",
+  "slug": "big-tackle-twill-letters-on-hoodie",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc09f67a6c3a3788c3a0",
+  "compareAtPrice": 279,
+  "createdAt": "2026-09-07T18:05:56.635Z",
+  "description": "Soft and comfortable fleece hoodie or sweatshirt. Great for seniors and team groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264360/jacketee/products/big-tackle-twill-letters-on-hoodie/big-tackle-twill-letters-on-hoodie-main.jpg",
+      "alt": "Big Tackle Twill Letters On Hoodie - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264358/jacketee/products/big-tackle-twill-letters-on-hoodie/big-tackle-twill-letters-on-hoodie-back.jpg",
+      "alt": "Big Tackle Twill Letters On Hoodie - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264361/jacketee/products/big-tackle-twill-letters-on-hoodie/big-tackle-twill-letters-on-hoodie-side.jpg",
+      "alt": "Big Tackle Twill Letters On Hoodie - side view",
+      "order": 2
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Big Tackle Twill Letters On Hoodie",
+  "price": 237.15,
+  "reviewCount": 0,
+  "stockCount": 14,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:51.492Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Hoodies",
+  "category": "fleece-hoodies",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Big Tackle Twill Letters On Hoodie from our Fleece Hoodies collection. Review materials, sizing and customization options, then request a free design",
+  "seoTitle": "Custom Big Tackle Twill Letters On Hoodie - | Jacketee"
+}

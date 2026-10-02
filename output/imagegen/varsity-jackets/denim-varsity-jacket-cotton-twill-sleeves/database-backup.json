@@ -1,0 +1,50 @@
+{
+  "_id": "6a9efd000faef0e1af301182",
+  "slug": "denim-varsity-jacket-cotton-twill-sleeves",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c39c",
+  "compareAtPrice": 55,
+  "createdAt": "2026-09-07T18:05:53.065Z",
+  "description": "Premium varsity and letterman jacket available in wool, leather, satin, and fleece. Perfect for schools, teams, and groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264673/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/denim-varsity-jacket-cotton-twill-sleeves-main.jpg",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264670/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/denim-varsity-jacket-cotton-twill-sleeves-back.jpg",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264675/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/denim-varsity-jacket-cotton-twill-sleeves-side.jpg",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264672/jacketee/products/denim-varsity-jacket-cotton-twill-sleeves/denim-varsity-jacket-cotton-twill-sleeves-detail-1.jpg",
+      "alt": "Denim Varsity Jacket Cotton Twill Sleeves - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Denim Varsity Jacket Cotton Twill Sleeves",
+  "price": 46.75,
+  "reviewCount": 0,
+  "stockCount": 26,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:47.247Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Denim Varsity Jacket Cotton Twill Sleeves from our Cotton Twill collection. Review materials, sizing and customization options, then request a free",
+  "seoTitle": "Custom Denim Varsity Jacket Cotton Twill Sleeves | Jacketee"
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890155/jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/wtbubmfqxmgngphqe66x.png",
+      "publicId": "jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/wtbubmfqxmgngphqe66x",
+      "alt": "Red Wool and Black Leather Sleeves Varsity Hoodie Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890156/jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/feq1qy26b9vfgjficuzs.png",
+      "publicId": "jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/feq1qy26b9vfgjficuzs",
+      "alt": "Red Wool and Black Leather Sleeves Varsity Hoodie Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890157/jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/keuk2kq0va8qqh5dotos.png",
+      "publicId": "jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/keuk2kq0va8qqh5dotos",
+      "alt": "Red Wool and Black Leather Sleeves Varsity Hoodie Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790890158/jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/keds8q2xvshtapdxbxpg.png",
+      "publicId": "jacketee/products/red-wool-and-black-leather-sleeves-varsity-hoodie/keds8q2xvshtapdxbxpg",
+      "alt": "Red Wool and Black Leather Sleeves Varsity Hoodie Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

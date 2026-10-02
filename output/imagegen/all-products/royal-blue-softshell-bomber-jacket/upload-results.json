@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937733/jacketee/products/royal-blue-softshell-bomber-jacket/ogvv9bywbkx3qzdrwg39.png",
+      "publicId": "jacketee/products/royal-blue-softshell-bomber-jacket/ogvv9bywbkx3qzdrwg39",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937735/jacketee/products/royal-blue-softshell-bomber-jacket/cmbozxxvg7nnvf0dtngc.png",
+      "publicId": "jacketee/products/royal-blue-softshell-bomber-jacket/cmbozxxvg7nnvf0dtngc",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937736/jacketee/products/royal-blue-softshell-bomber-jacket/dzhcsakabngaxrpnfq1e.png",
+      "publicId": "jacketee/products/royal-blue-softshell-bomber-jacket/dzhcsakabngaxrpnfq1e",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937737/jacketee/products/royal-blue-softshell-bomber-jacket/ye83yyl0in7t9zgattku.png",
+      "publicId": "jacketee/products/royal-blue-softshell-bomber-jacket/ye83yyl0in7t9zgattku",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

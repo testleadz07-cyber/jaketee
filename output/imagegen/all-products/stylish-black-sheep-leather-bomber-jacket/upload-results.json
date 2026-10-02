@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937214/jacketee/products/stylish-black-sheep-leather-bomber-jacket/xuhwh6gwnffqfc96fv9l.png",
+      "publicId": "jacketee/products/stylish-black-sheep-leather-bomber-jacket/xuhwh6gwnffqfc96fv9l",
+      "alt": "Stylish Black Sheep Leather Bomber Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937215/jacketee/products/stylish-black-sheep-leather-bomber-jacket/n7els7qgefkm30aq2o2j.png",
+      "publicId": "jacketee/products/stylish-black-sheep-leather-bomber-jacket/n7els7qgefkm30aq2o2j",
+      "alt": "Stylish Black Sheep Leather Bomber Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937216/jacketee/products/stylish-black-sheep-leather-bomber-jacket/p7irf5rr19cdcws3jcxl.png",
+      "publicId": "jacketee/products/stylish-black-sheep-leather-bomber-jacket/p7irf5rr19cdcws3jcxl",
+      "alt": "Stylish Black Sheep Leather Bomber Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790937217/jacketee/products/stylish-black-sheep-leather-bomber-jacket/uhfpxdn6wxi9aetl9iaw.png",
+      "publicId": "jacketee/products/stylish-black-sheep-leather-bomber-jacket/uhfpxdn6wxi9aetl9iaw",
+      "alt": "Stylish Black Sheep Leather Bomber Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

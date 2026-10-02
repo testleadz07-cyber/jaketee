@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894467/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/lixevy9lrs7vpowba9rl.png",
+      "publicId": "jacketee/products/all-leather-nappa-varsity-jacket-gold-black/lixevy9lrs7vpowba9rl",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894468/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/qxwmvqhws91xab97f3vg.png",
+      "publicId": "jacketee/products/all-leather-nappa-varsity-jacket-gold-black/qxwmvqhws91xab97f3vg",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894469/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/izwrabtkb8lehxsk7nae.png",
+      "publicId": "jacketee/products/all-leather-nappa-varsity-jacket-gold-black/izwrabtkb8lehxsk7nae",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894470/jacketee/products/all-leather-nappa-varsity-jacket-gold-black/v95xcikp5m1rrui47rhp.png",
+      "publicId": "jacketee/products/all-leather-nappa-varsity-jacket-gold-black/v95xcikp5m1rrui47rhp",
+      "alt": "All-Leather Nappa Varsity Jacket Gold & Black Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

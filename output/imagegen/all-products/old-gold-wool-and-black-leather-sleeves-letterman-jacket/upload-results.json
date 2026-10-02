@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950524/jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/mceside7gd5xj8ih3q2o.png",
+      "publicId": "jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/mceside7gd5xj8ih3q2o",
+      "alt": "Old Gold Wool and Black Leather Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950525/jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/woec7tdq4daitlvkluab.png",
+      "publicId": "jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/woec7tdq4daitlvkluab",
+      "alt": "Old Gold Wool and Black Leather Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950527/jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/cifzitqrstivjwcoedsq.png",
+      "publicId": "jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/cifzitqrstivjwcoedsq",
+      "alt": "Old Gold Wool and Black Leather Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790950528/jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/ycxbqo0fvofcx6vkkojq.png",
+      "publicId": "jacketee/products/old-gold-wool-and-black-leather-sleeves-letterman-jacket/ycxbqo0fvofcx6vkkojq",
+      "alt": "Old Gold Wool and Black Leather Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

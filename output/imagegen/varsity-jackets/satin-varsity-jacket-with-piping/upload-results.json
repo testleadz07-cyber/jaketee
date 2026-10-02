@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790935965/jacketee/products/satin-varsity-jacket-with-piping/ewyrakx88ievk16lpwpk.png",
+      "publicId": "jacketee/products/satin-varsity-jacket-with-piping/ewyrakx88ievk16lpwpk",
+      "alt": "Stylish Satin Varsity Jacket with Piping Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790935966/jacketee/products/satin-varsity-jacket-with-piping/nb6x2imjg9tmpv6nbuii.png",
+      "publicId": "jacketee/products/satin-varsity-jacket-with-piping/nb6x2imjg9tmpv6nbuii",
+      "alt": "Stylish Satin Varsity Jacket with Piping Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790935967/jacketee/products/satin-varsity-jacket-with-piping/pdke20fz4ga43g6zarwu.png",
+      "publicId": "jacketee/products/satin-varsity-jacket-with-piping/pdke20fz4ga43g6zarwu",
+      "alt": "Stylish Satin Varsity Jacket with Piping Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790935968/jacketee/products/satin-varsity-jacket-with-piping/lkrmbwirvyhah2lj0ynq.png",
+      "publicId": "jacketee/products/satin-varsity-jacket-with-piping/lkrmbwirvyhah2lj0ynq",
+      "alt": "Stylish Satin Varsity Jacket with Piping Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891463/jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/wx40cd1ennrlptapbxkp.png",
+      "publicId": "jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/wx40cd1ennrlptapbxkp",
+      "alt": "Orange Wool and White Leather Sleeves Varsity Jacket with Hood Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891464/jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/mphbldldxdfq7qcgz0il.png",
+      "publicId": "jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/mphbldldxdfq7qcgz0il",
+      "alt": "Orange Wool and White Leather Sleeves Varsity Jacket with Hood Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891465/jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/xoviaxxrzm2s7eluy4gl.png",
+      "publicId": "jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/xoviaxxrzm2s7eluy4gl",
+      "alt": "Orange Wool and White Leather Sleeves Varsity Jacket with Hood Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891466/jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/suvq3rwxdz6ur0fzkouy.png",
+      "publicId": "jacketee/products/orange-wool-and-white-leather-sleeves-varsity-jacket-with-hood/suvq3rwxdz6ur0fzkouy",
+      "alt": "Orange Wool and White Leather Sleeves Varsity Jacket with Hood Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

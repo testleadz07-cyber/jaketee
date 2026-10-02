@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940810/jacketee/products/lightweight-cotton-varsity-jacket/qvmnmemeawhq29pqkjqh.png",
+      "publicId": "jacketee/products/lightweight-cotton-varsity-jacket/qvmnmemeawhq29pqkjqh",
+      "alt": "Lightweight Cotton Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940811/jacketee/products/lightweight-cotton-varsity-jacket/mwbf1jznqjie0fec5seq.png",
+      "publicId": "jacketee/products/lightweight-cotton-varsity-jacket/mwbf1jznqjie0fec5seq",
+      "alt": "Lightweight Cotton Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940813/jacketee/products/lightweight-cotton-varsity-jacket/rrepbwzslryhrbsfw7ni.png",
+      "publicId": "jacketee/products/lightweight-cotton-varsity-jacket/rrepbwzslryhrbsfw7ni",
+      "alt": "Lightweight Cotton Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940813/jacketee/products/lightweight-cotton-varsity-jacket/aunw9fpuz2io9n8wboqw.png",
+      "publicId": "jacketee/products/lightweight-cotton-varsity-jacket/aunw9fpuz2io9n8wboqw",
+      "alt": "Lightweight Cotton Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

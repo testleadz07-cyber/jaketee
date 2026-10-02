@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941621/jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/g1uiiebc5bvzbmxhdsx5.png",
+      "publicId": "jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/g1uiiebc5bvzbmxhdsx5",
+      "alt": "Heather Gray Wool Vinyl Sleeves Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941622/jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/k5kvvdhwibqjrmnm9diy.png",
+      "publicId": "jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/k5kvvdhwibqjrmnm9diy",
+      "alt": "Heather Gray Wool Vinyl Sleeves Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941623/jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/fwu8omnpioayfga98hgn.png",
+      "publicId": "jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/fwu8omnpioayfga98hgn",
+      "alt": "Heather Gray Wool Vinyl Sleeves Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790941624/jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/mory7tuiqpagkwsta0fp.png",
+      "publicId": "jacketee/products/heather-gray-wool-vinyl-sleeves-jacket/mory7tuiqpagkwsta0fp",
+      "alt": "Heather Gray Wool Vinyl Sleeves Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

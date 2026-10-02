@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942423/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/krsx9rzur6ivhnfvz9sd.png",
+      "publicId": "jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/krsx9rzur6ivhnfvz9sd",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942424/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/fw57xbtnc76opdab1i6c.png",
+      "publicId": "jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/fw57xbtnc76opdab1i6c",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942425/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/r6quhixmijj9optzqd9f.png",
+      "publicId": "jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/r6quhixmijj9optzqd9f",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790942426/jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/vlzny8mhbifh79dje9oq.png",
+      "publicId": "jacketee/products/premium-nappa-leather-letterman-jacket-red-gold/vlzny8mhbifh79dje9oq",
+      "alt": "Premium Nappa Leather Letterman Jacket Red & Gold Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

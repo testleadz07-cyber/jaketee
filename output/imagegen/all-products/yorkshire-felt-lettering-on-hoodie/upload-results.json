@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940476/jacketee/products/yorkshire-felt-lettering-on-hoodie/vpgrawsh6hekadliyzdl.png",
+      "publicId": "jacketee/products/yorkshire-felt-lettering-on-hoodie/vpgrawsh6hekadliyzdl",
+      "alt": "Yorkshire Felt Lettering On Hoodie Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940477/jacketee/products/yorkshire-felt-lettering-on-hoodie/shjl5cqx5z4hfrcmjhbf.png",
+      "publicId": "jacketee/products/yorkshire-felt-lettering-on-hoodie/shjl5cqx5z4hfrcmjhbf",
+      "alt": "Yorkshire Felt Lettering On Hoodie Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940478/jacketee/products/yorkshire-felt-lettering-on-hoodie/hk0omlmfttwzzdgjemoy.png",
+      "publicId": "jacketee/products/yorkshire-felt-lettering-on-hoodie/hk0omlmfttwzzdgjemoy",
+      "alt": "Yorkshire Felt Lettering On Hoodie Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790940479/jacketee/products/yorkshire-felt-lettering-on-hoodie/rwzlo8el4e75kh3ewn4x.png",
+      "publicId": "jacketee/products/yorkshire-felt-lettering-on-hoodie/rwzlo8el4e75kh3ewn4x",
+      "alt": "Yorkshire Felt Lettering On Hoodie Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

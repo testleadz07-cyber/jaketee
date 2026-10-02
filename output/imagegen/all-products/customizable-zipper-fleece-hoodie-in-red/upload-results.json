@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939924/jacketee/products/customizable-zipper-fleece-hoodie-in-red/wiqttp2xyllmzqbdczmj.png",
+      "publicId": "jacketee/products/customizable-zipper-fleece-hoodie-in-red/wiqttp2xyllmzqbdczmj",
+      "alt": "Customizable Zipper Fleece Hoodie In Red Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939924/jacketee/products/customizable-zipper-fleece-hoodie-in-red/mnfqexy3mjfmugwsuepu.png",
+      "publicId": "jacketee/products/customizable-zipper-fleece-hoodie-in-red/mnfqexy3mjfmugwsuepu",
+      "alt": "Customizable Zipper Fleece Hoodie In Red Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939925/jacketee/products/customizable-zipper-fleece-hoodie-in-red/u1vycqvtooqnmvnjujod.png",
+      "publicId": "jacketee/products/customizable-zipper-fleece-hoodie-in-red/u1vycqvtooqnmvnjujod",
+      "alt": "Customizable Zipper Fleece Hoodie In Red Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939927/jacketee/products/customizable-zipper-fleece-hoodie-in-red/u2p1geitjyna620aooqc.png",
+      "publicId": "jacketee/products/customizable-zipper-fleece-hoodie-in-red/u2p1geitjyna620aooqc",
+      "alt": "Customizable Zipper Fleece Hoodie In Red Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

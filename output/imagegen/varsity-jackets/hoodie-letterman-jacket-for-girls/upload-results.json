@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893370/jacketee/products/hoodie-letterman-jacket-for-girls/ld9jtpln27egyotmd3lb.png",
+      "publicId": "jacketee/products/hoodie-letterman-jacket-for-girls/ld9jtpln27egyotmd3lb",
+      "alt": "Hoodie Letterman Jacket For Girls Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893371/jacketee/products/hoodie-letterman-jacket-for-girls/ekvo2kijcvydiy9pgfja.png",
+      "publicId": "jacketee/products/hoodie-letterman-jacket-for-girls/ekvo2kijcvydiy9pgfja",
+      "alt": "Hoodie Letterman Jacket For Girls Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893372/jacketee/products/hoodie-letterman-jacket-for-girls/htlmogr0l1bculdir9qw.png",
+      "publicId": "jacketee/products/hoodie-letterman-jacket-for-girls/htlmogr0l1bculdir9qw",
+      "alt": "Hoodie Letterman Jacket For Girls Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893373/jacketee/products/hoodie-letterman-jacket-for-girls/jiaum8dexzsqolavsob5.png",
+      "publicId": "jacketee/products/hoodie-letterman-jacket-for-girls/jiaum8dexzsqolavsob5",
+      "alt": "Hoodie Letterman Jacket For Girls Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

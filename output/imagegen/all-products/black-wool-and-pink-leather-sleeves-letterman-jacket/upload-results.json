@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790945910/jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/vpadslhehvij2s68vnpw.png",
+      "publicId": "jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/vpadslhehvij2s68vnpw",
+      "alt": "Black Wool and Pink Leather Sleeves Letterman Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790945911/jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/gotp14sqwaqjsjaf3jyc.png",
+      "publicId": "jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/gotp14sqwaqjsjaf3jyc",
+      "alt": "Black Wool and Pink Leather Sleeves Letterman Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790945912/jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/blkvfsqplnyyqiian1oh.png",
+      "publicId": "jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/blkvfsqplnyyqiian1oh",
+      "alt": "Black Wool and Pink Leather Sleeves Letterman Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790945913/jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/ogdnll9lrmjfk4p19jum.png",
+      "publicId": "jacketee/products/black-wool-and-pink-leather-sleeves-letterman-jacket/ogdnll9lrmjfk4p19jum",
+      "alt": "Black Wool and Pink Leather Sleeves Letterman Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

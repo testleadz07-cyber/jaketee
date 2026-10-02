@@ -1,0 +1,56 @@
+{
+  "_id": "6a9efd000faef0e1af30117f",
+  "slug": "red-and-white-cotton-twill-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c39c",
+  "compareAtPrice": 55,
+  "createdAt": "2026-09-07T18:05:52.714Z",
+  "description": "Premium quality Cotton Twill body & sleeves.\n\n Lightweight 100% cotton lining inside.\n\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264903/jacketee/products/red-and-white-cotton-twill-jacket/red-and-white-cotton-twill-jacket-main.png",
+      "alt": "Red and White Cotton Twill Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264900/jacketee/products/red-and-white-cotton-twill-jacket/red-and-white-cotton-twill-jacket-back.png",
+      "alt": "Red and White Cotton Twill Jacket - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264905/jacketee/products/red-and-white-cotton-twill-jacket/red-and-white-cotton-twill-jacket-side.png",
+      "alt": "Red and White Cotton Twill Jacket - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264902/jacketee/products/red-and-white-cotton-twill-jacket/red-and-white-cotton-twill-jacket-detail-1.png",
+      "alt": "Red and White Cotton Twill Jacket - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Red and White Cotton Twill Jacket",
+  "price": 46.75,
+  "reviewCount": 0,
+  "stockCount": 51,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:46.772Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Cotton Twill\nCotton twill is common on lightweight varsity and coach jackets. It is strong but can shrink with very hot water. Wash in cold or warm water on a gentle cycle with mild detergent. Shake the jacket out after washing to cut down wrinkles. Line dry or tumble dry on low. Iron on medium heat if needed.\n\nDo: Close snaps and zippers before washing the jacket.\nDo: Wash dark twill jackets separately the first few times.\nDo not: Use very hot water or high dryer heat.\nDo not: Leave the jacket wet in the machine for hours.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Cotton Twill",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Body & Sleeve Material: Cotton Twill\nLining: 100% cotton lining inside\nClosure: Coated Steel Snap Buttons\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Red and White Cotton Twill Jacket from our Cotton Twill collection. Review materials, sizing and customization options, then request a free design",
+  "seoTitle": "Custom Red and White Cotton Twill Jacket | Jacketee"
+}

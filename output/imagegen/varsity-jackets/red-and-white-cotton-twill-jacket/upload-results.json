@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894661/jacketee/products/red-and-white-cotton-twill-jacket/rjrwchl6igufamow9ohf.png",
+      "publicId": "jacketee/products/red-and-white-cotton-twill-jacket/rjrwchl6igufamow9ohf",
+      "alt": "Red and White Cotton Twill Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894662/jacketee/products/red-and-white-cotton-twill-jacket/e5spnr9ph5wpb8zlw2ty.png",
+      "publicId": "jacketee/products/red-and-white-cotton-twill-jacket/e5spnr9ph5wpb8zlw2ty",
+      "alt": "Red and White Cotton Twill Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894663/jacketee/products/red-and-white-cotton-twill-jacket/j3eq7izhbuylic8yeqil.png",
+      "publicId": "jacketee/products/red-and-white-cotton-twill-jacket/j3eq7izhbuylic8yeqil",
+      "alt": "Red and White Cotton Twill Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894664/jacketee/products/red-and-white-cotton-twill-jacket/dqcvn3uofupspgpgk10c.png",
+      "publicId": "jacketee/products/red-and-white-cotton-twill-jacket/dqcvn3uofupspgpgk10c",
+      "alt": "Red and White Cotton Twill Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

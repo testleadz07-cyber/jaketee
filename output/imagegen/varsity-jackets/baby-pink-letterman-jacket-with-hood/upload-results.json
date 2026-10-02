@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891452/jacketee/products/baby-pink-letterman-jacket-with-hood/bsor02yfvyhnngbenh99.png",
+      "publicId": "jacketee/products/baby-pink-letterman-jacket-with-hood/bsor02yfvyhnngbenh99",
+      "alt": "Baby Pink Letterman Jacket With Hood Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891453/jacketee/products/baby-pink-letterman-jacket-with-hood/yycsc68jgd2irbxmhswk.png",
+      "publicId": "jacketee/products/baby-pink-letterman-jacket-with-hood/yycsc68jgd2irbxmhswk",
+      "alt": "Baby Pink Letterman Jacket With Hood Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891455/jacketee/products/baby-pink-letterman-jacket-with-hood/bzpeqwpqi3rtojblkzq9.png",
+      "publicId": "jacketee/products/baby-pink-letterman-jacket-with-hood/bzpeqwpqi3rtojblkzq9",
+      "alt": "Baby Pink Letterman Jacket With Hood Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790891456/jacketee/products/baby-pink-letterman-jacket-with-hood/mt6mrqta1zzfnacyeqdi.png",
+      "publicId": "jacketee/products/baby-pink-letterman-jacket-with-hood/mt6mrqta1zzfnacyeqdi",
+      "alt": "Baby Pink Letterman Jacket With Hood Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949376/jacketee/products/gold-wool-varsity-jacket/js7y8y4d8m9pqjhkckwb.png",
+      "publicId": "jacketee/products/gold-wool-varsity-jacket/js7y8y4d8m9pqjhkckwb",
+      "alt": "Gold Wool Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949378/jacketee/products/gold-wool-varsity-jacket/ykxoe7xge8r1ay9ybufp.png",
+      "publicId": "jacketee/products/gold-wool-varsity-jacket/ykxoe7xge8r1ay9ybufp",
+      "alt": "Gold Wool Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949379/jacketee/products/gold-wool-varsity-jacket/wuylaayhebnynk2uqmuc.png",
+      "publicId": "jacketee/products/gold-wool-varsity-jacket/wuylaayhebnynk2uqmuc",
+      "alt": "Gold Wool Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790949380/jacketee/products/gold-wool-varsity-jacket/ol8fixf6hjc7srkub9pf.png",
+      "publicId": "jacketee/products/gold-wool-varsity-jacket/ol8fixf6hjc7srkub9pf",
+      "alt": "Gold Wool Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

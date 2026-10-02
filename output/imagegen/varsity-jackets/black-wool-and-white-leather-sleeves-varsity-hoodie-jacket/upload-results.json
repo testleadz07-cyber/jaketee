@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790889931/jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/yzcqp87jf2w9tyvlfdco.png",
+      "publicId": "jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/yzcqp87jf2w9tyvlfdco",
+      "alt": "Black Wool and White Leather Sleeves Varsity Hoodie Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790889933/jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/oxfm4bq9yelw1rsx6pcp.png",
+      "publicId": "jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/oxfm4bq9yelw1rsx6pcp",
+      "alt": "Black Wool and White Leather Sleeves Varsity Hoodie Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790889934/jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/frnpnmtjtrw5j91gbc2u.png",
+      "publicId": "jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/frnpnmtjtrw5j91gbc2u",
+      "alt": "Black Wool and White Leather Sleeves Varsity Hoodie Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790889935/jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/debuiqgxubwqm6codlhs.png",
+      "publicId": "jacketee/products/black-wool-and-white-leather-sleeves-varsity-hoodie-jacket/debuiqgxubwqm6codlhs",
+      "alt": "Black Wool and White Leather Sleeves Varsity Hoodie Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

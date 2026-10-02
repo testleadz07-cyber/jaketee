@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896335/jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/kudy9mmod5rryzi91np7.png",
+      "publicId": "jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/kudy9mmod5rryzi91np7",
+      "alt": "Orange Wool and Black Leather Sleeves Hooded Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896336/jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/tn9bdynq2dn3agezcwrd.png",
+      "publicId": "jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/tn9bdynq2dn3agezcwrd",
+      "alt": "Orange Wool and Black Leather Sleeves Hooded Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896337/jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/musdubwxozjaxixyjcii.png",
+      "publicId": "jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/musdubwxozjaxixyjcii",
+      "alt": "Orange Wool and Black Leather Sleeves Hooded Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790896338/jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/nrcocmyhmyxbntl49ru1.png",
+      "publicId": "jacketee/products/orange-wool-and-black-leather-sleeves-hooded-jacket/nrcocmyhmyxbntl49ru1",
+      "alt": "Orange Wool and Black Leather Sleeves Hooded Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892434/jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/wmiecrzwzhq6usxncnsv.png",
+      "publicId": "jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/wmiecrzwzhq6usxncnsv",
+      "alt": "Sky Blue Wool and White Leather Sleeves Varsity Hoodie Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892435/jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/mpz8ke5n8tkslza4xz9i.png",
+      "publicId": "jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/mpz8ke5n8tkslza4xz9i",
+      "alt": "Sky Blue Wool and White Leather Sleeves Varsity Hoodie Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892436/jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/eclvnvj1fqsdpztpdzdi.png",
+      "publicId": "jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/eclvnvj1fqsdpztpdzdi",
+      "alt": "Sky Blue Wool and White Leather Sleeves Varsity Hoodie Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790892438/jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/wlkonmlcsstvd9nnakkl.png",
+      "publicId": "jacketee/products/sky-blue-wool-and-white-leather-sleeves-varsity-hoodie/wlkonmlcsstvd9nnakkl",
+      "alt": "Sky Blue Wool and White Leather Sleeves Varsity Hoodie Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

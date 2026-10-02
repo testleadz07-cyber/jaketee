@@ -1,0 +1,66 @@
+{
+  "_id": "6a9efcff0faef0e1af301176",
+  "slug": "satin-varsity-jacket-with-piping",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c39a",
+  "compareAtPrice": 55,
+  "createdAt": "2026-09-07T18:05:51.646Z",
+  "description": "Premium quality Polyester Satin body & sleeves.\n Lightweight 100% cotton lining inside.\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264522/jacketee/products/classic-wool-leather-varsity-jacket/classic-wool-leather-varsity-jacket-main.png",
+      "alt": "Stylish Satin Varsity Jacket with Piping - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264516/jacketee/products/classic-wool-leather-varsity-jacket/classic-wool-leather-varsity-jacket-back.png",
+      "alt": "Stylish Satin Varsity Jacket with Piping - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264523/jacketee/products/classic-wool-leather-varsity-jacket/classic-wool-leather-varsity-jacket-side.png",
+      "alt": "Stylish Satin Varsity Jacket with Piping - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264517/jacketee/products/classic-wool-leather-varsity-jacket/classic-wool-leather-varsity-jacket-detail-1.png",
+      "alt": "Stylish Satin Varsity Jacket with Piping - detail view 1",
+      "order": 3
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264519/jacketee/products/classic-wool-leather-varsity-jacket/classic-wool-leather-varsity-jacket-detail-2.png",
+      "alt": "Stylish Satin Varsity Jacket with Piping - detail view 2",
+      "order": 4
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264520/jacketee/products/classic-wool-leather-varsity-jacket/classic-wool-leather-varsity-jacket-detail-3.png",
+      "alt": "Stylish Satin Varsity Jacket with Piping - detail view 3",
+      "order": 5
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Stylish Satin Varsity Jacket with Piping",
+  "price": 46.75,
+  "reviewCount": 0,
+  "stockCount": 50,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:45.341Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nPolyester Satin\nPolyester satin is often used on baseball and retro varsity jackets. It has a slick face that can snag. Turn the jacket inside out and place it in a mesh bag. Wash in cold water on a gentle cycle with mild detergent. Hang or lay flat to dry so the fabric keeps its smooth look and drape.\n\nDo: Steam from the inside if the jacket wrinkles.\nDo: Store on padded hangers to avoid hanger dents.\nDo not: Use a hot iron directly on the satin face.\nDo not: Wash with items that have open zips or hooks.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Specifications\nBody & Sleeve Material: Polyester Satin\nLining: 100% cotton lining inside\nClosure: Coated Steel Snap Buttons\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Stylish Satin Varsity Jacket with Piping from our Satin collection. Review materials, sizing and customization options, then request a free design",
+  "seoTitle": "Custom Stylish Satin Varsity Jacket with Piping | Jacketee"
+}

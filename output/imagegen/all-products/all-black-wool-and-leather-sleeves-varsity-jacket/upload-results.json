@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948190/jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/b1q58fmbbmya0qbuooll.png",
+      "publicId": "jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/b1q58fmbbmya0qbuooll",
+      "alt": "All Black Wool and Leather Sleeves Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948191/jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/arfvuqctfxmxdrnt7a3k.png",
+      "publicId": "jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/arfvuqctfxmxdrnt7a3k",
+      "alt": "All Black Wool and Leather Sleeves Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948192/jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/fy8yantib7n9muhktkej.png",
+      "publicId": "jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/fy8yantib7n9muhktkej",
+      "alt": "All Black Wool and Leather Sleeves Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790948194/jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/lshajmtxuqob87h45avh.png",
+      "publicId": "jacketee/products/all-black-wool-and-leather-sleeves-varsity-jacket/lshajmtxuqob87h45avh",
+      "alt": "All Black Wool and Leather Sleeves Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

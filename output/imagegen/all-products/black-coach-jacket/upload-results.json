@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939561/jacketee/products/black-coach-jacket/env5rnbmeibh7ligqeir.png",
+      "publicId": "jacketee/products/black-coach-jacket/env5rnbmeibh7ligqeir",
+      "alt": "Black Coach Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939562/jacketee/products/black-coach-jacket/z0uhczeyugbnmquqwbsa.png",
+      "publicId": "jacketee/products/black-coach-jacket/z0uhczeyugbnmquqwbsa",
+      "alt": "Black Coach Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939563/jacketee/products/black-coach-jacket/srfnaaztbjf3kwfeyffe.png",
+      "publicId": "jacketee/products/black-coach-jacket/srfnaaztbjf3kwfeyffe",
+      "alt": "Black Coach Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790939566/jacketee/products/black-coach-jacket/rwbwl5a5oxkmdutsqd4u.png",
+      "publicId": "jacketee/products/black-coach-jacket/rwbwl5a5oxkmdutsqd4u",
+      "alt": "Black Coach Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894866/jacketee/products/red-cotton-varsity-jacket/isejtgnot1ym4nao1rcq.png",
+      "publicId": "jacketee/products/red-cotton-varsity-jacket/isejtgnot1ym4nao1rcq",
+      "alt": "Red Cotton Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894867/jacketee/products/red-cotton-varsity-jacket/jrpc48onzn5goqe5gxbt.png",
+      "publicId": "jacketee/products/red-cotton-varsity-jacket/jrpc48onzn5goqe5gxbt",
+      "alt": "Red Cotton Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894868/jacketee/products/red-cotton-varsity-jacket/nei0wupoh81upn9zjwgz.png",
+      "publicId": "jacketee/products/red-cotton-varsity-jacket/nei0wupoh81upn9zjwgz",
+      "alt": "Red Cotton Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790894869/jacketee/products/red-cotton-varsity-jacket/xbyscbj4lpfxspfe34kk.png",
+      "publicId": "jacketee/products/red-cotton-varsity-jacket/xbyscbj4lpfxspfe34kk",
+      "alt": "Red Cotton Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

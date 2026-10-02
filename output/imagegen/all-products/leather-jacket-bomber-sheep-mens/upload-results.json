@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936536/jacketee/products/leather-jacket-bomber-sheep-mens/dvltxwtrkhln0j0douqv.png",
+      "publicId": "jacketee/products/leather-jacket-bomber-sheep-mens/dvltxwtrkhln0j0douqv",
+      "alt": "Leather Jacket Bomber Sheep Mens Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936538/jacketee/products/leather-jacket-bomber-sheep-mens/jpfz4qy4zc1p3k8l1weh.png",
+      "publicId": "jacketee/products/leather-jacket-bomber-sheep-mens/jpfz4qy4zc1p3k8l1weh",
+      "alt": "Leather Jacket Bomber Sheep Mens Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936539/jacketee/products/leather-jacket-bomber-sheep-mens/mlgf91trudtnfd9hjl35.png",
+      "publicId": "jacketee/products/leather-jacket-bomber-sheep-mens/mlgf91trudtnfd9hjl35",
+      "alt": "Leather Jacket Bomber Sheep Mens Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790936540/jacketee/products/leather-jacket-bomber-sheep-mens/sykos7s646tseytbro6r.png",
+      "publicId": "jacketee/products/leather-jacket-bomber-sheep-mens/sykos7s646tseytbro6r",
+      "alt": "Leather Jacket Bomber Sheep Mens Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

@@ -1,0 +1,54 @@
+{
+  "_id": "6a9efcfc0faef0e1af301160",
+  "slug": "royal-blue-wool-and-white-leather-sleeves-letterman-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc07f67a6c3a3788c394",
+  "compareAtPrice": 70,
+  "createdAt": "2026-09-07T18:05:49.048Z",
+  "description": "Premium varsity and letterman jacket available in wool, leather, satin, and fleece. Perfect for schools, teams, and groups.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264977/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/royal-blue-wool-and-white-leather-sleeves-letterman-jacket-main.png",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264973/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/royal-blue-wool-and-white-leather-sleeves-letterman-jacket-back.png",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264978/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/royal-blue-wool-and-white-leather-sleeves-letterman-jacket-side.png",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264975/jacketee/products/royal-blue-wool-and-white-leather-sleeves-letterman-jacket/royal-blue-wool-and-white-leather-sleeves-letterman-jacket-detail-1.png",
+      "alt": "Royal Blue Wool and White Leather Sleeves Letterman Jacket - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Royal Blue Wool and White Leather Sleeves Letterman Jacket",
+  "price": 59.5,
+  "reviewCount": 0,
+  "stockCount": 39,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:41.668Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "status": "active",
+  "subCategory": "Varsity Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "varsity-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Royal Blue Wool and White Leather Sleeves Letterman Jacket from our Wool & Leather collection. Review materials, sizing and customization options,",
+  "seoTitle": "Custom Royal Blue Wool and White Leather Sleeves | Jacketee"
+}

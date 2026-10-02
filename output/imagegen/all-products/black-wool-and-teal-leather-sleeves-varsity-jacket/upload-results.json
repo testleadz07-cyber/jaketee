@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946320/jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/ipwptonmfce2hayim5ld.png",
+      "publicId": "jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/ipwptonmfce2hayim5ld",
+      "alt": "Black Wool and Teal Leather Sleeves Varsity Jacket Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946321/jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/hjx5rzzddic6c5rxnevg.png",
+      "publicId": "jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/hjx5rzzddic6c5rxnevg",
+      "alt": "Black Wool and Teal Leather Sleeves Varsity Jacket Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946322/jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/w0rqxiihf2b0pwlf2ef4.png",
+      "publicId": "jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/w0rqxiihf2b0pwlf2ef4",
+      "alt": "Black Wool and Teal Leather Sleeves Varsity Jacket Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790946323/jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/u5eupgke4c2muijcwyop.png",
+      "publicId": "jacketee/products/black-wool-and-teal-leather-sleeves-varsity-jacket/u5eupgke4c2muijcwyop",
+      "alt": "Black Wool and Teal Leather Sleeves Varsity Jacket Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}

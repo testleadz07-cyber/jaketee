@@ -1,0 +1,56 @@
+{
+  "_id": "6a9efd060faef0e1af3011ae",
+  "slug": "royal-blue-softshell-bomber-jacket",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c39d",
+  "createdAt": "2026-09-07T18:05:58.993Z",
+  "description": "Premium quality Softshell body & sleeves.\n Lightweight 100% cotton lining inside.\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264552/jacketee/products/college-bomber-class/college-bomber-class-main.png",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264549/jacketee/products/college-bomber-class/college-bomber-class-back.png",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264553/jacketee/products/college-bomber-class/college-bomber-class-side.png",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264550/jacketee/products/college-bomber-class/college-bomber-class-detail-1.png",
+      "alt": "Royal Blue Soft-Shell Bomber Jacket - detail view 1",
+      "order": 3
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Royal Blue Soft-Shell Bomber Jacket",
+  "price": 205.7,
+  "reviewCount": 0,
+  "stockCount": 18,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:54.009Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nSoft-Shell Fabric\nSoft-shell fabric is used on training, team, and travel jackets. It has a smooth outer face and soft inner side. Brush off dry mud before washing. Use cold water, gentle cycle, and a small amount of mild liquid detergent. Skip fabric softener so the water-repellent finish lasts longer. Hang to dry.\n\nDo: Reproof the jacket with a soft-shell spray if water stops beading.\nDo: Close all zips and tabs before washing.\nDo not: Use bleach or heavy powder detergents.\nDo not: Iron on high heat or dry clean with harsh solvents.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Specifications\nBody & Sleeve Material: Softshell\nLining: 100% cotton lining inside\nClosure: Original YKK zipper\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Bomber Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "bomber-jackets",
+  "compareAtPrice": 242,
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Royal Blue Soft-Shell Bomber Jacket from our Bomber Jackets collection. Review materials, sizing and customization options, then request a free design",
+  "seoTitle": "Custom Royal Blue Soft-Shell Bomber Jacket | Jacketee"
+}

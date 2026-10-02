@@ -1,0 +1,66 @@
+{
+  "_id": "6a9efd070faef0e1af3011af",
+  "slug": "softshell-bomber-jacket-with-panels",
+  "__v": 0,
+  "averageRating": 0,
+  "categoryId": "6a9efc08f67a6c3a3788c39d",
+  "compareAtPrice": 286,
+  "createdAt": "2026-09-07T18:05:59.109Z",
+  "description": "Premium quality Softshell body & sleeves.\n Lightweight 100% cotton lining inside.\n Fully customizable with patches and colors.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264482/jacketee/products/bomber-jacket-goat-suede-blue/bomber-jacket-goat-suede-blue-main.png",
+      "alt": "Stylish Softshell Bomber Jacket with Panels - primary product view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264475/jacketee/products/bomber-jacket-goat-suede-blue/bomber-jacket-goat-suede-blue-back.png",
+      "alt": "Stylish Softshell Bomber Jacket with Panels - back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264484/jacketee/products/bomber-jacket-goat-suede-blue/bomber-jacket-goat-suede-blue-side.png",
+      "alt": "Stylish Softshell Bomber Jacket with Panels - side view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264477/jacketee/products/bomber-jacket-goat-suede-blue/bomber-jacket-goat-suede-blue-detail-1.png",
+      "alt": "Stylish Softshell Bomber Jacket with Panels - detail view 1",
+      "order": 3
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264479/jacketee/products/bomber-jacket-goat-suede-blue/bomber-jacket-goat-suede-blue-detail-2.png",
+      "alt": "Stylish Softshell Bomber Jacket with Panels - detail view 2",
+      "order": 4
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790264481/jacketee/products/bomber-jacket-goat-suede-blue/bomber-jacket-goat-suede-blue-detail-3.png",
+      "alt": "Stylish Softshell Bomber Jacket with Panels - detail view 3",
+      "order": 5
+    }
+  ],
+  "inStock": true,
+  "isFeatured": false,
+  "measurementFields": [],
+  "name": "Stylish Softshell Bomber Jacket with Panels",
+  "price": 243.1,
+  "reviewCount": 0,
+  "stockCount": 28,
+  "tags": [],
+  "updatedAt": "2026-09-29T17:07:54.165Z",
+  "variants": [],
+  "brand": "Jacketee",
+  "careInstructions": "Care Instructions\nSoft-Shell Fabric\nSoft-shell fabric is used on training, team, and travel jackets. It has a smooth outer face and soft inner side. Brush off dry mud before washing. Use cold water, gentle cycle, and a small amount of mild liquid detergent. Skip fabric softener so the water-repellent finish lasts longer. Hang to dry.\n\nDo: Reproof the jacket with a soft-shell spray if water stops beading.\nDo: Close all zips and tabs before washing.\nDo not: Use bleach or heavy powder detergents.\nDo not: Iron on high heat or dry clean with harsh solvents.",
+  "decoration": "Embroidery, chenille patches, names, numbers, and logos",
+  "materials": "Wool, leather, satin, fleece, or style-specific fabric",
+  "productDetailsIntro": "This Jacketee product page includes sizing guidance, customization options, production support, and related jacket choices.",
+  "production": "Digital proof before production for custom work",
+  "specificationDetails": "Specifications\nBody & Sleeve Material: Softshell\nLining: 100% cotton lining inside\nClosure: Original YKK zipper\nFit: Classic Unisex American Fit\nWeight: Approx. 2-4 lbs / 1-2 kg\nOrigin: Handcrafted by artisans, Designed in USA",
+  "status": "active",
+  "subCategory": "Bomber Jacket",
+  "useCases": "Schools, teams, senior classes, clubs, staff uniforms, and brands",
+  "category": "bomber-jackets",
+  "compareAtPriceVerified": true,
+  "seoDescription": "Shop Stylish Softshell Bomber Jacket with Panels from our Bomber Jackets collection. Review materials, sizing and customization options, then request a",
+  "seoTitle": "Custom Stylish Softshell Bomber Jacket with | Jacketee"
+}

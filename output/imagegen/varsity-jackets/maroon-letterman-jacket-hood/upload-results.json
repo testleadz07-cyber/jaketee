@@ -1,0 +1,30 @@
+{
+  "uploaded": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893728/jacketee/products/maroon-letterman-jacket-hood/wsq5pmhhydsepawbjkti.png",
+      "publicId": "jacketee/products/maroon-letterman-jacket-hood/wsq5pmhhydsepawbjkti",
+      "alt": "Maroon Letterman Jacket Hood Front View",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893729/jacketee/products/maroon-letterman-jacket-hood/ylwvy0cj7v8ezlnjr46w.png",
+      "publicId": "jacketee/products/maroon-letterman-jacket-hood/ylwvy0cj7v8ezlnjr46w",
+      "alt": "Maroon Letterman Jacket Hood Back View",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893730/jacketee/products/maroon-letterman-jacket-hood/t0wi3fyhksvx5izy3gmn.png",
+      "publicId": "jacketee/products/maroon-letterman-jacket-hood/t0wi3fyhksvx5izy3gmn",
+      "alt": "Maroon Letterman Jacket Hood Right Sleeve View",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1790893731/jacketee/products/maroon-letterman-jacket-hood/bgcrdnxhjdjsoxvoxxjm.png",
+      "publicId": "jacketee/products/maroon-letterman-jacket-hood/bgcrdnxhjdjsoxvoxxjm",
+      "alt": "Maroon Letterman Jacket Hood Left Sleeve View",
+      "order": 3
+    }
+  ],
+  "updated": true,
+  "stockCount": 7
+}
