@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
+import crypto from 'crypto'
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,5 +70,126 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Orders fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || (session.user as any).role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized – Admin only' }, { status: 401 })
+    }
+
+    const db = await connectDB()
+    if (!db) {
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
+    }
+
+    const body = await request.json()
+    const {
+      customerName,
+      customerEmail,
+      items,
+      shippingAddress,
+      paymentMethod,
+      paymentStatus,
+      status,
+      notes,
+      shipping,
+      tax,
+    } = body
+
+    // Validate required fields
+    if (!customerName || !customerEmail) {
+      return NextResponse.json({ error: 'Customer name and email are required' }, { status: 400 })
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'At least one order item is required' }, { status: 400 })
+    }
+
+    if (!shippingAddress || !shippingAddress.name || !shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.zip) {
+      return NextResponse.json({ error: 'Complete shipping address is required (name, street, city, state, zip)' }, { status: 400 })
+    }
+
+    // Validate items
+    for (const item of items) {
+      if (!item.name || typeof item.price !== 'number' || item.price <= 0 || typeof item.quantity !== 'number' || item.quantity <= 0) {
+        return NextResponse.json({ error: `Invalid item: each item needs a name, price > 0, and quantity > 0` }, { status: 400 })
+      }
+    }
+
+    // Validate enums
+    const validPaymentMethods = ['paypal', 'stripe', 'cash', 'bank_transfer', 'other']
+    if (paymentMethod && !validPaymentMethods.includes(paymentMethod)) {
+      return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
+    }
+
+    const validPaymentStatuses = ['unpaid', 'paid', 'partially_paid']
+    if (paymentStatus && !validPaymentStatuses.includes(paymentStatus)) {
+      return NextResponse.json({ error: 'Invalid payment status' }, { status: 400 })
+    }
+
+    const validStatuses = ['pending', 'paid', 'shipped', 'in_transit', 'delivered', 'cancelled']
+    if (status && !validStatuses.includes(status)) {
+      return NextResponse.json({ error: 'Invalid order status' }, { status: 400 })
+    }
+
+    // Generate unique order number: CO-XXXXXX (CO = Custom Order)
+    const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase()
+    const orderNumber = `CO-${randomSuffix}`
+
+    // Calculate totals
+    const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0)
+    const shippingCost = typeof shipping === 'number' ? shipping : 0
+    const taxAmount = typeof tax === 'number' ? tax : 0
+    const total = subtotal + shippingCost + taxAmount
+
+    // Format items for schema
+    const formattedItems = items.map((item: any) => ({
+      productId: item.productId || 'custom',
+      name: item.name,
+      image: item.image || '/placeholder.svg',
+      price: item.price,
+      quantity: item.quantity,
+      variants: item.variants || [],
+    }))
+
+    const order = await Order.create({
+      orderNumber,
+      userEmail: customerEmail,
+      userName: customerName,
+      items: formattedItems,
+      subtotal,
+      shipping: shippingCost,
+      tax: taxAmount,
+      total,
+      status: status || 'pending',
+      paymentMethod: paymentMethod || 'other',
+      paymentStatus: paymentStatus || 'unpaid',
+      isCustomOrder: true,
+      shippingAddress: {
+        name: shippingAddress.name,
+        street: shippingAddress.street,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        zip: shippingAddress.zip,
+        country: shippingAddress.country || 'United States',
+        phone: shippingAddress.phone || undefined,
+      },
+      notes: notes || undefined,
+      statusHistory: [
+        {
+          status: status || 'pending',
+          timestamp: new Date(),
+          note: 'Custom order created by admin',
+        },
+      ],
+    })
+
+    return NextResponse.json({ ...order.toObject(), id: String(order._id) }, { status: 201 })
+  } catch (error: any) {
+    console.error('Custom order creation error:', error)
+    return NextResponse.json({ error: 'Failed to create custom order' }, { status: 500 })
   }
 }

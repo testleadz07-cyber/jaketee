@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { NotificationBell } from '@/components/admin/notification-bell'
+import { AdminHeader } from '@/components/admin/admin-header'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -7,9 +7,11 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <NotificationBell />
-      {children}
-    </>
+    <div className="min-h-screen bg-muted/10 flex flex-col">
+      <AdminHeader />
+      <div className="flex-1">
+        {children}
+      </div>
+    </div>
   )
 }

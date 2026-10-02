@@ -24,8 +24,10 @@ export interface IOrder extends Document {
   promoCode?: string
   discountAmount?: number
   status: 'pending' | 'paid' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled'
-  paymentMethod: 'paypal' | 'stripe'
+  paymentMethod: 'paypal' | 'stripe' | 'cash' | 'bank_transfer' | 'other'
+  paymentStatus?: 'unpaid' | 'paid' | 'partially_paid'
   paymentId?: string
+  isCustomOrder?: boolean
   shippingAddress: {
     name: string
     street: string
@@ -145,8 +147,10 @@ const OrderSchema = new Schema<IOrder>(
       enum: ['pending', 'paid', 'shipped', 'in_transit', 'delivered', 'cancelled'],
       default: 'pending',
     },
-    paymentMethod: { type: String, enum: ['paypal', 'stripe'], default: 'paypal' },
+    paymentMethod: { type: String, enum: ['paypal', 'stripe', 'cash', 'bank_transfer', 'other'], default: 'paypal' },
+    paymentStatus: { type: String, enum: ['unpaid', 'paid', 'partially_paid'], default: 'unpaid' },
     paymentId: { type: String },
+    isCustomOrder: { type: Boolean, default: false },
     shippingAddress: ShippingAddressSchema,
     notes: { type: String },
     trackingNumber: { type: String },
