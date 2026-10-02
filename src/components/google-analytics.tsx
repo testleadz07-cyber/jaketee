@@ -13,7 +13,7 @@ const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 declare global {
   interface Window {
-    dataLayer?: unknown[][]
+    dataLayer?: IArguments[]
     gtag?: (...args: unknown[]) => void
     [key: `ga-configured-${string}`]: boolean | undefined
   }
@@ -22,8 +22,8 @@ declare global {
 function configureGoogleAnalytics(analyticsAllowed: boolean) {
   if (!measurementId) return
   window.dataLayer = window.dataLayer || []
-  window.gtag = window.gtag || function gtag(...args: unknown[]) {
-    window.dataLayer?.push(args)
+  window.gtag = window.gtag || function gtag() {
+    window.dataLayer?.push(arguments)
   }
   const alreadyConfigured = window[`ga-configured-${measurementId}`]
   if (!alreadyConfigured) {
@@ -53,11 +53,13 @@ function configureGoogleAnalytics(analyticsAllowed: boolean) {
 export function GoogleAnalytics() {
   const pathname = usePathname()
   const [initialized, setInitialized] = useState(false)
+  const [analyticsAllowed, setAnalyticsAllowed] = useState(false)
 
   useEffect(() => {
     const applyConsent = (consent: CookieConsent | null) => {
       const allowed = Boolean(consent?.analytics)
       configureGoogleAnalytics(allowed)
+      setAnalyticsAllowed(allowed)
       setInitialized(true)
     }
 
@@ -74,10 +76,10 @@ export function GoogleAnalytics() {
 
     window.gtag('event', 'page_view', {
       page_title: document.title,
-      page_location: `${window.location.origin}${pathname}`,
+      page_location: window.location.href,
       page_path: pathname,
     })
-  }, [initialized, pathname])
+  }, [initialized, pathname, analyticsAllowed])
 
   if (!measurementId || !initialized) return null
 

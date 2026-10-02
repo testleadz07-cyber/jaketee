@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     if (db) {
       const filter: any = {
         inStock: true,
+        isDraft: { $ne: true },
+        status: 'active',
         $or: [
           { name: { $regex: q, $options: 'i' } },
           { tags: { $regex: q, $options: 'i' } },

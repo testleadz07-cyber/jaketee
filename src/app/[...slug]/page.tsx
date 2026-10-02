@@ -341,7 +341,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         introLong: item.introLong || '',
         parentId: item.parentId ? String(item.parentId) : null,
       }))
-      const counts = await Product.aggregate([{ $match: { inStock: true } }, { $group: { _id: '$categoryId', count: { $sum: 1 } } }])
+      const counts = await Product.aggregate([{ $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } }, { $group: { _id: '$categoryId', count: { $sum: 1 } } }])
       const countById = new Map<string, number>(counts.map((item: any) => [String(item._id), Number(item.count)]))
       initialCategories = rawCategories.map((item: any) => {
         const id = String(item._id)
@@ -361,7 +361,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
       const categoryId = String(category._id)
       const descendantIds = resolveDescendantIds(nodes, categoryId)
-      const productFilter = { inStock: true, categoryId: { $in: descendantIds } }
+      const productFilter = { inStock: true, isDraft: { $ne: true }, status: 'active', categoryId: { $in: descendantIds } }
       const [rawProducts, total] = await Promise.all([
         Product.find(productFilter)
           .sort({ isFeatured: -1, createdAt: -1 })
@@ -431,7 +431,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         faqs.push({ id: `guide-${faqs.length}`, question, answer: [answer], bullets: [], ordered: [], href })
       }
 
-      const allCategoryProducts = await Product.find({ categoryId: { $in: descendantIds } }, '_id name slug categoryId').lean()
+      const allCategoryProducts = await Product.find({ categoryId: { $in: descendantIds }, isDraft: { $ne: true }, status: 'active' }, '_id name slug categoryId').lean()
       const productIds = allCategoryProducts.map((product: any) => product._id)
       let reviews: any[] = []
       let reviewCount = 0

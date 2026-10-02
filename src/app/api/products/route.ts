@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const all = searchParams.get('all') === 'true'
     const stock = searchParams.get('stock')
     const featured = searchParams.get('featured')
+    const status = searchParams.get('status')
     const dateFrom = searchParams.get('dateFrom')
     const dateTo = searchParams.get('dateTo')
 
@@ -29,6 +30,8 @@ export async function GET(request: NextRequest) {
     const filter: any = {}
     if (!all) {
       filter.inStock = true
+      filter.isDraft = { $ne: true }
+      filter.status = 'active'
     }
     if (all && stock === 'in') filter.inStock = true
     if (all && stock === 'out') filter.inStock = false
@@ -38,6 +41,7 @@ export async function GET(request: NextRequest) {
     }
     if (all && featured === 'yes') filter.isFeatured = true
     if (all && featured === 'no') filter.isFeatured = false
+    if (all && (status === 'active' || status === 'inactive')) filter.status = status
     const from = dateFrom ? new Date(`${dateFrom}T00:00:00.000Z`) : null
     const to = dateTo ? new Date(`${dateTo}T23:59:59.999Z`) : null
     if (all && ((from && !Number.isNaN(from.getTime())) || (to && !Number.isNaN(to.getTime())))) {
@@ -125,7 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, slug, description, seoTitle, seoDescription, price, compareAtPrice, compareAtPriceVerified, categoryId, images, variants, embroidery, measurementFields, isFeatured, inStock } = body
+    const { name, slug, description, seoTitle, seoDescription, price, compareAtPrice, compareAtPriceVerified, categoryId, images, variants, embroidery, measurementFields, isFeatured, isDraft, status, inStock } = body
 
     if (!name || !slug || !price || !categoryId) {
       return NextResponse.json({ error: 'Name, slug, price, and categoryId are required' }, { status: 400 })
@@ -150,6 +154,8 @@ export async function POST(request: NextRequest) {
       embroidery: embroidery || undefined,
       measurementFields: measurementFields || [],
       isFeatured: isFeatured || false,
+      isDraft: Boolean(isDraft),
+      status: status === 'inactive' ? 'inactive' : 'active',
       inStock: inStock !== false,
       stockCount: 100,
     })

@@ -57,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const db = await connectDB()
     if (db) {
-      const dbProducts = await Product.find({}).lean()
+      const dbProducts = await Product.find({ isDraft: { $ne: true }, status: 'active' }).lean()
       const dbCategories = await Category.find({}).lean()
       const dbBlogPosts = await BlogPost.find({ status: 'published' }).select('slug updatedAt categories').lean()
       const dbBlogCategories = await BlogCategory.find({}).select('slug updatedAt').lean()

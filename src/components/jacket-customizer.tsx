@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { Check, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag, ShoppingCart } from 'lucide-react'
 import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import { JacketDesignCanvas } from '@/components/jacket-design-canvas'
-import { getCustomizedViews, hasJacketCustomization, type JacketCustomization } from '@/types/jacket-customization'
+import { JACKET_VIEWS, getCustomizedViews, getJacketViewLabel, hasJacketCustomization, type JacketCustomization } from '@/types/jacket-customization'
 import { getCatalogArtworkCategory, isLetterOrNumberArtwork, type ArtworkCategory } from '@/components/jacket-artwork-catalog'
 
 export interface JacketCustomizerVariant {
@@ -49,7 +49,8 @@ function pkrToUsd(amount: number) {
 
 function getCustomizationFee(customization: JacketCustomization) {
   let feePkr = 0
-  for (const side of [customization.front, customization.back]) {
+  for (const view of JACKET_VIEWS) {
+    const side = customization[view]
     if (!side) continue
     if (side.text?.value.trim()) feePkr += TEXT_EMBROIDERY_FEE_PKR
     for (const artwork of side.artworks || []) {
@@ -80,6 +81,8 @@ interface JacketCustomizerProps {
   purchaseNotice?: ReactNode
   wishlistButton?: ReactNode
   onCustomizationFeeChange?: (fee: number) => void
+  onStepChange?: (step: string, index: number) => void
+  onDifficulty?: (reason: string) => void
 }
 
 export function JacketCustomizer({
@@ -97,6 +100,8 @@ export function JacketCustomizer({
   purchaseNotice,
   wishlistButton,
   onCustomizationFeeChange,
+  onStepChange,
+  onDifficulty,
 }: JacketCustomizerProps) {
   const [stepIndex, setStepIndex] = useState(0)
   const [customization, setCustomization] = useState<JacketCustomization>({})
@@ -128,6 +133,10 @@ export function JacketCustomizer({
   ]
 
   const currentStep = steps[stepIndex]
+  const currentStepName = currentStep.type === 'option' ? currentStep.name : currentStep.type
+  useEffect(() => {
+    onStepChange?.(currentStepName, stepIndex)
+  }, [currentStepName, stepIndex, onStepChange])
   const customizationFee = hasJacketCustomization(customization) ? getCustomizationFee(customization) : 0
   const totalPrice = basePrice + customizationFee
 
@@ -322,6 +331,7 @@ export function JacketCustomizer({
                 selectedSize={selectedVariants.Size}
                 value={customization}
                 onChange={setCustomization}
+                onDifficulty={onDifficulty}
               />
             </div>
           )}
@@ -430,7 +440,7 @@ export function JacketCustomizer({
                 const side = customization[view]!
                 return (
                   <div key={view} className="border-t pt-2 first:border-t-0 first:pt-0">
-                    <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{view}</p>
+                    <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{getJacketViewLabel(view)}</p>
                     {side.text?.value.trim() && <div className="flex justify-between text-sm"><span>Embroidery</span><span className="font-medium">{side.text.value.trim()}</span></div>}
                     {!!side.artworks?.length && <div className="flex justify-between text-sm"><span>Artwork</span><span className="max-w-[60%] text-right font-medium">{side.artworks.length} piece{side.artworks.length === 1 ? '' : 's'}</span></div>}
                   </div>

@@ -12,7 +12,7 @@ import {
   getJacketFontFamily, isLetterOrNumberArtwork, jacketFontStyles,
   type ArtworkCategory, type CatalogArtwork,
 } from '@/components/jacket-artwork-catalog'
-import type { JacketCustomization, JacketSideCustomization, JacketView } from '@/types/jacket-customization'
+import { JACKET_VIEWS, getJacketViewLabel, type JacketCustomization, type JacketSideCustomization, type JacketView } from '@/types/jacket-customization'
 
 const CANVAS_SIZE = 720
 const TEXT_COLORS = ['#111111', '#ffffff', '#b91c1c', '#d4a017', '#1d4ed8']
@@ -27,11 +27,22 @@ interface JacketDesignCanvasProps {
   selectedSize?: string
   value: JacketCustomization
   onChange: (value: JacketCustomization) => void
+  onDifficulty?: (reason: string) => void
 }
 
 type DragTarget = 'text' | string
 
-export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value, onChange }: JacketDesignCanvasProps) {
+function getViewImageUrl(images: { url: string; alt?: string | null }[], view: JacketView) {
+  const viewIndex: Record<JacketView, number> = {
+    front: 0,
+    back: 1,
+    leftSleeve: 2,
+    rightSleeve: 3,
+  }
+  return images[viewIndex[view]]?.url || images[0]?.url
+}
+
+export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value, onChange, onDifficulty }: JacketDesignCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const dragTarget = useRef<DragTarget | null>(null)
@@ -45,7 +56,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   const { toast } = useToast()
 
   const side: JacketSideCustomization = value[view] || {}
-  const imageUrl = view === 'back' && images[1]?.url ? images[1].url : images[0]?.url
+  const imageUrl = getViewImageUrl(images, view)
   const chestWidth = CHEST_WIDTHS[(selectedSize || 'M').toUpperCase()] || CHEST_WIDTHS.M
   const selectedArtwork = side.artworks?.find((artwork) => artwork.id === selectedArtworkId)
   const artworkSourceKey = (side.artworks || []).map((artwork) => `${artwork.id}:${artwork.source}:${artwork.catalogId || artwork.url}:${artwork.color}:${artwork.fontStyle || ''}`).join('|')
@@ -200,6 +211,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   const handleArtworkUpload = async (file?: File) => {
     if (!file) return
     if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+      onDifficulty?.('invalid_artwork_upload')
       toast({ title: 'Invalid artwork', description: 'Choose a PNG, JPG, or WebP image under 5 MB.', variant: 'destructive' })
       return
     }
@@ -215,6 +227,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       updateSide({ artworks: [...(side.artworks || []), { id, source: 'upload', url: result.url, name: file.name.slice(0, 80), widthInches: 2.5, x: 0.5, y: 0.55 }] })
       setSelectedArtworkId(id)
     } catch (error) {
+      onDifficulty?.('artwork_upload_failed')
       toast({ title: 'Could not add artwork', description: error instanceof Error ? error.message : 'Try again shortly.', variant: 'destructive' })
     } finally {
       setIsUploading(false)
@@ -226,15 +239,15 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex rounded-md border p-1" aria-label="Jacket view">
-          {(['front', 'back'] as const).map((item) => (
-            <Button key={item} type="button" size="sm" variant={view === item ? 'default' : 'ghost'} onClick={() => { setView(item); setSelectedArtworkId(null) }} className="relative capitalize">
-              {item}
+          {JACKET_VIEWS.map((item) => (
+            <Button key={item} type="button" size="sm" variant={view === item ? 'default' : 'ghost'} onClick={() => { setView(item); setSelectedArtworkId(null) }} className="relative">
+              {getJacketViewLabel(item)}
               {(value[item]?.text?.value || value[item]?.artworks?.length) && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />}
             </Button>
           ))}
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={() => { updateSide({ text: undefined, artworks: undefined }); setSelectedArtworkId(null) }} disabled={!side.text?.value && !side.artworks?.length}>
-          <RotateCcw className="mr-2 h-4 w-4" /> Reset {view}
+          <RotateCcw className="mr-2 h-4 w-4" /> Reset {getJacketViewLabel(view)}
         </Button>
       </div>
 
@@ -242,12 +255,12 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
         <canvas ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="h-full w-full touch-none cursor-move"
           onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
           onPointerUp={() => { dragTarget.current = null }} onPointerCancel={() => { dragTarget.current = null }}
-          aria-label={`Live ${view} jacket customization preview. Drag text or artwork to reposition it.`} />
+          aria-label={`Live ${getJacketViewLabel(view)} jacket customization preview. Drag text or artwork to reposition it.`} />
       </div>
       <p className="text-xs text-muted-foreground">Previewing size {selectedSize || 'M'}. Patch dimensions are saved in inches and scale proportionally for the selected jacket size.</p>
 
       <div className="space-y-3 border-t pt-4">
-        <Label htmlFor="design-text" className="flex items-center gap-2"><Type className="h-4 w-4" /> {view} embroidered text</Label>
+        <Label htmlFor="design-text" className="flex items-center gap-2"><Type className="h-4 w-4" /> {getJacketViewLabel(view)} embroidered text</Label>
         <Input id="design-text" value={side.text?.value || ''} maxLength={maxTextLength} placeholder="Name, initials, or team" onChange={(event) => updateText({ value: event.target.value })} />
         {!!side.text?.value && <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2"><Label className="text-xs">Thread color</Label><div className="flex flex-wrap items-center gap-2">
@@ -277,7 +290,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
           {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />} Upload your own artwork
         </Button>
         {!!side.artworks?.length && <div className="space-y-2 rounded-md border p-3">
-          <div className="flex items-center justify-between text-xs"><Label>Artwork on {view}</Label><span>{side.artworks.length}/12</span></div>
+          <div className="flex items-center justify-between text-xs"><Label>Artwork on {getJacketViewLabel(view)}</Label><span>{side.artworks.length}/12</span></div>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {side.artworks.map((artwork, index) => (
               <div key={artwork.id} className={`flex min-w-40 items-center gap-1 rounded-md border px-2 py-2 text-xs sm:min-w-32 sm:py-1.5 ${selectedArtworkId === artwork.id ? 'border-primary bg-primary/5' : ''}`}>

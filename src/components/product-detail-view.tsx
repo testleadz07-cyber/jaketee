@@ -158,7 +158,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
       category: product.category,
       isFeatured: product.isFeatured,
     })
-    logUserActivity('view_product', { productId: product.id, name: product.name })
+    logUserActivity('view_product', { productId: product.id })
   }, [product?.id])
 
   const getSelectedVariantPriceAdjust = () => {
@@ -217,7 +217,6 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
     logUserActivity('add_to_cart', {
       productId: product.id,
-      name: product.name,
       price,
       quantity,
       variants,
@@ -250,7 +249,6 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
     logUserActivity('begin_checkout', {
       source: 'buy_now',
       productId: product.id,
-      name: product.name,
       price,
       quantity: 1,
       variants,
@@ -280,6 +278,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
       onClick={async () => {
         if (isInWishlist) {
           await removeFromWishlist(product.id, (session?.user as any)?.id)
+          logUserActivity('wishlist_changed', { productId: product.id, action: 'removed' })
         } else {
           await addToWishlist({
             productId: product.id,
@@ -288,6 +287,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
             image: product.images?.[0]?.url || '',
             slug: product.slug,
           }, (session?.user as any)?.id)
+          logUserActivity('wishlist_changed', { productId: product.id, action: 'added' })
         }
       }}
     >
@@ -445,7 +445,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                   )}
                 </div>
                 <div className="pt-2">
-                  {isJacket ? <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} /> : sizeVariants.length > 0 ? <SizeGuide categorySlug={product.category?.slug} sizeValues={sizeVariants.map((variant) => variant.value)} /> : null}
+                  {isJacket ? <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} /> : sizeVariants.length > 0 ? <SizeGuide categorySlug={product.category?.slug} sizeValues={sizeVariants.map((variant) => variant.value)} productId={product.id} /> : null}
                 </div>
               </div>
 
@@ -556,11 +556,11 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                   <FulfillmentNotice compact />
 
                   <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
-                    <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                    <Link href="/shipping" onClick={() => logUserActivity('information_opened', { sectionName: 'shipping' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                       <Truck className="mt-0.5 h-5 w-5 shrink-0" />
                       <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
                     </Link>
-                    <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                    <Link href="/returns" onClick={() => logUserActivity('information_opened', { sectionName: 'returns' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                       <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
                       <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
                     </Link>
@@ -582,6 +582,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                             <SizeGuide
                               categorySlug={product.category?.slug}
                               sizeValues={variants.map((v) => v.value)}
+                              productId={product.id}
                             />
                           )}
                         </div>
@@ -600,6 +601,11 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                                       ...prev,
                                       [variantName]: variant.value,
                                     }))
+                                    logUserActivity('product_option_selected', {
+                                      productId: product.id,
+                                      optionName: variantName,
+                                      optionValue: variant.value,
+                                    })
                                     if (variant.image) {
                                       setOverrideImage(variant.image)
                                     }
@@ -708,11 +714,11 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
               {!isJacket && (
                 <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
-                  <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                  <Link href="/shipping" onClick={() => logUserActivity('information_opened', { sectionName: 'shipping' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                     <Truck className="mt-0.5 h-5 w-5 shrink-0" />
                     <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
                   </Link>
-                  <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
+                  <Link href="/returns" onClick={() => logUserActivity('information_opened', { sectionName: 'returns' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                     <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
                     <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
                   </Link>

@@ -15,13 +15,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ skipped: true, reason: 'Not authenticated' }, { status: 200 })
     }
 
+    let body
+    try {
+      body = await request.json()
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error
+      return NextResponse.json({ error: 'Invalid or empty JSON body' }, { status: 400 })
+    }
+
+    if (!body || typeof body !== 'object' || !Array.isArray(body.items)) {
+      return NextResponse.json({ error: 'Cart items must be an array' }, { status: 400 })
+    }
+
+    const { items, subtotal, promoCode } = body
+
     const db = await connectDB()
     if (!db) {
       return NextResponse.json({ skipped: true, reason: 'Database not connected' }, { status: 200 })
     }
-
-    const body = await request.json()
-    const { items, subtotal, promoCode } = body
 
     const userId = (session.user as any).id
     const userEmail = session.user.email || ''
@@ -34,7 +45,7 @@ export async function POST(request: NextRequest) {
     // An empty cart means there is nothing to recover — remove any existing
     // snapshot so we never send a "you left something behind" email for a
     // cart the user already emptied themselves.
-    if (!Array.isArray(items) || items.length === 0) {
+    if (items.length === 0) {
       await AbandonedCart.deleteOne({ userId })
       return NextResponse.json({ cleared: true })
     }

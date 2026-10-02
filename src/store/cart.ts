@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { JacketCustomization } from '@/types/jacket-customization'
+import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
 
 export interface CartItem {
   id: string
@@ -163,7 +163,7 @@ export const useCartStore = create<CartStore>()(
             const customization: any = legacy.view
               ? { [legacy.view]: { text: legacy.text, artworks: legacy.artwork ? [{ ...legacy.artwork, id: `legacy-${item.id}-${legacy.view}` }] : undefined } }
               : { ...legacy }
-            for (const view of ['front', 'back'] as const) {
+            for (const view of JACKET_VIEWS) {
               const side = customization[view]
               if (side?.artwork && !side.artworks) {
                 customization[view] = { ...side, artworks: [{ ...side.artwork, id: `legacy-${item.id}-${view}` }], artwork: undefined }

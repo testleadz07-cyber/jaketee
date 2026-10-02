@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Header } from '@/components/header'
 import { ShoppingBag, ArrowLeft, Search, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
+import { WhatsAppHelp } from '@/components/whatsapp-help'
 
 export default function NotFound() {
   return (
@@ -44,6 +45,7 @@ export default function NotFound() {
           </div>
 
           {/* Action Links */}
+          <WhatsAppHelp message="The page or product I wanted could not be found. Can you help me find it?" />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-4">
             <Link href="/" className="w-full">
               <Button className="w-full h-12 gap-2" variant="default">

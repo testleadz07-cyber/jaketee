@@ -12,6 +12,10 @@ const GUEST_ID_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
 
 export async function POST(request: NextRequest) {
   try {
+    if (request.headers.get('x-analytics-consent') !== 'granted') {
+      return NextResponse.json({ error: 'Analytics consent required' }, { status: 403 })
+    }
+
     const db = await connectDB()
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })

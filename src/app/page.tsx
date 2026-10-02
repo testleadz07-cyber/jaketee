@@ -46,6 +46,8 @@ export default async function Page() {
     const id = categoryIds.get(slug)
     return ProductModel.find({
       inStock: true,
+      isDraft: { $ne: true },
+      status: 'active',
       categoryId: { $in: id ? resolveDescendantIds(nodes, id) : [] },
     })
       .sort({ isFeatured: -1, createdAt: -1 })
@@ -55,15 +57,15 @@ export default async function Page() {
   })
   const [counts, rawFeatured, rawNewest, ...rawCategoryRows] = await Promise.all([
     ProductModel.aggregate([
-      { $match: { inStock: true } },
+      { $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } },
       { $group: { _id: '$categoryId', count: { $sum: 1 } } },
     ]),
-    ProductModel.find({ inStock: true })
+    ProductModel.find({ inStock: true, isDraft: { $ne: true }, status: 'active' })
       .sort({ isFeatured: -1, createdAt: -1 })
       .limit(4)
       .populate('categoryId', 'name slug')
       .lean(),
-    ProductModel.find({ inStock: true })
+    ProductModel.find({ inStock: true, isDraft: { $ne: true }, status: 'active' })
       .sort({ createdAt: -1 })
       .limit(8)
       .populate('categoryId', 'name slug')

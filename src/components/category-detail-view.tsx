@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { WhatsAppHelp } from '@/components/whatsapp-help'
 import Image from 'next/image'
 import { ArrowRight, BadgeCheck, MessageCircle, PackageSearch, Palette, RefreshCw, Ruler, ShoppingBag, Star, Truck, Users } from 'lucide-react'
 import { Header } from '@/components/header'
@@ -20,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { resolveAncestorChain, buildCategoryUrl } from '@/lib/categories'
+import { logUserActivity } from '@/lib/activity'
 
 interface Category {
   id: string
@@ -154,6 +156,7 @@ export function CategoryDetailView({
   }, [slug, initialInsights])
 
   const handleSortChange = (value: string) => {
+    logUserActivity('sort_changed', { sortOption: value, category: slug })
     setSortBy(value)
     setCurrentPage(1)
     setProducts([])
@@ -244,9 +247,7 @@ export function CategoryDetailView({
         })
 
         if (current && isFirstPage) {
-          import('@/lib/activity').then(({ logUserActivity }) => {
-            logUserActivity('view_category', { categoryId: current.id, name: current.name, slug })
-          })
+          logUserActivity('view_category', { categoryId: current.id, slug })
         }
       } catch (error) {
         console.error('Error loading category page:', error)
@@ -476,11 +477,19 @@ export function CategoryDetailView({
                 { label: 'Bulk orders', href: '/bulk-orders/schools', icon: Users },
                 { label: 'Contact us', href: '/contact', icon: MessageCircle },
               ].map((item) => (
-                <Link key={item.href} href={item.href} className="flex items-center justify-between gap-3 border-b py-3 text-sm font-medium hover:text-primary">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => {
+                    if (item.href === '/shipping') logUserActivity('information_opened', { sectionName: 'shipping' })
+                    if (item.href === '/returns') logUserActivity('information_opened', { sectionName: 'returns' })
+                  }}
+                  className="flex items-center justify-between gap-3 border-b py-3 text-sm font-medium hover:text-primary"
+                >
                   <span className="flex items-center gap-2"><item.icon className="h-4 w-4 shrink-0" />{item.label}</span><ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </Link>
               ))}
-              <Link href="/size-guide" className="flex items-center justify-between gap-3 border-b py-3 text-sm font-medium hover:text-primary">
+              <Link href="/size-guide" onClick={() => logUserActivity('size_guide_opened', { productId: null })} className="flex items-center justify-between gap-3 border-b py-3 text-sm font-medium hover:text-primary">
                 <span className="flex items-center gap-2"><Ruler className="h-4 w-4 shrink-0" />Size guide</span><ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </Link>
             </div>
@@ -521,8 +530,8 @@ export function CategoryDetailView({
         ) : products.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {products.map((product, index) => (
+                <ProductCard key={product.id} product={product} listingPosition={index + 1} />
               ))}
             </div>
 
@@ -573,6 +582,7 @@ export function CategoryDetailView({
             <PackageSearch className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="text-xl font-semibold">No products found</h3>
             <p className="mt-2 text-muted-foreground">This category does not have products yet.</p>
+            <WhatsAppHelp message={`I couldn't find any products in ${category.name}. Can you help me find a suitable product?`} />
             <Button asChild variant="outline" className="mt-6">
               <Link href="/shop">Browse all products</Link>
             </Button>

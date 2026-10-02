@@ -18,6 +18,8 @@ import { Footer } from '@/components/footer'
 import { Sparkles, ShoppingBag, Filter, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { buildCategoryUrl } from '@/lib/categories'
+import { logUserActivity } from '@/lib/activity'
+import { WhatsAppHelp } from '@/components/whatsapp-help'
 
 export interface Product {
   id: string
@@ -69,6 +71,7 @@ export default function ShopClient({ initialProducts, initialCategories, initial
   const categoryContainerRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const handleCategoryChange = (categorySlug: string) => {
+    logUserActivity('filter_changed', { filterName: 'category', filterValue: categorySlug })
     setSelectedCategory(categorySlug)
     setCurrentPage(1)
     setProducts([])
@@ -77,6 +80,7 @@ export default function ShopClient({ initialProducts, initialCategories, initial
   }
 
   const handleSortChange = (value: string) => {
+    logUserActivity('sort_changed', { sortOption: value, category: selectedCategory })
     setSortBy(value)
     setCurrentPage(1)
     setProducts([])
@@ -115,6 +119,9 @@ export default function ShopClient({ initialProducts, initialCategories, initial
       const res = await fetch(`/api/products?${params.toString()}`)
       let data = await res.json()
       const total = Number(res.headers.get('X-Total-Count') || data.length)
+      if (isFirstPage && searchQuery && total === 0) {
+        logUserActivity('search_no_results', { resultCount: 0 })
+      }
 
       if (sortBy === 'featured') {
         data = [...data].sort((a: Product, b: Product) => {
@@ -280,7 +287,10 @@ export default function ShopClient({ initialProducts, initialCategories, initial
                               { slug: sub.slug },
                             ])}
                             className="block rounded-md px-3 py-2 text-sm hover:bg-muted whitespace-nowrap"
-                            onClick={() => setOpenCategoryId(null)}
+                            onClick={() => {
+                              logUserActivity('filter_changed', { filterName: 'category', filterValue: sub.slug })
+                              setOpenCategoryId(null)
+                            }}
                           >
                             {sub.name} ({sub._count.products})
                           </Link>
@@ -328,6 +338,10 @@ export default function ShopClient({ initialProducts, initialCategories, initial
             <p className="text-muted-foreground">
               Try adjusting your search or filters
             </p>
+            <WhatsAppHelp message={`I couldn't find the product I need with my search or filters.${selectedCategory !== 'all' ? ` Category: ${selectedCategory}.` : ''}`} />
+            <Button asChild variant="outline" className="mt-4">
+              <Link href="/shop">View all products</Link>
+            </Button>
           </div>
         ) : (
           <>
@@ -338,9 +352,9 @@ export default function ShopClient({ initialProducts, initialCategories, initial
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <div key={product.id}>
-                  <ProductCard product={product} />
+                  <ProductCard product={product} listingPosition={index + 1} />
                 </div>
               ))}
             </div>

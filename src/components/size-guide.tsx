@@ -21,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Ruler, Info } from 'lucide-react'
+import { logUserActivity } from '@/lib/activity'
 
 type UnitSystem = 'in' | 'cm'
 
@@ -76,16 +77,20 @@ export function SizeGuide({
   categorySlug,
   sizeValues,
   trigger,
+  productId,
 }: {
   categorySlug?: string
   sizeValues?: string[]
   trigger?: React.ReactNode
+  productId?: string
 }) {
   const [unit, setUnit] = useState<UnitSystem>('in')
   const defaultTab = useMemo(() => guessDefaultTab(categorySlug, sizeValues), [categorySlug, sizeValues])
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => {
+      if (open) logUserActivity('size_guide_opened', { productId: productId || null })
+    }}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="link" size="sm" className="h-auto p-0 text-sm font-medium text-primary">

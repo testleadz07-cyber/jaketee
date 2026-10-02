@@ -614,6 +614,24 @@ export default function EditProduct() {
                 <Label htmlFor="featured" className="cursor-pointer">Featured Product</Label>
               </div>
               <div className="flex items-center space-x-4">
+                <Checkbox id="draft" checked={Boolean(product.isDraft)} onCheckedChange={(checked) => setProduct({ ...product, isDraft: checked as boolean })} disabled={saving} />
+                <Label htmlFor="draft" className="cursor-pointer">Save as Draft</Label>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={product.status || 'active'}
+                  onValueChange={(value) => setProduct({ ...product, status: value })}
+                  disabled={saving}
+                >
+                  <SelectTrigger id="status"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-4">
                 <Checkbox id="inStock" checked={product.inStock} onCheckedChange={(checked) => setProduct({ ...product, inStock: checked as boolean })} disabled={saving} />
                 <Label htmlFor="inStock" className="cursor-pointer">In Stock</Label>
               </div>

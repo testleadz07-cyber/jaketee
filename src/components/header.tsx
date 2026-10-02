@@ -10,6 +10,7 @@ import { CartDrawer } from '@/components/cart-drawer'
 import { ArrowRight, Building2, ChevronDown, GraduationCap, Heart, LayoutDashboard, Loader2, LogOut, Menu, Package, Ruler, Search, Tags, User, UserCheck, Users, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { WhatsAppHelp } from '@/components/whatsapp-help'
 import { createPortal } from 'react-dom'
 import {
   DropdownMenu,
@@ -167,9 +168,11 @@ export function Header() {
     if (!query.trim()) return
     setIsOpen(false)
     setMobileSearchOpen(false)
-    import('@/lib/activity').then(({ logUserActivity }) => {
-      logUserActivity('search', { query: query.trim() })
-    })
+    if (suggestions.length === 0) {
+      import('@/lib/activity').then(({ logUserActivity }) => {
+        logUserActivity('search_no_results', { resultCount: 0 })
+      })
+    }
     router.push(`/shop?search=${encodeURIComponent(query.trim())}`)
   }
 
@@ -278,6 +281,7 @@ export function Header() {
       ) : (
         <div className="px-4 py-6 text-center text-sm text-muted-foreground">
           No products found for &ldquo;{query}&rdquo;
+          <WhatsAppHelp message={`I searched for "${query}" but couldn't find a matching product. Can you help me find it?`} />
         </div>
       )}
     </>

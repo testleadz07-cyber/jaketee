@@ -18,10 +18,10 @@ export async function GET(
 
     if (db) {
       if (mongoose.Types.ObjectId.isValid(id)) {
-        baseProduct = await Product.findById(id).lean()
+        baseProduct = await Product.findOne({ _id: id, isDraft: { $ne: true }, status: 'active' }).lean()
       }
       if (!baseProduct) {
-        baseProduct = await Product.findOne({ slug: id }).lean()
+        baseProduct = await Product.findOne({ slug: id, isDraft: { $ne: true }, status: 'active' }).lean()
       }
     }
 
@@ -61,6 +61,8 @@ export async function GET(
         : []
       const query: any = {
         inStock: true,
+        isDraft: { $ne: true },
+        status: 'active',
         _id: { $nin: excludedIds },
       }
 
@@ -80,6 +82,8 @@ export async function GET(
       if (relatedProducts.length < 4) {
         const extra = await Product.find({
           inStock: true,
+          isDraft: { $ne: true },
+          status: 'active',
           _id: { $nin: [...excludedIds, ...relatedProducts.map(p => new mongoose.Types.ObjectId(p.id))] }
         })
           .populate('categoryId', 'name slug')

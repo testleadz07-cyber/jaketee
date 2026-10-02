@@ -56,6 +56,8 @@ interface Product {
   price: number
   inStock: boolean
   isFeatured: boolean
+  isDraft?: boolean
+  status?: 'active' | 'inactive'
   stockCount?: number
   averageRating?: number
   reviewCount?: number
@@ -85,6 +87,7 @@ export default function AdminProducts() {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [stockFilter, setStockFilter] = useState('all')
   const [featuredFilter, setFeaturedFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -125,6 +128,7 @@ export default function AdminProducts() {
       if (categoryFilter !== 'all') params.set('category', categoryFilter)
       if (stockFilter !== 'all') params.set('stock', stockFilter)
       if (featuredFilter !== 'all') params.set('featured', featuredFilter)
+      if (statusFilter !== 'all') params.set('status', statusFilter)
       if (dateFrom) params.set('dateFrom', dateFrom)
       if (dateTo) params.set('dateTo', dateTo)
       if (sortBy === 'price-asc' || sortBy === 'price-desc') {
@@ -161,7 +165,7 @@ export default function AdminProducts() {
         setHasLoaded(true)
       }
     }
-  }, [page, searchQuery, categoryFilter, stockFilter, featuredFilter, dateFrom, dateTo, sortBy])
+  }, [page, searchQuery, categoryFilter, stockFilter, featuredFilter, statusFilter, dateFrom, dateTo, sortBy])
 
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -311,13 +315,14 @@ export default function AdminProducts() {
 
   const allFilteredSelected = filteredProducts.length > 0 && 
     filteredProducts.every(p => selectedIds.includes(p.id || p._id || ''))
-  const hasFilters = Boolean(searchInput || categoryFilter !== 'all' || stockFilter !== 'all' || featuredFilter !== 'all' || dateFrom || dateTo || sortBy !== 'newest')
+  const hasFilters = Boolean(searchInput || categoryFilter !== 'all' || stockFilter !== 'all' || featuredFilter !== 'all' || statusFilter !== 'all' || dateFrom || dateTo || sortBy !== 'newest')
   const clearFilters = () => {
     setSearchInput('')
     setSearchQuery('')
     setCategoryFilter('all')
     setStockFilter('all')
     setFeaturedFilter('all')
+    setStatusFilter('all')
     setSortBy('newest')
     setDateFrom('')
     setDateTo('')
@@ -349,7 +354,7 @@ export default function AdminProducts() {
 
         {/* Search and filters */}
         <div className="space-y-3 border-y bg-background py-4">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,2fr)_repeat(4,minmax(135px,1fr))]">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,2fr)_repeat(5,minmax(135px,1fr))]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -386,6 +391,14 @@ export default function AdminProducts() {
                 <SelectItem value="all">All products</SelectItem>
                 <SelectItem value="yes">Featured</SelectItem>
                 <SelectItem value="no">Not featured</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(1) }}>
+              <SelectTrigger className="w-full" aria-label="Filter by product status"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={(value) => { setSortBy(value); setPage(1) }}>
@@ -473,6 +486,12 @@ export default function AdminProducts() {
                             {product.isFeatured && (
                               <Badge variant="outline" className="bg-primary/10 border-primary/20 text-[10px] text-primary">Featured</Badge>
                             )}
+                            {product.isDraft && (
+                              <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-[10px] text-amber-700">Draft</Badge>
+                            )}
+                            <Badge variant="outline" className={product.status === 'inactive' ? 'bg-muted text-muted-foreground border-muted-foreground/30 text-[10px]' : 'bg-emerald-500/10 border-emerald-500/30 text-[10px] text-emerald-700'}>
+                              {product.status === 'inactive' ? 'Inactive' : 'Active'}
+                            </Badge>
                             <Badge variant={product.inStock ? 'default' : 'destructive'} className="text-[10px]">
                               {product.inStock ? 'In Stock' : 'Out of Stock'}
                             </Badge>
@@ -506,11 +525,13 @@ export default function AdminProducts() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Link href={buildProductUrl(product)} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="View Product">
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </Link>
+                        {!product.isDraft && (
+                          <Link href={buildProductUrl(product)} target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="View Product">
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
                         <Link href={`/admin/products/${prodId}`}>
                           <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="Edit Product">
                             <Edit className="h-4 w-4" />

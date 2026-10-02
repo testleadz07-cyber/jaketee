@@ -26,7 +26,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  LogOut,
   Loader2,
   Users as UsersIcon,
   Search,
@@ -36,7 +35,7 @@ interface GuestActivityRow {
   id: string
   guestId: string
   action: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
   ip?: string
   userAgent?: string
   country?: string
@@ -47,23 +46,12 @@ interface GuestActivityRow {
 
 const renderActivityDetails = (activity: GuestActivityRow) => {
   const details = activity.details
-  if (!details) return null
-  switch (activity.action) {
-    case 'view_product':
-      return <span className="text-xs text-muted-foreground">Product: <span className="font-semibold">{details.name || details.productId}</span></span>
-    case 'view_category':
-      return <span className="text-xs text-muted-foreground">Category: <span className="font-semibold">{details.name || details.slug}</span></span>
-    case 'add_to_cart':
-      return (
-        <span className="text-xs text-muted-foreground">
-          {details.name} (Qty: {details.quantity || 1}) - ${details.price?.toFixed(2)}
-        </span>
-      )
-    case 'search':
-      return <span className="text-xs text-muted-foreground">Query: &ldquo;<span className="italic">{details.query}</span>&rdquo;</span>
-    default:
-      return <span className="text-xs text-muted-foreground">{JSON.stringify(details)}</span>
-  }
+  if (!details) return <span className="text-xs text-muted-foreground">N/A</span>
+  return (
+    <pre className="w-80 whitespace-pre-wrap break-words text-xs text-muted-foreground">
+      {JSON.stringify(details, null, 2)}
+    </pre>
+  )
 }
 
 const formatActionName = (action: string) =>
@@ -150,56 +138,9 @@ export default function AdminGuestActivityPage() {
 
   return (
     <div className="min-h-screen bg-muted/10 flex flex-col">
-      {/* Header */}
-      <header className="border-b bg-background sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="icon">
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <h1 className="text-2xl font-bold tracking-tight">Jacketee Admin</h1>
-            </div>
-            <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-              <span className="text-sm text-muted-foreground hidden md:inline">
-                Logged in as <span className="font-semibold text-foreground">{session.user?.email}</span>
-              </span>
-              <Button variant="outline" size="sm" onClick={() => router.push('/api/auth/signout')}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Sub Navigation */}
-      <nav className="bg-background border-b py-2 sticky top-[73px] z-10">
-        <div className="container mx-auto px-4 flex gap-2 overflow-x-auto">
-          <Link href="/admin/dashboard"><Button variant="ghost" size="sm">Dashboard</Button></Link>
-          <Link href="/admin/products"><Button variant="ghost" size="sm">Products</Button></Link>
-          <Link href="/admin/categories"><Button variant="ghost" size="sm">Categories</Button></Link>
-          <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
-          <Link href="/admin/users"><Button variant="ghost" size="sm">Users</Button></Link>
-          <Link href="/admin/guest-activity"><Button variant="secondary" size="sm">Guest Activity</Button></Link>
-          <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
-          <Link href="/admin/subscribers"><Button variant="ghost" size="sm">Subscribers</Button></Link>
-          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
-          <Link href="/admin/analytics"><Button variant="ghost" size="sm">Analytics</Button></Link>
-          <Link href="/admin/reviews"><Button variant="ghost" size="sm">Reviews</Button></Link>
-          <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
-          <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
-          <Link href="/admin/tags"><Button variant="ghost" size="sm">Tags</Button></Link>
-          <Link href="/admin/refunds"><Button variant="ghost" size="sm">Refunds</Button></Link>
-          <Link href="/admin/blog"><Button variant="ghost" size="sm">Blog</Button></Link>
-          <Link href="/admin/faqs"><Button variant="ghost" size="sm">FAQs</Button></Link>
-          </div>
-      </nav>
 
       {/* Main Body */}
-      <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+      <main className="container mx-auto min-w-0 px-4 py-8 flex-1 space-y-6">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Guest Activity</h2>
           <p className="text-sm text-muted-foreground">
@@ -262,15 +203,19 @@ export default function AdminGuestActivityPage() {
           </div>
         ) : (
           <div className="border-2 rounded-xl overflow-hidden bg-background">
-            <Table>
+            <Table className="[&_td]:align-top">
               <TableHeader>
                 <TableRow>
                   <TableHead>Time</TableHead>
+                  <TableHead>Activity ID</TableHead>
                   <TableHead>Guest ID</TableHead>
                   <TableHead>Action</TableHead>
                   <TableHead>Details</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>Region</TableHead>
+                  <TableHead>City</TableHead>
                   <TableHead>IP</TableHead>
+                  <TableHead>User Agent</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -280,22 +225,31 @@ export default function AdminGuestActivityPage() {
                       {new Date(activity.createdAt).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-xs font-mono text-muted-foreground">
-                      {activity.guestId.slice(0, 8)}&hellip;
+                      {activity.id}
+                    </TableCell>
+                    <TableCell className="text-xs font-mono text-muted-foreground">
+                      {activity.guestId}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
                       {formatActionName(activity.action)}
                     </TableCell>
                     <TableCell>{renderActivityDetails(activity)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      <span className="block text-foreground">{activity.city || activity.region || activity.country || 'Unknown'}</span>
-                      {(activity.city || activity.region) && (
-                        <span className="block text-xs">
-                          {[activity.region, activity.country].filter(Boolean).join(', ')}
-                        </span>
-                      )}
+                      {activity.country || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {activity.region || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {activity.city || 'N/A'}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {activity.ip || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      <div className="w-72 whitespace-normal break-words">
+                        {activity.userAgent || 'N/A'}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -43,6 +43,7 @@ import {
   CreditCard,
   FileText,
   X,
+  Pencil,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -56,6 +57,9 @@ interface OrderItem {
 }
 
 interface Order {
+  userId?: string
+  notes?: string
+  discountAmount?: number
   _id: string
   id?: string
   orderNumber: string
@@ -110,6 +114,26 @@ interface CatalogProduct {
   inStock: boolean
 }
 
+interface CustomerAddress {
+  label?: string
+  name: string
+  street: string
+  city: string
+  state: string
+  zip: string
+  country?: string
+  phone?: string
+  isDefault?: boolean
+}
+
+interface AdminCustomer {
+  id: string
+  name: string
+  email: string
+  phone?: string | null
+  addresses?: CustomerAddress[]
+}
+
 export default function AdminOrders() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -140,12 +164,18 @@ export default function AdminOrders() {
 
   // ---------- Create Custom Order State ----------
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [createStep, setCreateStep] = useState(0) // 0 = items, 1 = customer/shipping, 2 = payment/review
   const [creatingOrder, setCreatingOrder] = useState(false)
 
   // Customer info
+  const [selectedCustomerId, setSelectedCustomerId] = useState('')
   const [coCustomerName, setCoCustomerName] = useState('')
   const [coCustomerEmail, setCoCustomerEmail] = useState('')
+  const [customerSearch, setCustomerSearch] = useState('')
+  const [customerResults, setCustomerResults] = useState<AdminCustomer[]>([])
+  const [searchingCustomers, setSearchingCustomers] = useState(false)
+  const customerSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Order items
   const [coItems, setCoItems] = useState<CustomOrderItem[]>([])
@@ -400,8 +430,12 @@ export default function AdminOrders() {
 
   const resetCreateForm = () => {
     setCreateStep(0)
+    setSelectedCustomerId('')
     setCoCustomerName('')
     setCoCustomerEmail('')
+    setCustomerSearch('')
+    setCustomerResults([])
+    setSearchingCustomers(false)
     setCoItems([])
     setManualName('')
     setManualPrice('')
@@ -424,7 +458,31 @@ export default function AdminOrders() {
   }
 
   const handleOpenCreateModal = () => {
+    setEditingOrder(null)
     resetCreateForm()
+    setShowCreateModal(true)
+  }
+
+  const handleEditOrder = (order: Order) => {
+    resetCreateForm()
+    setEditingOrder(order)
+    setSelectedCustomerId(order.userId || '')
+    setCoCustomerName(order.userName)
+    setCoCustomerEmail(order.userEmail)
+    setCoItems(order.items.map((item, index) => ({ ...item, id: `edit-${index}`, isCustom: !item.productId || item.productId.startsWith('custom') })))
+    setCoShipName(order.shippingAddress?.name || '')
+    setCoShipStreet(order.shippingAddress?.street || '')
+    setCoShipCity(order.shippingAddress?.city || '')
+    setCoShipState(order.shippingAddress?.state || '')
+    setCoShipZip(order.shippingAddress?.zip || '')
+    setCoShipCountry(order.shippingAddress?.country || 'United States')
+    setCoShipPhone(order.shippingAddress?.phone || '')
+    setCoPaymentMethod(order.paymentMethod || 'other')
+    setCoPaymentStatus(order.paymentStatus || 'unpaid')
+    setCoOrderStatus(order.status)
+    setCoShippingCost(String(order.shipping || 0))
+    setCoTax(String(order.tax || 0))
+    setCoNotes(order.notes || '')
     setShowCreateModal(true)
   }
 
@@ -455,6 +513,72 @@ export default function AdminOrders() {
       if (productSearchTimeout.current) clearTimeout(productSearchTimeout.current)
     }
   }, [productSearch])
+
+  // Existing customer search (debounced)
+  useEffect(() => {
+    if (!showCreateModal) return
+    if (customerSearchTimeout.current) clearTimeout(customerSearchTimeout.current)
+
+    if (selectedCustomerId) {
+      setCustomerResults([])
+      setSearchingCustomers(false)
+      return
+    }
+
+    if (!customerSearch.trim()) {
+      setCustomerResults([])
+      setSearchingCustomers(false)
+      return
+    }
+
+    setSearchingCustomers(true)
+    customerSearchTimeout.current = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          search: customerSearch.trim(),
+          role: 'customer',
+          status: 'active',
+          limit: '8',
+        })
+        const res = await fetch(`/api/admin/users?${params.toString()}`)
+        if (res.ok) {
+          const data = await res.json()
+          setCustomerResults(Array.isArray(data.users) ? data.users : [])
+        }
+      } catch {
+        // Keep manual entry available if customer lookup fails.
+      } finally {
+        setSearchingCustomers(false)
+      }
+    }, 300)
+
+    return () => {
+      if (customerSearchTimeout.current) clearTimeout(customerSearchTimeout.current)
+    }
+  }, [customerSearch, selectedCustomerId, showCreateModal])
+
+  const applyCustomerToOrder = (customer: AdminCustomer) => {
+    const defaultAddress = customer.addresses?.find(address => address.isDefault) || customer.addresses?.[0]
+
+    setSelectedCustomerId(customer.id)
+    setCustomerSearch(`${customer.name} (${customer.email})`)
+    setCustomerResults([])
+    setCoCustomerName(customer.name || '')
+    setCoCustomerEmail(customer.email || '')
+
+    if (defaultAddress) {
+      setCoShipName(defaultAddress.name || customer.name || '')
+      setCoShipStreet(defaultAddress.street || '')
+      setCoShipCity(defaultAddress.city || '')
+      setCoShipState(defaultAddress.state || '')
+      setCoShipZip(defaultAddress.zip || '')
+      setCoShipCountry(defaultAddress.country || 'United States')
+      setCoShipPhone(defaultAddress.phone || customer.phone || '')
+    } else {
+      setCoShipName(customer.name || '')
+      setCoShipPhone(customer.phone || '')
+    }
+  }
 
   const addCatalogProduct = (product: CatalogProduct) => {
     // Check if already added
@@ -518,10 +642,10 @@ export default function AdminOrders() {
   const coSubtotal = coItems.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const coShippingNum = parseFloat(coShippingCost) || 0
   const coTaxNum = parseFloat(coTax) || 0
-  const coTotal = coSubtotal + coShippingNum + coTaxNum
+  const coTotal = Math.max(0, coSubtotal + coShippingNum + coTaxNum - (editingOrder?.discountAmount || 0))
 
   // Step validation
-  const isStep0Valid = coItems.length > 0
+  const isStep0Valid = coItems.length > 0 && coItems.every(item => item.name.trim() && Number.isFinite(item.price) && item.price >= 0 && Number.isSafeInteger(item.quantity) && item.quantity > 0)
   const isStep1Valid = coCustomerName.trim() !== '' && coCustomerEmail.trim() !== '' &&
     coShipName.trim() !== '' && coShipStreet.trim() !== '' && coShipCity.trim() !== '' &&
     coShipState.trim() !== '' && coShipZip.trim() !== ''
@@ -530,13 +654,16 @@ export default function AdminOrders() {
     if (!isStep0Valid || !isStep1Valid) return
     setCreatingOrder(true)
     try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
+      const res = await fetch(editingOrder ? `/api/orders/${editingOrder._id || editingOrder.id}` : '/api/orders', {
+        method: editingOrder ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: coCustomerName.trim(),
           customerEmail: coCustomerEmail.trim(),
+          ...(editingOrder ? { userName: coCustomerName.trim(), userEmail: coCustomerEmail.trim() } : {}),
+          userId: selectedCustomerId || undefined,
           items: coItems.map(i => ({
+            ...i,
             productId: i.productId,
             name: i.name,
             image: i.image,
@@ -558,15 +685,15 @@ export default function AdminOrders() {
           status: coOrderStatus,
           shipping: coShippingNum,
           tax: coTaxNum,
-          notes: coNotes.trim() || undefined,
+          notes: coNotes.trim(),
         }),
       })
 
       if (res.ok) {
         const data = await res.json()
         toast({
-          title: 'Custom Order Created',
-          description: `Order ${data.orderNumber} has been created successfully.`,
+          title: editingOrder ? 'Order Updated' : 'Custom Order Created',
+          description: `Order ${data.orderNumber} has been ${editingOrder ? 'updated' : 'created'} successfully.`,
         })
         setShowCreateModal(false)
         resetCreateForm()
@@ -574,7 +701,7 @@ export default function AdminOrders() {
       } else {
         const err = await res.json()
         toast({
-          title: 'Creation Failed',
+          title: editingOrder ? 'Update Failed' : 'Creation Failed',
           description: err.error || 'Failed to create custom order.',
           variant: 'destructive',
         })
@@ -729,6 +856,9 @@ export default function AdminOrders() {
                         <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" disabled={isDemoMode} onClick={(event) => { event.stopPropagation(); handleEditOrder(order) }}>
+                          <Pencil className="h-4 w-4 mr-2" /> Edit
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                         </Button>
@@ -946,22 +1076,22 @@ export default function AdminOrders() {
       {/* ============================================================ */}
       {/* CREATE CUSTOM ORDER MODAL                                     */}
       {/* ============================================================ */}
-      <Dialog open={showCreateModal} onOpenChange={(open) => { if (!open) setShowCreateModal(false) }}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" id="create-custom-order-dialog">
+      <Dialog open={showCreateModal} onOpenChange={(open) => { if (!open && !creatingOrder) setShowCreateModal(false) }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden grid-cols-[minmax(0,1fr)] [&_input]:min-w-0 [&_select]:min-w-0 [&>div]:min-w-0" id="create-custom-order-dialog">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
+            <DialogTitle className="flex items-center gap-2 text-xl pr-6 break-words">
               <FileText className="h-5 w-5 text-primary" />
-              Create Custom Order
+              {editingOrder ? `Edit Order ${editingOrder.orderNumber}` : 'Create Custom Order'}
             </DialogTitle>
             <DialogDescription>
-              Create an offsite order for a customer. Fill in the order details across the steps below.
+              {editingOrder ? 'Update order details.' : 'Create an offsite order for a customer.'}
             </DialogDescription>
           </DialogHeader>
 
           {/* Step Indicator */}
           <div className="flex items-center gap-1 py-2">
             {steps.map((step, idx) => (
-              <div key={idx} className="flex items-center gap-1 flex-1">
+              <div key={idx} className="flex items-center gap-1 flex-1 min-w-0">
                 <button
                   onClick={() => {
                     // Allow going back freely, forward only if current step valid
@@ -969,7 +1099,7 @@ export default function AdminOrders() {
                     if (idx === 1 && isStep0Valid) setCreateStep(1)
                     if (idx === 2 && isStep0Valid && isStep1Valid) setCreateStep(2)
                   }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all w-full justify-center ${
+                  className={`flex flex-col sm:flex-row items-center gap-1.5 px-1 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all w-full min-w-0 justify-center ${
                     createStep === idx
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : createStep > idx
@@ -1039,7 +1169,7 @@ export default function AdminOrders() {
 
               {/* Manual custom item */}
               <div className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-5 space-y-1">
+                <div className="col-span-12 sm:col-span-5 min-w-0 space-y-1">
                   <Label htmlFor="co-manual-name" className="text-xs">Item Name</Label>
                   <Input
                     id="co-manual-name"
@@ -1048,7 +1178,7 @@ export default function AdminOrders() {
                     onChange={(e) => setManualName(e.target.value)}
                   />
                 </div>
-                <div className="col-span-3 space-y-1">
+                <div className="col-span-5 sm:col-span-3 min-w-0 space-y-1">
                   <Label htmlFor="co-manual-price" className="text-xs">Price ($)</Label>
                   <Input
                     id="co-manual-price"
@@ -1060,7 +1190,7 @@ export default function AdminOrders() {
                     onChange={(e) => setManualPrice(e.target.value)}
                   />
                 </div>
-                <div className="col-span-2 space-y-1">
+                <div className="col-span-3 sm:col-span-2 min-w-0 space-y-1">
                   <Label htmlFor="co-manual-qty" className="text-xs">Qty</Label>
                   <Input
                     id="co-manual-qty"
@@ -1070,7 +1200,7 @@ export default function AdminOrders() {
                     onChange={(e) => setManualQty(e.target.value)}
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-4 sm:col-span-2 min-w-0">
                   <Button size="sm" variant="outline" onClick={addManualItem} className="w-full gap-1">
                     <Plus className="h-3.5 w-3.5" /> Add
                   </Button>
@@ -1083,7 +1213,7 @@ export default function AdminOrders() {
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Order Items ({coItems.length})</Label>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {coItems.map((item) => (
-                      <div key={item.id} className="flex items-center gap-3 bg-muted/30 p-3 rounded-xl border">
+                      <div key={item.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-muted/30 p-3 rounded-xl border min-w-0">
                         <div className="h-10 w-10 rounded bg-muted overflow-hidden flex-shrink-0 border">
                           {item.image && item.image !== '/placeholder.svg' ? (
                             <img src={item.image} alt={item.name} className="object-cover w-full h-full" />
@@ -1093,14 +1223,19 @@ export default function AdminOrders() {
                             </div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 basis-[calc(100%-4rem)] sm:basis-0">
                           <div className="flex items-center gap-1.5">
                             <p className="text-sm font-semibold truncate">{item.name}</p>
                             {item.isCustom && (
                               <Badge variant="outline" className="text-[9px] px-1.5 py-0">Custom</Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">${item.price.toFixed(2)} each</p>
+                          {editingOrder ? (
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              <Input aria-label="Item name" value={item.name} onChange={e => setCoItems(items => items.map(i => i.id === item.id ? { ...i, name: e.target.value } : i))} className="h-8" />
+                              <Input aria-label="Item price" type="number" min="0" step="0.01" value={item.price} onChange={e => setCoItems(items => items.map(i => i.id === item.id ? { ...i, price: Number(e.target.value) } : i))} className="h-8 w-24" />
+                            </div>
+                          ) : <p className="text-xs text-muted-foreground">${item.price.toFixed(2)} each</p>}
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateItemQty(item.id, -1)}>
@@ -1111,7 +1246,7 @@ export default function AdminOrders() {
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
-                        <div className="text-sm font-bold text-primary w-20 text-right">
+                        <div className="text-sm font-bold text-primary min-w-0 flex-1 sm:flex-none sm:w-20 text-right break-all">
                           ${(item.price * item.quantity).toFixed(2)}
                         </div>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => removeItem(item.id)}>
@@ -1143,6 +1278,49 @@ export default function AdminOrders() {
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <User className="h-3.5 w-3.5" /> Customer Information
                 </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="co-customer-search" className="text-xs">Select Existing Customer</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="co-customer-search"
+                      placeholder="Search customers by name, username, or email..."
+                      value={customerSearch}
+                      onChange={(e) => {
+                        setSelectedCustomerId('')
+                        setCustomerSearch(e.target.value)
+                      }}
+                      className="pl-9"
+                    />
+                    {searchingCustomers && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                  </div>
+                  {customerResults.length > 0 && (
+                    <div className="border rounded-xl bg-card shadow-lg max-h-52 overflow-y-auto divide-y">
+                      {customerResults.map((customer) => {
+                        const address = customer.addresses?.find(item => item.isDefault) || customer.addresses?.[0]
+                        return (
+                          <button
+                            key={customer.id}
+                            type="button"
+                            onClick={() => applyCustomerToOrder(customer)}
+                            className="flex items-start gap-3 w-full p-3 text-left hover:bg-muted/50 transition-colors"
+                          >
+                            <User className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                            <span className="flex-1 min-w-0">
+                              <span className="block text-sm font-semibold truncate">{customer.name}</span>
+                              <span className="block text-xs text-muted-foreground truncate">{customer.email}</span>
+                              {address && (
+                                <span className="block text-[11px] text-muted-foreground truncate">
+                                  {address.city}, {address.state} {address.zip}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label htmlFor="co-cust-name" className="text-xs">Full Name <span className="text-destructive">*</span></Label>
@@ -1310,7 +1488,7 @@ export default function AdminOrders() {
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Customer</span>
-                    <span className="font-medium">{coCustomerName || '—'} ({coCustomerEmail || '—'})</span>
+                    <span className="font-medium min-w-0 text-right [overflow-wrap:anywhere]">{coCustomerName || '—'} ({coCustomerEmail || '—'})</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Items</span>
@@ -1318,7 +1496,7 @@ export default function AdminOrders() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Ship To</span>
-                    <span className="font-medium text-right">{coShipName ? `${coShipName}, ${coShipCity} ${coShipState}` : '—'}</span>
+                    <span className="font-medium min-w-0 text-right [overflow-wrap:anywhere]">{coShipName ? `${coShipName}, ${coShipCity} ${coShipState}` : '—'}</span>
                   </div>
                 </div>
 
@@ -1337,6 +1515,12 @@ export default function AdminOrders() {
                     <span className="text-muted-foreground">Tax</span>
                     <span>${coTaxNum.toFixed(2)}</span>
                   </div>
+                  {!!editingOrder?.discountAmount && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Discount</span>
+                      <span>-${editingOrder.discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between text-base font-bold text-primary pt-1">
                     <span>Total</span>
@@ -1348,7 +1532,7 @@ export default function AdminOrders() {
           )}
 
           {/* Footer Nav */}
-          <DialogFooter className="flex-row justify-between gap-2 sm:justify-between pt-2">
+          <DialogFooter className="flex-row flex-wrap justify-between gap-2 sm:justify-between pt-2">
             <div>
               {createStep > 0 && (
                 <Button variant="outline" onClick={() => setCreateStep(s => s - 1)}>
@@ -1357,7 +1541,7 @@ export default function AdminOrders() {
               )}
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+              <Button variant="ghost" disabled={creatingOrder} onClick={() => setShowCreateModal(false)}>Cancel</Button>
               {createStep < 2 ? (
                 <Button
                   disabled={createStep === 0 ? !isStep0Valid : !isStep1Valid}
@@ -1372,7 +1556,7 @@ export default function AdminOrders() {
                   className="gap-2"
                 >
                   {creatingOrder && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Create Order
+                  {editingOrder ? 'Save Changes' : 'Create Order'}
                 </Button>
               )}
             </div>

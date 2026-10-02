@@ -17,7 +17,7 @@ export async function GET() {
 
     if (!reviews.length) return NextResponse.json([])
 
-    const products = await Product.find({ _id: { $in: reviews.map((review) => review.productId) }, inStock: true })
+    const products = await Product.find({ _id: { $in: reviews.map((review) => review.productId) }, inStock: true, isDraft: { $ne: true }, status: 'active' })
       .select('name slug categoryId')
       .lean()
     const productById = new Map(products.map((product) => [String(product._id), product]))

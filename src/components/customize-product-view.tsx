@@ -17,9 +17,10 @@ import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { useCustomizationInsights } from '@/hooks/use-customization-insights'
 import type { JacketCustomization } from '@/types/jacket-customization'
 import type { ProductDetailData } from '@/components/product-detail-view'
-import { ArrowLeft, Heart, RefreshCw, Truck } from 'lucide-react'
+import { ArrowLeft, Heart, MessageCircle, RefreshCw, Truck, X } from 'lucide-react'
 
 const JacketCustomizer = dynamic(
   () => import('@/components/jacket-customizer').then((mod) => mod.JacketCustomizer),
@@ -76,6 +77,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [customizationFee, setCustomizationFee] = useState(0)
+  const insights = useCustomizationInsights(product.id)
 
   const addItem = useCartStore((state) => state.addItem)
   const setDirectOrderItem = useCartStore((state) => state.setDirectOrderItem)
@@ -88,8 +90,8 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   const isJacket = isJacketCategoryPath(categoryPath)
 
   useEffect(() => {
-    logUserActivity('view_product', { source: 'customize_page', productId: product.id, name: product.name })
-  }, [product.id, product.name])
+    logUserActivity('view_product', { source: 'customize_page', productId: product.id })
+  }, [product.id])
 
   useEffect(() => {
     void import('@/components/jacket-customizer')
@@ -132,10 +134,10 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   ) => {
     const item = buildOrderItem(extraVariants, extraFee, customization)
     addItem({ ...item, quantity })
+    insights.complete('add_to_cart')
     logUserActivity('add_to_cart', {
       source: 'customize_page',
       productId: product.id,
-      name: product.name,
       price: item.price,
       quantity,
       variants: item.variants,
@@ -151,10 +153,10 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   ) => {
     const item = buildOrderItem(extraVariants, extraFee, customization)
     setDirectOrderItem({ ...item, quantity: 1 })
+    insights.complete('buy_now')
     logUserActivity('begin_checkout', {
       source: 'customize_buy_now',
       productId: product.id,
-      name: product.name,
       price: item.price,
       quantity: 1,
       variants: item.variants,
@@ -164,6 +166,11 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
 
   const handleSelectVariant = (groupName: string, value: string, image?: string | null) => {
     setSelectedVariants((prev) => ({ ...prev, [groupName]: value }))
+    logUserActivity('product_option_selected', {
+      productId: product.id,
+      optionName: groupName,
+      optionValue: value,
+    })
     if (image) setOverrideImage(image)
   }
 
@@ -177,6 +184,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
       onClick={async () => {
         if (isInWishlist) {
           await removeFromWishlist(product.id, (session?.user as any)?.id)
+          logUserActivity('wishlist_changed', { productId: product.id, action: 'removed' })
         } else {
           await addToWishlist({
             productId: product.id,
@@ -185,6 +193,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
             image: product.images?.[0]?.url || '',
             slug: product.slug,
           }, (session?.user as any)?.id)
+          logUserActivity('wishlist_changed', { productId: product.id, action: 'added' })
         }
       }}
     >
@@ -279,7 +288,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
                 </div>
                 {sizeVariants.length > 0 && (
                   <div className="mt-4">
-                    <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} />
+                    <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} />
                   </div>
                 )}
               </div>
@@ -310,6 +319,8 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
               </div>
 
               <JacketCustomizer
+                onStepChange={insights.stepChanged}
+                onDifficulty={insights.difficulty}
                 product={product}
                 images={product.images}
                 selectedVariants={selectedVariants}
@@ -344,6 +355,16 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
         </div>
       </main>
       <Footer />
+      {insights.needsHelp && (
+        <div role="status" className="fixed bottom-24 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] rounded-md border bg-background p-4 shadow-lg">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-semibold">Need a hand with your jacket?</p>
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Dismiss help" onClick={insights.dismissHelp}><X className="h-4 w-4" /></Button>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">Send us a message about your design.</p>
+          <Button className="mt-3" onClick={insights.requestHelp}><MessageCircle className="mr-2 h-4 w-4" />Ask for help</Button>
+        </div>
+      )}
     </div>
   )
 }

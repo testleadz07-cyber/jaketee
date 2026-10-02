@@ -17,7 +17,8 @@ import { useCartStore } from '@/store/cart'
 import { useToast } from '@/hooks/use-toast'
 import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, X, Tag, MapPin, Plus, Check } from 'lucide-react'
 import { Breadcrumbs } from '@/components/breadcrumbs'
-import { getCustomizedViews, type JacketCustomization } from '@/types/jacket-customization'
+import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
+import { logUserActivity } from '@/lib/activity'
 
 interface SavedAddress {
   label: string
@@ -346,6 +347,7 @@ function CheckoutContent() {
             return data.id
           } catch (error) {
             console.error('Error creating PayPal order:', error)
+            logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_create_order_failed' })
             toast({ title: 'Checkout unavailable', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' })
             throw error
           }
@@ -377,6 +379,7 @@ function CheckoutContent() {
                 throw new Error('Order reference is missing. Contact support with your PayPal receipt.')
               }
             } else {
+              logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_capture_failed' })
               toast({
                 title: 'Payment Failed',
                 description: 'Failed to capture PayPal payment. Please try again.',
@@ -386,12 +389,14 @@ function CheckoutContent() {
             }
           } catch (error) {
             console.error('Error capturing PayPal payment:', error)
+            logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_capture_exception' })
             toast({ title: 'Order needs attention', description: error instanceof Error ? error.message : 'Contact support with your PayPal receipt.', variant: 'destructive' })
             setIsSubmittingOrder(false)
           }
         },
         onError: (err: any) => {
           console.error('PayPal Button Error:', err)
+          logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_button_error' })
           toast({
             title: 'Payment Error',
             description: 'An error occurred during the transaction. Please try again.',
@@ -408,6 +413,7 @@ function CheckoutContent() {
     setIsSubmittingOrder(true)
     
     if (!shippingName || !shippingEmail || !shippingStreet || !shippingCity || !shippingState || !shippingZip) {
+      logUserActivity('checkout_error', { checkoutStep: 'shipping', errorCode: 'missing_shipping_fields' })
       toast({
         title: 'Missing Fields',
         description: 'Please fill in all shipping details.',
@@ -457,6 +463,7 @@ function CheckoutContent() {
         }
       } else {
         const err = await res.json()
+        logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'stripe_checkout_failed' })
         toast({
           title: 'Stripe Initialization Failed',
           description: err.error || 'Failed to start Stripe checkout session.',
@@ -465,6 +472,7 @@ function CheckoutContent() {
         setIsSubmittingOrder(false)
       }
     } catch (error: any) {
+      logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'stripe_redirect_failed' })
       toast({
         title: 'Error',
         description: error.message || 'An unexpected error occurred.',
@@ -476,6 +484,7 @@ function CheckoutContent() {
 
   const handleNextStep = async () => {
     if (jacketCount !== 1) {
+      logUserActivity('checkout_error', { checkoutStep: 'shipping', errorCode: 'shipping_quote_required' })
       toast({ title: 'Shipping quote required', description: 'Contact us for shipping on two or more jackets before checkout.', variant: 'destructive' })
       return
     }
@@ -499,6 +508,7 @@ function CheckoutContent() {
       if (!zipVal) missingFields.push('ZIP Code')
 
       if (missingFields.length > 0) {
+        logUserActivity('checkout_error', { checkoutStep: 'shipping', errorCode: 'missing_shipping_fields' })
         toast({
           title: 'Missing Fields',
           description: `Please fill in: ${missingFields.join(', ')}`,
@@ -810,7 +820,7 @@ function CheckoutContent() {
                                   <div className="space-y-1 text-muted-foreground">
                                     {customizationSummary.map(({ view, details }) => (
                                       <p key={view}>
-                                        <span className="font-medium capitalize text-foreground">{view}:</span> {details.join(' | ')}
+                                        <span className="font-medium text-foreground">{getJacketViewLabel(view)}:</span> {details.join(' | ')}
                                       </p>
                                     ))}
                                   </div>
@@ -1018,7 +1028,7 @@ function CheckoutContent() {
                               <p className="font-semibold text-foreground">Customization</p>
                               {customizationSummary.map(({ view, details }) => (
                                 <p key={view}>
-                                  <span className="font-medium capitalize text-foreground">{view}:</span> {details.join(' | ')}
+                                  <span className="font-medium text-foreground">{getJacketViewLabel(view)}:</span> {details.join(' | ')}
                                 </p>
                               ))}
                             </div>

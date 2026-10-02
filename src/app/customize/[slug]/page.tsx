@@ -21,10 +21,10 @@ async function getCustomizeProduct(slug: string): Promise<ProductDetailData | nu
 
   let product: any = null
   if (mongoose.Types.ObjectId.isValid(slug)) {
-    product = await Product.findById(slug).populate('categoryId', 'name slug').lean()
+    product = await Product.findOne({ _id: slug, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
   }
   if (!product) {
-    product = await Product.findOne({ slug }).populate('categoryId', 'name slug').lean()
+    product = await Product.findOne({ slug, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
   }
   if (!product) return null
 

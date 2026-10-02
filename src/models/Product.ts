@@ -38,6 +38,8 @@ export interface IProduct extends Document {
   averageRating: number
   reviewCount: number
   isFeatured: boolean
+  isDraft: boolean
+  status: 'active' | 'inactive'
   inStock: boolean
   stockCount?: number
   tags: string[]
@@ -88,6 +90,8 @@ const ProductSchema = new Schema<IProduct>(
     averageRating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     isFeatured: { type: Boolean, default: false },
+    isDraft: { type: Boolean, default: false, index: true },
+    status: { type: String, enum: ['active', 'inactive'], default: 'active', index: true },
     inStock: { type: Boolean, default: true },
     stockCount: { type: Number, default: 100 },
     tags: { type: [String], default: [] },

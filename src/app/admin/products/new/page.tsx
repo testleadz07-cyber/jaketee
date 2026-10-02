@@ -119,6 +119,7 @@ export default function NewProduct() {
     categoryId: '',
     imageUrls: [] as string[],
     isFeatured: false,
+    status: 'active' as 'active' | 'inactive',
     inStock: true,
   })
 
@@ -129,6 +130,7 @@ export default function NewProduct() {
   const [measurementInput, setMeasurementInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [submitMode, setSubmitMode] = useState<'create' | 'draft' | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -155,11 +157,12 @@ export default function NewProduct() {
     ? isJacketCategoryPath(resolveAncestorChain(categoryNodes, formData.categoryId))
     : false
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent<HTMLButtonElement>, saveAsDraft = false) => {
     e.preventDefault()
     if (!formData.name || !formData.price || !formData.categoryId) return
 
     setSubmitting(true)
+    setSubmitMode(saveAsDraft ? 'draft' : 'create')
 
     // Generate unique-friendly slug from name
     const slug = formData.name
@@ -189,6 +192,8 @@ export default function NewProduct() {
       embroidery: isJacketCategory && embroidery.available ? embroidery : undefined,
       measurementFields: isJacketCategory ? measurementFields : [],
       isFeatured: formData.isFeatured,
+      status: formData.status,
+      isDraft: saveAsDraft,
       inStock: formData.inStock,
     }
 
@@ -199,6 +204,10 @@ export default function NewProduct() {
         body: JSON.stringify(payload),
       })
       if (res.ok) {
+        toast({
+          title: saveAsDraft ? 'Draft saved' : 'Product created',
+          description: saveAsDraft ? 'The product was saved as a draft and will stay hidden from the storefront.' : 'The product is now available in the catalog.',
+        })
         router.push('/admin/products')
       } else {
         const errorData = await res.json()
@@ -216,6 +225,7 @@ export default function NewProduct() {
       })
     } finally {
       setSubmitting(false)
+      setSubmitMode(null)
     }
   }
 
@@ -265,7 +275,7 @@ export default function NewProduct() {
               <CardTitle>Create New Product</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={(event) => handleSubmit(event)} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Product Name *</Label>
                   <Input
@@ -675,6 +685,23 @@ export default function NewProduct() {
                   </Label>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}
+                    disabled={submitting}
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex items-center space-x-4">
                   <Checkbox
                     id="inStock"
@@ -689,12 +716,26 @@ export default function NewProduct() {
 
                 <div className="flex gap-4 pt-4 border-t">
                   <Button type="submit" className="flex-1" disabled={submitting}>
-                    {submitting ? (
+                    {submitting && submitMode === 'create' ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <Save className="h-4 w-4 mr-2" />
                     )}
-                    {submitting ? 'Creating...' : 'Create Product'}
+                    {submitting && submitMode === 'create' ? 'Creating...' : 'Create Product'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="flex-1"
+                    disabled={submitting}
+                    onClick={(event) => handleSubmit(event, true)}
+                  >
+                    {submitting && submitMode === 'draft' ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {submitting && submitMode === 'draft' ? 'Saving...' : 'Save as Draft'}
                   </Button>
                   <Link href="/admin/products" className="flex-1">
                     <Button variant="outline" className="w-full" type="button" disabled={submitting}>

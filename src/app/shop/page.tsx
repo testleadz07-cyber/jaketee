@@ -48,7 +48,7 @@ export default async function Page({ searchParams }: {
   const categoryIds = category !== 'all'
     ? resolveDescendantIds(nodes, String(rawCategories.find((item) => item.slug === category)?._id ?? ''))
     : null
-  const filter: Record<string, unknown> = { inStock: true }
+  const filter: Record<string, unknown> = { inStock: true, isDraft: { $ne: true }, status: 'active' }
   if (categoryIds) filter.categoryId = { $in: categoryIds }
   if (search?.trim()) {
     const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -67,7 +67,7 @@ export default async function Page({ searchParams }: {
       .lean(),
     ProductModel.countDocuments(filter),
     ProductModel.aggregate([
-      { $match: { inStock: true } },
+      { $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } },
       { $group: { _id: '$categoryId', count: { $sum: 1 } } },
     ]),
   ])

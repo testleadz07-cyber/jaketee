@@ -22,6 +22,7 @@ import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { getWhatsAppUrl } from '@/lib/whatsapp'
+import { logUserActivity } from '@/lib/activity'
 
 const whatsappUrl = getWhatsAppUrl("Hi! I have a question about my order.")
 
@@ -180,7 +181,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Email</h3>
-                      <a href="mailto:info@jacketee.com" className="text-muted-foreground transition-colors hover:text-primary">
+                      <a href="mailto:info@jacketee.com" onClick={() => logUserActivity('contact_button_clicked', { channel: 'email' })} className="text-muted-foreground transition-colors hover:text-primary">
                         info@jacketee.com
                       </a>
                     </div>
@@ -192,7 +193,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Phone</h3>
-                      <a href="tel:+923187328027" className="text-muted-foreground transition-colors hover:text-primary">
+                      <a href="tel:+923187328027" onClick={() => logUserActivity('contact_button_clicked', { channel: 'phone' })} className="text-muted-foreground transition-colors hover:text-primary">
                         +923187328027
                       </a>
                     </div>
@@ -211,6 +212,7 @@ export default function ContactPage() {
                           href={whatsappUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => logUserActivity('contact_button_clicked', { channel: 'whatsapp' })}
                           className="text-muted-foreground hover:text-primary transition-colors"
                         >
                           Message us directly

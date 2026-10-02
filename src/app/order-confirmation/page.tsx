@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { ShoppingBag, CheckCircle, Package, ArrowRight, Calendar, MapPin, CreditCard, Download } from 'lucide-react'
 import Link from 'next/link'
-import { getCustomizedViews, type JacketCustomization } from '@/types/jacket-customization'
+import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
 import { useCartStore } from '@/store/cart'
 
 interface OrderItem {
@@ -252,7 +252,7 @@ function ConfirmationContent() {
                       </p>
                       {getCustomizedViews(item.customization).map((view) => (
                         <p key={view} className="text-xs text-muted-foreground">
-                          {view[0].toUpperCase()}{view.slice(1)}: {item.customization?.[view]?.text?.value || ''}
+                          {getJacketViewLabel(view)}: {item.customization?.[view]?.text?.value || ''}
                           {item.customization?.[view]?.artworks?.length
                             ? `${item.customization?.[view]?.text?.value ? ' + ' : ''}${item.customization[view]?.artworks?.map((artwork) => artwork.name).join(', ')}`
                             : ''}

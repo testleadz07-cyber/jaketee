@@ -10,6 +10,7 @@ import { useSession } from 'next-auth/react'
 import { useWishlistStore } from '@/store/wishlist'
 import { buildProductUrl } from '@/lib/categories'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
+import { logUserActivity } from '@/lib/activity'
 
 interface ProductCardProps {
   product: {
@@ -28,9 +29,10 @@ interface ProductCardProps {
     categoryPath?: Array<{ name: string; slug: string }>
     isFeatured: boolean
   }
+  listingPosition?: number
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, listingPosition }: ProductCardProps) {
   const { data: session } = useSession()
   const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id))
   const addToWishlist = useWishlistStore((state) => state.addItem)
@@ -46,8 +48,16 @@ export function ProductCard({ product }: ProductCardProps) {
         )
       : 0
 
+  const logListingClick = () => {
+    logUserActivity('product_listing_click', {
+      productId: product.id,
+      category: product.category?.slug || 'uncategorized',
+      listingPosition: listingPosition ?? null,
+    })
+  }
+
   return (
-    <Link href={buildProductUrl(product)}>
+    <Link href={buildProductUrl(product)} onClick={logListingClick}>
       <div className="interactive-lift h-full">
         <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer shadow-sm">
           <div className="relative aspect-square overflow-hidden bg-muted">
@@ -71,6 +81,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 e.stopPropagation()
                 if (isInWishlist) {
                   await removeFromWishlist(product.id, (session?.user as any)?.id)
+                  logUserActivity('wishlist_changed', { productId: product.id, action: 'removed' })
                 } else {
                   await addToWishlist({
                     productId: product.id,
@@ -79,6 +90,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     image: product.images[0]?.url || '',
                     slug: product.slug,
                   }, (session?.user as any)?.id)
+                  logUserActivity('wishlist_changed', { productId: product.id, action: 'added' })
                 }
               }}
             >

@@ -1,4 +1,5 @@
-export type JacketView = 'front' | 'back'
+export const JACKET_VIEWS = ['front', 'back', 'leftSleeve', 'rightSleeve'] as const
+export type JacketView = (typeof JACKET_VIEWS)[number]
 export type JacketFontStyle = 'varsity' | 'block' | 'classic' | 'script' | 'sans' | 'serif'
 
 export interface JacketTextCustomization {
@@ -31,11 +32,13 @@ export interface JacketSideCustomization {
 export interface JacketCustomization {
   front?: JacketSideCustomization
   back?: JacketSideCustomization
+  leftSleeve?: JacketSideCustomization
+  rightSleeve?: JacketSideCustomization
 }
 
 export function hasJacketCustomization(customization?: JacketCustomization | null) {
   if (!customization) return false
-  return (['front', 'back'] as const).some((view) => {
+  return JACKET_VIEWS.some((view) => {
     const side = customization[view]
     return Boolean(side?.text?.value.trim() || side?.artworks?.length)
   })
@@ -43,8 +46,14 @@ export function hasJacketCustomization(customization?: JacketCustomization | nul
 
 export function getCustomizedViews(customization?: JacketCustomization | null) {
   if (!customization) return []
-  return (['front', 'back'] as const).filter((view) => {
+  return JACKET_VIEWS.filter((view) => {
     const side = customization[view]
     return Boolean(side?.text?.value.trim() || side?.artworks?.length)
   })
+}
+
+export function getJacketViewLabel(view: JacketView) {
+  if (view === 'leftSleeve') return 'Left sleeve'
+  if (view === 'rightSleeve') return 'Right sleeve'
+  return view[0].toUpperCase() + view.slice(1)
 }

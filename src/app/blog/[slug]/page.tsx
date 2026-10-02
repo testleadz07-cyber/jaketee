@@ -30,7 +30,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       ? BlogCategory.find({ _id: { $in: categoryIds } }).select('name slug').lean()
       : [],
     productIds.length
-      ? Product.find({ _id: { $in: productIds } })
+      ? Product.find({ _id: { $in: productIds }, isDraft: { $ne: true }, status: 'active' })
           .select('name slug categoryId price compareAtPrice compareAtPriceVerified images averageRating')
           .lean()
       : [],

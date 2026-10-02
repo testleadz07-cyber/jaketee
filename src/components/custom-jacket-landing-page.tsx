@@ -28,7 +28,7 @@ async function getProducts(categorySlug: string) {
       const category = categories.find((item) => item.slug === categorySlug)
       if (!category) return []
       const ids = resolveDescendantIds(categories, category._id)
-      const products = await Product.find({ categoryId: { $in: ids }, inStock: true })
+      const products = await Product.find({ categoryId: { $in: ids }, inStock: true, isDraft: { $ne: true }, status: 'active' })
         .sort({ isFeatured: -1, createdAt: -1 })
         .limit(8)
         .lean()

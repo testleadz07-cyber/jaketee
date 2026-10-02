@@ -49,6 +49,8 @@ function isUsableImage(value: unknown): value is string {
 export const getBlogImageCandidates = cache(async (): Promise<BlogImageCandidate[]> => {
   const products = await Product.find({
     inStock: true,
+    isDraft: { $ne: true },
+    status: 'active',
     'images.0.url': { $exists: true, $nin: ['', null] },
   })
     .select('name slug tags images isFeatured')

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { BadgeCheck, Factory, Loader2, LockKeyhole, RotateCcw, Send, Star } from 'lucide-react'
 import Link from 'next/link'
+import { FaFacebookF, FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -59,6 +60,29 @@ const customJacketLinks: FooterLink[] = [
   { href: '/bulk-orders/senior-class', label: 'Senior Class Jackets' },
   { href: '/bulk-orders/sorority-fraternity', label: 'Sorority & Fraternity Jackets' },
   { href: '/bulk-orders/cheer', label: 'Custom Cheer Jackets' },
+]
+
+const socialLinks = [
+  {
+    href: 'https://www.facebook.com/jacketeeofficial',
+    label: 'Follow Jacketee on Facebook',
+    icon: FaFacebookF,
+  },
+  {
+    href: 'https://www.instagram.com/jack_etee/',
+    label: 'Follow Jacketee on Instagram',
+    icon: FaInstagram,
+  },
+  {
+    href: 'https://www.tiktok.com/@jacketeeofficial',
+    label: 'Follow Jacketee on TikTok',
+    icon: FaTiktok,
+  },
+  {
+    href: 'https://www.youtube.com/@jacketeeofficial',
+    label: 'Follow Jacketee on YouTube',
+    icon: FaYoutube,
+  },
 ]
 
 export function Footer() {
@@ -223,6 +247,20 @@ export function Footer() {
             <p className="text-sm leading-relaxed text-muted-foreground">
               Custom jackets, patches, embroidery, and team apparel made for standout everyday wear.
             </p>
+            <div className="flex items-center gap-2" aria-label="Social media links">
+              {socialLinks.map(({ href, label, icon: Icon }) => (
+                <a
+                  key={href}
+                  href={href}
+                  aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </a>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-3 lg:order-5">

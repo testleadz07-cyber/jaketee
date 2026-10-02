@@ -4,10 +4,13 @@ import Link from 'next/link'
 import { Ruler } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { logUserActivity } from '@/lib/activity'
 
-export function JacketSizeGuide({ sizes = [] }: { sizes?: string[] }) {
+export function JacketSizeGuide({ sizes = [], productId }: { sizes?: string[], productId?: string }) {
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => {
+      if (open) logUserActivity('size_guide_opened', { productId: productId || null })
+    }}>
       <DialogTrigger asChild>
         <Button type="button" variant="link" size="sm" className="h-auto px-0 text-sm font-semibold underline-offset-4">
           <Ruler className="mr-1.5 h-4 w-4" />Size guide

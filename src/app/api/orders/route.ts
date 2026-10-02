@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
     const {
       customerName,
       customerEmail,
+      userId,
       items,
       shippingAddress,
       paymentMethod,
@@ -157,6 +158,7 @@ export async function POST(request: NextRequest) {
 
     const order = await Order.create({
       orderNumber,
+      userId: userId || undefined,
       userEmail: customerEmail,
       userName: customerName,
       items: formattedItems,

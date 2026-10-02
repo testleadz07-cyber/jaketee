@@ -70,7 +70,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
       faqs.push({ id: `guide-${faqs.length}`, question: item.question, answer: [item.answer], bullets: [], ordered: [], href: item.href } as any)
     }
 
-    const products = await Product.find({ categoryId: { $in: descendantIds } }, '_id name slug categoryId').lean()
+    const products = await Product.find({ categoryId: { $in: descendantIds }, isDraft: { $ne: true }, status: 'active' }, '_id name slug categoryId').lean()
     const productIds = products.map((product: any) => product._id)
     let reviewCount = 0
     let averageRating = 0

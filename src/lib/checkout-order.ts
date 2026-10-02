@@ -119,7 +119,7 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     throw new CheckoutError('Invalid checkout item')
   }
   const product = await Product.findById(input.productId).lean()
-  if (!product || !product.inStock || Number(product.stockCount) < 1) {
+  if (!product || product.status !== 'active' || !product.inStock || Number(product.stockCount) < 1) {
     throw new CheckoutError('This jacket is no longer available', 409)
   }
 

@@ -19,7 +19,7 @@ export async function GET() {
     }))
 
     const counts = await Product.aggregate([
-      { $match: { inStock: true } },
+      { $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } },
       { $group: { _id: '$categoryId', count: { $sum: 1 } } },
     ])
     const countByCategoryId = new Map<string, number>(

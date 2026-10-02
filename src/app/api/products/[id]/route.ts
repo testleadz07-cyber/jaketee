@@ -18,12 +18,16 @@ export async function GET(
       return NextResponse.json({ error: 'Database not connected' }, { status: 503 })
     }
 
+    const session = await getServerSession(authOptions)
+    const canViewDrafts = session?.user && (session.user as any).role === 'admin'
+    const visibilityFilter = canViewDrafts ? {} : { isDraft: { $ne: true }, status: 'active' }
+
     let product
     if (mongoose.Types.ObjectId.isValid(id)) {
-      product = await Product.findById(id).populate('categoryId', 'name slug').lean()
+      product = await Product.findOne({ _id: id, ...visibilityFilter }).populate('categoryId', 'name slug').lean()
     }
     if (!product) {
-      product = await Product.findOne({ slug: id }).populate('categoryId', 'name slug').lean()
+      product = await Product.findOne({ slug: id, ...visibilityFilter }).populate('categoryId', 'name slug').lean()
     }
 
     if (!product) {
@@ -91,6 +95,8 @@ export async function PUT(
       embroidery: body.embroidery || undefined,
       measurementFields: body.measurementFields || [],
       isFeatured: body.isFeatured,
+      isDraft: Boolean(body.isDraft),
+      status: body.status === 'inactive' ? 'inactive' : 'active',
       inStock: body.inStock,
       stockCount: body.stockCount || 100,
     }, { returnDocument: 'after' }).lean()

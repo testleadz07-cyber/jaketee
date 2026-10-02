@@ -110,10 +110,10 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
   let product: any = null
   if (db) {
     if (mongoose.Types.ObjectId.isValid(lastSegment)) {
-      product = await Product.findById(lastSegment).populate('categoryId', 'name slug').lean()
+      product = await Product.findOne({ _id: lastSegment, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
     }
     if (!product) {
-      product = await Product.findOne({ slug: lastSegment }).populate('categoryId', 'name slug').lean()
+      product = await Product.findOne({ slug: lastSegment, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
     }
   }
   if (!product) {

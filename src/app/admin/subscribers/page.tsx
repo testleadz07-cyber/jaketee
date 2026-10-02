@@ -156,52 +156,6 @@ export default function AdminSubscribersPage() {
 
   return (
     <div className="min-h-screen bg-muted/10 flex flex-col">
-      {/* Header */}
-      <header className="border-b bg-background sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="icon">
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <h1 className="text-2xl font-bold tracking-tight">Jacketee Admin</h1>
-            </div>
-            <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-              <span className="text-sm text-muted-foreground hidden md:inline">
-                Logged in as <span className="font-semibold text-foreground">{session.user?.email}</span>
-              </span>
-              <Button variant="outline" size="sm" onClick={() => router.push('/api/auth/signout')}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Sub Navigation */}
-      <nav className="bg-background border-b py-2 sticky top-[73px] z-10">
-        <div className="container mx-auto px-4 flex gap-2 overflow-x-auto">
-          <Link href="/admin/dashboard"><Button variant="ghost" size="sm">Dashboard</Button></Link>
-          <Link href="/admin/products"><Button variant="ghost" size="sm">Products</Button></Link>
-          <Link href="/admin/categories"><Button variant="ghost" size="sm">Categories</Button></Link>
-          <Link href="/admin/orders"><Button variant="ghost" size="sm">Orders</Button></Link>
-          <Link href="/admin/users"><Button variant="ghost" size="sm">Users</Button></Link>
-          <Link href="/admin/guest-activity"><Button variant="ghost" size="sm">Guest Activity</Button></Link>
-          <Link href="/admin/notifications"><Button variant="ghost" size="sm">Notifications</Button></Link>
-          <Link href="/admin/subscribers"><Button variant="secondary" size="sm">Subscribers</Button></Link>
-          <Link href="/admin/contact-messages"><Button variant="ghost" size="sm">Contact Messages</Button></Link>
-          <Link href="/admin/reviews"><Button variant="ghost" size="sm">Reviews</Button></Link>
-          <Link href="/admin/discounts"><Button variant="ghost" size="sm">Discounts</Button></Link>
-          <Link href="/admin/bulk-editor"><Button variant="ghost" size="sm">Bulk Editor</Button></Link>
-          <Link href="/admin/tags"><Button variant="ghost" size="sm">Tags</Button></Link>
-          <Link href="/admin/refunds"><Button variant="ghost" size="sm">Refunds</Button></Link>
-          <Link href="/admin/blog"><Button variant="ghost" size="sm">Blog</Button></Link>
-          <Link href="/admin/faqs"><Button variant="ghost" size="sm">FAQs</Button></Link>
-          </div>
-      </nav>
 
       {/* Main Body */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">

@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
         isActive: u.isActive !== false,
         phone: u.phone || null,
         avatar: u.avatar || null,
+        addresses: Array.isArray(u.addresses) ? u.addresses : [],
         createdAt: u.createdAt,
         orderCount: stats?.orderCount || 0,
         totalSpent: stats?.totalSpent || 0,

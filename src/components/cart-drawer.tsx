@@ -21,7 +21,8 @@ import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Tag, X, Loader2 } from 
 import { fulfillmentConfig } from '@/config/fulfillment'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getCustomizedViews } from '@/types/jacket-customization'
+import { getCustomizedViews, getJacketViewLabel } from '@/types/jacket-customization'
+import { logUserActivity } from '@/lib/activity'
 
 const subscribeToHydration = () => () => undefined
 
@@ -110,7 +111,13 @@ export function CartDrawer() {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button variant="outline" size="icon" className="relative" aria-label={`Open shopping cart with ${visibleItemCount} items`}>
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative"
+          aria-label={`Open shopping cart with ${visibleItemCount} items`}
+          onClick={() => logUserActivity('cart_viewed', { itemCount: visibleItemCount, total, currency: 'USD' })}
+        >
           <ShoppingBag className="h-5 w-5" />
           {visibleItems.length > 0 && (
             <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
@@ -164,8 +171,8 @@ export function CartDrawer() {
                     {item.customization && (
                       <div className="text-xs font-medium text-primary">
                         {getCustomizedViews(item.customization).map((view) => (
-                          <p key={view} className="capitalize">
-                            {view}: {item.customization?.[view]?.text?.value || ''}
+                          <p key={view}>
+                            {getJacketViewLabel(view)}: {item.customization?.[view]?.text?.value || ''}
                             {item.customization?.[view]?.artworks?.length ? `${item.customization?.[view]?.text?.value ? ' + ' : ''}${item.customization[view]?.artworks?.length} artwork piece${item.customization[view]!.artworks!.length === 1 ? '' : 's'}` : ''}
                           </p>
                         ))}
@@ -206,7 +213,10 @@ export function CartDrawer() {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => {
+                          logUserActivity('cart_item_removed', { productId: item.productId, quantity: item.quantity })
+                          removeItem(item.id)
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
