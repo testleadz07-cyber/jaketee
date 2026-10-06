@@ -10,7 +10,7 @@ The storefront uses these optional environment variables:
 
 Confirmed shipping rules shown to customers:
 
-- One jacket: $30 USD shipping.
+- One jacket: $45 USD shipping, defined by `STANDARD_SHIPPING_USD` in `src/config/fulfillment.ts`.
 - Two or more jackets: quote required based on quantity and package weight.
 - Free shipping: only when an eligible free-shipping coupon is accepted at checkout.
 - United States, United Kingdom, and Canada: timing varies by destination and customs processing; the service, charge, and current estimate are confirmed for the destination.

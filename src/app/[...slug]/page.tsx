@@ -233,7 +233,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         shippingDetails: {
           '@type': 'OfferShippingDetails',
           shippingLabel: 'One-jacket standard shipping',
-          shippingRate: { '@type': 'MonetaryAmount', value: '30.00', currency: 'USD' },
+          shippingRate: { '@type': 'MonetaryAmount', value: '45.00', currency: 'USD' },
           shippingDestination: ['US', 'GB', 'CA'].map((country) => ({ '@type': 'DefinedRegion', addressCountry: country })),
         },
         hasMerchantReturnPolicy: {

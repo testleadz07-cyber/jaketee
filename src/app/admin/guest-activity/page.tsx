@@ -29,7 +29,17 @@ import {
   Loader2,
   Users as UsersIcon,
   Search,
+  BarChart as BarChartIcon,
+  Activity,
+  MousePointerClick,
+  FileText,
+  CalendarDays,
+  Globe,
+  Clock,
 } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface GuestActivityRow {
   id: string
@@ -44,6 +54,19 @@ interface GuestActivityRow {
   createdAt: string
 }
 
+interface GuestStatsData {
+  actions: { name: string; value: number }[]
+  pages: { name: string; value: number }[]
+  timeline: { date: string; count: number }[]
+  totalActivities: number
+  uniqueActions: number
+  uniquePages: number
+  uniqueDays: number
+  firstSeen: string | null
+  lastSeen: string | null
+  countries: string[]
+}
+
 const renderActivityDetails = (activity: GuestActivityRow) => {
   const details = activity.details
   if (!details) return <span className="text-xs text-muted-foreground">N/A</span>
@@ -56,6 +79,290 @@ const renderActivityDetails = (activity: GuestActivityRow) => {
 
 const formatActionName = (action: string) =>
   action.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+
+const CHART_COLORS = [
+  '#6366f1', '#22c55e', '#f59e0b', '#ef4444',
+  '#3b82f6', '#ec4899', '#14b8a6', '#a855f7',
+  '#f97316', '#06b6d4', '#84cc16', '#e11d48',
+]
+
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr + 'T00:00:00')
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+const formatDateFull = (dateStr: string) => {
+  const d = new Date(dateStr + 'T00:00:00')
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const formatDateTime = (dateStr: string) => {
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+const formatPageName = (name: string) => {
+  if (name === 'Unknown') return 'Unknown'
+  // Strip leading slash and truncate
+  const clean = name.startsWith('/') ? name.slice(1) : name
+  if (clean === '') return 'Home Page'
+  return clean.length > 22 ? clean.substring(0, 22) + '…' : clean
+}
+
+/* ── Custom Tooltip Components ─────────────────────── */
+
+const TimelineTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg border bg-background px-3 py-2 shadow-lg">
+      <p className="text-xs font-medium text-muted-foreground mb-1">{formatDateFull(label)}</p>
+      <p className="text-sm font-semibold">
+        {payload[0].value} {payload[0].value === 1 ? 'event' : 'events'}
+      </p>
+    </div>
+  )
+}
+
+const PieTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null
+  const item = payload[0]
+  return (
+    <div className="rounded-lg border bg-background px-3 py-2 shadow-lg">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.payload.fill }} />
+        <span className="text-xs font-medium">{formatActionName(item.name)}</span>
+      </div>
+      <p className="text-sm font-semibold">{item.value} events</p>
+    </div>
+  )
+}
+
+const BarTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg border bg-background px-3 py-2 shadow-lg max-w-xs">
+      <p className="text-xs font-medium text-muted-foreground mb-1 break-all">{label}</p>
+      <p className="text-sm font-semibold">{payload[0].value} visits</p>
+    </div>
+  )
+}
+
+/* ── Custom Pie Chart Label ───────────────────────── */
+
+const renderPieLabel = ({ name, percent }: any) => {
+  if (percent < 0.05) return null
+  return `${(percent * 100).toFixed(0)}%`
+}
+
+/* ── Custom Legend ────────────────────────────────── */
+
+const PieLegend = ({ payload }: any) => {
+  if (!payload?.length) return null
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center pt-2">
+      {payload.map((entry: any, index: number) => (
+        <div key={index} className="flex items-center gap-1.5 text-xs">
+          <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+          <span className="text-muted-foreground">{formatActionName(entry.value)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ── Summary Card ─────────────────────────────────── */
+
+function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string | number; sub?: string }) {
+  return (
+    <div className="flex items-start gap-3 p-3 rounded-lg border bg-card">
+      <div className="rounded-md bg-primary/10 p-2">
+        <Icon className="h-4 w-4 text-primary" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-lg font-bold leading-tight">{value}</p>
+        {sub && <p className="text-[10px] text-muted-foreground truncate">{sub}</p>}
+      </div>
+    </div>
+  )
+}
+
+/* ── Main Dialog ──────────────────────────────────── */
+
+function GuestStatsDialog({ guestId, open, onOpenChange }: { guestId: string | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<GuestStatsData | null>(null)
+
+  useEffect(() => {
+    if (open && guestId) {
+      setLoading(true)
+      fetch(`/api/admin/guest-activity/stats?guestId=${guestId}`)
+        .then((res) => res.json())
+        .then((d) => { setData(d); setLoading(false) })
+        .catch((err) => { console.error(err); setLoading(false) })
+    } else {
+      setData(null)
+    }
+  }, [open, guestId])
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-7xl w-[150vw] max-h-[92vh] overflow-y-auto p-0">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b px-6 py-4">
+          <DialogHeader>
+            <DialogTitle className="text-lg flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              Guest Activity Overview
+            </DialogTitle>
+            <DialogDescription className="flex items-center gap-1.5">
+              <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{guestId}</span>
+              {data && data.countries.length > 0 && (
+                <span className="text-xs flex items-center gap-1 ml-2">
+                  <Globe className="h-3 w-3" /> {data.countries.join(', ')}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        <div className="px-6 pb-6 space-y-6">
+          {loading ? (
+            <div className="py-16 flex flex-col items-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Loading activity data…</p>
+            </div>
+          ) : data ? (
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-2">
+                <StatCard icon={Activity} label="Total Events" value={data.totalActivities} />
+                <StatCard icon={MousePointerClick} label="Unique Actions" value={data.uniqueActions} />
+                <StatCard icon={FileText} label="Pages Visited" value={data.uniquePages} />
+                <StatCard icon={CalendarDays} label="Active Days" value={data.uniqueDays} />
+                <StatCard
+                  icon={Clock}
+                  label="First Seen"
+                  value={data.firstSeen ? formatDateTime(data.firstSeen).split(',')[0] : 'N/A'}
+                  sub={data.lastSeen ? `Last: ${formatDateTime(data.lastSeen)}` : undefined}
+                />
+              </div>
+
+              {/* Charts in Tabs for mobile, grid for desktop */}
+              <Tabs defaultValue="timeline" className="w-full">
+                <TabsList className="w-full grid grid-cols-3">
+                  <TabsTrigger value="timeline" className="text-xs sm:text-sm">📈 Timeline</TabsTrigger>
+                  <TabsTrigger value="actions" className="text-xs sm:text-sm">🎯 Actions</TabsTrigger>
+                  <TabsTrigger value="pages" className="text-xs sm:text-sm">📄 Pages</TabsTrigger>
+                </TabsList>
+
+                {/* ── Timeline ── */}
+                <TabsContent value="timeline" className="mt-4">
+                  <div className="border rounded-xl p-5 bg-card shadow-sm">
+                    <h3 className="font-semibold text-sm mb-1">Activity Over Time</h3>
+                    <p className="text-xs text-muted-foreground mb-4">Daily event count for this guest</p>
+                    {data.timeline.length > 0 ? (
+                      <div className="h-96">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={data.timeline} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                            <defs>
+                              <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <XAxis dataKey="date" fontSize={11} tickMargin={10} tickFormatter={formatDate} stroke="hsl(var(--muted-foreground))" />
+                            <YAxis fontSize={11} allowDecimals={false} stroke="hsl(var(--muted-foreground))" />
+                            <RechartsTooltip content={<TimelineTooltip />} />
+                            <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 4, fill: '#6366f1', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">No timeline data</div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* ── Actions Breakdown ── */}
+                <TabsContent value="actions" className="mt-4">
+                  <div className="border rounded-xl p-5 bg-card shadow-sm">
+                    <h3 className="font-semibold text-sm mb-1">Action Breakdown</h3>
+                    <p className="text-xs text-muted-foreground mb-4">Distribution of action types performed</p>
+                    {data.actions.length > 0 ? (
+                      <div className="h-[420px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={data.actions}
+                              dataKey="value"
+                              nameKey="name"
+                              cx="50%"
+                              cy="45%"
+                              outerRadius={140}
+                              innerRadius={70}
+                              paddingAngle={2}
+                              label={renderPieLabel}
+                              labelLine={false}
+                            >
+                              {data.actions.map((_entry, index) => (
+                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip content={<PieTooltip />} />
+                            <Legend content={<PieLegend />} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">No action data</div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* ── Top Pages ── */}
+                <TabsContent value="pages" className="mt-4">
+                  <div className="border rounded-xl p-5 bg-card shadow-sm">
+                    <h3 className="font-semibold text-sm mb-1">Top Pages Visited</h3>
+                    <p className="text-xs text-muted-foreground mb-4">Most frequently viewed pages (top 10)</p>
+                    {data.pages.length > 0 ? (
+                      <div style={{ height: Math.max(300, data.pages.length * 48 + 60) }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={data.pages} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                            <XAxis type="number" fontSize={11} allowDecimals={false} stroke="hsl(var(--muted-foreground))" />
+                            <YAxis
+                              dataKey="name"
+                              type="category"
+                              fontSize={11}
+                              width={140}
+                              tickFormatter={formatPageName}
+                              stroke="hsl(var(--muted-foreground))"
+                            />
+                            <RechartsTooltip content={<BarTooltip />} />
+                            <Bar dataKey="value" fill="#22c55e" radius={[0, 6, 6, 0]} barSize={28} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ) : (
+                      <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">No page data</div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </>
+          ) : (
+            <div className="py-16 text-center text-muted-foreground">
+              <Activity className="h-10 w-10 mx-auto mb-3 opacity-40" />
+              <p>No activity data available for this guest.</p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export default function AdminGuestActivityPage() {
   const { data: session, status } = useSession()
@@ -73,6 +380,7 @@ export default function AdminGuestActivityPage() {
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [limit, setLimit] = useState(20)
+  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -216,6 +524,7 @@ export default function AdminGuestActivityPage() {
                   <TableHead>City</TableHead>
                   <TableHead>IP</TableHead>
                   <TableHead>User Agent</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -251,12 +560,19 @@ export default function AdminGuestActivityPage() {
                         {activity.userAgent || 'N/A'}
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedGuestId(activity.guestId)} title="View Graphs">
+                        <BarChartIcon className="h-4 w-4 text-primary" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
         )}
+
+        <GuestStatsDialog guestId={selectedGuestId} open={!!selectedGuestId} onOpenChange={(open) => !open && setSelectedGuestId(null)} />
 
         {total > 0 && (
           <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">

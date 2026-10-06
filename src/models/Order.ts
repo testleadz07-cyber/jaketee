@@ -49,6 +49,29 @@ export interface IOrder extends Document {
   updatedAt: Date
 }
 
+const JacketSideSchema = new Schema({
+  text: {
+    value: String,
+    color: String,
+    fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
+    size: Number,
+    x: Number,
+    y: Number,
+  },
+  artworks: [{
+    id: String,
+    source: { type: String, enum: ['catalog', 'upload'] },
+    catalogId: String,
+    url: String,
+    name: String,
+    color: String,
+    fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
+    widthInches: Number,
+    x: Number,
+    y: Number,
+  }],
+}, { _id: false })
+
 const OrderItemSchema = new Schema<IOrderItem>(
   {
     productId: { type: String, required: true },
@@ -58,49 +81,16 @@ const OrderItemSchema = new Schema<IOrderItem>(
     quantity: { type: Number, required: true },
     variants: [{ name: String, value: String }],
     customization: {
-      front: {
-      text: {
-        value: String,
-        color: String,
-        fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
-        size: Number,
-        x: Number,
-        y: Number,
-      },
-      artworks: [{
-        id: String,
-        source: { type: String, enum: ['catalog', 'upload'] },
-        catalogId: String,
-        url: String,
-        name: String,
-        color: String,
-        fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
-        widthInches: Number,
-        x: Number,
-        y: Number,
-      }],
-      },
-      back: {
-        text: {
-          value: String,
-          color: String,
-          fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
-          size: Number,
-          x: Number,
-          y: Number,
-        },
-        artworks: [{
-          id: String,
-          source: { type: String, enum: ['catalog', 'upload'] },
-          catalogId: String,
-          url: String,
-          name: String,
-          color: String,
-          fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
-          widthInches: Number,
-          x: Number,
-          y: Number,
-        }],
+      front: JacketSideSchema,
+      back: JacketSideSchema,
+      leftSleeve: JacketSideSchema,
+      rightSleeve: JacketSideSchema,
+      snapshotUrl: String,
+      snapshots: {
+        front: String,
+        back: String,
+        leftSleeve: String,
+        rightSleeve: String,
       },
     },
   },

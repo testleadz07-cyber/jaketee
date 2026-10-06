@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { getOrderPaymentStatus } from '@/lib/order-payment-status'
 
 export async function GET(
   request: NextRequest,
@@ -33,7 +34,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    return NextResponse.json({ ...order, id: String((order as any)._id) })
+    return NextResponse.json({ ...order, paymentStatus: getOrderPaymentStatus(order as any), id: String((order as any)._id) })
   } catch (error: any) {
     console.error('Order fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch order' }, { status: 500 })

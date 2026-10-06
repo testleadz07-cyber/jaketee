@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import crypto from 'crypto'
+import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+import { getOrderPaymentStatus } from '@/lib/order-payment-status'
 
 export async function GET(request: NextRequest) {
   try {
@@ -60,13 +62,13 @@ export async function GET(request: NextRequest) {
         .skip((page - 1) * limit)
         .limit(limit)
         .lean()
-      return NextResponse.json(orders, {
+      return NextResponse.json(orders.map((order: any) => ({ ...order, paymentStatus: getOrderPaymentStatus(order) })), {
         headers: { 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
       })
     }
 
     const orders = await Order.find(query).sort({ createdAt: -1 }).lean()
-    return NextResponse.json(orders)
+    return NextResponse.json(orders.map((order: any) => ({ ...order, paymentStatus: getOrderPaymentStatus(order) })))
   } catch (error: any) {
     console.error('Orders fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
@@ -142,7 +144,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate totals
     const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0)
-    const shippingCost = typeof shipping === 'number' ? shipping : 0
+    const shippingCost = typeof shipping === 'number' ? shipping : STANDARD_SHIPPING_USD
     const taxAmount = typeof tax === 'number' ? tax : 0
     const total = subtotal + shippingCost + taxAmount
 

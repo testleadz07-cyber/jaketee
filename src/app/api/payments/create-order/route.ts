@@ -1,3 +1,5 @@
+
+import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
     const items = await resolveCheckoutItems(rawItems)
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const discount = await resolveCheckoutDiscount(promoCode, subtotal)
-    const shippingAmount = discount.freeShipping ? 0 : 30
+    const shippingAmount = discount.freeShipping ? 0 : STANDARD_SHIPPING_USD
     const amount = Number((subtotal - discount.amount + shippingAmount).toFixed(2))
 
     // Create a PENDING order up front, before the payment is captured. This

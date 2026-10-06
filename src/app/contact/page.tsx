@@ -100,10 +100,18 @@ export default function ContactPage() {
                 <CardTitle className="text-2xl">Send us a message</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-4"
+                  data-mcp-action="contact"
+                  data-mcp-description="Send Jacketee a support, custom jacket, or bulk order inquiry"
+                >
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Name</label>
+                    <label htmlFor="contact-name" className="text-sm font-medium mb-2 block">Name</label>
                     <Input
+                      id="contact-name"
+                      name="name"
+                      autoComplete="name"
                       placeholder="Your name"
                       value={formData.name}
                       onChange={(e) =>
@@ -114,9 +122,12 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Email</label>
+                    <label htmlFor="contact-email" className="text-sm font-medium mb-2 block">Email</label>
                     <Input
+                      id="contact-email"
+                      name="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="your@email.com"
                       value={formData.email}
                       onChange={(e) =>
@@ -127,8 +138,10 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Subject</label>
+                    <label htmlFor="contact-subject" className="text-sm font-medium mb-2 block">Subject</label>
                     <Input
+                      id="contact-subject"
+                      name="subject"
                       placeholder="How can we help?"
                       value={formData.subject}
                       onChange={(e) =>
@@ -139,8 +152,10 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Message</label>
+                    <label htmlFor="contact-message" className="text-sm font-medium mb-2 block">Message</label>
                     <Textarea
+                      id="contact-message"
+                      name="message"
                       placeholder="Tell us more about your inquiry..."
                       rows={5}
                       value={formData.message}

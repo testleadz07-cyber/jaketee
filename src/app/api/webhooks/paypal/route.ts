@@ -157,11 +157,13 @@ async function markOrderPaid(resource: any) {
 
   // Idempotency guard: /api/payments/capture may have already confirmed
   // this order via the client flow, or PayPal may redeliver the event.
-  if (order.status === 'paid') {
+  if (order.paymentStatus === 'paid' || order.status === 'paid' || order.statusHistory.some((entry: { status: string }) => entry.status === 'paid')) {
+    if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
     return
   }
 
-  order.status = 'paid'
+  order.paymentStatus = 'paid'
+  if (order.status === 'pending') order.status = 'paid'
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: `Confirmed via PayPal webhook capture ${resource.id}` })
   await order.save()
 

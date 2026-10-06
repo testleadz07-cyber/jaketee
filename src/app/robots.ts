@@ -4,11 +4,18 @@ export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
   
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/admin/', '/api/', '/checkout/', '/cart', '/profile/', '/order-confirmation/'],
-    },
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/checkout/', '/cart', '/profile/', '/order-confirmation/'],
+      },
+      {
+        userAgent: ['GPTBot', 'ClaudeBot', 'Google-Extended', 'PerplexityBot', 'Bytespider'],
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/checkout/', '/cart', '/profile/', '/order-confirmation/'],
+      },
+    ],
     sitemap: `${baseUrl}/sitemap.xml`,
   }
 }

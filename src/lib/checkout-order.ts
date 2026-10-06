@@ -1,7 +1,8 @@
 import mongoose from 'mongoose'
 import Product from '@/models/Product'
 import Discount from '@/models/Discount'
-import type { JacketCustomization } from '@/types/jacket-customization'
+import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
+import { getCustomizationFee } from '@/lib/customization-pricing'
 
 const JACKET_FONT_STYLES = new Set(['varsity', 'block', 'classic', 'script', 'sans', 'serif'])
 
@@ -49,7 +50,7 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
   const input = value as Record<string, unknown>
   const output: JacketCustomization = {}
 
-  for (const view of ['front', 'back'] as const) {
+  for (const view of JACKET_VIEWS) {
     const rawSide = input[view]
     if (rawSide == null) continue
     if (typeof rawSide !== 'object') throw new CheckoutError(`Invalid ${view} jacket customization`)
@@ -103,7 +104,26 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
     if (cleanSide.text || cleanSide.artworks?.length) output[view] = cleanSide
   }
 
-  return output.front || output.back ? output : undefined
+  if (input.snapshotUrl != null) {
+    if (typeof input.snapshotUrl !== 'string' || !/^https:\/\//i.test(input.snapshotUrl) || input.snapshotUrl.length > 1000) {
+      throw new CheckoutError('Invalid design snapshot URL')
+    }
+    output.snapshotUrl = input.snapshotUrl.trim()
+  }
+  if (input.snapshots != null) {
+    if (typeof input.snapshots !== 'object' || Array.isArray(input.snapshots)) throw new CheckoutError('Invalid design snapshots')
+    const snapshots = input.snapshots as Record<string, unknown>
+    output.snapshots = {}
+    for (const view of JACKET_VIEWS) {
+      const url = snapshots[view]
+      if (url == null) continue
+      if (typeof url !== 'string' || !/^https:\/\//i.test(url) || url.length > 1000 || !output[view]) {
+        throw new CheckoutError('Invalid design snapshot URL')
+      }
+      output.snapshots[view] = url.trim()
+    }
+  }
+  return JACKET_VIEWS.some((view) => output[view]) ? output : undefined
 }
 
 function inUnitRange(value: number) {
@@ -155,8 +175,14 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     unitPrice += Number(option.priceAdjust || 0)
   }
   const customization = sanitizeCustomization(input.customization, Number(product.embroidery?.maxChars || 24))
-  if (customization && product.embroidery?.available) unitPrice += Number(product.embroidery.fee || 0)
+  if (customization) {
+    unitPrice += getCustomizationFee(customization)
+  }
+
   unitPrice = Number(unitPrice.toFixed(2))
+
+  // NOTE: input.price from frontend already includes customization fees calculated by getCustomizationFee,
+  // so the comparison here is valid and ensures frontend and backend calculations match.
   if (!Number.isFinite(unitPrice) || unitPrice < 0 || Math.abs(Number(input.price) - unitPrice) > 0.01) {
     throw new CheckoutError('Jacket price has changed. Refresh your cart before checking out.', 409)
   }

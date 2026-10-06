@@ -137,9 +137,17 @@ export function NewsletterPopup() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubscribe} className="space-y-3">
+                <form
+                  onSubmit={handleSubscribe}
+                  className="space-y-3"
+                  data-mcp-action="newsletter_signup"
+                  data-mcp-description="Subscribe to Jacketee updates and receive the welcome discount"
+                >
                   <Input
+                    id="newsletter-popup-email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

@@ -1,5 +1,7 @@
 'use client'
 
+import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback, useRef } from 'react'
@@ -46,8 +48,11 @@ import {
   Pencil,
 } from 'lucide-react'
 import Link from 'next/link'
+import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
+import { getOrderPaymentStatus } from '@/lib/order-payment-status'
 
 interface OrderItem {
+  customization?: JacketCustomization
   productId: string
   name: string
   image: string
@@ -57,6 +62,9 @@ interface OrderItem {
 }
 
 interface Order {
+  promoCode?: string
+  statusHistory?: Array<{ status: string; timestamp: string; note?: string }>
+  deliveredAt?: string
   userId?: string
   notes?: string
   discountAmount?: number
@@ -204,7 +212,7 @@ export default function AdminOrders() {
   const [coPaymentMethod, setCoPaymentMethod] = useState('other')
   const [coPaymentStatus, setCoPaymentStatus] = useState('unpaid')
   const [coOrderStatus, setCoOrderStatus] = useState('pending')
-  const [coShippingCost, setCoShippingCost] = useState('0')
+  const [coShippingCost, setCoShippingCost] = useState(String(STANDARD_SHIPPING_USD))
   const [coTax, setCoTax] = useState('0')
   const [coNotes, setCoNotes] = useState('')
 
@@ -388,7 +396,7 @@ export default function AdminOrders() {
       case 'pending':
         return <Badge className="bg-amber-100 text-amber-800 border-amber-200">PENDING</Badge>
       case 'paid':
-        return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">PAID</Badge>
+        return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">ORDER PLACED</Badge>
       case 'in_production':
         return <Badge className="bg-orange-100 text-orange-800 border-orange-200">IN PRODUCTION</Badge>
       case 'shipped':
@@ -454,7 +462,7 @@ export default function AdminOrders() {
     setCoPaymentMethod('other')
     setCoPaymentStatus('unpaid')
     setCoOrderStatus('pending')
-    setCoShippingCost('0')
+    setCoShippingCost(String(STANDARD_SHIPPING_USD))
     setCoTax('0')
     setCoNotes('')
   }
@@ -480,7 +488,7 @@ export default function AdminOrders() {
     setCoShipCountry(order.shippingAddress?.country || 'United States')
     setCoShipPhone(order.shippingAddress?.phone || '')
     setCoPaymentMethod(order.paymentMethod || 'other')
-    setCoPaymentStatus(order.paymentStatus || 'unpaid')
+    setCoPaymentStatus(getOrderPaymentStatus(order))
     setCoOrderStatus(order.status)
     setCoShippingCost(String(order.shipping || 0))
     setCoTax(String(order.tax || 0))
@@ -836,7 +844,7 @@ export default function AdminOrders() {
                         {order.isCustomOrder && (
                           <Badge className="bg-violet-100 text-violet-800 border-violet-200 text-[10px]">CUSTOM ORDER</Badge>
                         )}
-                        {order.paymentStatus && getPaymentStatusBadge(order.paymentStatus)}
+                        {getPaymentStatusBadge(getOrderPaymentStatus(order))}
                       </div>
                       <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span className="font-semibold text-foreground">{order.userName}</span>
@@ -885,7 +893,7 @@ export default function AdminOrders() {
                               className="bg-background border-2 rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                               <option value="pending">Pending Payment</option>
-                              <option value="paid">Paid (Order Placed)</option>
+                              <option value="paid">Order Placed</option>
                               <option value="in_production">In Production</option>
                               <option value="shipped">Shipped</option>
                               <option value="in_transit">In Transit</option>
@@ -955,6 +963,9 @@ export default function AdminOrders() {
                           </div>
                         </div>
 
+                        {order.notes && <div className="rounded-xl border bg-card p-4"><h4 className="font-semibold text-sm mb-2">Order notes</h4><p className="text-sm whitespace-pre-wrap break-words">{order.notes}</p></div>}
+                        {!!order.statusHistory?.length && <div className="rounded-xl border bg-card p-4 space-y-2"><h4 className="font-semibold text-sm">Order history</h4>{order.statusHistory.map((entry, index) => <div key={index} className="text-xs"><span className="font-medium capitalize">{entry.status.replaceAll('_', ' ')}</span> · {new Date(entry.timestamp).toLocaleString()}{entry.note && <p className="text-muted-foreground whitespace-pre-wrap">{entry.note}</p>}</div>)}</div>}
+                        {order.deliveredAt && <p className="text-sm">Delivered: {new Date(order.deliveredAt).toLocaleString()}</p>}
                         {/* Summary details */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                           {/* Left: Items Table */}
@@ -964,7 +975,7 @@ export default function AdminOrders() {
                             </h4>
                             <div className="space-y-3">
                               {order.items.map((item, idx) => (
-                                <div key={idx} className="flex gap-4 items-center bg-card p-3 rounded-xl border">
+                                <div key={idx} className="flex gap-4 items-start bg-card p-3 rounded-xl border">
                                   <div className="relative h-14 w-14 overflow-hidden rounded bg-muted flex-shrink-0 border">
                                     <img
                                       src={item.image}
@@ -982,6 +993,26 @@ export default function AdminOrders() {
                                     <p className="text-xs text-muted-foreground mt-0.5">
                                       Qty: {item.quantity} • ${item.price.toFixed(2)} each
                                     </p>
+                                    {item.customization?.snapshotUrl && !Object.values(item.customization.snapshots || {}).some(Boolean) && (
+                                      <div className="mt-2">
+                                        <a href={item.customization.snapshotUrl} target="_blank" rel="noopener noreferrer" className="flex flex-col items-start gap-1.5 text-xs text-primary hover:underline">
+                                          <img src={item.customization.snapshotUrl} alt={`${item.name} customized design snapshot`} className="h-48 w-full max-w-sm rounded border object-contain bg-muted" />
+                                          <span>Open design snapshot</span>
+                                        </a>
+                                      </div>
+                                    )}
+                                    {getCustomizedViews(item.customization).map((view) => {
+                                      const side = item.customization![view]!
+                                      return (
+                                        <div key={view} className="mt-3 space-y-2 rounded-lg border p-3 text-xs">
+                                          <p className="font-semibold">{getJacketViewLabel(view)} design</p>
+                                          {item.customization?.snapshots?.[view] && <a href={item.customization.snapshots[view]} target="_blank" rel="noopener noreferrer" className="block text-primary hover:underline"><img src={item.customization.snapshots[view]} alt={`${item.name} customized ${getJacketViewLabel(view)} preview`} className="h-56 w-full max-w-sm rounded border object-contain bg-muted" />Open {getJacketViewLabel(view).toLowerCase()} preview</a>}
+                                          {side.text?.value && <div className="space-y-1"><p className="whitespace-pre-wrap break-words">Text: {side.text.value}</p><p>Font: {side.text.fontStyle} · Color: {side.text.color} · Size: {side.text.size}</p><p>Position: {side.text.x}, {side.text.y}</p></div>}
+                                          {side.artworks?.map((artwork) => <div key={artwork.id} className="space-y-1 border-t pt-2"><p className="font-medium">{artwork.name} ({artwork.source === 'upload' ? 'Uploaded artwork' : 'Catalog artwork'})</p>{artwork.catalogId && <p>Catalog ID: {artwork.catalogId}</p>}<p>Width: {artwork.widthInches} inches · Position: {artwork.x}, {artwork.y}</p>{artwork.color && <p>Color: {artwork.color}</p>}{artwork.fontStyle && <p>Font: {artwork.fontStyle}</p>}{artwork.url && <a href={artwork.url} target="_blank" rel="noopener noreferrer" className="inline-block text-primary underline"><img src={artwork.url} alt={artwork.name} className="h-24 w-24 object-contain rounded border" />Open original artwork</a>}</div>)}
+                                        </div>
+                                      )
+                                    })}
+                                    {getCustomizedViews(item.customization).length > 0 && !item.customization?.snapshotUrl && !Object.values(item.customization?.snapshots || {}).some(Boolean) && <p className="mt-2 text-xs text-muted-foreground">No design snapshot was saved for this order.</p>}
                                   </div>
                                   <div className="text-right font-bold text-sm text-primary">
                                     ${(item.price * item.quantity).toFixed(2)}
@@ -1039,6 +1070,7 @@ export default function AdminOrders() {
                                   <span className="text-muted-foreground">Tax</span>
                                   <span>${order.tax?.toFixed(2) || '0.00'}</span>
                                 </div>
+                                {!!order.discountAmount && <div className="flex justify-between"><span className="text-muted-foreground">Discount{order.promoCode ? ` (${order.promoCode})` : ''}</span><span>-${order.discountAmount.toFixed(2)}</span></div>}
                                 <Separator />
                                 <div className="flex justify-between font-bold text-base text-primary pt-1">
                                   <span>Total Amount</span>

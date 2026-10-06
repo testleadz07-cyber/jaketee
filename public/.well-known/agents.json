@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "name": "Jacketee",
+  "description": "Custom varsity, bomber, leather, puffer, denim, coach jacket, hoodie, patch, embroidery, and bulk team apparel store.",
+  "url": "https://www.jacketee.com",
+  "capabilities": [
+    "search",
+    "product_browse",
+    "custom_jacket_design",
+    "bulk_order_inquiry",
+    "contact",
+    "newsletter_signup",
+    "order_tracking",
+    "return_request"
+  ],
+  "contact": "info@jacketee.com"
+}

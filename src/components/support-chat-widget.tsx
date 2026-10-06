@@ -35,7 +35,7 @@ const quickQuestions = [
   {
     question: 'How long does shipping take?',
     answer:
-      'One jacket ships for $30 USD. For two or more jackets, contact us for a quote based on quantity and weight. Bulk orders typically take 3-4 weeks including production and delivery.',
+      'One jacket ships for $45 USD. For two or more jackets, contact us for a quote based on quantity and weight. Bulk orders typically take 3-4 weeks including production and delivery.',
   },
   {
     question: 'How do I contact a person?',
@@ -277,21 +277,31 @@ export function SupportChatWidget() {
                       </p>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit} className="space-y-3">
+                    <form
+                      onSubmit={handleSubmit}
+                      className="space-y-3"
+                      data-mcp-action="contact"
+                      data-mcp-description="Send Jacketee a support message from the live help widget"
+                    >
                       <Input
+                        name="name"
+                        autoComplete="name"
                         placeholder="Your name"
                         value={formData.name}
                         onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
                         required
                       />
                       <Input
+                        name="email"
                         type="email"
+                        autoComplete="email"
                         placeholder="Your email"
                         value={formData.email}
                         onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
                         required
                       />
                       <Textarea
+                        name="message"
                         placeholder="How can we help?"
                         rows={4}
                         value={formData.message}

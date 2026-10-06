@@ -5,7 +5,7 @@ const PAGE_URL = `${SITE_URL}/shipping`
 
 export const metadata: Metadata = {
   title: 'Shipping Information — Jacketee',
-  description: 'One jacket ships for $30 USD. Shipping for multiple jackets is quoted by quantity and weight. Learn about Jacketee delivery timelines.',
+  description: 'One jacket ships for $45 USD. Shipping for multiple jackets is quoted by quantity and weight. Learn about Jacketee delivery timelines.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Shipping Information — Jacketee',

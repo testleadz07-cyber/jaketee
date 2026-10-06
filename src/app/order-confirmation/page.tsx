@@ -258,6 +258,11 @@ function ConfirmationContent() {
                             : ''}
                         </p>
                       ))}
+                      {item.customization?.snapshotUrl && (
+                        <div className="mt-1.5">
+                          <img src={item.customization.snapshotUrl} alt="Your custom design" className="h-20 w-20 rounded border object-cover" />
+                        </div>
+                      )}
                       <p className="text-xs font-medium mt-1">
                         Qty: {item.quantity} • ${item.price.toFixed(2)}
                       </p>

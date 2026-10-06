@@ -12,7 +12,9 @@ import {
 } from 'react-icons/fa6'
 import type { JacketFontStyle } from '@/types/jacket-customization'
 
-export type ArtworkCategory = 'Letters' | 'Numbers' | 'Badges' | 'Symbols' | 'Flags' | 'Mascots' | 'Animals' | 'Sports' | 'Varsity'
+import type { ArtworkCategory } from '@/lib/customization-pricing'
+export type { ArtworkCategory } from '@/lib/customization-pricing'
+export { getCatalogArtworkCategory } from '@/lib/customization-pricing'
 
 export interface CatalogArtwork {
   id: string
@@ -188,10 +190,6 @@ export function getJacketFontFamily(style: JacketFontStyle = 'varsity') {
 
 export function isLetterOrNumberArtwork(id?: string) {
   return Boolean(id && (id.startsWith('letter-') || id.startsWith('number-')))
-}
-
-export function getCatalogArtworkCategory(id?: string) {
-  return artworkCatalog.find((entry) => entry.id === id)?.category
 }
 
 export function getCatalogArtworkDataUrl(id: string, color = '#f8fafc', fontStyle: JacketFontStyle = 'varsity') {

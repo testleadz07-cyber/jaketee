@@ -47,9 +47,13 @@ async function getPayPalAccessToken() {
 // before this request finishes. Both paths are idempotent and safe to run
 // in either order.
 async function markOrderPaid(order: InstanceType<typeof Order>, paypalCaptureId: string) {
-  if (order.status === 'paid') return
+  if (order.paymentStatus === 'paid' || order.status === 'paid' || order.statusHistory.some((entry: { status: string }) => entry.status === 'paid')) {
+    if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
+    return
+  }
 
-  order.status = 'paid'
+  order.paymentStatus = 'paid'
+  if (order.status === 'pending') order.status = 'paid'
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: `Confirmed via PayPal capture ${paypalCaptureId}` })
   await order.save()
 
@@ -116,7 +120,8 @@ export async function POST(request: NextRequest) {
       (order.userId && String(order.userId) !== String((session?.user as any)?.id || ''))) {
       return NextResponse.json({ error: 'Order does not match this payment' }, { status: 403 })
     }
-    if (order.status === 'paid') {
+    if (order.paymentStatus === 'paid' || order.status === 'paid' || order.statusHistory.some((entry: { status: string }) => entry.status === 'paid')) {
+      if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
       return NextResponse.json({ status: 'COMPLETED', id: order.paymentId })
     }
     if (order.status !== 'pending') {

@@ -34,6 +34,8 @@ export interface JacketCustomization {
   back?: JacketSideCustomization
   leftSleeve?: JacketSideCustomization
   rightSleeve?: JacketSideCustomization
+  snapshotUrl?: string
+  snapshots?: Partial<Record<JacketView, string>>
 }
 
 export function hasJacketCustomization(customization?: JacketCustomization | null) {

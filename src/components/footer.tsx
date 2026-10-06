@@ -189,9 +189,17 @@ export function Footer() {
   )
 
   const newsletterForm = (
-    <form onSubmit={handleSubscribe} className="flex flex-col gap-2 sm:flex-row">
+    <form
+      onSubmit={handleSubscribe}
+      className="flex flex-col gap-2 sm:flex-row"
+      data-mcp-action="newsletter_signup"
+      data-mcp-description="Subscribe to Jacketee custom jacket updates and offers"
+    >
       <Input
+        id="footer-newsletter-email"
+        name="email"
         type="email"
+        autoComplete="email"
         placeholder="email@example.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}

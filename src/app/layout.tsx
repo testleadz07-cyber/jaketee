@@ -60,6 +60,9 @@ export const metadata: Metadata = {
     description: HOME_DESCRIPTION,
     images: [DEFAULT_SOCIAL_IMAGE.url],
   },
+  other: {
+    webmcp: "/.well-known/mcp.json",
+  },
 };
 
 const organizationJsonLd = {

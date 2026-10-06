@@ -1,5 +1,7 @@
 'use client'
 
+import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+
 import { Suspense, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
@@ -65,7 +67,7 @@ function CheckoutContent() {
   const discountAmount = appliedPromo && subtotal >= appliedPromo.minOrderValue ? appliedPromo.discountAmount : 0
   const discountedSubtotal = Math.max(0, subtotal - discountAmount)
   const jacketCount = checkoutItems.reduce((count, item) => count + item.quantity, 0)
-  const shippingAmount = jacketCount === 1 && !appliedPromo?.freeShipping ? 30 : 0
+  const shippingAmount = jacketCount === 1 && !appliedPromo?.freeShipping ? STANDARD_SHIPPING_USD : 0
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -1060,7 +1062,7 @@ function CheckoutContent() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium">{jacketCount === 1 ? (shippingAmount ? '$30.00' : 'FREE') : 'Quote required'}</span>
+                    <span className="font-medium">{jacketCount === 1 ? (shippingAmount ? `$${shippingAmount.toFixed(2)}` : 'FREE') : 'Quote required'}</span>
                   </div>
                   {jacketCount > 1 && (
                     <p className="text-xs text-muted-foreground">Shipping for multiple jackets depends on quantity and weight. <Link href="/contact" className="font-medium underline">Request a quote</Link> before checkout.</p>

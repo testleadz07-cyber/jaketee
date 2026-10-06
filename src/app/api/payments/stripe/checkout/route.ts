@@ -1,3 +1,5 @@
+
+import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -72,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // Setup calculations
     const taxAmount = 0
-    const shippingAmount = isFreeShipping ? 0 : 30
+    const shippingAmount = isFreeShipping ? 0 : STANDARD_SHIPPING_USD
     const total = Math.max(0, subtotal - discountAmount + shippingAmount + taxAmount)
 
     const orderNumber = `LX-${Date.now()}`
@@ -112,7 +114,7 @@ export async function POST(request: NextRequest) {
       shipping_options: shippingAmount ? [{
         shipping_rate_data: {
           type: 'fixed_amount',
-          fixed_amount: { amount: 3000, currency: 'usd' },
+          fixed_amount: { amount: Math.round(shippingAmount * 100), currency: 'usd' },
           display_name: 'Shipping',
         },
       }] : undefined,

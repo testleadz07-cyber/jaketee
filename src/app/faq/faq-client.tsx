@@ -105,7 +105,7 @@ const faqCategories: FaqCategory[] = [
       {
         question: 'How much is shipping?',
         answer:
-          'One jacket ships for $30 USD. Shipping for two or more jackets is quoted based on quantity and weight.',
+          'One jacket ships for $45 USD. Shipping for two or more jackets is quoted based on quantity and weight.',
       },
     ],
   },

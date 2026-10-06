@@ -7,6 +7,7 @@ import Discount from '@/models/Discount'
 import Stripe from 'stripe'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
 import { decrementStockForOrder } from '@/lib/inventory'
+import { getOrderPaymentStatus } from '@/lib/order-payment-status'
 
 // NOTE: This endpoint is a client-triggered convenience path for fast
 // confirmation on the order-confirmation page. It is NOT the source of
@@ -48,13 +49,16 @@ export async function POST(request: NextRequest) {
     if (stripeSession.client_reference_id !== String(order._id) || stripeSession.metadata?.orderId !== String(order._id)) {
       return NextResponse.json({ error: 'Payment does not match this order' }, { status: 403 })
     }
-    if (order.status === 'paid') {
+    if (getOrderPaymentStatus(order) === 'paid') {
+      if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
       return NextResponse.json({ status: 'paid', order })
     }
     
     if (stripeSession.payment_status === 'paid') {
       // 3. Update order status in MongoDB to paid
-      order.status = 'paid'
+      order.paymentStatus = 'paid'
+      if (order.status === 'pending') order.status = 'paid'
+      order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via Stripe verification' })
       await order.save()
 
       await decrementStockForOrder(order.items)

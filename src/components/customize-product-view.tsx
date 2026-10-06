@@ -17,6 +17,7 @@ import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { WhatsAppButton } from '@/components/whatsapp-help'
 import { useCustomizationInsights } from '@/hooks/use-customization-insights'
 import type { JacketCustomization } from '@/types/jacket-customization'
 import type { ProductDetailData } from '@/components/product-detail-view'
@@ -222,8 +223,8 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-6 lg:py-8">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto">
+        <div className="px-4 py-6 lg:py-8 lg:px-8">
           <Breadcrumbs
             items={[
               ...categoryPath.map((ancestor, index) => ({
@@ -241,59 +242,30 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
             Back to product details
           </Link>
 
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-10">
-            <aside className="space-y-4 lg:sticky lg:top-24">
-              <div className="relative h-[320px] overflow-hidden rounded-lg bg-muted sm:aspect-square sm:h-auto">
-                <Image
-                  src={overrideImage || product.images?.[selectedImage]?.url || '/placeholder.png'}
-                  alt={product.images?.[selectedImage]?.alt || product.name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              {(product.images?.length || 0) > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0">
-                  {product.images.map((image, index) => (
-                    <button
-                      key={image.id || `image-${index}`}
-                      type="button"
-                      onClick={() => {
-                        setSelectedImage(index)
-                        setOverrideImage(null)
-                      }}
-                      className={`relative h-20 w-20 flex-none overflow-hidden rounded-lg border-2 transition-all sm:aspect-square sm:h-auto sm:w-auto ${selectedImage === index ? 'border-primary scale-105' : 'border-border hover:border-primary/50'}`}
-                    >
-                      <Image src={image.url} alt={image.alt || `${product.name} ${index + 1}`} fill sizes="120px" className="object-contain" />
-                    </button>
-                  ))}
+          <div className="mb-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4 rounded-md border bg-muted/30 p-4">
+            <div>
+              <Link href={categoryHref} className="text-sm text-muted-foreground hover:text-primary">{product.category.name}</Link>
+              <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{product.name}</h1>
+              {sizeVariants.length > 0 && (
+                <div className="mt-4">
+                  <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} />
                 </div>
               )}
-              <div className="rounded-md border bg-muted/30 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <Link href={categoryHref} className="text-sm text-muted-foreground hover:text-primary">{product.category.name}</Link>
-                    <h1 className="mt-1 text-xl font-bold sm:text-2xl">{product.name}</h1>
-                  </div>
-                  <Badge variant={product.inStock ? 'secondary' : 'destructive'}>{product.inStock ? 'In Stock' : 'Out of Stock'}</Badge>
-                </div>
-                <div className="mt-3 space-y-1">
-                  <p className="text-2xl font-bold text-primary sm:text-3xl">${(getPrice() + customizationFee).toFixed(2)}</p>
-                  {customizationFee > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Jacket ${getPrice().toFixed(2)} + customization ${customizationFee.toFixed(2)}
-                    </p>
-                  )}
-                </div>
-                {sizeVariants.length > 0 && (
-                  <div className="mt-4">
-                    <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} />
-                  </div>
-                )}
+            </div>
+            <div className="md:text-right text-left">
+              <div className="flex md:justify-end items-center gap-3">
+                <Badge variant={product.inStock ? 'secondary' : 'destructive'}>{product.inStock ? 'In Stock' : 'Out of Stock'}</Badge>
               </div>
-            </aside>
+              <p className="mt-3 text-2xl font-bold text-primary sm:text-3xl">${(getPrice() + customizationFee).toFixed(2)}</p>
+              {customizationFee > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Jacket ${getPrice().toFixed(2)} + customization ${customizationFee.toFixed(2)}
+                </p>
+              )}
+            </div>
+          </div>
 
+          <div className="w-full">
             <section className="space-y-5">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Custom design studio</p>
@@ -339,7 +311,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
                     <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
                       <Link href="/shipping" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                         <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-                        <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
+                        <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$45 for one jacket; two or more require a quote.</span></span>
                       </Link>
                       <Link href="/returns" className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                         <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
@@ -361,8 +333,10 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
             <p className="font-semibold">Need a hand with your jacket?</p>
             <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Dismiss help" onClick={insights.dismissHelp}><X className="h-4 w-4" /></Button>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Send us a message about your design.</p>
-          <Button className="mt-3" onClick={insights.requestHelp}><MessageCircle className="mr-2 h-4 w-4" />Ask for help</Button>
+          <p className="mt-1 text-sm text-muted-foreground">Send us a message about your design on WhatsApp.</p>
+          <div className="mt-3">
+            <WhatsAppButton message="I need help with customizing a jacket design." className="w-full" />
+          </div>
         </div>
       )}
     </div>

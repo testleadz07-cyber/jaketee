@@ -558,7 +558,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                   <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
                     <Link href="/shipping" onClick={() => logUserActivity('information_opened', { sectionName: 'shipping' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                       <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-                      <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
+                      <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$45 for one jacket; two or more require a quote.</span></span>
                     </Link>
                     <Link href="/returns" onClick={() => logUserActivity('information_opened', { sectionName: 'returns' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                       <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
@@ -716,7 +716,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                 <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
                   <Link href="/shipping" onClick={() => logUserActivity('information_opened', { sectionName: 'shipping' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                     <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-                    <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$30 for one jacket; two or more require a quote.</span></span>
+                    <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$45 for one jacket; two or more require a quote.</span></span>
                   </Link>
                   <Link href="/returns" onClick={() => logUserActivity('information_opened', { sectionName: 'returns' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
                     <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />

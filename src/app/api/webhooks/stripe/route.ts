@@ -90,11 +90,13 @@ async function markOrderPaid(checkoutSession: Stripe.Checkout.Session) {
 
   // Idempotency guard: /api/payments/stripe/verify may have already confirmed
   // this order via the client redirect, or Stripe may redeliver the event.
-  if (order.status === 'paid') {
+  if (order.paymentStatus === 'paid' || order.status === 'paid' || order.statusHistory.some((entry: { status: string }) => entry.status === 'paid')) {
+    if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
     return
   }
 
-  order.status = 'paid'
+  order.paymentStatus = 'paid'
+  if (order.status === 'pending') order.status = 'paid'
   order.paymentId = checkoutSession.id
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via Stripe webhook' })
   await order.save()

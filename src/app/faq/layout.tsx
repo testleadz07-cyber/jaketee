@@ -47,7 +47,7 @@ const faqJsonLd = {
       name: 'How much is shipping?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'One jacket ships for $30 USD. Shipping for two or more jackets is quoted based on quantity and weight.',
+        text: 'One jacket ships for $45 USD. Shipping for two or more jackets is quoted based on quantity and weight.',
       },
     },
     // Returns
