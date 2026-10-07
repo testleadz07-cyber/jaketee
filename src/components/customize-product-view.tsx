@@ -223,7 +223,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 w-full max-w-[1600px] mx-auto">
+      <main className="min-w-0 flex-1 w-full max-w-[1600px] mx-auto">
         <div className="px-4 py-6 lg:py-8 lg:px-8">
           <Breadcrumbs
             items={[
@@ -234,7 +234,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
               { label: product.name, href: `/${[...categoryPath.map((item) => item.slug), product.slug].join('/')}` },
               { label: 'Customize' },
             ]}
-            className="mb-6"
+            className="mb-6 [&_li]:min-w-0 [&_li]:max-w-full [&_a]:break-words [&_span]:break-words"
           />
 
           <Link href={`/${[...categoryPath.map((item) => item.slug), product.slug].join('/')}`} className="mb-5 inline-flex items-center text-sm font-medium underline underline-offset-4">
@@ -243,9 +243,9 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
           </Link>
 
           <div className="mb-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4 rounded-md border bg-muted/30 p-4">
-            <div>
+            <div className="min-w-0">
               <Link href={categoryHref} className="text-sm text-muted-foreground hover:text-primary">{product.category.name}</Link>
-              <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{product.name}</h1>
+              <h1 className="mt-1 break-words text-2xl font-bold sm:text-3xl">{product.name}</h1>
               {sizeVariants.length > 0 && (
                 <div className="mt-4">
                   <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} />

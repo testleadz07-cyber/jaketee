@@ -173,8 +173,8 @@ export function JacketCustomizer({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-        <Button size="lg" className="h-14 text-base sm:text-lg" onClick={handleAddToCart} disabled={!inStock || isProcessing}>
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <Button size="lg" className="min-h-14 h-auto min-w-0 w-full whitespace-normal px-3 py-3 text-base" onClick={handleAddToCart} disabled={!inStock || isProcessing}>
           <AnimatePresence mode="wait">
             {addedToCart ? (
               <motion.div
@@ -213,12 +213,12 @@ export function JacketCustomizer({
           </AnimatePresence>
         </Button>
         {onBuyNow && (
-          <Button size="lg" className="h-14 bg-red-700 text-base font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800 sm:text-lg" onClick={handleBuyNow} disabled={!inStock || isProcessing}>
+          <Button size="lg" className="h-14 min-w-0 w-full bg-red-700 text-base font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800" onClick={handleBuyNow} disabled={!inStock || isProcessing}>
             {isProcessing ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <ShoppingBag className="h-5 w-5 mr-2" />}
             {isProcessing ? 'Saving...' : 'Buy Now'}
           </Button>
         )}
-        <div className="justify-self-center sm:justify-self-auto">{wishlistButton}</div>
+        <div className="col-span-full justify-self-center">{wishlistButton}</div>
       </div>
       {customizationFee > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
@@ -243,7 +243,7 @@ export function JacketCustomizer({
                 onSelectVariant(name, variant.value, variant.image)
               }}
               disabled={!variant.inStock}
-              className={`px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+              className={`min-h-11 max-w-full break-words px-3 py-2 rounded-lg border-2 font-medium transition-all ${
                 isSelected
                   ? 'border-primary bg-primary text-primary-foreground'
                   : variant.inStock
@@ -264,7 +264,7 @@ export function JacketCustomizer({
     <div className="rounded-lg border bg-muted/10 p-4 space-y-4">
       <Label className="text-sm font-medium block mb-2">Sizing</Label>
       {hasSize && hasMeasurements && (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             size="sm"
@@ -341,24 +341,24 @@ export function JacketCustomizer({
       <Label className="text-sm font-medium block mb-2">Order Summary</Label>
       {optionSteps.map((name) =>
         selectedVariants[name] ? (
-          <div key={name} className="flex justify-between text-sm">
+          <div key={name} className="flex justify-between gap-3 text-sm">
             <span className="text-muted-foreground">{name}</span>
-            <span className="font-medium">{selectedVariants[name]}</span>
+            <span className="min-w-0 max-w-[65%] break-words text-right font-medium">{selectedVariants[name]}</span>
           </div>
         ) : null
       )}
       {sizingMode === 'standard' && selectedVariants['Size'] && (
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between gap-3 text-sm">
           <span className="text-muted-foreground">Size</span>
-          <span className="font-medium">{selectedVariants['Size']}</span>
+          <span className="min-w-0 max-w-[65%] break-words text-right font-medium">{selectedVariants['Size']}</span>
         </div>
       )}
       {sizingMode === 'measure' &&
         (product.measurementFields || []).map((field) =>
           measurements[field] ? (
-            <div key={field} className="flex justify-between text-sm">
+            <div key={field} className="flex justify-between gap-3 text-sm">
               <span className="text-muted-foreground">{field}</span>
-              <span className="font-medium">{measurements[field]}in</span>
+              <span className="min-w-0 max-w-[65%] break-words text-right font-medium">{measurements[field]}in</span>
             </div>
           ) : null
         )}
@@ -367,8 +367,8 @@ export function JacketCustomizer({
         return (
           <div key={view} className="border-t pt-2 first:border-t-0 first:pt-0 mt-2">
             <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{getJacketViewLabel(view)}</p>
-            {side.text?.value.trim() && <div className="flex justify-between text-sm"><span>Embroidery</span><span className="font-medium">{side.text.value.trim()}</span></div>}
-            {!!side.artworks?.length && <div className="flex justify-between text-sm"><span>Artwork</span><span className="max-w-[60%] text-right font-medium">{side.artworks.length} piece{side.artworks.length === 1 ? '' : 's'}</span></div>}
+            {side.text?.value.trim() && <div className="flex justify-between gap-3 text-sm"><span>Embroidery</span><span className="min-w-0 break-words text-right font-medium">{side.text.value.trim()}</span></div>}
+            {!!side.artworks?.length && <div className="flex justify-between gap-3 text-sm"><span>Artwork</span><span className="max-w-[60%] text-right font-medium">{side.artworks.length} piece{side.artworks.length === 1 ? '' : 's'}</span></div>}
           </div>
         )
       })}
@@ -382,7 +382,7 @@ export function JacketCustomizer({
   )
 
   return (
-    <div className="w-full" inert={isProcessing} aria-busy={isProcessing}>
+    <div className="w-full min-w-0" inert={isProcessing} aria-busy={isProcessing}>
       <JacketDesignCanvas
         images={images}
         maxTextLength={product.embroidery?.maxChars || 24}
