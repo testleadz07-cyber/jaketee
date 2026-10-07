@@ -135,7 +135,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         const productId = product._id || product.id
         const reviewMatch = { productId, status: 'approved' }
         const [matched, reviewSummary, recentReviews] = await Promise.all([
-          Faq.find({ displayPages: { $in: faqTargets } }).limit(24).lean(),
+          Faq.find({ displayPages: { $in: faqTargets } }).lean(),
           Review.aggregate([
             { $match: reviewMatch },
             { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } },

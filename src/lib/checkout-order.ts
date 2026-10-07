@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { GARMENT_CATEGORIES, GARMENT_TEMPLATES, getGarmentCategory, validateGarmentOptions, getGarmentPrice, getGarmentSvg, type GarmentCategory } from '@/lib/garment-template'
 import Product from '@/models/Product'
 import Discount from '@/models/Discount'
 import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
@@ -55,6 +56,12 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
     catch { throw new CheckoutError('Invalid varsity jacket options') }
   }
 
+  if (input.garmentOptions != null || input.garmentCategory != null) {
+    if (!GARMENT_CATEGORIES.includes(input.garmentCategory as GarmentCategory) || input.varsityOptions != null) throw new CheckoutError('Invalid jacket category')
+    output.garmentCategory = input.garmentCategory as GarmentCategory
+    try { output.garmentOptions = validateGarmentOptions(output.garmentCategory, input.garmentOptions) }
+    catch { throw new CheckoutError('Invalid jacket options') }
+  }
   for (const view of JACKET_VIEWS) {
     const rawSide = input[view]
     if (rawSide == null) continue
@@ -122,13 +129,13 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
     for (const view of JACKET_VIEWS) {
       const url = snapshots[view]
       if (url == null) continue
-      if (typeof url !== 'string' || !/^https:\/\//i.test(url) || url.length > 1000 || (!output[view] && !output.varsityOptions)) {
+      if (typeof url !== 'string' || !/^https:\/\//i.test(url) || url.length > 1000 || (!output[view] && !output.varsityOptions && !output.garmentOptions)) {
         throw new CheckoutError('Invalid design snapshot URL')
       }
       output.snapshots[view] = url.trim()
     }
   }
-  return output.varsityOptions || JACKET_VIEWS.some((view) => output[view]) ? output : undefined
+  return output.garmentOptions || output.varsityOptions || JACKET_VIEWS.some((view) => output[view]) ? output : undefined
 }
 
 function inUnitRange(value: number) {
@@ -140,10 +147,19 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     throw new CheckoutError('Checkout supports one jacket per order. Contact us for a bulk quote.')
   }
   const input = rawItems[0] as CheckoutItemInput
+  const category = getGarmentCategory(input?.productId)
+  if (category) {
+    if (input.quantity !== 1) throw new CheckoutError('Checkout supports one jacket per order')
+    const customization = sanitizeCustomization(input.customization, 24)
+    if (!customization?.garmentOptions || customization.garmentCategory !== category) throw new CheckoutError('Jacket configuration does not match the category')
+    const price = Number((getGarmentPrice(category, customization.garmentOptions) + getCustomizationFee(customization)).toFixed(2))
+    if (!Number.isFinite(input.price) || Math.abs(input.price - price) > .01) throw new CheckoutError('Jacket price has changed. Refresh your cart.', 409)
+    return [{ productId: input.productId, name: `Custom ${GARMENT_TEMPLATES[category].name}`, image: customization.snapshotUrl || `data:image/svg+xml;charset=utf-8,${encodeURIComponent(getGarmentSvg(category, customization.garmentOptions, 'front'))}`, price, quantity: 1, variants: Object.entries(customization.garmentOptions).map(([name, value]) => ({ name, value })), customization }]
+  }
   if (input?.productId === VARSITY_TEMPLATE_ID) {
     if (input.quantity !== 1) throw new CheckoutError('Checkout supports one jacket per order')
     const customization = sanitizeCustomization(input.customization, 24)
-    if (!customization?.varsityOptions) throw new CheckoutError('Varsity jacket configuration is required')
+    if (!customization?.varsityOptions || customization.garmentOptions) throw new CheckoutError('Varsity jacket configuration is required')
     const price = Number((getVarsityPrice(customization.varsityOptions) + getCustomizationFee(customization)).toFixed(2))
     if (!Number.isFinite(input.price) || Math.abs(input.price - price) > 0.01) throw new CheckoutError('Jacket price has changed. Refresh your cart.', 409)
     return [{ productId: VARSITY_TEMPLATE_ID, name: 'Custom Varsity Jacket',
@@ -190,7 +206,7 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     unitPrice += Number(option.priceAdjust || 0)
   }
   const customization = sanitizeCustomization(input.customization, Number(product.embroidery?.maxChars || 24))
-  if (customization?.varsityOptions) throw new CheckoutError('Invalid product customization')
+  if (customization?.varsityOptions || customization?.garmentOptions) throw new CheckoutError('Invalid product customization')
   if (customization) {
     unitPrice += getCustomizationFee(customization)
   }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { FaqText } from '@/components/faq-text'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -262,7 +263,7 @@ export default function FaqPage({ dbFaqs }: { dbFaqs: DbFaqItem[] }) {
                           </AccordionTrigger>
                           <AccordionContent className="text-muted-foreground space-y-2">
                             {paragraphs.map((p, pIdx) => (
-                              <p key={pIdx}>{p}</p>
+                              <p key={pIdx}><FaqText text={p} /></p>
                             ))}
                             {item.bullets && item.bullets.length > 0 && (
                               <ul className="list-disc pl-5 space-y-1">

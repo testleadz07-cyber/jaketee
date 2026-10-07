@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { buildProductUrl } from '@/lib/categories'
 import { BrandLogo } from '@/components/brand-logo'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 interface NavLink {
   href: string
@@ -59,10 +60,10 @@ const bulkOrderLinks: NavLink[] = [
 ]
 
 const customJacketLinks: NavLink[] = [
-  { href: '/design/varsity', label: 'Custom Design / Varsity Jacket', description: 'Start a varsity jacket from scratch with your colors and artwork', icon: Sparkles },
-  { href: '/api/design-category/puffer-jackets', label: 'Custom Puffer Jacket', description: 'Logo outerwear for cold-weather groups' },
-  { href: '/api/design-category/coach-jackets', label: 'Custom Coach', description: 'Team, staff, event, and brand designs' },
-  { href: '/api/design-category/bomber-jackets', label: 'Custom Bomber Jacket', description: 'Design leather, satin, nylon, or suede bombers' },
+  { href: '/design/varsity', label: 'Letterman Jacket', description: 'Start a varsity jacket from scratch with your colors and artwork', icon: Sparkles },
+  { href: '/design/puffer', label: 'Puffer Jacket', description: 'Logo outerwear for cold-weather groups' },
+  { href: '/design/bomber', label: 'Bomber Jacket', description: 'Choose bomber materials, colors, trims, and artwork' },
+  { href: '/design/coach', label: 'Coach Jacket', description: 'Team, staff, event, and brand designs' },
 ]
 
 const supportLinks: NavLink[] = [
@@ -184,22 +185,23 @@ export function Header() {
       key={itemKey}
       href={href}
       onClick={() => setMobileMenuOpen(false)}
-      className="group flex min-h-14 items-center justify-between gap-3 rounded-md border bg-card px-3.5 py-3 transition-colors hover:border-primary/40 hover:bg-accent"
+      className="flex min-h-11 items-center border-b border-border/50 py-2 pl-6 pr-4 text-muted-foreground transition-colors last:border-b-0 hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground"
     >
       <span className="min-w-0">
-        <span className="block text-sm font-semibold leading-5">{label}</span>
+        <span className="block text-[13px] font-medium leading-5">{label}</span>
       </span>
-      <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
     </Link>
   )
 
   const renderMobileSection = (title: string, links: NavLink[]) => (
-    <section className="space-y-2">
-      <p className="px-1 text-xs font-bold uppercase text-muted-foreground">{title}</p>
-      <div className="space-y-2">
+    <AccordionItem value={title} className="border-b last:border-b-0">
+      <AccordionTrigger className={`min-h-12 items-center rounded-none px-3 py-3 text-sm font-semibold hover:bg-accent hover:no-underline data-[state=open]:bg-accent [&>svg]:hidden ${title === 'Design Your Own' ? 'text-red-600 dark:text-red-400' : ''}`}>
+        {title}
+      </AccordionTrigger>
+      <AccordionContent className="p-0">
         {links.map((link) => renderMobileLink(link.href, link.label, link.description, `${title}-${link.label}-${link.href}`))}
-      </div>
-    </section>
+      </AccordionContent>
+    </AccordionItem>
   )
 
   const renderDesktopMenuLink = (link: NavLink) => (
@@ -221,7 +223,7 @@ export function Header() {
       <button
         type="button"
         aria-haspopup="true"
-        className="inline-flex h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={`inline-flex h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${label === 'Design Your Own' ? 'text-red-600 dark:text-red-400' : ''}`}
       >
         {label}
         <ChevronDown className="h-4 w-4" />
@@ -310,7 +312,7 @@ export function Header() {
 
             <nav className="hidden items-center gap-1 xl:flex" aria-label="Main navigation">
               {renderDesktopMenu('Varsity Jackets', varsitySubcategoryLinks, { href: '/varsity-jackets', label: 'All Varsity Jackets', description: '' })}
-              {renderDesktopMenu('Design your own', customJacketLinks)}
+              {renderDesktopMenu('Design Your Own', customJacketLinks)}
               {renderDesktopMenu('Other Styles', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
               {renderDesktopMenu('Bulk Order', bulkOrderLinks, { href: '/bulk-orders', label: 'All Bulk Orders', description: '' })}
               {renderDesktopMenu('Support', supportLinks)}
@@ -553,16 +555,18 @@ export function Header() {
                 </Button>
               </div>
 
-              <div className="flex-1 space-y-6 p-4">
+              <nav className="flex-1 p-4" aria-label="Mobile main navigation">
+                <Accordion type="single" collapsible>
                 {renderMobileSection('Varsity Jackets', [
                   { href: '/varsity-jackets', label: 'All Varsity Jackets', description: 'Classic custom letterman styles' },
                   ...varsitySubcategoryLinks,
                 ])}
-                {renderMobileSection('Design your own', customJacketLinks)}
+                {renderMobileSection('Design Your Own', customJacketLinks)}
                 {renderMobileSection('Other Styles', otherStyleLinks)}
                 {renderMobileSection('Bulk Order', bulkOrderLinks)}
                 {renderMobileSection('Support', supportLinks)}
-              </div>
+                </Accordion>
+              </nav>
 
               <div className="border-t p-4">
                 {status === 'authenticated' && session?.user ? (

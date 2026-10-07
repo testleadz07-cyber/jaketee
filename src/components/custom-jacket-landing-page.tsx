@@ -56,6 +56,8 @@ async function getProducts(categorySlug: string) {
 
 export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) {
   const config = getCustomLandingConfig(pageKey)
+  const designerRoutes: Record<string, string> = { 'varsity-jackets': '/design/varsity', 'bomber-jackets': '/design/bomber', 'coach-jackets': '/design/coach', 'puffer-jackets': '/design/puffer' }
+  const designerHref = designerRoutes[config.categorySlug]
   const products = await getProducts(config.categorySlug)
   const startingPrice = products.length ? Math.min(...products.map((product) => product.price)) : null
   const heroImage = products[0]?.images?.[0]?.url
@@ -87,7 +89,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
               <h1 className="text-4xl font-bold md:text-6xl">{config.keyword}</h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/90 md:text-lg">{config.intro}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/design/varsity" className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">Design a Varsity Jacket <ArrowRight className="h-4 w-4" /></Link>
+                <Link href={designerHref ? '/design/varsity' : config.categoryHref} className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">{designerHref ? 'Start Your Design' : 'Choose a Jacket'} <ArrowRight className="h-4 w-4" /></Link>
                 <Link href="/bulk-orders" className="inline-flex h-11 items-center border border-white/60 px-5 text-sm font-semibold text-white hover:bg-white hover:text-zinc-950">Get a Bulk Quote</Link>
               </div>
             </div>

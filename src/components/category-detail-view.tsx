@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { FaqText } from '@/components/faq-text'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { WhatsAppHelp } from '@/components/whatsapp-help'
@@ -636,7 +637,7 @@ export function CategoryDetailView({
                 <AccordionItem key={faq.id} value={faq.id}>
                   <AccordionTrigger className="text-left font-medium">{faq.question}</AccordionTrigger>
                   <AccordionContent className="space-y-2 text-sm leading-6 text-muted-foreground">
-                    {faq.answer.map((answer, index) => <p key={index}>{answer}</p>)}
+                    {faq.answer.map((answer, index) => <p key={index}><FaqText text={answer} /></p>)}
                     {faq.bullets.length > 0 && <ul className="list-disc pl-5">{faq.bullets.map((bullet, index) => <li key={index}>{bullet}</li>)}</ul>}
                     {faq.ordered.length > 0 && <ol className="list-decimal pl-5">{faq.ordered.map((step, index) => <li key={index}>{step}</li>)}</ol>}
                     {faq.href && <Link href={faq.href} className="inline-flex items-center gap-1 font-semibold text-foreground underline underline-offset-4">Read more <ArrowRight className="h-3.5 w-3.5" /></Link>}

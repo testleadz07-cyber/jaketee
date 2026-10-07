@@ -268,15 +268,15 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
                     <Link href="/design/varsity">Custom Letterman / Varsity</Link>
                   </Button>
                   <Button asChild size="lg" variant="secondary">
-                    <Link href="/custom-puffer-jackets">Custom Puffer</Link>
+                    <Link href="/design/puffer">Custom Puffer</Link>
                   </Button>
                 </div>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 {[
-                  ['Custom bomber jacket', '/custom-bomber-jackets'],
-                  ['Custom coach jacket', '/custom-coach-jackets'],
+                  ['Custom bomber jacket', '/design/bomber'],
+                  ['Custom coach jacket', '/design/coach'],
                   ['Patches & embroidery', '/patches-embroidery'],
                   ['Materials & colors', '/materials-colors'],
                 ].map(([label, href]) => (

@@ -104,6 +104,13 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
 
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{post.title}</h1>
 
+          {post.excerpt?.trim() && (
+            <section aria-labelledby="blog-summary-heading" className="mb-6 rounded-lg border bg-muted/30 p-5">
+              <h2 id="blog-summary-heading" className="mb-2 text-lg font-semibold">Summary</h2>
+              <p className="text-base leading-7 text-muted-foreground">{post.excerpt}</p>
+            </section>
+          )}
+
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
             <span className="flex items-center gap-1.5">
               <User className="h-4 w-4" />

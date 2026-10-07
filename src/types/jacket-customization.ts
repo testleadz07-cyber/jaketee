@@ -30,6 +30,8 @@ export interface JacketSideCustomization {
 }
 
 export interface JacketCustomization {
+  garmentCategory?: 'bomber' | 'coach' | 'puffer'
+  garmentOptions?: Record<string, string>
   varsityOptions?: Record<string, string>
   front?: JacketSideCustomization
   back?: JacketSideCustomization
@@ -41,7 +43,7 @@ export interface JacketCustomization {
 
 export function hasJacketCustomization(customization?: JacketCustomization | null) {
   if (!customization) return false
-  if (customization.varsityOptions) return true
+  if (customization.varsityOptions || customization.garmentOptions) return true
   return JACKET_VIEWS.some((view) => {
     const side = customization[view]
     return Boolean(side?.text?.value.trim() || side?.artworks?.length)
@@ -50,7 +52,7 @@ export function hasJacketCustomization(customization?: JacketCustomization | nul
 
 export function getCustomizedViews(customization?: JacketCustomization | null) {
   if (!customization) return []
-  if (customization.varsityOptions) return [...JACKET_VIEWS]
+  if (customization.varsityOptions || customization.garmentOptions) return [...JACKET_VIEWS]
   return JACKET_VIEWS.filter((view) => {
     const side = customization[view]
     return Boolean(side?.text?.value.trim() || side?.artworks?.length)

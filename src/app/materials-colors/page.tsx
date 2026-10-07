@@ -273,7 +273,7 @@ const materials: Material[] = [
     features: ['Functional', 'Rust-Resistant', 'Custom Finish'],
     text: 'High-quality snaps and zippers complete every varsity jacket, bomber jacket, and custom team order.',
     cta: 'Start Customizing',
-    href: '/custom-letterman-jackets',
+    href: '/design/varsity',
     swatches: [
       { name: 'Silver', hex: '#cbd5e1' },
       { name: 'Antique Brass', hex: '#9a6a2f' },
@@ -404,7 +404,7 @@ export default function MaterialsColorsPage() {
                 </p>
                 <div className="mt-7 flex flex-wrap gap-3">
                   <Button asChild size="lg">
-                    <Link href="/custom-letterman-jackets">
+                    <Link href="/design/varsity">
                       Start Designing
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
@@ -547,7 +547,7 @@ export default function MaterialsColorsPage() {
                 </div>
               </div>
               <Button asChild className="mt-6">
-                <Link href="/custom-letterman-jackets">Start Your Custom Combo</Link>
+                <Link href="/design/varsity">Start Your Custom Combo</Link>
               </Button>
             </div>
 
@@ -615,7 +615,7 @@ export default function MaterialsColorsPage() {
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg">
-                <Link href="/custom-letterman-jackets">Start Designing</Link>
+                <Link href="/design/varsity">Start Designing</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link href="/contact">Contact Support</Link>

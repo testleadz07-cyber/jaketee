@@ -81,6 +81,8 @@ const OrderItemSchema = new Schema<IOrderItem>(
     quantity: { type: Number, required: true },
     variants: [{ name: String, value: String }],
     customization: {
+      garmentCategory: { type: String, enum: ['bomber', 'coach', 'puffer'] },
+      garmentOptions: { type: Map, of: String },
       varsityOptions: { type: Map, of: String },
       front: JacketSideSchema,
       back: JacketSideSchema,

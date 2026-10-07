@@ -8,6 +8,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { getPatchSectionImages } from '@/lib/patch-section-images'
+import savedImages from '@/data/patch-images.json'
 import {
   Accordion,
   AccordionContent,
@@ -17,14 +19,17 @@ import {
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/patches-embroidery`
-const legacyAssetBrand = ['clo', 'thaa'].join('')
-const baseAssetPath = `https://res.cloudinary.com/dhdfbl8pc/image/upload`
-const patchAsset = (version: number, fileName: string, exported = false) =>
-  `${baseAssetPath}/v${version}/${legacyAssetBrand}/${exported ? 'exports/' : ''}patches-embroidery/${fileName}`
+export const revalidate = 3600
+const savedImageMap = Object.fromEntries(savedImages.map(image => [image.key, image]))
+function patchImage(key: string) {
+  const image = savedImageMap[key]
+  if (!image) throw new Error(`Missing patch image: ${key}`)
+  return { src: image.url, alt: image.alt }
+}
 
-const heroImage = patchAsset(1788899943, 'hero__varsity-jacket-patches-embroidery-hero.jpg', true)
+const heroImage = patchImage('hero').src
 
-export const metadata: Metadata = {
+const defaultMetadata: Metadata = {
   title: 'Chenille Patches for Letterman Jackets | Jacketee',
   description:
     'Compare chenille patches for letterman jackets, varsity jacket embroidery, felt, tackle twill, printing and label options for custom jacket designs.',
@@ -83,14 +88,8 @@ const navItems = [
 ]
 
 const placementImages: ImageItem[] = [
-  {
-    src: patchAsset(1781553081, 'b4212df3-5e57-45b7-aa65-5c872d13016c.jpg'),
-    alt: 'Front placement guide for letters, names, and small patches',
-  },
-  {
-    src: patchAsset(1781553091, '84875029-a85e-4cbc-8ac0-afe37f6222a0.jpg'),
-    alt: 'Back placement guide for large names, numbers, and logos',
-  },
+  patchImage('placement-front'),
+  patchImage('placement-back'),
 ]
 
 const placements = [
@@ -128,9 +127,9 @@ const methods: Method[] = [
     care: 'Felt holds up well. Spot clean and avoid high heat. For wool varsity jackets, dry cleaning is safest.',
     best: ['Works best on: Melton wool, cotton fleece, cotton twill', 'Use with care on: Tiny text designs and very thin lines'],
     images: [
-      { src: patchAsset(1781553319, 'f3089ec8-7ea4-4436-a204-314fb37c6783.jpg'), alt: 'Triple felt varsity patch close-up' },
-      { src: patchAsset(1781553762, '879031f1-57b0-4c56-8de3-48caedf428aa.jpg'), alt: 'Champion felt letters on jacket back' },
-      { src: patchAsset(1781554470, 'ed1e359a-9902-4c8f-a811-6e1088f32609.jpg'), alt: 'Sleeve felt patches with chevrons and year' },
+      patchImage('felt-patches-1'),
+      patchImage('felt-patches-2'),
+      patchImage('felt-patches-3'),
     ],
   },
   {
@@ -143,9 +142,9 @@ const methods: Method[] = [
     care: 'Avoid ironing directly on the thread. If washing at home, turn the jacket inside out and use cold water.',
     best: ['Works best on: Wool, fleece, twill, satin, nylon, soft-shell', 'Sew-on backing is safest for heat-sensitive fabrics'],
     images: [
-      { src: patchAsset(1781554914, '4cae473a-2eec-4af2-8803-9204ba095b15.jpg'), alt: 'Felt embroidered single letter chest patch' },
-      { src: patchAsset(1781554992, '57235533-2052-4171-a4d6-102821b6c928.jpg'), alt: 'Felt embroidered school crest sleeve patch' },
-      { src: patchAsset(1781555038, 'b20d2b63-2794-46ec-b36c-b533c0f3d9e6.jpg'), alt: 'Embroidered logo patch on satin varsity jacket' },
+      patchImage('embroidered-patches-1'),
+      patchImage('embroidered-patches-2'),
+      patchImage('embroidered-patches-3'),
     ],
   },
   {
@@ -158,9 +157,9 @@ const methods: Method[] = [
     care: 'Keep chenille away from heavy rubbing. Spot clean when possible. Dry cleaning works best for wool bodies.',
     best: ['Works best on: Melton wool, cotton fleece, cotton twill', 'Use with care on: Tiny text, thin outlines, and high-abrasion spots'],
     images: [
-      { src: patchAsset(1781555387, '935621ee-8c28-4cf1-a706-f1329d5b7235.jpg'), alt: 'Layered chenille chest letter on varsity jacket' },
-      { src: patchAsset(1781555391, '9acc3c27-a073-4581-ab47-8bb7697772d8.jpg'), alt: 'Chenille sleeve stack with year and captain patch' },
-      { src: patchAsset(1781555489, '5cc04226-f4a7-4683-89bf-e6e40a8be011.jpg'), alt: 'Bold chenille back mascot patch' },
+      patchImage('chenille-patches-1'),
+      patchImage('chenille-patches-2'),
+      patchImage('chenille-patches-3'),
     ],
   },
   {
@@ -173,9 +172,9 @@ const methods: Method[] = [
     care: 'Direct embroidery is one of the strongest options. Wash cold when needed. For wool jackets, dry cleaning is best.',
     best: ['Works best on: Wool, fleece, twill, satin with backing, soft-shell, vegan leather', 'Use with care on: Suede and dense fills on leather'],
     images: [
-      { src: patchAsset(1781555985, '58cc989d-ec08-4935-8c97-e1897752599f.jpg'), alt: 'Direct embroidered letter example' },
-      { src: patchAsset(1781555999, 'fbea5064-3961-4113-80ad-b99653b9a82c.jpg'), alt: 'Logo embroidery close-up' },
-      { src: patchAsset(1781556074, '9309189f-83a4-4fb5-b188-1dc38e9794c6.jpg'), alt: 'Name embroidery on chest' },
+      patchImage('digitizing-embroidery-1'),
+      patchImage('digitizing-embroidery-2'),
+      patchImage('digitizing-embroidery-3'),
     ],
   },
   {
@@ -188,9 +187,9 @@ const methods: Method[] = [
     care: 'Avoid heavy rubbing on the yarn. Spot clean when possible. Dry cleaning is safest for wool jacket bodies.',
     best: ['Works best on: Melton wool, cotton fleece, cotton twill', 'Use with care on: Tiny details and thin satin without backing'],
     images: [
-      { src: patchAsset(1781556292, 'd78a5150-cd3e-4d90-a25e-d59c851298bf.jpg'), alt: 'Direct chenille script on satin right chest' },
-      { src: patchAsset(1781556310, 'd3884024-d453-4618-8fd6-46f7b7cc254e.jpg'), alt: 'Pacific State chenille embroidery' },
-      { src: patchAsset(1781556286, 'b077264d-3124-4f38-9130-4635941ce9ae.jpg'), alt: 'Mascot chenille embroidery' },
+      patchImage('chenille-embroidery-1'),
+      patchImage('chenille-embroidery-2'),
+      patchImage('chenille-embroidery-3'),
     ],
   },
   {
@@ -204,9 +203,9 @@ const methods: Method[] = [
     care: 'These patches last a long time because the weave is tight. Avoid high heat on hook-and-loop backing.',
     best: ['Works best on: Satin, soft-shell, nylon, wool, fleece', 'Use with care on: Very small patches where text may become unreadable'],
     images: [
-      { src: patchAsset(1781556719, 'da0a963e-a436-4f4a-a122-24d935d58602.jpg'), alt: 'Woven patch macro showing fine threads' },
-      { src: patchAsset(1781556726, 'ec26a082-68da-4341-9cce-007f1fd8d299.jpg'), alt: 'Woven crest on jacket back' },
-      { src: patchAsset(1781556762, '6d6f6972-a8d9-4ba1-9e7a-016c4f080fe3.jpg'), alt: 'Woven crest chest patch' },
+      patchImage('woven-patches-1'),
+      patchImage('woven-patches-2'),
+      patchImage('woven-patches-3'),
     ],
   },
   {
@@ -220,9 +219,9 @@ const methods: Method[] = [
     care: 'Avoid soaking leather patches. If the jacket gets wet, let it air dry naturally.',
     best: ['Works best on: Wool, fleece, twill, nylon, soft-shell', 'Use with care on: Suede and thin satin without backing'],
     images: [
-      { src: patchAsset(1781556891, '2a1a9be5-4df3-4800-ab5d-1baf684bc8bf.jpg'), alt: 'Leather patch stitched on jacket' },
-      { src: patchAsset(1781556953, '8b39a223-acc4-402f-a221-fdb78cd18967.jpg'), alt: 'Leather letter patch on varsity jacket' },
-      { src: patchAsset(1781556896, '64e10985-aacd-4e10-a53c-2dc8c8362f13.jpg'), alt: 'Cowhide leather letter patch' },
+      patchImage('leather-patches-1'),
+      patchImage('leather-patches-2'),
+      patchImage('leather-patches-3'),
     ],
   },
   {
@@ -235,9 +234,9 @@ const methods: Method[] = [
     care: 'Puff holds its shape well. Avoid crushing it or using high heat. Spot clean gently when possible.',
     best: ['Works best on: Cotton fleece, melton wool, thicker twill', 'Use with care on: Thin satin and lightweight nylon that can pucker'],
     images: [
-      { src: patchAsset(1781557247, '51d6e62f-568f-4a27-96c3-c4b590748e0f.jpg'), alt: 'Puff embroidery raised text on jacket back' },
-      { src: patchAsset(1781557184, '8acfba72-3ecd-43c2-a552-c14055abef17.jpg'), alt: 'Raised year embroidery on sleeve' },
-      { src: patchAsset(1788899957, 'puff-embroidery__puff-left-chest-wordmark-white-black.jpg', true), alt: 'Puff left chest wordmark' },
+      patchImage('puff-embroidery-1'),
+      patchImage('puff-embroidery-2'),
+      patchImage('puff-embroidery-3'),
     ],
   },
   {
@@ -250,9 +249,9 @@ const methods: Method[] = [
     care: 'Tackle twill is tough and sporty. Avoid high heat to protect the border stitch.',
     best: ['Works best on: Melton wool, cotton fleece, cotton twill, satin', 'Use with care on: Very thin fabrics without backing'],
     images: [
-      { src: patchAsset(1781557433, '771151d6-0e58-4699-b080-9d414c8b9857.jpg'), alt: 'Tackle twill letter patch on chest' },
-      { src: patchAsset(1781557531, '8f97fb35-1bf9-41a1-bcd1-bd4c51e89651.jpg'), alt: 'Tackle twill number patches' },
-      { src: patchAsset(1781557453, 'b103bd03-8b0a-48cc-975f-fc7a3d202623.jpg'), alt: 'Tackle twill back wordmark' },
+      patchImage('tackle-twill-1'),
+      patchImage('tackle-twill-2'),
+      patchImage('tackle-twill-3'),
     ],
   },
   {
@@ -265,9 +264,9 @@ const methods: Method[] = [
     care: 'Wash in cold water and never iron directly on the print.',
     best: ['Works best on: Cotton fleece, cotton twill, satin, nylon, many blends', 'Use with care on: Real leather and suede'],
     images: [
-      { src: patchAsset(1781560288, '875f2ae3-4d6c-4d27-a0c7-9e415460c007.jpg'), alt: 'DTF print on hoodie' },
-      { src: patchAsset(1781560293, '11dea561-aac1-4dd5-acc5-d58eff39f8fb.jpg'), alt: 'Detailed DTF transfer on satin' },
-      { src: patchAsset(1781560320, 'b47e1fff-1d77-49b1-a011-5ef161ee20e4.jpg'), alt: 'DTF logo on satin' },
+      patchImage('dtf-printing-1'),
+      patchImage('dtf-printing-2'),
+      patchImage('dtf-printing-3'),
     ],
   },
   {
@@ -280,9 +279,9 @@ const methods: Method[] = [
     care: 'Wash cold and avoid high heat drying so the ink stays smooth.',
     best: ['Works best on: Cotton twill and cotton fleece', 'Use with care on: Coated soft-shell and leather'],
     images: [
-      { src: patchAsset(1781560457, '0ec6d4fe-9cc3-44ea-8fb5-980ec145be4a.jpg'), alt: 'Screen printing example' },
-      { src: patchAsset(1781560517, '696f099d-6c22-438d-acd5-0f2f2f09af5a.jpg'), alt: 'Screen printed hoodie chest close-up' },
-      { src: patchAsset(1781560469, '925c80c3-2fdc-4ff7-bece-0c45b3b75176.jpg'), alt: 'Screen printed coach jacket back' },
+      patchImage('screen-printing-1'),
+      patchImage('screen-printing-2'),
+      patchImage('screen-printing-3'),
     ],
   },
   {
@@ -295,9 +294,9 @@ const methods: Method[] = [
     care: 'Wash cold. Never iron directly on vinyl. Air dry for best durability.',
     best: ['Works best on: Cotton fleece, cotton twill, satin, nylon-rated vinyl', 'Use with care on: Heat-sensitive nylon, soft-shell, and leather'],
     images: [
-      { src: patchAsset(1781560541, '36150789-1faa-4786-b07e-c2fe1110909c.jpg'), alt: 'HTV on cotton fleece' },
-      { src: patchAsset(1781560543, '75087276-8e53-4eeb-8092-93b1a2b06e3b.jpg'), alt: 'Glitter HTV example' },
-      { src: patchAsset(1781560546, '62544edf-6cfa-4d34-bc9f-b804ca133689.jpg'), alt: 'Puff HTV on cotton twill' },
+      patchImage('htv-vinyl-1'),
+      patchImage('htv-vinyl-2'),
+      patchImage('htv-vinyl-3'),
     ],
   },
   {
@@ -310,9 +309,9 @@ const methods: Method[] = [
     care: 'Sublimation does not crack. Wash cold and avoid bleach to keep colors bright.',
     best: ['Works best on: Poly-based satin and many soft-shell fabrics', 'Use with care on: Cotton fleece, twill, wool, and real leather'],
     images: [
-      { src: patchAsset(1781560677, '60720534-878d-408b-a780-6bee4a32a1b7.jpg'), alt: 'Sublimation print on satin jacket' },
-      { src: patchAsset(1781560737, 'e1df09dc-ccc5-49a0-a7d8-3b7c866d7b17.jpg'), alt: 'Full print sublimation satin jacket' },
-      { src: patchAsset(1781560692, 'f0e9676c-950e-4a6d-9e77-7a3edddc98d3.jpg'), alt: 'Sublimation satin patch' },
+      patchImage('sublimation-printing-1'),
+      patchImage('sublimation-printing-2'),
+      patchImage('sublimation-printing-3'),
     ],
   },
   {
@@ -325,9 +324,9 @@ const methods: Method[] = [
     care: 'Woven labels do not fade. Wash cold and avoid intense heat.',
     best: ['Works best on: Inside lining, hem, and neck areas', 'Use with care on: High-friction spots where sharp edges can rub'],
     images: [
-      { src: patchAsset(1781560749, '0fc181af-82f3-483d-ae0b-da26e716df17.jpg'), alt: 'Woven neck label example' },
-      { src: patchAsset(1781560755, '8f5bfab0-0fc4-49b9-8b62-1896b1962b92.jpg'), alt: 'Woven neck label with brand name' },
-      { src: patchAsset(1781560760, '5b3b5f77-df52-48a5-8f01-2453d0a55254.jpg'), alt: 'Inside label sewn in jacket' },
+      patchImage('woven-labels-1'),
+      patchImage('woven-labels-2'),
+      patchImage('woven-labels-3'),
     ],
   },
 ]
@@ -377,7 +376,32 @@ const faqJsonLd = {
   })),
 }
 
-export default function PatchesEmbroideryPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const images = await getPatchSectionImages()
+  return {
+    ...defaultMetadata,
+    openGraph: {
+      ...defaultMetadata.openGraph,
+      images: [{ url: images.hero?.url || heroImage, width: 1200, height: 630, alt: images.hero?.alt || 'Varsity jacket patches and embroidery examples' }],
+    },
+    twitter: { ...defaultMetadata.twitter, images: [images.hero?.url || heroImage] },
+  }
+}
+
+export default async function PatchesEmbroideryPage() {
+  const images = await getPatchSectionImages()
+  const currentHero = images.hero || { url: heroImage, alt: 'Varsity jacket patches and embroidery examples' }
+  const currentPlacements = placementImages.map((image, index) => {
+    const replacement = images[index === 0 ? 'placement-front' : 'placement-back']
+    return replacement ? { src: replacement.url, alt: replacement.alt } : image
+  })
+  const currentMethods = methods.map(method => ({
+    ...method,
+    images: method.images.map((image, index) => {
+      const replacement = images[`${method.id}-${index + 1}`]
+      return replacement ? { src: replacement.url, alt: replacement.alt } : image
+    }),
+  }))
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <script
@@ -413,8 +437,8 @@ export default function PatchesEmbroideryPage() {
               </div>
               <div className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
                 <Image
-                  src={heroImage}
-                  alt="Varsity jacket patches and embroidery examples"
+                  src={currentHero.url}
+                  alt={currentHero.alt}
                   fill
                   priority
                   sizes="(min-width: 1024px) 48vw, 100vw"
@@ -454,7 +478,7 @@ export default function PatchesEmbroideryPage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            {placementImages.map((image) => (
+            {currentPlacements.map((image) => (
               <div key={image.alt} className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
                 <Image src={image.src} alt={image.alt} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
               </div>
@@ -508,7 +532,7 @@ export default function PatchesEmbroideryPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {methods.map((method) => (
+              {currentMethods.map((method) => (
                 <Card key={method.id} id={method.id} className="scroll-mt-24 overflow-hidden border">
                   <div className="grid grid-cols-3 gap-1 bg-muted p-1">
                     {method.images.map((image) => (
@@ -592,7 +616,7 @@ export default function PatchesEmbroideryPage() {
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg">
-                  <Link href="/custom-letterman-jackets">
+                  <Link href="/design/varsity">
                     <Scissors className="mr-2 h-4 w-4" />
                     Start Designing
                   </Link>

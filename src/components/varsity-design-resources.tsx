@@ -25,6 +25,7 @@ export function VarsityDesignResources() {
         ['/patches-embroidery', 'Patches and embroidery', 'Learn about artwork options for names, initials, and logos.'],
       ].map(([href, heading, text]) => <Link key={href} href={href} className="rounded-lg border p-5 transition-colors hover:bg-muted/40"><h3 className="font-semibold underline underline-offset-4">{heading}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p></Link>)}</div>
       <p className="mt-5 text-sm text-muted-foreground">Need help? <Link href="/how-to-customize" className="underline">Read the customization guide</Link>, <Link href="/size-guide" className="underline">check sizing</Link>, or <Link href="/contact" className="underline">contact us</Link>. Prefer a catalog style? <Link href="/shop" className="underline">Choose a product to customize</Link>.</p>
+      <nav aria-label="Other jacket designers" className="mt-6 flex flex-wrap gap-4">{['bomber', 'coach', 'puffer'].map(category => <Link key={category} href={`/design/${category}`} className="font-medium underline">Design a {category} jacket</Link>)}</nav>
     </section>
   </>
 }

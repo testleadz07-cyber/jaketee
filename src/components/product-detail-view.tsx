@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { FaqText } from '@/components/faq-text'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -748,7 +749,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                 <AccordionItem key={faq.id} value={faq.id}>
                   <AccordionTrigger className="text-left font-medium">{faq.question}</AccordionTrigger>
                   <AccordionContent className="space-y-3 text-sm leading-6 text-muted-foreground">
-                    {faq.answer.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+                    {faq.answer.map((paragraph, index) => <p key={index}><FaqText text={paragraph} /></p>)}
                     {faq.bullets.length > 0 && <ul className="list-disc pl-5">{faq.bullets.map((bullet, index) => <li key={index}>{bullet}</li>)}</ul>}
                     {faq.ordered.length > 0 && <ol className="list-decimal pl-5">{faq.ordered.map((step, index) => <li key={index}>{step}</li>)}</ol>}
                   </AccordionContent>

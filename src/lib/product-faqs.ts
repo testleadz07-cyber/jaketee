@@ -16,5 +16,5 @@ export function buildProductFaqs(faqs: ProductFaq[], categoryName: string, inclu
 }
 
 export function productFaqAnswerText(faq: ProductFaq) {
-  return [...faq.answer, ...faq.bullets, ...faq.ordered].filter(Boolean).join(' ')
+  return [...faq.answer, ...faq.bullets, ...faq.ordered].filter(Boolean).join(' ').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
 }

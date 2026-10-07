@@ -1,4 +1,5 @@
 import Product from '@/models/Product'
+import { getGarmentCategory } from '@/lib/garment-template'
 import { VARSITY_TEMPLATE_ID } from '@/lib/varsity-template'
 
 /**
@@ -11,7 +12,7 @@ export async function decrementStockForOrder(
 ) {
   for (const item of items) {
     const quantity = Number(item.quantity) || 0
-    if (!item.productId || item.productId === VARSITY_TEMPLATE_ID || quantity <= 0) continue
+    if (!item.productId || item.productId === VARSITY_TEMPLATE_ID || getGarmentCategory(item.productId) || quantity <= 0) continue
 
     const updated = await Product.findByIdAndUpdate(
       item.productId,
