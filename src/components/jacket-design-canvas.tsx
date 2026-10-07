@@ -2,6 +2,7 @@
 
 import { PointerEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ImagePlus, Loader2, RotateCcw, Search, Type, X } from 'lucide-react'
+import { CustomizationSection } from '@/components/customization-section'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,6 +27,7 @@ interface JacketDesignCanvasProps {
   onDifficulty?: (reason: string) => void
   leftContentTop?: React.ReactNode
   leftContentBottom?: React.ReactNode
+  onPartSelect?: (partId: string) => void
 }
 
 type DragTarget = 'text' | string
@@ -40,7 +42,7 @@ function getViewImageUrl(images: { url: string; alt?: string | null }[], view: J
   return images[viewIndex[view]]?.url || images[0]?.url
 }
 
-export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value, onChange, onDifficulty, leftContentTop, leftContentBottom }: JacketDesignCanvasProps) {
+export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value, onChange, onDifficulty, leftContentTop, leftContentBottom, onPartSelect }: JacketDesignCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const dragTarget = useRef<DragTarget | null>(null)
@@ -51,10 +53,23 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   const [background, setBackground] = useState<HTMLImageElement | null>(null)
   const [artworkImages, setArtworkImages] = useState<Map<string, HTMLImageElement>>(new Map())
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null)
+  const imageUrl = getViewImageUrl(images, view)
+  const partPaths = useMemo(() => {
+    if (typeof window === 'undefined' || !onPartSelect || !imageUrl?.startsWith('data:image/svg+xml')) return []
+    const document = new DOMParser().parseFromString(decodeURIComponent(imageUrl.slice(imageUrl.indexOf(',') + 1)), 'image/svg+xml')
+    const jacketGroup = document.querySelector('[data-jacket-scale-x]')
+    const transform = new DOMMatrix([Number(jacketGroup?.getAttribute('data-jacket-scale-x') || 1), 0, 0, 1, Number(jacketGroup?.getAttribute('data-jacket-offset-x') || 0), 0])
+    return Array.from(document.querySelectorAll('g[id]')).map(group => ({
+      id: group.id, paths: Array.from(group.querySelectorAll('path[d]')).map(path => {
+        const transformed = new Path2D()
+        transformed.addPath(new Path2D(path.getAttribute('d') || ''), transform)
+        return transformed
+      }),
+    })).reverse()
+  }, [imageUrl, onPartSelect])
   const { toast } = useToast()
 
   const side: JacketSideCustomization = value[view] || {}
-  const imageUrl = getViewImageUrl(images, view)
   const chestWidth = getJacketChestWidth(selectedSize)
   const selectedArtwork = side.artworks?.find((artwork) => artwork.id === selectedArtworkId)
   const artworkSourceKey = (side.artworks || []).map((artwork) => `${artwork.id}:${artwork.source}:${artwork.catalogId || artwork.url}:${artwork.color}:${artwork.fontStyle || ''}`).join('|')
@@ -69,15 +84,17 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   }
 
   useEffect(() => {
+    let cancelled = false
     if (!imageUrl) {
       queueMicrotask(() => setBackground(null))
       return
     }
     const image = new window.Image()
     image.crossOrigin = 'anonymous'
-    image.onload = () => setBackground(image)
-    image.onerror = () => setBackground(null)
+    image.onload = () => { if (!cancelled) setBackground(image) }
+    image.onerror = () => { if (!cancelled) setBackground(null) }
     image.src = imageUrl
+    return () => { cancelled = true }
   }, [imageUrl])
 
   useEffect(() => {
@@ -141,6 +158,13 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
     dragTarget.current = textDistance <= (closestArtwork?.distance ?? Infinity) && textDistance < 0.18 ? 'text' : closestArtwork?.distance < 0.22 ? closestArtwork.artwork.id : null
     if (dragTarget.current && dragTarget.current !== 'text') setSelectedArtworkId(dragTarget.current)
     if (dragTarget.current) event.currentTarget.setPointerCapture(event.pointerId)
+    else if (onPartSelect) {
+      const context = event.currentTarget.getContext('2d')
+      const x = position.x * CANVAS_SIZE
+      const y = position.y * CANVAS_SIZE
+      const part = context && partPaths.find(part => part.paths.some(path => context.isPointInPath(path, x, y)))
+      if (part) onPartSelect(part.id)
+    }
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
@@ -183,6 +207,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       {/* Left side: Customization Options */}
       <div className="order-2 min-w-0 space-y-6 lg:order-1 lg:space-y-8">
         {leftContentTop && <div>{leftContentTop}</div>}
+        <CustomizationSection title="6. Text & artwork" collapsible={Boolean(onPartSelect)}>
 
         <div className="space-y-6">
           <div className="space-y-3">
@@ -266,6 +291,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
         </div>
         </div>
 
+        </CustomizationSection>
         {leftContentBottom && <div>{leftContentBottom}</div>}
       </div>
 
@@ -284,6 +310,16 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
             <RotateCcw className="mr-2 h-4 w-4" /> Reset {getJacketViewLabel(view)}
           </Button>
         </div>
+
+        {onPartSelect && <p className="text-xs text-muted-foreground">Click a jacket part to select its color. Drag artwork to position it.</p>}
+        {onPartSelect && (selectedArtwork || side.text?.value) && <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Place {selectedArtwork ? 'selected artwork' : 'text'}:</span>
+          {(view === 'front' ? [['Left chest', .59, .39], ['Right chest', .41, .39], ['Center', .5, .46]] : [['Upper', .5, .35], ['Center', .5, .48], ['Lower', .5, .65]]).map(([label, x, y]) => <Button key={label} type="button" size="sm" variant="outline" onClick={() => {
+            const position = { x: Number(x), y: Number(y) }
+            if (selectedArtwork) updateSide({ artworks: side.artworks?.map(art => art.id === selectedArtwork.id ? { ...art, ...position } : art) })
+            else updateText(position)
+          }}>{label}</Button>)}
+        </div>}
 
         <div className="relative w-full min-w-0 overflow-hidden rounded-md border bg-muted" style={{ aspectRatio: '1 / 1' }}>
           <canvas id="jacket-design-canvas-element" ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="absolute inset-0 block h-full w-full touch-none cursor-move"

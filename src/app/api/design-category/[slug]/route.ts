@@ -5,6 +5,7 @@ import Category from '@/models/Category'
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  if (slug === 'varsity-jackets') return NextResponse.redirect(new URL('/design/varsity', request.url))
   
   await connectDB()
   

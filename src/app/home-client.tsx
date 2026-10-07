@@ -216,7 +216,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-12 bg-red-700 px-6 text-base font-bold text-white shadow-lg hover:bg-red-800">
-                <Link href="/custom-letterman-jackets">
+                <Link href="/design/varsity">
                   Start Custom Design
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -265,7 +265,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Button asChild size="lg" className="bg-red-700 text-white hover:bg-red-800">
-                    <Link href="/custom-letterman-jackets">Custom Letterman / Varsity</Link>
+                    <Link href="/design/varsity">Custom Letterman / Varsity</Link>
                   </Button>
                   <Button asChild size="lg" variant="secondary">
                     <Link href="/custom-puffer-jackets">Custom Puffer</Link>
@@ -399,7 +399,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
               </p>
             </div>
             <Button asChild className="bg-red-700 text-white hover:bg-red-800">
-              <Link href="/custom-letterman-jackets">Start Custom Design</Link>
+              <Link href="/design/varsity">Start Custom Design</Link>
             </Button>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">

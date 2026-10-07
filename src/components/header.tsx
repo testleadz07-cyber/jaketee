@@ -59,7 +59,7 @@ const bulkOrderLinks: NavLink[] = [
 ]
 
 const customJacketLinks: NavLink[] = [
-  { href: '/api/design-category/varsity-jackets', label: 'Custom Letterman / Varsity Jacket', description: 'School letters, awards, chenille, and names' },
+  { href: '/design/varsity', label: 'Custom Design / Varsity Jacket', description: 'Start a varsity jacket from scratch with your colors and artwork', icon: Sparkles },
   { href: '/api/design-category/puffer-jackets', label: 'Custom Puffer Jacket', description: 'Logo outerwear for cold-weather groups' },
   { href: '/api/design-category/coach-jackets', label: 'Custom Coach', description: 'Team, staff, event, and brand designs' },
   { href: '/api/design-category/bomber-jackets', label: 'Custom Bomber Jacket', description: 'Design leather, satin, nylon, or suede bombers' },

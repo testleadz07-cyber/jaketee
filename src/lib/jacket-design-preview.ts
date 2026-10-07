@@ -89,7 +89,7 @@ export async function captureJacketDesignPreviews(customization: JacketCustomiza
   await document.fonts.ready
   const viewIndex: Record<JacketView, number> = { front: 0, back: 1, leftSleeve: 2, rightSleeve: 3 }
   return Promise.all(getCustomizedViews(customization).map(async (view) => {
-    const side = customization[view]!
+    const side = customization[view] || {}
     const backgroundUrl = images[viewIndex[view]]?.url || images[0]?.url
     if (!backgroundUrl) throw new Error('The product image is missing. Please reload and retry.')
     const [background, entries] = await Promise.all([

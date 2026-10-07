@@ -20,6 +20,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/blog',
     '/faq',
     '/how-to-customize',
+    '/design/varsity',
+    '/blog/custom-varsity-jacket-design-guide',
     '/size-guide',
     '/track-order',
     '/materials-colors',

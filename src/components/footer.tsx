@@ -50,6 +50,7 @@ const legalLinks: FooterLink[] = [
 ]
 
 const customJacketLinks: FooterLink[] = [
+  { href: '/design/varsity', label: 'Design Your Own Varsity Jacket' },
   { href: '/custom-letterman-jackets', label: 'Custom Letterman Jackets' },
   { href: '/custom-bomber-jackets', label: 'Custom Bomber Jackets' },
   { href: '/custom-coach-jackets', label: 'Custom Coach Jackets' },

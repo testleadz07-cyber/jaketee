@@ -87,7 +87,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
               <h1 className="text-4xl font-bold md:text-6xl">{config.keyword}</h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/90 md:text-lg">{config.intro}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href={config.categoryHref} className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">Start Your Design <ArrowRight className="h-4 w-4" /></Link>
+                <Link href="/design/varsity" className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">Design a Varsity Jacket <ArrowRight className="h-4 w-4" /></Link>
                 <Link href="/bulk-orders" className="inline-flex h-11 items-center border border-white/60 px-5 text-sm font-semibold text-white hover:bg-white hover:text-zinc-950">Get a Bulk Quote</Link>
               </div>
             </div>

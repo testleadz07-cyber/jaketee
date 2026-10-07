@@ -4,6 +4,7 @@ import { sendEmail, reviewRequestTemplate } from '@/lib/email'
 import Order from '@/models/Order'
 import Product from '@/models/Product'
 import StoreSettings from '@/models/StoreSettings'
+import mongoose from 'mongoose'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const CLAIM_TIMEOUT_MS = 30 * 60 * 1000
@@ -82,7 +83,7 @@ async function runReviewRequestSweep(request: NextRequest) {
       continue
     }
 
-    const productIds = Array.from(new Set(claimed.items.map((item: any) => item.productId)))
+    const productIds = Array.from(new Set(claimed.items.map((item: any) => item.productId))).filter(id => mongoose.isValidObjectId(id))
     const products = await Product.find({ _id: { $in: productIds } }).select('name slug').lean()
     const productMap = new Map(products.map((product: any) => [String(product._id), product]))
     const reviewProducts = claimed.items.map((item: any) => {

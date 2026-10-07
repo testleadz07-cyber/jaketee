@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test:reviews": "node scripts/test-reviews-e2e.mjs",
+    "test:varsity": "node scripts/test-varsity-designer.cjs",
     "migrate:product-urls": "node scripts/migrate-product-urls.mjs",
     "migrate:product-urls:apply": "node scripts/migrate-product-urls.mjs --apply",
     "test:redirects": "node scripts/test-url-redirects.mjs",

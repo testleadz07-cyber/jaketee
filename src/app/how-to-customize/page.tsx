@@ -247,7 +247,7 @@ export default function HowToCustomizePage() {
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button asChild size="lg" className="rounded-full px-8 font-semibold shadow-lg transition-transform hover:scale-105">
-                <Link href="/custom-letterman-jackets">
+                <Link href="/design/varsity">
                   Design a Custom Jacket Now <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -459,7 +459,7 @@ export default function HowToCustomizePage() {
                 variant="secondary"
                 className="rounded-full px-8 font-bold shadow-md hover:bg-background hover:text-foreground"
               >
-                <Link href="/custom-letterman-jackets">
+                <Link href="/design/varsity">
                   Start Customizing Now <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

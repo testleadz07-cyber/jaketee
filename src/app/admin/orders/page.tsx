@@ -1002,7 +1002,7 @@ export default function AdminOrders() {
                                       </div>
                                     )}
                                     {getCustomizedViews(item.customization).map((view) => {
-                                      const side = item.customization![view]!
+                                      const side = item.customization?.[view] || {}
                                       return (
                                         <div key={view} className="mt-3 space-y-2 rounded-lg border p-3 text-xs">
                                           <p className="font-semibold">{getJacketViewLabel(view)} design</p>

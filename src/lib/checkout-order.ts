@@ -3,6 +3,7 @@ import Product from '@/models/Product'
 import Discount from '@/models/Discount'
 import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
 import { getCustomizationFee } from '@/lib/customization-pricing'
+import { VARSITY_TEMPLATE_ID, validateVarsityOptions, getVarsityPrice, getVarsitySvg } from '@/lib/varsity-template'
 
 const JACKET_FONT_STYLES = new Set(['varsity', 'block', 'classic', 'script', 'sans', 'serif'])
 
@@ -49,6 +50,10 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
   if (!value || typeof value !== 'object') throw new CheckoutError('Invalid jacket customization')
   const input = value as Record<string, unknown>
   const output: JacketCustomization = {}
+  if (input.varsityOptions != null) {
+    try { output.varsityOptions = validateVarsityOptions(input.varsityOptions) }
+    catch { throw new CheckoutError('Invalid varsity jacket options') }
+  }
 
   for (const view of JACKET_VIEWS) {
     const rawSide = input[view]
@@ -117,13 +122,13 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
     for (const view of JACKET_VIEWS) {
       const url = snapshots[view]
       if (url == null) continue
-      if (typeof url !== 'string' || !/^https:\/\//i.test(url) || url.length > 1000 || !output[view]) {
+      if (typeof url !== 'string' || !/^https:\/\//i.test(url) || url.length > 1000 || (!output[view] && !output.varsityOptions)) {
         throw new CheckoutError('Invalid design snapshot URL')
       }
       output.snapshots[view] = url.trim()
     }
   }
-  return JACKET_VIEWS.some((view) => output[view]) ? output : undefined
+  return output.varsityOptions || JACKET_VIEWS.some((view) => output[view]) ? output : undefined
 }
 
 function inUnitRange(value: number) {
@@ -135,6 +140,16 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     throw new CheckoutError('Checkout supports one jacket per order. Contact us for a bulk quote.')
   }
   const input = rawItems[0] as CheckoutItemInput
+  if (input?.productId === VARSITY_TEMPLATE_ID) {
+    if (input.quantity !== 1) throw new CheckoutError('Checkout supports one jacket per order')
+    const customization = sanitizeCustomization(input.customization, 24)
+    if (!customization?.varsityOptions) throw new CheckoutError('Varsity jacket configuration is required')
+    const price = Number((getVarsityPrice(customization.varsityOptions) + getCustomizationFee(customization)).toFixed(2))
+    if (!Number.isFinite(input.price) || Math.abs(input.price - price) > 0.01) throw new CheckoutError('Jacket price has changed. Refresh your cart.', 409)
+    return [{ productId: VARSITY_TEMPLATE_ID, name: 'Custom Varsity Jacket',
+      image: customization.snapshotUrl || `data:image/svg+xml;charset=utf-8,${encodeURIComponent(getVarsitySvg(customization.varsityOptions, 'front'))}`,
+      price, quantity: 1, variants: Object.entries(customization.varsityOptions).map(([name, value]) => ({ name, value })), customization }]
+  }
   if (!mongoose.isValidObjectId(input?.productId) || input.quantity !== 1) {
     throw new CheckoutError('Invalid checkout item')
   }
@@ -175,6 +190,7 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     unitPrice += Number(option.priceAdjust || 0)
   }
   const customization = sanitizeCustomization(input.customization, Number(product.embroidery?.maxChars || 24))
+  if (customization?.varsityOptions) throw new CheckoutError('Invalid product customization')
   if (customization) {
     unitPrice += getCustomizationFee(customization)
   }

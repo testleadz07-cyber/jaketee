@@ -1,4 +1,5 @@
 import Product from '@/models/Product'
+import { VARSITY_TEMPLATE_ID } from '@/lib/varsity-template'
 
 /**
  * Decrements stock for each item in a now-paid order. Never rejects - by the
@@ -10,7 +11,7 @@ export async function decrementStockForOrder(
 ) {
   for (const item of items) {
     const quantity = Number(item.quantity) || 0
-    if (!item.productId || quantity <= 0) continue
+    if (!item.productId || item.productId === VARSITY_TEMPLATE_ID || quantity <= 0) continue
 
     const updated = await Product.findByIdAndUpdate(
       item.productId,

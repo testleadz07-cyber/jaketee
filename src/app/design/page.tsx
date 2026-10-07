@@ -1,5 +1,5 @@
 import { permanentRedirect } from 'next/navigation'
 
-export default function CustomizeIndexPage() {
+export default function DesignPage() {
   permanentRedirect('/design/varsity')
 }

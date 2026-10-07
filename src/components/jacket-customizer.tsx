@@ -363,7 +363,7 @@ export function JacketCustomizer({
           ) : null
         )}
       {getCustomizedViews(customization).map((view) => {
-        const side = customization[view]!
+        const side = customization[view] || {}
         return (
           <div key={view} className="border-t pt-2 first:border-t-0 first:pt-0 mt-2">
             <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{getJacketViewLabel(view)}</p>

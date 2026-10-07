@@ -76,6 +76,9 @@ export default function BlogListPage({ posts, categories, page, pages, total }: 
         </div>
       </section>
 
+      <aside className="container mx-auto px-4 py-6" aria-label="Customization guide">
+        <Link href="/blog/custom-varsity-jacket-design-guide" className="block rounded-lg border bg-muted/30 p-5 font-semibold hover:underline">How to design your own varsity jacket: colors, materials, and artwork</Link>
+      </aside>
       {/* Category filters */}
       <section className="border-b bg-background/50 backdrop-blur sticky top-[73px] z-40">
         <div className="container mx-auto px-4 py-4">
