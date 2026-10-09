@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json([])
     }
 
-    const faqs = await Faq.find().sort({ category: 1, order: 1 }).lean()
+    const faqs = await Faq.find({ status: { $ne: 'draft' } }).sort({ category: 1, order: 1 }).lean()
     const data = faqs.map((f: any) => ({
       id: String(f._id),
       question: f.question,

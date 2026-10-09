@@ -4,12 +4,12 @@ import Product from '@/models/Product'
 import Category from '@/models/Category'
 import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
-import { getStaticProducts, getStaticCategories } from '@/lib/static-data'
 import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
 
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
-  const staticLastModified = new Date('2026-09-24T00:00:00.000Z')
+  const baseUrl = 'https://www.jacketee.com'
 
   // Static routes
   const staticRoutes = [
@@ -52,17 +52,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/cookie-policy',
   ].map((path) => ({
     url: `${baseUrl}${path}`,
-    lastModified: staticLastModified,
   }))
 
 
   let productsList: any[] = []
-  let categoriesList: Array<{ _id: string; name: string; slug: string; parentId?: string | null; updatedAt: Date }> = []
-  let blogPostsList: Array<{ slug: string; updatedAt: Date }> = []
-  let blogCategoriesList: Array<{ slug: string; updatedAt: Date }> = []
+  let categoriesList: Array<{ _id: string; name: string; slug: string; parentId?: string | null; updatedAt?: Date }> = []
+  let blogPostsList: Array<{ slug: string; updatedAt?: Date }> = []
+  let blogCategoriesList: Array<{ slug: string; updatedAt?: Date }> = []
 
   try {
     const db = await connectDB()
+    if (!db) throw new Error('Sitemap content is temporarily unavailable')
     if (db) {
       const dbProducts = await Product.find({ isDraft: { $ne: true }, status: 'active' }).lean()
       const dbCategories = await Category.find({}).lean()
@@ -73,49 +73,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       )
       blogCategoriesList = dbBlogCategories
         .filter((c: any) => usedCategoryIds.has(String(c._id)))
-        .map((c: any) => ({ slug: c.slug, updatedAt: c.updatedAt || new Date() }))
+        .map((c: any) => ({ slug: c.slug, updatedAt: c.updatedAt }))
 
       categoriesList = dbCategories.map((c: any) => ({
         _id: String(c._id),
         name: c.name,
         slug: c.slug,
         parentId: c.parentId ? String(c.parentId) : null,
-        updatedAt: c.updatedAt || staticLastModified,
+        updatedAt: c.updatedAt,
       }))
 
       productsList = dbProducts.map((p: any) => ({
         id: String(p._id),
         slug: p.slug,
         categoryId: p.categoryId ? String(p.categoryId) : null,
-        updatedAt: p.updatedAt || new Date(),
+        updatedAt: p.updatedAt,
       }))
 
       blogPostsList = dbBlogPosts.map((b: any) => ({
         slug: b.slug,
-        updatedAt: b.updatedAt || new Date(),
+        updatedAt: b.updatedAt,
       }))
     }
   } catch (error) {
     console.error('Error fetching data for sitemap:', error)
-  }
-
-  // Fallback to static data if no DB or empty
-  if (categoriesList.length === 0) {
-    categoriesList = getStaticCategories().map((c: any) => ({
-      _id: String(c._id ?? c.id),
-      name: c.name,
-      slug: c.slug,
-      parentId: c.parentId ? String(c.parentId) : null,
-      updatedAt: new Date(),
-    }))
-  }
-  if (productsList.length === 0) {
-    productsList = getStaticProducts().map((p: any) => ({
-      id: p.id || p._id,
-      slug: p.slug || p.id,
-      categoryId: p.categoryId ? String(p.categoryId) : null,
-      updatedAt: new Date(),
-    }))
+    throw error
   }
 
   // Dynamic category routes - nested (root-level) URLs, e.g. /varsity-jackets
@@ -134,7 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const chain = product.categoryId ? resolveAncestorChain(categoriesList, product.categoryId) : []
     return {
       url: `${baseUrl}${buildProductUrl({ slug: product.slug || product.id, categoryPath: chain })}`,
-      lastModified: new Date(product.updatedAt),
+      lastModified: product.updatedAt,
     }
   })
 
@@ -148,5 +130,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: category.updatedAt,
   }))
 
-  return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes, ...blogCategoryRoutes]
+  const routes = [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes, ...blogCategoryRoutes]
+  return [...new Map(routes.map(route => [route.url, route])).values()]
 }

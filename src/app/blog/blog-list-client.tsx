@@ -1,5 +1,6 @@
 'use client'
 
+import { blogArchivePath } from '@/lib/blog-archive'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -48,12 +49,13 @@ function formatDate(dateString: string) {
   }
 }
 
-export default function BlogListPage({ posts, categories, page, pages, total }: {
+export default function BlogListPage({ posts, categories, page, pages, total, categorySlug }: {
   posts: BlogPostSummary[]
   categories: BlogCategory[]
   page: number
   pages: number
   total: number
+  categorySlug?: string
 }) {
 
   return (
@@ -85,9 +87,9 @@ export default function BlogListPage({ posts, categories, page, pages, total }: 
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-wrap gap-2 items-center">
             <Filter className="h-4 w-4 text-muted-foreground mr-2" />
-            <Badge variant="default" className="cursor-default">
+            <Link href="/blog"><Badge variant={categorySlug ? 'outline' : 'default'}>
               All Posts
-            </Badge>
+            </Badge></Link>
             {categories.map((category) => (
               <Link key={category.id} href={`/blog/category/${category.slug}`}>
                 <Badge variant="outline" className="cursor-pointer transition-all hover:scale-105">
@@ -144,7 +146,7 @@ export default function BlogListPage({ posts, categories, page, pages, total }: 
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />
-                              {formatDate(post.publishedAt)}
+                              {post.publishedAt ? formatDate(post.publishedAt) : 'Jacketee guide'}
                             </span>
                           </div>
                         </CardContent>
@@ -159,28 +161,26 @@ export default function BlogListPage({ posts, categories, page, pages, total }: 
               <div className="mt-10">
                 <Pagination>
                   <PaginationContent>
-                    <PaginationItem>
+                    {page > 1 && <PaginationItem>
                       <PaginationPrevious
-                        href={page > 1 ? `/blog?page=${page - 1}` : '/blog'}
-                        className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
+                        href={blogArchivePath(page - 1, categorySlug)}
                       />
-                    </PaginationItem>
+                    </PaginationItem>}
                     {[...Array(pages)].map((_, i) => (
                       <PaginationItem key={i}>
                         <PaginationLink
-                          href={i === 0 ? '/blog' : `/blog?page=${i + 1}`}
+                          href={blogArchivePath(i + 1, categorySlug)}
                           isActive={page === i + 1}
                         >
                           {i + 1}
                         </PaginationLink>
                       </PaginationItem>
                     ))}
-                    <PaginationItem>
+                    {page < pages && <PaginationItem>
                       <PaginationNext
-                        href={page < pages ? `/blog?page=${page + 1}` : `/blog?page=${pages}`}
-                        className={page >= pages ? 'pointer-events-none opacity-50' : ''}
+                        href={blogArchivePath(page + 1, categorySlug)}
                       />
-                    </PaginationItem>
+                    </PaginationItem>}
                   </PaginationContent>
                 </Pagination>
                 <p className="text-center text-sm text-muted-foreground mt-3">

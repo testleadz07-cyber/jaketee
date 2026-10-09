@@ -128,7 +128,7 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
     ? String((rawCategoryId as any)._id ?? rawCategoryId)
     : null
   const productChain = leafCategoryId ? resolveAncestorChain(categories, leafCategoryId) : []
-  const productChainSlugs = productChain.map((c) => toPublicCategorySlug(c.slug))
+  const productChainSlugs = productChain.length ? productChain.map((c) => toPublicCategorySlug(c.slug)) : ['products']
   const expectedPrefix = segments.slice(0, -1)
   const prefixMatches =
     productChainSlugs.length === expectedPrefix.length &&

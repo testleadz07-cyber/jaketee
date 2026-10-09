@@ -35,6 +35,7 @@ function normalizeDisplayPages(value: unknown) {
 function mapFaq(faq: any) {
   return {
     id: String(faq._id),
+    status: faq.status || 'published',
     question: faq.question,
     answer: faq.answer || [],
     category: faq.category,
@@ -141,6 +142,7 @@ export async function POST(request: NextRequest) {
     }
 
     const faq = await Faq.create({
+      status: body.status === 'draft' ? 'draft' : 'published',
       question,
       answer,
       category,
@@ -201,6 +203,7 @@ export async function PATCH(request: NextRequest) {
     const faq = await Faq.findByIdAndUpdate(
       id,
       {
+        status: body.status === 'draft' ? 'draft' : 'published',
         question,
         answer,
         category,

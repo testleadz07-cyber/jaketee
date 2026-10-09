@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit'
+import { resolveSlugPath } from '@/lib/route-resolver'
 
 // Route-specific rate limit budgets. Keys are exact pathnames.
 // Anything under /api not listed here falls back to DEFAULT_API_LIMIT,
@@ -57,6 +58,13 @@ function getRateLimitConfig(pathname: string) {
 //   2. API rate limiting to block brute force / coupon-guessing / spam abuse.
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  // Resolve legacy product URLs before rendering so the response is a real 301.
+  if (/^\/products\/[^/]+\/?$/.test(pathname)) {
+    const resolution = await resolveSlugPath(pathname.split('/').filter(Boolean))
+    if (resolution.type === 'redirect') {
+      return NextResponse.redirect(new URL(resolution.to, 'https://www.jacketee.com'), 301)
+    }
+  }
 
   // --- Admin route protection -------------------------------------------
   if (pathname.startsWith('/admin')) {
@@ -95,5 +103,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/:path*'],
+  matcher: ['/admin/:path*', '/api/:path*', '/products/:path*'],
 }

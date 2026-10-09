@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+import { blogPageNumber, blogArchivePath } from '@/lib/blog-archive'
 import { notFound } from 'next/navigation'
 import { connectDB } from '@/lib/mongodb'
 import BlogCategory from '@/models/BlogCategory'
@@ -9,6 +11,17 @@ export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 9
 
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> }): Promise<Metadata> {
+  const [{ slug }, { page }] = await Promise.all([params, searchParams])
+  if (!(await connectDB())) return {}
+  const category = await BlogCategory.findOne({ slug }).lean()
+  if (!category) return { robots: { index: false, follow: false } }
+  const url = `https://www.jacketee.com${blogArchivePath(blogPageNumber(page), undefined, `/blog/category/${slug}`)}`
+  const title = `${category.name} | Jacketee Journal`
+  const description = category.description || `Browse ${category.name} articles from the Jacketee Journal.`
+  return { title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'website' } }
+}
+
 export default async function Page({ params, searchParams }: {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ page?: string }>
@@ -19,15 +32,8 @@ export default async function Page({ params, searchParams }: {
   const category = await BlogCategory.findOne({ slug }).lean()
   if (!category) notFound()
 
-  const parsedPage = Number(requestedPage)
-  const page = Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1
-  const query = {
-    categories: category._id,
-    $or: [
-      { status: 'published' },
-      { status: 'scheduled', publishedAt: { $lte: new Date() } },
-    ],
-  }
+  const page = blogPageNumber(requestedPage)
+  const query = { categories: category._id, status: 'published' }
   const [total, rawPosts, imageCandidates] = await Promise.all([
     BlogPost.countDocuments(query),
     BlogPost.find(query)
@@ -39,6 +45,7 @@ export default async function Page({ params, searchParams }: {
       .lean(),
     getBlogImageCandidates(),
   ])
+  if (page > Math.max(1, Math.ceil(total / PAGE_SIZE))) notFound()
   const posts: BlogPostSummary[] = rawPosts.map((post) => ({
     id: String(post._id),
     title: post.title,

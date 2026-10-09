@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Product from '@/models/Product'
+import Category from '@/models/Category'
+import { buildProductUrl, resolveAncestorChain } from '@/lib/categories'
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,8 +47,12 @@ export async function GET(request: NextRequest) {
 
     const productIds = Array.from(new Set(reviews.map((r: any) => String(r.productId))))
     const products = await Product.find({ _id: { $in: productIds } })
-      .select('name slug images')
+      .select('name slug images categoryId')
       .lean()
+    const categories = (await Category.find().select('name slug parentId').lean()).map(category => ({
+      _id: String(category._id), slug: category.slug,
+      parentId: category.parentId ? String(category.parentId) : null,
+    }))
     const productMap = new Map(products.map((p: any) => [String(p._id), p]))
 
     const mapped = reviews.map((r: any) => {
@@ -61,6 +67,7 @@ export async function GET(request: NextRequest) {
               id: String(product._id),
               name: product.name,
               slug: product.slug,
+              href: buildProductUrl({ slug: product.slug, categoryPath: resolveAncestorChain(categories, String(product.categoryId)) }),
               image: product.images?.[0]?.url || null,
             }
           : null,

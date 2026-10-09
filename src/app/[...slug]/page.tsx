@@ -18,7 +18,7 @@ interface Props {
   searchParams: Promise<{ page?: string | string[] }>
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
+const SITE_URL = 'https://www.jacketee.com'
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 const CATEGORY_PRODUCTS_PER_PAGE = 24
 
@@ -38,7 +38,7 @@ function faqAnswerText(faq: { answer?: string[]; bullets?: string[]; ordered?: s
     ...(faq.answer || []),
     ...(faq.bullets || []),
     ...(faq.ordered || []),
-  ].filter(Boolean).join(' ')
+  ].filter(Boolean).join(' ').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -135,7 +135,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         const productId = product._id || product.id
         const reviewMatch = { productId, status: 'approved' }
         const [matched, reviewSummary, recentReviews] = await Promise.all([
-          Faq.find({ displayPages: { $in: faqTargets } }).lean(),
+          Faq.find({ status: { $ne: 'draft' }, displayPages: { $in: faqTargets } }).lean(),
           Review.aggregate([
             { $match: reviewMatch },
             { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } },
@@ -243,7 +243,8 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           merchantReturnDays: 10,
           returnMethod: 'https://schema.org/ReturnByMail',
           returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
-          restockingFee: { '@type': 'MonetaryAmount', value: '35.00', currency: 'USD' },
+          description: 'Eligible non-customized stock jackets only. Change-of-mind returns have a 15% restocking fee with a $35 minimum. Customized items are not returnable for a change of mind.',
+          merchantReturnLink: `${SITE_URL}/returns`,
           url: `${SITE_URL}/returns`,
         },
       },
@@ -309,9 +310,9 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
     return (
       <>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c') }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }} />
         <ProductDetailView key={product.slug} slug={product.slug} initialProduct={initialProduct} faqs={productFaqs} />
       </>
     )
@@ -399,8 +400,9 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         const path = chain.slice(0, chain.indexOf(item) + 1).map((part) => part.slug).join('/')
         return [item.slug, `/${item.slug}`, path, `/${path}`]
       })
-      const matchedFaqs = await Faq.find({ displayPages: { $in: targets } }).limit(40).lean()
+      const matchedFaqs = await Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).limit(40).lean()
       const faqs: Array<{ id: string; question: string; answer: string[]; bullets: string[]; ordered: string[]; href?: string }> = matchedFaqs
+        .filter((faq: any) => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim()))
         .sort((a: any, b: any) => Number(a.order || 0) - Number(b.order || 0))
         .slice(0, 10)
         .map((faq: any) => ({
@@ -516,9 +518,9 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c') }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }} />
+      {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }} />}
       <CategoryDetailView
         key={`${category.slug}-${requestedPage}`}
         slug={category.slug}

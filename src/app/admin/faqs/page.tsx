@@ -57,6 +57,7 @@ import {
 } from 'lucide-react'
 
 interface AdminFaqRow {
+  status: 'published' | 'draft'
   id: string
   question: string
   answer: string[]
@@ -71,6 +72,7 @@ interface AdminFaqRow {
 }
 
 interface FaqFormState {
+  status: 'published' | 'draft'
   id?: string
   question: string
   answer: string
@@ -84,6 +86,7 @@ interface FaqFormState {
 }
 
 const emptyForm: FaqFormState = {
+  status: 'published',
   question: '',
   answer: '',
   category: '',
@@ -101,6 +104,7 @@ function toLines(values: string[]) {
 
 function fromFaq(faq: AdminFaqRow): FaqFormState {
   return {
+    status: faq.status || 'published',
     id: faq.id,
     question: faq.question,
     answer: toLines(faq.answer),
@@ -116,6 +120,7 @@ function fromFaq(faq: AdminFaqRow): FaqFormState {
 
 function toPayload(form: FaqFormState) {
   return {
+    status: form.status,
     id: form.id,
     question: form.question.trim(),
     answer: form.answer,
@@ -528,6 +533,10 @@ export default function AdminFaqsPage() {
             </div>
 
             <div className="space-y-1.5">
+              <Label htmlFor="faq-status">Publication</Label>
+              <select id="faq-status" className="w-full rounded-md border bg-background p-2" value={form.status} onChange={e => setForm(prev => ({ ...prev, status: e.target.value as FaqFormState['status'] }))}>
+                <option value="published">Published</option><option value="draft">Draft</option>
+              </select>
               <Label htmlFor="faq-answer">Answer Paragraphs *</Label>
               <Textarea
                 id="faq-answer"

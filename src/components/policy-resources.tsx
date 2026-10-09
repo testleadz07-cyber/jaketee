@@ -11,11 +11,10 @@ const resourceConfig = {
   shipping: {
     title: 'Shipping questions',
     faqQuestions: [
-      'Are there any delivery charges?',
-      'How long my custom jacket order will take to deliver?',
-      'Can I track my order after it has been shipped?',
-      'Do you offer rush order services?',
-      'How fast can I get my bulk order?',
+      'How much is shipping?',
+      'How long does production and delivery take?',
+      'How can I track my order?',
+      'Can I request a rush order?',
     ],
     extraFaqs: [],
     articleSlugs: [
@@ -27,7 +26,7 @@ const resourceConfig = {
   returns: {
     title: 'Returns questions',
     faqQuestions: [
-      'Do you offer returns and Exchange?',
+      'What is your return and exchange policy?',
       'I received a faulty item, what do I do?',
     ],
     extraFaqs: [
@@ -66,7 +65,7 @@ export async function PolicyResources({ topic }: { topic: Topic }) {
     const db = await connectDB()
     if (db) {
       const [faqRows, posts] = await Promise.all([
-        Faq.find({ question: { $in: [...config.faqQuestions] } }).select('question answer').lean(),
+        Faq.find({ status: { $ne: 'draft' }, question: { $in: [...config.faqQuestions] } }).select('question answer').lean(),
         BlogPost.find({
           slug: { $in: [...config.articleSlugs] },
           $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: new Date() } }],

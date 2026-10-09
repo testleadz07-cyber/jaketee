@@ -1,11 +1,9 @@
 import { cache } from 'react'
-import { Metadata } from 'next'
 import { connectDB } from '@/lib/mongodb'
 import BlogCategory from '@/models/BlogCategory'
 import BlogPost from '@/models/BlogPost'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
-const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 
 const getCategory = cache(async (slug: string) => {
   try {
@@ -17,47 +15,6 @@ const getCategory = cache(async (slug: string) => {
     return null
   }
 })
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}): Promise<Metadata> {
-  const { slug } = await params
-  const category: any = await getCategory(slug)
-
-  if (!category) {
-    return {
-      title: 'Category Not Found — Jacketee Blog',
-      description: 'The requested blog category could not be found.',
-      robots: { index: false, follow: false },
-    }
-  }
-
-  const pageUrl = `${SITE_URL}/blog/category/${slug}`
-  const title = `${category.name} — Jacketee Blog`
-  const description = category.description || `Browse ${category.name} articles from the Jacketee Journal.`
-
-  return {
-    title,
-    description,
-    alternates: { canonical: pageUrl },
-    openGraph: {
-      title,
-      description,
-      url: pageUrl,
-      siteName: 'Jacketee',
-      images: [{ url: DEFAULT_IMAGE, width: 1200, height: 630, alt: category.name }],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [DEFAULT_IMAGE],
-    },
-  }
-}
 
 export default async function BlogCategoryLayout({
   children,
@@ -103,8 +60,8 @@ export default async function BlogCategoryLayout({
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c') }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }} />
       {children}
     </>
   )

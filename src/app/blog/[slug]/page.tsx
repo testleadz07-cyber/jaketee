@@ -36,7 +36,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       : [],
     productIds.length ? Category.find({}).select('name slug parentId').lean() : [],
     getBlogImageCandidates(),
-    BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }),
+    BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }, { timestamps: false }),
   ])
   const categoriesById = new Map(categories.map((category: any) => [String(category._id), category]))
   const productsById = new Map(taggedProducts.map((product: any) => [String(product._id), product]))

@@ -155,12 +155,11 @@ export default function BlogCategoryPage({ category, posts, page, pages, total }
               <div className="mt-10">
                 <Pagination>
                   <PaginationContent>
-                    <PaginationItem>
+                    {page > 1 && <PaginationItem>
                       <PaginationPrevious
-                        href={page > 1 ? `/blog/category/${category.slug}?page=${page - 1}` : `/blog/category/${category.slug}`}
-                        className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
+                        href={page === 2 ? `/blog/category/${category.slug}` : `/blog/category/${category.slug}?page=${page - 1}`}
                       />
-                    </PaginationItem>
+                    </PaginationItem>}
                     {[...Array(pages)].map((_, i) => (
                       <PaginationItem key={i}>
                         <PaginationLink
@@ -171,12 +170,11 @@ export default function BlogCategoryPage({ category, posts, page, pages, total }
                         </PaginationLink>
                       </PaginationItem>
                     ))}
-                    <PaginationItem>
+                    {page < pages && <PaginationItem>
                       <PaginationNext
                         href={page < pages ? `/blog/category/${category.slug}?page=${page + 1}` : `/blog/category/${category.slug}?page=${pages}`}
-                        className={page >= pages ? 'pointer-events-none opacity-50' : ''}
                       />
-                    </PaginationItem>
+                    </PaginationItem>}
                   </PaginationContent>
                 </Pagination>
                 <p className="text-center text-sm text-muted-foreground mt-3">

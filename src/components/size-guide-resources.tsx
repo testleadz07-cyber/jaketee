@@ -21,7 +21,7 @@ export async function SizeGuideResources() {
     if (db) {
       const now = new Date()
       const [faqRows, postRows] = await Promise.all([
-        Faq.find({ category: 'jacket-sizing' }).sort({ order: 1 }).limit(6).lean(),
+        Faq.find({ status: { $ne: 'draft' }, category: { $in: ['jacket-sizing', 'Jacket Sizing'] } }).sort({ order: 1 }).limit(6).lean(),
         BlogPost.find({
           slug: { $in: articleSlugs },
           $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],

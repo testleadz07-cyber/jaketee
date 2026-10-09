@@ -43,7 +43,7 @@ export async function BulkOrderResources({ kind }: { kind: BulkOrderKind }) {
     if (db) {
       const now = new Date()
       const [faqRows, postRows] = await Promise.all([
-        Faq.find({ displayPages: pagePath }).sort({ order: 1 }).limit(8).lean(),
+        Faq.find({ status: { $ne: 'draft' }, displayPages: pagePath }).sort({ order: 1 }).limit(8).lean(),
         BlogPost.find({
           slug: { $in: config.blogSlugs },
           $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],

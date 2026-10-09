@@ -4,11 +4,11 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/blog`
 
 export const metadata: Metadata = {
-  title: 'Style Blog & Fashion Tips — Jacketee',
+  title: 'Jacketee Journal: Custom Jacket Guides and Style Tips | Jacketee',
   description: 'Explore style guides, fashion tips, outfit ideas, and the latest trends from the Jacketee editorial team.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
-    title: 'Style Blog & Fashion Tips — Jacketee',
+    title: 'Jacketee Journal: Custom Jacket Guides and Style Tips | Jacketee',
     description: 'Explore style guides, fashion tips, outfit ideas, and the latest trends from Jacketee.',
     url: PAGE_URL,
     siteName: 'Jacketee',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Style Blog & Fashion Tips — Jacketee',
+    title: 'Jacketee Journal: Custom Jacket Guides and Style Tips | Jacketee',
     description: 'Explore style guides, fashion tips, and the latest trends from Jacketee.',
   },
 }

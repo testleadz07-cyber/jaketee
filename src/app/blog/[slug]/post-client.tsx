@@ -72,7 +72,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
           <Breadcrumbs
             items={[
               { label: 'Blog', href: '/blog' },
-              { label: post.title },
+              { label: post.title, href: `/blog/${post.slug}` },
             ]}
             className="mb-6"
           />
@@ -116,14 +116,15 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
               <User className="h-4 w-4" />
               {post.author?.name || 'Jacketee'}
             </span>
+            <span aria-hidden="true"> · </span>
             <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
               <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
             </span>
-            <span className="flex items-center gap-1.5">
-              <Eye className="h-4 w-4" />
-              {post.views} views
-            </span>
+            {post.views >= 50 && <>
+              <span aria-hidden="true"> · </span>
+              <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" />{post.views} views</span>
+            </>}
           </div>
 
           <Separator className="mb-8" />
@@ -137,7 +138,6 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
           <section className="mt-10 border-y py-7" aria-labelledby="blog-resources-heading">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold uppercase text-muted-foreground">Continue planning</p>
                 <h2 id="blog-resources-heading" className="mt-1 text-2xl font-semibold">Jacket guides and support</h2>
               </div>
               <Link href={post.recommendedShop.href} className="inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">

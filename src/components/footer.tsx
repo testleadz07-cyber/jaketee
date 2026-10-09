@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BadgeCheck, Factory, Loader2, LockKeyhole, RotateCcw, Send, Star } from 'lucide-react'
+import { Factory, Loader2, LockKeyhole, RotateCcw, Send } from 'lucide-react'
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { buildCategoryUrl } from '@/lib/categories'
@@ -94,7 +93,6 @@ export function Footer() {
   const [categories, setCategories] = useState<Category[]>(() => getStaticCategories())
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [approvedReviewCount, setApprovedReviewCount] = useState<number | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -114,22 +112,6 @@ export function Footer() {
     }
   }, [])
 
-  useEffect(() => {
-    let isMounted = true
-
-    fetch('/api/reviews/stats')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (isMounted && typeof data?.approvedReviewCount === 'number') {
-          setApprovedReviewCount(data.approvedReviewCount)
-        }
-      })
-      .catch(() => undefined)
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -244,13 +226,7 @@ export function Footer() {
             <Factory className="h-5 w-5 shrink-0" />
             <span><strong className="block text-sm">In-house production</strong><span className="text-xs text-muted-foreground">Made in our Sialkot factory</span></span>
           </Link>
-          <Link href="/shop" className="flex min-h-24 items-center gap-3 bg-background px-4 py-5">
-            {approvedReviewCount && approvedReviewCount > 0 ? <BadgeCheck className="h-5 w-5 shrink-0" /> : <Star className="h-5 w-5 shrink-0" />}
-            <span>
-              <strong className="block text-sm">Customer reviews</strong>
-              <span className="text-xs text-muted-foreground">{approvedReviewCount === null ? 'Moderated customer feedback' : approvedReviewCount > 0 ? `${approvedReviewCount} approved ${approvedReviewCount === 1 ? 'review' : 'reviews'}` : 'Be the first to review'}</span>
-            </span>
-          </Link>
+
         </div>
       </div>
       <div className="container mx-auto px-4 pb-24 pt-10 md:pb-16 md:pt-14">
@@ -284,62 +260,20 @@ export function Footer() {
             {newsletterForm}
           </div>
 
-          <div className="hidden space-y-4 md:block">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Categories</h3>
-            {renderLinkList(categoryLinks)}
-          </div>
-
-          <div className="hidden space-y-4 md:block">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Customer Care</h3>
-            {renderLinkList(customerCareLinks)}
-          </div>
-
-          <div className="hidden space-y-4 md:block">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">Custom Jackets</h3>
-            {renderLinkList(customJacketLinks)}
-          </div>
-
-          <Accordion type="multiple" className="border-y md:hidden">
-            <AccordionItem value="categories">
-              <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider hover:no-underline">
-                Categories
-              </AccordionTrigger>
-              <AccordionContent>{renderLinkList(categoryLinks)}</AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="care">
-              <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider hover:no-underline">
-                Customer Care
-              </AccordionTrigger>
-              <AccordionContent>{renderLinkList(customerCareLinks)}</AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="custom-jackets">
-              <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider hover:no-underline">
-                Custom Jackets
-              </AccordionTrigger>
-              <AccordionContent>{renderLinkList(customJacketLinks)}</AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="legal">
-              <AccordionTrigger className="text-sm font-semibold uppercase tracking-wider hover:no-underline">
-                Legal
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-4">
-                  {renderLinkList(legalLinks)}
-                  <button
-                    type="button"
-                    onClick={() => openCookiePreferences()}
-                    className="text-left text-sm text-muted-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
-                  >
-                    Cookie Preferences
-                  </button>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          {[
+            { title: 'Categories', links: categoryLinks },
+            { title: 'Customer Care', links: customerCareLinks },
+            { title: 'Custom Jackets', links: customJacketLinks },
+          ].filter(section => section.links.length > 0).map(section => (
+            <div key={section.title} className="space-y-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">{section.title}</h3>
+              {renderLinkList(section.links)}
+            </div>
+          ))}
         </div>
 
         <div className="mt-8 border-t border-muted pt-6 text-xs text-muted-foreground md:mt-12 md:text-center">
-          <div className="hidden flex-wrap justify-center gap-x-5 gap-y-2 md:flex">
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
             {legalLinks.map((link) => (
               <Link key={link.href} href={link.href} className="transition-colors hover:text-primary">
                 {link.label}

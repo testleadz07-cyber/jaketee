@@ -152,6 +152,7 @@ export function buildCategoryUrl(categoryPath: CategoryPathSegment[]): string {
  * empty if the product has no resolvable category.
  */
 export function buildProductUrl(product: { slug: string; categoryPath?: CategoryPathSegment[] }): string {
-  const segments = [...(product.categoryPath || []).map((c) => toPublicCategorySlug(c.slug)), product.slug]
+  const categorySegments = (product.categoryPath || []).map((c) => toPublicCategorySlug(c.slug))
+  const segments = [...(categorySegments.length ? categorySegments : ['products']), product.slug]
   return '/' + segments.join('/')
 }

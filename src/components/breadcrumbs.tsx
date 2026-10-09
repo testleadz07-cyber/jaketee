@@ -29,11 +29,11 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
           </BreadcrumbLink>
         </BreadcrumbItem>
         
-        {items.map((item, index) => (
+        {items.filter(item => item.label?.trim()).map((item, index) => (
           <React.Fragment key={index}>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              {item.href && index < items.length - 1 ? (
+              {item.href ? (
                 <BreadcrumbLink asChild>
                   <Link href={item.href}>{item.label}</Link>
                 </BreadcrumbLink>

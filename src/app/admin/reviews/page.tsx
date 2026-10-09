@@ -40,6 +40,7 @@ interface AdminReview {
     id: string
     name: string
     slug: string
+    href: string
     image: string | null
   } | null
 }
@@ -282,7 +283,7 @@ export default function AdminReviewsPage() {
                   </div>
 
                   {review.product && (
-                    <Link href={`/products/${review.product.slug}`} target="_blank">
+                    <Link href={review.product.href} target="_blank">
                       <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-muted flex-shrink-0 border">
                         {review.product.image ? (
                           <Image src={review.product.image} alt={review.product.name} fill sizes="56px" className="object-cover" />

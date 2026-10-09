@@ -33,8 +33,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
       }),
     ]
 
-    const matchedFaqs = await Faq.find({ displayPages: { $in: targets } }).limit(40).lean()
+    const matchedFaqs = await Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).limit(40).lean()
     const faqs = matchedFaqs
+      .filter((faq: any) => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim()))
       .sort((a: any, b: any) => {
         const rank = (faq: any) => Math.min(...faq.displayPages.map((page: string) => {
           const index = targets.indexOf(page)
