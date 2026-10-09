@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import { getServerSession } from 'next-auth'
@@ -105,6 +106,9 @@ export async function PATCH(
         return NextResponse.json({ error: 'Invalid shipping address' }, { status: 400 })
       }
       update.shippingAddress = Object.fromEntries([...fields, 'phone'].map(field => [field, address[field]?.trim() || '']))
+      const countryError = shippingCountryError(address.country)
+      if (countryError) return NextResponse.json({ error: countryError }, { status: 400 })
+      update.shippingAddress.country = normalizeShippingCountry(address.country)
     }
     if (body.items !== undefined) {
       if (!Array.isArray(body.items) || !body.items.length || body.items.some((item: any) =>

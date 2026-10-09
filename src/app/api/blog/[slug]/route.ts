@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],
       },
       { $inc: { views: 1 } },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', timestamps: false }
     )
       .populate('categories', 'name slug')
       .populate('taggedProducts', 'name slug price compareAtPrice compareAtPriceVerified images averageRating')

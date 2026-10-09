@@ -3,7 +3,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { PolicyResources } from '@/components/policy-resources'
-import { fulfillmentConfig } from '@/config/fulfillment'
+import { fulfillmentConfig, shippingCountryOptions } from '@/config/fulfillment'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,8 +38,12 @@ export default function ShippingPage() {
         </section>
 
         <section className="border-t py-8" aria-labelledby="international-shipping">
-          <h2 id="international-shipping" className="text-2xl font-semibold">United States, United Kingdom, and Canada</h2>
+          <h2 id="international-shipping" className="text-2xl font-semibold">International destinations</h2>
           <p className="mt-4 max-w-3xl text-muted-foreground">{fulfillmentConfig.internationalShipping} Share the full destination when requesting a quote so Jacketee can confirm the available service, charge, and current estimate.</p>
+          <details className="mt-4 rounded-md border p-4"><summary className="min-h-11 cursor-pointer font-medium">Available delivery countries</summary>
+            <p className="mt-2 text-sm text-muted-foreground">Payment-provider and carrier availability also applies. The same available destinations appear at checkout and in shipping quotes.</p>
+            <ul className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">{shippingCountryOptions.map(country => <li key={country.code}>{country.name}</li>)}</ul>
+          </details>
           <p className="mt-4 max-w-3xl text-muted-foreground">Custom items do not automatically receive free shipping based on order value. {fulfillmentConfig.freeShipping}</p>
         </section>
 

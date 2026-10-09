@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { blogBreadcrumbs } from '@/lib/blog-post-seo'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -70,10 +71,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           <Breadcrumbs
-            items={[
-              { label: 'Blog', href: '/blog' },
-              { label: post.title, href: `/blog/${post.slug}` },
-            ]}
+            items={blogBreadcrumbs(post)}
             className="mb-6"
           />
 

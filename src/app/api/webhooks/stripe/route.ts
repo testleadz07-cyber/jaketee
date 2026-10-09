@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { applyStripeShippingAddress } from '@/lib/stripe-shipping-address'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Discount from '@/models/Discount'
@@ -95,6 +96,7 @@ async function markOrderPaid(checkoutSession: Stripe.Checkout.Session) {
     return
   }
 
+  applyStripeShippingAddress(order, checkoutSession)
   order.paymentStatus = 'paid'
   if (order.status === 'pending') order.status = 'paid'
   order.paymentId = checkoutSession.id

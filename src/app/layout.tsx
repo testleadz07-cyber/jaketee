@@ -70,6 +70,7 @@ const organizationJsonLd = {
   "@type": "Organization",
   "@id": `${SITE_URL}/#organization`,
   name: "Jacketee",
+  areaServed: "Worldwide",
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
   foundingDate: "2026",

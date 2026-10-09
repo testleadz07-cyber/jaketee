@@ -1,6 +1,6 @@
 'use client'
 
-import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+import { STANDARD_SHIPPING_USD, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
 import { Suspense, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -85,7 +85,7 @@ function CheckoutContent() {
   const [shippingCity, setShippingCity] = useState('')
   const [shippingState, setShippingState] = useState('')
   const [shippingZip, setShippingZip] = useState('')
-  const [shippingCountry, setShippingCountry] = useState('United States')
+  const [shippingCountry, setShippingCountry] = useState('')
 
   // Saved address book (logged-in users only)
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
@@ -115,7 +115,7 @@ function CheckoutContent() {
   const stateRef = useRef<HTMLInputElement>(null)
   const zipRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
-  const countryRef = useRef<HTMLInputElement>(null)
+  const countryRef = useRef<HTMLSelectElement>(null)
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -204,7 +204,7 @@ function CheckoutContent() {
     setShippingCity(address.city || '')
     setShippingState(address.state || '')
     setShippingZip(address.zip || '')
-    setShippingCountry(address.country || 'United States')
+    setShippingCountry(normalizeShippingCountry(address.country) || '')
     if (address.phone) setShippingPhone(address.phone)
   }
 
@@ -216,7 +216,7 @@ function CheckoutContent() {
       setShippingCity('')
       setShippingState('')
       setShippingZip('')
-      setShippingCountry('United States')
+      setShippingCountry('')
       setSaveNewAddress(false)
     } else {
       applyAddress(savedAddresses[index])
@@ -501,6 +501,11 @@ function CheckoutContent() {
     const countryVal = shippingCountry || countryRef.current?.value || ''
 
     if (step === 1) {
+      const countryError = shippingCountryError(countryVal)
+      if (countryError) {
+        toast({ title: 'Delivery country unavailable', description: countryError, variant: 'destructive' })
+        return
+      }
       const missingFields: string[] = []
       if (!nameVal) missingFields.push('Recipient Name')
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal.trim())) missingFields.push('Valid Email Address')
@@ -747,14 +752,19 @@ function CheckoutContent() {
 
                       <div className="space-y-2">
                         <Label htmlFor="shippingCountry">Country</Label>
-                        <Input
+                        <select
                           id="shippingCountry"
                           ref={countryRef}
-                          placeholder="United States"
+                          className="min-h-11 w-full rounded-md border bg-background px-3 text-sm"
                           value={shippingCountry}
                           onChange={e => setShippingCountry(e.target.value)}
                           required
-                        />
+                        >
+                          <option value="">Select a country</option>
+                          {shippingCountry && shippingCountryError(shippingCountry) && <option value={shippingCountry} disabled>Shipping unavailable ({shippingCountry})</option>}
+                          {shippingCountryOptions.map(country => <option key={country.code} value={country.code}>{country.name}</option>)}
+                        </select>
+                        {shippingCountry && shippingCountryError(shippingCountry) && <p role="alert" className="text-sm text-destructive">{shippingCountryError(shippingCountry)}</p>}
                       </div>
 
                       {session?.user && selectedAddressIndex === 'new' && (

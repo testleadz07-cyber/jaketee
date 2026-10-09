@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
-import ts from 'typescript'
-import { createRequire } from 'node:module'
+import { loadTypeScript } from './lib/load-typescript.mjs'
 
 const base = process.env.SEO_TEST_BASE_URL || 'http://localhost:3000'
 const output = 'output/seo-fixes'
@@ -50,9 +49,8 @@ function footerOnce(result, name) {
   check(`${name}: no reviews link to shop`, !/href="\/shop"[^>]*>[\s\S]*?Customer reviews/.test(footer))
 }
 try {
-  const shared = { exports: {} }
-  const compiled = ts.transpileModule(fs.readFileSync('src/lib/faq-page-data.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText
-  new Function('module', 'exports', 'require', compiled)(shared, shared.exports, createRequire(import.meta.url))
+  const shared = { exports: loadTypeScript('src/lib/faq-page-data.ts') }
+  const { shippingCountries, deliverySettings } = loadTypeScript('src/config/fulfillment.ts')
   const example = { id: 'override', question: 'How much is shipping?', category: 'Shipping', answer: ['Updated answer'], bullets: [], ordered: [] }
   const categories = shared.exports.buildFaqCategories([example])
   check('database overrides fallback', categories.flatMap(section => section.items).find(faq => faq.question === example.question)?.answer[0] === 'Updated answer')
@@ -71,8 +69,8 @@ try {
   const offer = products[0].offers
   check('price, stock, condition', Number(offer.price) > 0 && offer.priceCurrency === 'USD' && /InStock|OutOfStock/.test(offer.availability) && offer.itemCondition.endsWith('/NewCondition'))
   check('shipping rate', Number(offer.shippingDetails.shippingRate.value) === 45 && offer.shippingDetails.shippingRate.currency === 'USD')
-  check('shipping destinations', ['US', 'GB', 'CA'].every(country => offer.shippingDetails.shippingDestination.some(region => region.addressCountry === country)))
-  check('no invented shipping timeline', !offer.shippingDetails.deliveryTime)
+  check('shipping destinations match settings', JSON.stringify(offer.shippingDetails.shippingDestination.map(region => region.addressCountry)) === JSON.stringify(shippingCountries))
+  check('shipping timeline matches settings', offer.shippingDetails.deliveryTime.handlingTime.minValue === deliverySettings.handlingMin && offer.shippingDetails.deliveryTime.transitTime.maxValue === deliverySettings.transitMax)
   check('canonical product', canonical(product.html) === 'https://www.jacketee.com/leather-jackets/leather-puffer-jacket')
   faqParity(product, 'Product'); footerOnce(product, 'Product')
   const legacy = await page('/products/letterman-patch-packs')

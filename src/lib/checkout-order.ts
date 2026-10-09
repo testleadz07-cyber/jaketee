@@ -1,4 +1,6 @@
 import mongoose from 'mongoose'
+import { getProductVariants } from '@/lib/product-variants'
+import { normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 import { GARMENT_CATEGORIES, GARMENT_TEMPLATES, getGarmentCategory, validateGarmentOptions, getGarmentPrice, getGarmentSvg, type GarmentCategory } from '@/lib/garment-template'
 import Product from '@/models/Product'
 import Discount from '@/models/Discount'
@@ -28,6 +30,9 @@ export function resolveCheckoutCustomer(
   }
 
   const email = (user?.email || guestEmail)
+  const countryError = shippingCountryError(address.country)
+  if (countryError) throw new CheckoutError(countryError)
+  address.country = normalizeShippingCountry(address.country)!
   if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     throw new CheckoutError('A valid email address is required')
   }
@@ -177,6 +182,7 @@ export async function resolveCheckoutItems(rawItems: unknown) {
   const variants = input.variants ?? []
   if (!Array.isArray(variants)) throw new CheckoutError('Invalid jacket options')
   const seen = new Set<string>()
+  const productVariants = getProductVariants(product)
   let unitPrice = Number(product.price)
   for (const variant of variants) {
     if (!variant || typeof variant.name !== 'string' || typeof variant.value !== 'string') {
@@ -201,9 +207,13 @@ export async function resolveCheckoutItems(rawItems: unknown) {
       }
       continue
     }
-    const option = product.variants?.find((item) => item.name === name && item.value === value && item.inStock)
+    const option = productVariants.find((item) => item.name === name && item.value === value && item.inStock)
     if (!option) throw new CheckoutError('A selected jacket option is unavailable')
     unitPrice += Number(option.priceAdjust || 0)
+  }
+  if (!productVariants.some(option => option.name.trim().toLowerCase() === 'size' && option.inStock &&
+    variants.some(variant => variant.name.trim() === option.name && variant.value.trim() === option.value))) {
+    throw new CheckoutError('Please choose an available size for this product')
   }
   const customization = sanitizeCustomization(input.customization, Number(product.embroidery?.maxChars || 24))
   if (customization?.varsityOptions || customization?.garmentOptions) throw new CheckoutError('Invalid product customization')

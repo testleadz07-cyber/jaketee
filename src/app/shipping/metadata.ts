@@ -1,15 +1,16 @@
 import { Metadata } from 'next'
+import { shippingCoverageText, STANDARD_SHIPPING_USD } from '@/config/fulfillment'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/shipping`
 
 export const metadata: Metadata = {
   title: 'Shipping Information — Jacketee',
-  description: 'One jacket ships for $45 USD. Shipping for multiple jackets is quoted by quantity and weight. Learn about Jacketee delivery timelines.',
+  description: `${shippingCoverageText} One jacket ships for $${STANDARD_SHIPPING_USD} USD. Multiple jackets require a quote.`,
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Shipping Information — Jacketee',
-    description: 'Jacketee shipping charges, multi-jacket quotes, and delivery timelines.',
+    description: `${shippingCoverageText} Jacketee shipping charges, multi-jacket quotes, and delivery timelines.`,
     url: PAGE_URL,
     siteName: 'Jacketee',
     type: 'website',
@@ -17,6 +18,6 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: 'Shipping Information — Jacketee',
-    description: 'Jacketee shipping charges and delivery timelines.',
+    description: `${shippingCoverageText} Jacketee shipping charges and delivery timelines.`,
   },
 }

@@ -1,8 +1,7 @@
 import 'dotenv/config'
 import fs from 'node:fs'
 import mongoose from 'mongoose'
-import ts from 'typescript'
-import { createRequire } from 'node:module'
+import { loadTypeScript } from './lib/load-typescript.mjs'
 
 const apply = process.argv.includes('--apply')
 const proposals = JSON.parse(fs.readFileSync('output/seo-fixes/faq-merge-proposals.json', 'utf8'))
@@ -10,8 +9,7 @@ const output = 'output/seo-fixes'
 const normalize = text => text.trim().toLowerCase().replace(/\s+/g, ' ')
 const fields = ['question', 'category', 'answer', 'bullets', 'ordered', 'displayPages']
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
-const shared = { exports: {} }
-new Function('module', 'exports', 'require', ts.transpileModule(fs.readFileSync('src/lib/faq-page-data.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText)(shared, shared.exports, createRequire(import.meta.url))
+const shared = { exports: loadTypeScript('src/lib/faq-page-data.ts') }
 
 function verify(records) {
   const published = records.filter(faq => faq.status !== 'draft')

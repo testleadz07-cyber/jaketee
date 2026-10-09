@@ -21,6 +21,7 @@ import { WhatsAppButton } from '@/components/whatsapp-help'
 import { useCustomizationInsights } from '@/hooks/use-customization-insights'
 import type { JacketCustomization } from '@/types/jacket-customization'
 import type { ProductDetailData } from '@/components/product-detail-view'
+import { getProductVariants, getDefaultProductVariants } from '@/lib/product-variants'
 import { ArrowLeft, Heart, MessageCircle, RefreshCw, Truck, X } from 'lucide-react'
 
 const JacketCustomizer = dynamic(
@@ -61,23 +62,18 @@ function CustomizerLoadingPanel() {
   )
 }
 
-function getDefaultVariants(variants: ProductDetailData['variants']): Record<string, string> {
-  const defaults: Record<string, string> = {}
-  for (const variant of variants || []) {
-    if (variant.inStock && defaults[variant.name] === undefined) defaults[variant.name] = variant.value
-  }
-  return defaults
-}
-
 export function CustomizeProductView({ product }: { product: ProductDetailData }) {
+  const effectiveVariants = getProductVariants(product) as ProductDetailData['variants']
   const router = useRouter()
   const { data: session } = useSession()
   const [selectedImage, setSelectedImage] = useState(0)
   const [overrideImage, setOverrideImage] = useState<string | null>(null)
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => getDefaultVariants(product.variants))
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => getDefaultProductVariants(getProductVariants(product)))
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [customizationFee, setCustomizationFee] = useState(0)
+  const [sizeError, setSizeError] = useState(false)
+  const hasSelectedSize = effectiveVariants.some(variant => variant.name.trim().toLowerCase() === 'size' && variant.inStock && selectedVariants[variant.name] === variant.value)
   const insights = useCustomizationInsights(product.id)
 
   const addItem = useCartStore((state) => state.addItem)
@@ -100,7 +96,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
 
   const getSelectedVariantPriceAdjust = () => {
     return Object.entries(selectedVariants).reduce((total, [name, value]) =>
-      total + (product.variants.find((variant) => variant.name === name && variant.value === value)?.priceAdjust || 0), 0)
+      total + (effectiveVariants.find((variant) => variant.name === name && variant.value === value)?.priceAdjust || 0), 0)
   }
 
   const getSelectedVariantCombination = () => {
@@ -133,6 +129,8 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
     extraFee: number = 0,
     customization?: JacketCustomization
   ) => {
+    if (!product.inStock) return
+    if (!hasSelectedSize) { setSizeError(true); return }
     const item = buildOrderItem(extraVariants, extraFee, customization)
     addItem({ ...item, quantity })
     insights.complete('add_to_cart')
@@ -152,6 +150,8 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
     extraFee: number = 0,
     customization?: JacketCustomization
   ) => {
+    if (!product.inStock) return
+    if (!hasSelectedSize) { setSizeError(true); return }
     const item = buildOrderItem(extraVariants, extraFee, customization)
     setDirectOrderItem({ ...item, quantity: 1 })
     insights.complete('buy_now')
@@ -175,7 +175,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
     if (image) setOverrideImage(image)
   }
 
-  const sizeVariants = product.variants.filter((variant) => variant.name.toLowerCase() === 'size')
+  const sizeVariants = effectiveVariants.filter((variant) => variant.name.trim().toLowerCase() === 'size')
 
   const wishlistButton = (
     <Button
@@ -290,10 +290,11 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
                 ))}
               </div>
 
+              {sizeError && !hasSelectedSize && <p role="alert" className="text-sm font-semibold text-red-700 dark:text-red-400">Please select a size to continue</p>}
               <JacketCustomizer
                 onStepChange={insights.stepChanged}
                 onDifficulty={insights.difficulty}
-                product={product}
+                product={{ ...product, variants: effectiveVariants }}
                 images={product.images}
                 selectedVariants={selectedVariants}
                 onSelectVariant={handleSelectVariant}

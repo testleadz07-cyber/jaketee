@@ -1,3 +1,5 @@
+import { internationalShippingAnswer, fulfillmentConfig } from '@/config/fulfillment'
+
 export interface FaqItem {
   question: string
   answer: string | string[]
@@ -53,12 +55,12 @@ const faqCategories: FaqCategory[] = [
       {
         question: 'How long does shipping take?',
         answer:
-          'Bulk orders of 10 or more jackets typically take 3-4 weeks in total, including production and delivery. Contact us for a current estimate for individual orders.',
+          `${fulfillmentConfig.individualProduction} ${fulfillmentConfig.individualDelivery} ${fulfillmentConfig.bulkProductionDelivery}`,
       },
       {
         question: 'Do you ship internationally?',
         answer:
-          'Contact us with your destination and jacket quantity to confirm availability and delivery timing.',
+          internationalShippingAnswer,
       },
       {
         question: 'How much is shipping?',

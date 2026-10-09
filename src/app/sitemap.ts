@@ -4,6 +4,7 @@ import Product from '@/models/Product'
 import Category from '@/models/Category'
 import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
+import Faq from '@/models/Faq'
 import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
 
 export const dynamic = 'force-dynamic'
@@ -12,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.jacketee.com'
 
   // Static routes
-  const staticRoutes = [
+  const staticRoutes: MetadataRoute.Sitemap = [
     '',
     '/shop',
     '/about',
@@ -65,6 +66,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!db) throw new Error('Sitemap content is temporarily unavailable')
     if (db) {
       const dbProducts = await Product.find({ isDraft: { $ne: true }, status: 'active' }).lean()
+      const latestFaq = await Faq.findOne({ status: { $ne: 'draft' } }).select('updatedAt').sort({ updatedAt: -1 }).lean() as { updatedAt?: Date } | null
+      const faqRoute = staticRoutes.find(route => route.url === `${baseUrl}/faq`)
+      if (faqRoute && latestFaq?.updatedAt) faqRoute.lastModified = latestFaq.updatedAt
       const dbCategories = await Category.find({}).lean()
       const dbBlogPosts = await BlogPost.find({ status: 'published' }).select('slug updatedAt categories').lean()
       const dbBlogCategories = await BlogCategory.find({}).select('slug updatedAt').lean()

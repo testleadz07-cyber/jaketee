@@ -3,13 +3,18 @@ import { sendEmail, contactCustomerReplyTemplate, contactFormTemplate } from '@/
 import { createNotification } from '@/lib/notifications'
 import { connectDB } from '@/lib/mongodb'
 import ContactMessage from '@/models/ContactMessage'
+import { normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, subject, message } = body
+    const { name, email, subject, country } = body
+    if (country && shippingCountryError(country)) {
+      return NextResponse.json({ error: shippingCountryError(country) }, { status: 400 })
+    }
+    const message = country ? `Delivery country: ${normalizeShippingCountry(country)}\n\n${body.message || ''}` : body.message
 
-    if (!name || !email || !subject || !message) {
+    if (!name || !email || !subject || !body.message) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 

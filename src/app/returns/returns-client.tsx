@@ -1,4 +1,5 @@
 'use client'
+import { deliverySettings, returnPolicyText } from '@/config/fulfillment'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -88,20 +89,20 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
             <CardHeader>
               <CardTitle className="text-2xl flex items-center gap-2">
                 <Shield className="h-6 w-6 text-primary" />
-                10-Day Stock Jacket Returns
+                {deliverySettings.returnDays}-Day Stock Jacket Returns
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-lg font-semibold">
-                Eligible, non-customized stock jackets can be returned within 10 days of delivery.
+                {returnPolicyText.eligibility}
               </p>
               <p className="text-muted-foreground">
-                A restocking fee of 15% of the jacket price, with a minimum of $35, is deducted from approved change-of-mind returns.
+                {returnPolicyText.fee}
               </p>
               <div className="flex flex-wrap gap-2 mt-4">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-background">
                   <Check className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">10-day request window</span>
+                  <span className="text-sm font-medium">{deliverySettings.returnDays}-day request window</span>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-background">
                   <Check className="h-4 w-4 text-green-600" />
@@ -158,7 +159,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                 <div className="p-4 rounded-lg bg-muted">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-primary" />
-                    Request a return within 10 days
+                    Request a return within {deliverySettings.returnDays} days
                   </h3>
                   <p className="text-sm text-muted-foreground ml-7">
                     From the date of delivery confirmation
@@ -174,13 +175,13 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                   Non-returnable Items
                 </h3>
                 <ul className="space-y-1 text-sm text-muted-foreground ml-7">
-                  <li>• Personalized or custom items</li>
+                  <li>• {returnPolicyText.personalized}</li>
                   <li>• Undergarments and swimwear (with hygiene seal removed)</li>
                   <li>• Items marked as final sale</li>
                   <li>• Gift cards</li>
                 </ul>
               </div>
-              <p className="text-sm text-muted-foreground">If your jacket arrives faulty or incorrect, contact us with your order number and photos. We will review the issue and arrange an appropriate remedy. The change-of-mind restocking fee does not apply to these cases.</p>
+              <p className="text-sm text-muted-foreground">{returnPolicyText.faulty}</p>
             </CardContent>
           </Card>
 
@@ -249,7 +250,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                For eligible stock jackets, request a size or color exchange within 10 days of delivery. Contact us before shipping the item; availability and any applicable charges will be confirmed first.
+                For eligible stock jackets, request a size or color exchange within {deliverySettings.returnDays} days of delivery. Contact us before shipping the item; availability and any applicable charges will be confirmed first.
               </p>
               <div className="space-y-2 mt-4">
                 <div className="flex items-center gap-2">
@@ -258,7 +259,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-600" />
-                  <span>Custom jackets are not exchangeable for a change of mind</span>
+                  <span>{returnPolicyText.customExchange}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-600" />

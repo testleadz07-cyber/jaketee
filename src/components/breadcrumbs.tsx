@@ -5,9 +5,8 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import React from 'react'
+import { ChevronRight } from 'lucide-react'
 
 interface BreadcrumbItemType {
   label: string
@@ -30,9 +29,8 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
         </BreadcrumbItem>
         
         {items.filter(item => item.label?.trim()).map((item, index) => (
-          <React.Fragment key={index}>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
+            <BreadcrumbItem key={index}>
+              <ChevronRight aria-hidden="true" className="size-3.5 mr-1 sm:mr-1.5" />
               {item.href ? (
                 <BreadcrumbLink asChild>
                   <Link href={item.href}>{item.label}</Link>
@@ -41,7 +39,6 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                 <BreadcrumbPage>{item.label}</BreadcrumbPage>
               )}
             </BreadcrumbItem>
-          </React.Fragment>
         ))}
       </BreadcrumbList>
     </Breadcrumb>

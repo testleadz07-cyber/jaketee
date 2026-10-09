@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { getWhatsAppUrl } from '@/lib/whatsapp'
 import { logUserActivity } from '@/lib/activity'
+import { shippingCountryOptions } from '@/config/fulfillment'
 
 const whatsappUrl = getWhatsAppUrl("Hi! I have a question about my order.")
 
@@ -33,6 +34,7 @@ export default function ContactPage() {
     email: '',
     subject: '',
     message: '',
+    country: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -52,7 +54,7 @@ export default function ContactPage() {
           title: 'Message sent successfully!',
           description: "We'll get back to you soon.",
         })
-        setFormData({ name: '', email: '', subject: '', message: '' })
+        setFormData({ name: '', email: '', subject: '', message: '', country: '' })
       } else {
         const data = await res.json()
         toast({
@@ -100,7 +102,7 @@ export default function ContactPage() {
                 <CardTitle className="text-2xl">Send us a message</CardTitle>
               </CardHeader>
               <CardContent>
-                <form
+                <form id="contact-form"
                   onSubmit={handleSubmit}
                   className="space-y-4"
                   data-mcp-action="contact"
@@ -138,6 +140,11 @@ export default function ContactPage() {
                   </div>
 
                   <div>
+                    <label htmlFor="quote-country" className="text-sm font-medium mb-2 block">Delivery country (for shipping quotes)</label>
+                    <select id="quote-country" name="country" value={formData.country} onChange={event => setFormData({ ...formData, country: event.target.value })} className="mb-4 min-h-11 w-full rounded-md border bg-background px-3 text-sm">
+                      <option value="">Select a country for your quote</option>
+                      {shippingCountryOptions.map(country => <option key={country.code} value={country.code}>{country.name}</option>)}
+                    </select>
                     <label htmlFor="contact-subject" className="text-sm font-medium mb-2 block">Subject</label>
                     <Input
                       id="contact-subject"

@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import Discount from '@/models/Discount'
 import Stripe from 'stripe'
+import { applyStripeShippingAddress } from '@/lib/stripe-shipping-address'
 import { sendEmail, orderConfirmationTemplate } from '@/lib/email'
 import { decrementStockForOrder } from '@/lib/inventory'
 import { getOrderPaymentStatus } from '@/lib/order-payment-status'
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (stripeSession.payment_status === 'paid') {
+      applyStripeShippingAddress(order, stripeSession)
       // 3. Update order status in MongoDB to paid
       order.paymentStatus = 'paid'
       if (order.status === 'pending') order.status = 'paid'

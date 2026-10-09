@@ -3,9 +3,9 @@ import { Metadata } from 'next'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
-import { cleanMetaText, pageMetaDescription } from '@/lib/seo-metadata'
+import { BLOG_SITE_URL, blogDescription } from '@/lib/blog-post-seo'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
+const SITE_URL = BLOG_SITE_URL
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 
 const getPost = cache(async (slug: string) => {
@@ -41,10 +41,7 @@ export async function generateMetadata({
 
   const pageUrl = `${SITE_URL}/blog/${slug}`
   const title = post.seoTitle || `${post.title} — Jacketee Blog`
-  const description = pageMetaDescription(
-    post.seoDescription || post.excerpt,
-    `Read ${cleanMetaText(post.title)} on the Jacketee blog for practical guidance on custom jackets, materials, fit and ordering.`
-  )
+  const description = blogDescription(post)
   const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
   const authorName = post.author?.name || 'Jacketee'
   const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
@@ -75,59 +72,6 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogPostLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
-  const post: any = await getPost(slug)
-
-  if (!post) {
-    return <>{children}</>
-  }
-
-  const pageUrl = `${SITE_URL}/blog/${slug}`
-  const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
-  const authorName = post.author?.name || 'Jacketee'
-  const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
-  const modifiedTime = post.updatedAt
-    ? new Date(post.updatedAt).toISOString()
-    : publishedTime
-
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': ['Article', 'BlogPosting'],
-    url: pageUrl,
-    inLanguage: 'en',
-    headline: post.seoTitle || post.title,
-    description: post.seoDescription || post.excerpt,
-    image: imageUrl,
-    datePublished: publishedTime,
-    dateModified: modifiedTime,
-    author: {
-      '@type': authorName.toLowerCase().includes('jacketee') ? 'Organization' : 'Person',
-      name: authorName,
-    },
-    publisher: {
-      '@type': 'Organization',
-      '@id': `${SITE_URL}/#organization`,
-      name: 'Jacketee',
-      logo: { '@type': 'ImageObject', url: DEFAULT_IMAGE },
-    },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
-  }
-
-  return (
-    <>
-      <script
-        id={`blog-post-schema-${slug}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
-      />
-      {children}
-    </>
-  )
+export default function BlogPostLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
 }

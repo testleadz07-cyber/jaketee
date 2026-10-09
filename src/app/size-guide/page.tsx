@@ -11,11 +11,11 @@ import { SizeGuideResources } from '@/components/size-guide-resources'
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
 export const metadata: Metadata = {
-  title: 'Jacket Size Guide | Jacketee',
+  title: 'Jacket & Vest Size Guide | Jacketee',
   description: 'Measure your chest, waist, sleeve, and jacket length. Compare reference body and garment measurements, then confirm the fit for your Jacketee style.',
   alternates: { canonical: `${SITE_URL}/size-guide` },
   openGraph: {
-    title: 'Jacket Size Guide | Jacketee',
+    title: 'Jacket & Vest Size Guide | Jacketee',
     description: 'A practical measurement guide for choosing a custom jacket size.',
     url: `${SITE_URL}/size-guide`,
     siteName: 'Jacketee',
@@ -31,7 +31,7 @@ export default function SizeGuidePage() {
         <section className="border-b bg-zinc-950 text-white">
           <div className="container mx-auto px-4 py-10 md:py-14">
             <Breadcrumbs items={[{ label: 'Size Guide' }]} className="mb-6 text-white/70" />
-            <h1 className="text-3xl font-bold md:text-5xl">Jacket Size Guide</h1>
+            <h1 className="text-3xl font-bold md:text-5xl">Jacket &amp; Vest Size Guide</h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-white/75">
               Measure your body, compare a jacket you already own, and check the exact fit of the style you plan to order.
             </p>
@@ -42,8 +42,10 @@ export default function SizeGuidePage() {
           <div className="container mx-auto grid grid-cols-2 px-4 text-sm font-medium sm:flex sm:flex-wrap sm:gap-8">
             {[
               { href: '#find-your-fit', label: 'Find your fit' },
+              { href: '#international-size-chart', label: 'US / UK / Europe' },
               { href: '#body-size-chart', label: 'Body chart' },
               { href: '#jacket-size-chart', label: 'Jacket chart' },
+              { href: '#vest-size-chart', label: 'Vest chart' },
               { href: '#how-to-measure', label: 'How to measure' },
             ].map((item) => (
               <Link key={item.href} href={item.href} className="border-b px-1 py-4 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:border-b-0 sm:px-0">

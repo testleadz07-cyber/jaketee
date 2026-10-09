@@ -1,6 +1,6 @@
 'use client'
 
-import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+import { STANDARD_SHIPPING_USD, shippingCountryOptions, normalizeShippingCountry } from '@/config/fulfillment'
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -205,7 +205,7 @@ export default function AdminOrders() {
   const [coShipCity, setCoShipCity] = useState('')
   const [coShipState, setCoShipState] = useState('')
   const [coShipZip, setCoShipZip] = useState('')
-  const [coShipCountry, setCoShipCountry] = useState('United States')
+  const [coShipCountry, setCoShipCountry] = useState('')
   const [coShipPhone, setCoShipPhone] = useState('')
 
   // Payment & order details
@@ -457,7 +457,7 @@ export default function AdminOrders() {
     setCoShipCity('')
     setCoShipState('')
     setCoShipZip('')
-    setCoShipCountry('United States')
+    setCoShipCountry('')
     setCoShipPhone('')
     setCoPaymentMethod('other')
     setCoPaymentStatus('unpaid')
@@ -485,7 +485,7 @@ export default function AdminOrders() {
     setCoShipCity(order.shippingAddress?.city || '')
     setCoShipState(order.shippingAddress?.state || '')
     setCoShipZip(order.shippingAddress?.zip || '')
-    setCoShipCountry(order.shippingAddress?.country || 'United States')
+    setCoShipCountry(normalizeShippingCountry(order.shippingAddress?.country) || '')
     setCoShipPhone(order.shippingAddress?.phone || '')
     setCoPaymentMethod(order.paymentMethod || 'other')
     setCoPaymentStatus(getOrderPaymentStatus(order))
@@ -582,7 +582,7 @@ export default function AdminOrders() {
       setCoShipCity(defaultAddress.city || '')
       setCoShipState(defaultAddress.state || '')
       setCoShipZip(defaultAddress.zip || '')
-      setCoShipCountry(defaultAddress.country || 'United States')
+      setCoShipCountry(normalizeShippingCountry(defaultAddress.country) || '')
       setCoShipPhone(defaultAddress.phone || customer.phone || '')
     } else {
       setCoShipName(customer.name || '')
@@ -687,7 +687,7 @@ export default function AdminOrders() {
             city: coShipCity.trim(),
             state: coShipState.trim(),
             zip: coShipZip.trim(),
-            country: coShipCountry.trim() || 'United States',
+            country: coShipCountry,
             phone: coShipPhone.trim() || undefined,
           },
           paymentMethod: coPaymentMethod,
@@ -1416,7 +1416,11 @@ export default function AdminOrders() {
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="co-ship-country" className="text-xs">Country</Label>
-                    <Input id="co-ship-country" placeholder="United States" value={coShipCountry} onChange={(e) => setCoShipCountry(e.target.value)} />
+                    <select id="co-ship-country" value={coShipCountry} onChange={(e) => setCoShipCountry(e.target.value)} required className="min-h-11 w-full rounded-md border bg-background px-3 text-sm">
+                      <option value="">Select a country</option>
+                      {coShipCountry && !shippingCountryOptions.some(country => country.code === coShipCountry) && <option value={coShipCountry} disabled>Shipping unavailable ({coShipCountry})</option>}
+                      {shippingCountryOptions.map(country => <option key={country.code} value={country.code}>{country.name}</option>)}
+                    </select>
                   </div>
                 </div>
               </div>

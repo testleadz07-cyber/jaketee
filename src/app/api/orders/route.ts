@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import crypto from 'crypto'
-import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+import { STANDARD_SHIPPING_USD, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 import { getOrderPaymentStatus } from '@/lib/order-payment-status'
 
 export async function GET(request: NextRequest) {
@@ -115,6 +115,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Complete shipping address is required (name, street, city, state, zip)' }, { status: 400 })
     }
 
+    const countryError = shippingCountryError(shippingAddress.country)
+    if (countryError) return NextResponse.json({ error: countryError }, { status: 400 })
+
     // Validate items
     for (const item of items) {
       if (!item.name || typeof item.price !== 'number' || item.price <= 0 || typeof item.quantity !== 'number' || item.quantity <= 0) {
@@ -178,7 +181,7 @@ export async function POST(request: NextRequest) {
         city: shippingAddress.city,
         state: shippingAddress.state,
         zip: shippingAddress.zip,
-        country: shippingAddress.country || 'United States',
+        country: normalizeShippingCountry(shippingAddress.country),
         phone: shippingAddress.phone || undefined,
       },
       notes: notes || undefined,

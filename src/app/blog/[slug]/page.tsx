@@ -8,6 +8,7 @@ import Category from '@/models/Category'
 import BlogPostPage, { type BlogPostDetail } from './post-client'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import { buildProductUrl, resolveAncestorChain } from '@/lib/categories'
+import { blogDescription, blogHeadline, blogStructuredData } from '@/lib/blog-post-seo'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,7 +67,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   const detail: BlogPostDetail = {
     id: String(post._id),
-    title: post.title,
+    title: blogHeadline(post.title),
     slug: post.slug,
     excerpt: post.excerpt,
     content: sanitizeHtml(post.content || '', {
@@ -112,7 +113,12 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     })),
   }
 
-  return <BlogPostPage post={detail} />
+  const schema = blogStructuredData({ ...detail, description: blogDescription(post) })
+  return <>
+    <script type="application/ld+json" id="blog-post-schema"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />
+    <BlogPostPage post={detail} />
+  </>
 }
 
 function getRecommendedShop(post: { title?: string; tags?: string[] }) {

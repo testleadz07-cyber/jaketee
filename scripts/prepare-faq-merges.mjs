@@ -1,12 +1,8 @@
 import fs from 'node:fs'
-import ts from 'typescript'
-import { createRequire } from 'node:module'
+import { loadTypeScript } from './lib/load-typescript.mjs'
 
 // Produces review artifacts only. It never writes to the database.
-const require = createRequire(import.meta.url)
-const compiled = ts.transpileModule(fs.readFileSync('src/lib/faq-page-data.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText
-const shared = { exports: {} }
-new Function('module', 'exports', 'require', compiled)(shared, shared.exports, require)
+const shared = { exports: loadTypeScript('src/lib/faq-page-data.ts') }
 const snapshot = JSON.parse(fs.readFileSync('output/seo-fixes/content-before.json', 'utf8'))
 const applied = JSON.parse(fs.readFileSync('output/seo-fixes/content-migration-applied.json', 'utf8'))
 const changes = new Map(applied.changes.filter(change => change.collection === 'faqs').map(change => [change.id, change.after]))

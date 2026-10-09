@@ -2,6 +2,9 @@ import { Metadata } from 'next'
 import { permanentRedirect, notFound } from 'next/navigation'
 import { resolveSlugPath } from '@/lib/route-resolver'
 import { ProductDetailView, type ProductDetailData } from '@/components/product-detail-view'
+import { deliverySettings, returnPolicyText } from '@/config/fulfillment'
+import { shippingCountries } from '@/config/fulfillment'
+import { shippingDetailsJsonLd } from '@/lib/shipping-schema'
 import { CategoryDetailView } from '@/components/category-detail-view'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
@@ -230,20 +233,15 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         availability,
         itemCondition: 'https://schema.org/NewCondition',
         seller: { '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: 'Jacketee', url: SITE_URL },
-        shippingDetails: {
-          '@type': 'OfferShippingDetails',
-          shippingLabel: 'One-jacket standard shipping',
-          shippingRate: { '@type': 'MonetaryAmount', value: '45.00', currency: 'USD' },
-          shippingDestination: ['US', 'GB', 'CA'].map((country) => ({ '@type': 'DefinedRegion', addressCountry: country })),
-        },
+        shippingDetails: shippingDetailsJsonLd,
         hasMerchantReturnPolicy: {
           '@type': 'MerchantReturnPolicy',
-          applicableCountry: ['US', 'GB', 'CA'],
+          applicableCountry: shippingCountries,
           returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-          merchantReturnDays: 10,
+          merchantReturnDays: deliverySettings.returnDays,
           returnMethod: 'https://schema.org/ReturnByMail',
           returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
-          description: 'Eligible non-customized stock jackets only. Change-of-mind returns have a 15% restocking fee with a $35 minimum. Customized items are not returnable for a change of mind.',
+          description: `${returnPolicyText.eligibility} ${returnPolicyText.fee} Non-returnable Items: ${returnPolicyText.personalized}. ${returnPolicyText.customExchange}.`,
           merchantReturnLink: `${SITE_URL}/returns`,
           url: `${SITE_URL}/returns`,
         },

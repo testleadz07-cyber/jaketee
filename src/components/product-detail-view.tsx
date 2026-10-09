@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FaqText } from '@/components/faq-text'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -17,7 +17,6 @@ import { ReviewsSection } from '@/components/reviews-section'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 // import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
 import { SizeGuide } from '@/components/size-guide'
-import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
@@ -30,8 +29,6 @@ import {
   Plus,
   ShoppingCart,
   ShoppingBag,
-  Truck,
-  RefreshCw,
   Heart,
   ZoomIn,
   Ruler,
@@ -43,7 +40,8 @@ import { useRouter } from 'next/navigation'
 import type { JacketCustomization } from '@/types/jacket-customization'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
 import { buildProductFaqs, type ProductFaq as ProductFaqData } from '@/lib/product-faqs'
-import { FulfillmentNotice } from '@/components/fulfillment-notice'
+import { ProductDeliveryPolicies } from '@/components/product-delivery-policies'
+import { getProductVariants, getDefaultProductVariants } from '@/lib/product-variants'
 
 export interface ProductDetailData {
   id: string
@@ -83,14 +81,6 @@ export interface ProductDetailData {
   stockCount?: number
 }
 
-function getDefaultVariants(variants: ProductDetailData['variants']): Record<string, string> {
-  const defaults: Record<string, string> = {}
-  for (const variant of variants || []) {
-    if (variant.inStock && defaults[variant.name] === undefined) defaults[variant.name] = variant.value
-  }
-  return defaults
-}
-
 interface ProductDetailViewProps {
   slug: string
   initialProduct: ProductDetailData
@@ -105,9 +95,20 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
   const [selectedImage, setSelectedImage] = useState(0)
   const [zoomOpen, setZoomOpen] = useState(false)
   const [overrideImage, setOverrideImage] = useState<string | null>(null)
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => getDefaultVariants(initialProduct.variants))
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => getDefaultProductVariants(getProductVariants(initialProduct)))
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
+  const [sizeError, setSizeError] = useState(false)
+  const sizeGroupRef = useRef<HTMLDivElement>(null)
+
+  const requestSizeSelection = () => {
+    setSizeError(true)
+    const group = sizeGroupRef.current
+    group?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const firstAvailableSize = group?.querySelector<HTMLButtonElement>('button[aria-pressed]:not(:disabled)')
+    const focusTarget = firstAvailableSize || group
+    focusTarget?.focus({ preventScroll: true })
+  }
 
   const isInWishlist = useWishlistStore((state) => state.isInWishlist(product?.id || ''))
   const addToWishlist = useWishlistStore((state) => state.addItem)
@@ -201,6 +202,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
     extraFee: number = 0,
     customization?: JacketCustomization
   ) => {
+    if (!product.inStock) return
+    if (!hasSelectedSize) { requestSizeSelection(); return }
     const variantCombination = getSelectedVariantCombination()
     const combined = [...(variantCombination || []), ...extraVariants]
     const variants = combined.length > 0 ? combined : [{ name: 'Standard', value: 'Default' }]
@@ -232,6 +235,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
     extraFee: number = 0,
     customization?: JacketCustomization
   ) => {
+    if (!product.inStock) return
+    if (!hasSelectedSize) { requestSizeSelection(); return }
     const variantCombination = getSelectedVariantCombination()
     const combined = [...(variantCombination || []), ...extraVariants]
     const variants = combined.length > 0 ? combined : [{ name: 'Standard', value: 'Default' }]
@@ -258,7 +263,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
     router.push('/checkout?mode=buy-now')
   }
 
-  const groupedVariants = groupVariants(product.variants)
+  const effectiveVariants = getProductVariants(product)
+  const groupedVariants = groupVariants(effectiveVariants as ProductDetailData['variants'])
   const discount = getDiscount()
   const categoryPath = product.categoryPath && product.categoryPath.length > 0
     ? product.categoryPath
@@ -268,7 +274,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
   const categoryHref = categoryPath.length > 0 ? buildCategoryUrl(categoryPath) : '/'
   const isJacket = isJacketCategoryPath(categoryPath)
   const categoryName = categoryPath.at(-1)?.name || product.category.name
-  const sizeVariants = Object.entries(groupedVariants).find(([name]) => name.toLowerCase() === 'size')?.[1] || []
+  const sizeVariants = Object.entries(groupedVariants).find(([name]) => name.trim().toLowerCase() === 'size')?.[1] || []
+  const hasSelectedSize = sizeVariants.some(variant => variant.inStock && selectedVariants[variant.name] === variant.value)
   const productFaqs = buildProductFaqs(faqs, categoryName, isJacket || sizeVariants.length > 0)
 
   const wishlistButton = (
@@ -445,31 +452,85 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     </>
                   )}
                 </div>
-                <div className="pt-2">
-                  {isJacket ? <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} /> : sizeVariants.length > 0 ? <SizeGuide categorySlug={product.category?.slug} sizeValues={sizeVariants.map((variant) => variant.value)} productId={product.id} /> : null}
-                </div>
               </div>
 
-              <section className="rounded-md border bg-muted/35 px-4 py-5 sm:px-5" aria-labelledby="product-details-heading">
-                <h2 id="product-details-heading" className="text-lg font-semibold">Product details</h2>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">Explore {product.name}, including its materials, available options, sizing, and customization details.</p>
-                <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{product.description}</p>
-                {product.specificationDetails && <details className="mt-4 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Specifications</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.specificationDetails}</p></details>}
-                {product.careInstructions && <details className="mt-3 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Care instructions</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.careInstructions}</p></details>}
-                {(Object.keys(groupedVariants).length > 0 || product.measurementFields?.length || product.embroidery?.available) && (
-                  <dl className="mt-4 divide-y border-t text-sm">
-                    {Object.entries(groupedVariants).map(([name, variants]) => (
-                      <div key={name} className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">{name}</dt><dd className="text-muted-foreground">{variants.map((variant) => variant.value).join(', ')}</dd></div>
-                    ))}
-                    {!!product.measurementFields?.length && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Fit</dt><dd className="text-muted-foreground">Made-to-measure available</dd></div>}
-                    {product.embroidery?.available && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Details</dt><dd className="text-muted-foreground">Optional monogram or embroidery</dd></div>}
-                  </dl>
-                )}
-                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-                  <Link href="/materials-colors" className="font-medium underline underline-offset-4">Materials & colors</Link>
-                  <Link href="/patches-embroidery" className="font-medium underline underline-offset-4">Patches & embroidery</Link>
+
+              {/* Choose options before either purchase action. */}
+              {Object.keys(groupedVariants).length > 0 && (
+                <div className="space-y-4">
+                  {Object.entries(groupedVariants).map(
+                    ([variantName, variants]) => (
+                      <div key={variantName} role="group" aria-label={variantName}
+                        ref={variantName.trim().toLowerCase() === 'size' ? sizeGroupRef : undefined}
+                        tabIndex={variantName.trim().toLowerCase() === 'size' ? -1 : undefined}
+                        aria-describedby={variantName.trim().toLowerCase() === 'size' && sizeError && !hasSelectedSize ? 'product-size-error' : undefined}
+                        className={variantName.trim().toLowerCase() === 'size' && sizeError && !hasSelectedSize ? 'rounded-lg border-2 border-red-600 bg-red-50 p-3 dark:bg-red-950/20' : undefined}>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium block">
+                            {variantName}
+                          </label>
+                          {variantName.trim().toLowerCase() === 'size' && (
+                            <SizeGuide
+                              categorySlug={`${product.category?.slug || ''} ${product.slug}`}
+                              sizeValues={variants.map((v) => v.value)}
+                              productId={product.id}
+                            />
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {variants.map((variant, idx) => {
+                            const isSelected =
+                              selectedVariants[variantName] === variant.value
+                            const isAvailable = variant.inStock
+
+                            return (
+                              <button
+                                type="button"
+                                aria-pressed={isSelected}
+                                aria-describedby={variantName.trim().toLowerCase() === 'size' && sizeError && !hasSelectedSize ? 'product-size-error' : undefined}
+                                aria-label={`${variantName}: ${variant.value}${isAvailable ? '' : ' (unavailable)'}`}
+                                key={variant.id || `${variantName}-${variant.value}-${idx}`}
+                                onClick={() => {
+                                  if (isAvailable) {
+                                    if (variantName.trim().toLowerCase() === 'size') setSizeError(false)
+                                    setSelectedVariants((prev) => ({
+                                      ...prev,
+                                      [variantName]: variant.value,
+                                    }))
+                                    logUserActivity('product_option_selected', {
+                                      productId: product.id,
+                                      optionName: variantName,
+                                      optionValue: variant.value,
+                                    })
+                                    if (variant.image) {
+                                      setOverrideImage(variant.image)
+                                    }
+                                  }
+                                }}
+                                disabled={!isAvailable}
+                                className={`min-h-11 min-w-11 px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+                                  isSelected
+                                    ? 'border-primary bg-primary text-primary-foreground'
+                                    : isAvailable
+                                    ? 'border-border hover:border-primary/50 bg-background'
+                                    : 'border-border bg-muted opacity-50 cursor-not-allowed'
+                                }`}
+                              >
+                                {variant.value}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        {variantName.trim().toLowerCase() === 'size' && sizeError && !hasSelectedSize && (
+                          <p id="product-size-error" role="alert" className="mt-3 text-sm font-semibold text-red-700 dark:text-red-400">Please select a size to continue</p>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
-              </section>
+              )}
+
+              {!hasSelectedSize && <p className="text-sm text-muted-foreground" role="status">Choose a size before adding this product to your cart.</p>}
 
               {isJacket && (
                 <div className="space-y-4">
@@ -539,6 +600,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     </div>
                   </div>
 
+                  <ProductDeliveryPolicies quantity={quantity} />
+
                   <div className="rounded-md border bg-muted/30 p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
@@ -554,87 +617,13 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     </div>
                   </div>
 
-                  <FulfillmentNotice compact />
 
-                  <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
-                    <Link href="/shipping" onClick={() => logUserActivity('information_opened', { sectionName: 'shipping' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
-                      <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-                      <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$45 for one jacket; two or more require a quote.</span></span>
-                    </Link>
-                    <Link href="/returns" onClick={() => logUserActivity('information_opened', { sectionName: 'returns' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
-                      <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
-                      <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
-                    </Link>
-                  </div>
                 </div>
               )}
 
-              {/* Variants */}
-              {!isJacket && Object.keys(groupedVariants).length > 0 && (
-                <div className="space-y-4">
-                  {Object.entries(groupedVariants).map(
-                    ([variantName, variants]) => (
-                      <div key={variantName}>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="text-sm font-medium block">
-                            {variantName}
-                          </label>
-                          {variantName.toLowerCase() === 'size' && (
-                            <SizeGuide
-                              categorySlug={product.category?.slug}
-                              sizeValues={variants.map((v) => v.value)}
-                              productId={product.id}
-                            />
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {variants.map((variant, idx) => {
-                            const isSelected =
-                              selectedVariants[variantName] === variant.value
-                            const isAvailable = variant.inStock
-
-                            return (
-                              <button
-                                key={variant.id || `${variantName}-${variant.value}-${idx}`}
-                                onClick={() => {
-                                  if (isAvailable) {
-                                    setSelectedVariants((prev) => ({
-                                      ...prev,
-                                      [variantName]: variant.value,
-                                    }))
-                                    logUserActivity('product_option_selected', {
-                                      productId: product.id,
-                                      optionName: variantName,
-                                      optionValue: variant.value,
-                                    })
-                                    if (variant.image) {
-                                      setOverrideImage(variant.image)
-                                    }
-                                  }
-                                }}
-                                disabled={!isAvailable}
-                                className={`px-4 py-2 rounded-lg border-2 font-medium transition-all ${
-                                  isSelected
-                                    ? 'border-primary bg-primary text-primary-foreground'
-                                    : isAvailable
-                                    ? 'border-border hover:border-primary/50 bg-background'
-                                    : 'border-border bg-muted opacity-50 cursor-not-allowed'
-                                }`}
-                              >
-                                {variant.value}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
 
               <Separator />
 
-              {!isJacket && <FulfillmentNotice compact />}
 
               {/* Quantity and Add to Cart */}
               {!isJacket && (
@@ -713,18 +702,29 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                 </div>
               )}
 
-              {!isJacket && (
-                <div className="grid gap-3 border-t pt-5 text-sm sm:grid-cols-2">
-                  <Link href="/shipping" onClick={() => logUserActivity('information_opened', { sectionName: 'shipping' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
-                    <Truck className="mt-0.5 h-5 w-5 shrink-0" />
-                    <span><strong className="block">Shipping</strong><span className="text-muted-foreground">$45 for one jacket; two or more require a quote.</span></span>
-                  </Link>
-                  <Link href="/returns" onClick={() => logUserActivity('information_opened', { sectionName: 'returns' })} className="interactive-lift flex items-start gap-3 rounded-md border bg-muted/30 p-3 hover:bg-muted">
-                    <RefreshCw className="mt-0.5 h-5 w-5 shrink-0" />
-                    <span><strong className="block">Returns</strong><span className="text-muted-foreground">See eligibility and custom-item exclusions.</span></span>
-                  </Link>
+              {!isJacket && <ProductDeliveryPolicies quantity={quantity} />}
+
+              <section className="rounded-md border bg-muted/35 px-4 py-5 sm:px-5" aria-labelledby="product-details-heading">
+                <h2 id="product-details-heading" className="text-lg font-semibold">Product details</h2>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">Explore {product.name}, including its materials, available options, sizing, and customization details.</p>
+                <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{product.description}</p>
+                {product.specificationDetails && <details className="mt-4 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Specifications</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.specificationDetails}</p></details>}
+                {product.careInstructions && <details className="mt-3 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Care instructions</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.careInstructions}</p></details>}
+                {(Object.keys(groupedVariants).length > 0 || product.measurementFields?.length || product.embroidery?.available) && (
+                  <dl className="mt-4 divide-y border-t text-sm">
+                    {Object.entries(groupedVariants).map(([name, variants]) => (
+                      <div key={name} className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">{name}</dt><dd className="text-muted-foreground">{variants.map((variant) => variant.value).join(', ')}</dd></div>
+                    ))}
+                    {!!product.measurementFields?.length && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Fit</dt><dd className="text-muted-foreground">Made-to-measure available</dd></div>}
+                    {product.embroidery?.available && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Details</dt><dd className="text-muted-foreground">Optional monogram or embroidery</dd></div>}
+                  </dl>
+                )}
+                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                  <Link href="/materials-colors" className="font-medium underline underline-offset-4">Materials & colors</Link>
+                  <Link href="/patches-embroidery" className="font-medium underline underline-offset-4">Patches & embroidery</Link>
                 </div>
-              )}
+              </section>
+
             </motion.div>
           </div>
 
@@ -764,7 +764,10 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-4 border-t bg-background/95 px-4 py-3 shadow-lg backdrop-blur lg:hidden">
         <span className="min-w-0 flex-1 truncate text-lg font-semibold">${getPrice().toFixed(2)}</span>
-        <Button onClick={() => document.getElementById('purchase-options')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} disabled={!product.inStock}>
+        <Button onClick={() => {
+          if (!hasSelectedSize) requestSizeSelection()
+          else document.getElementById('purchase-options')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }} disabled={!product.inStock}>
           <Ruler className="mr-2 h-4 w-4" />{product.inStock ? 'Choose options' : 'Out of stock'}
         </Button>
       </div>

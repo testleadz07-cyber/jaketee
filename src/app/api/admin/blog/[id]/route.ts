@@ -63,6 +63,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const body = await request.json()
+    const current = await BlogPost.findById(id).lean() as any
+    if (!current) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    }
     const update: Record<string, any> = {}
 
     const directFields = [
@@ -106,13 +110,22 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }
         update.publishedAt = publishedAt
       } else if (body.status === 'published') {
-        update.publishedAt = body.publishedAt ? new Date(body.publishedAt) : new Date()
+        update.publishedAt = body.publishedAt ? new Date(body.publishedAt) : current.publishedAt || new Date()
       }
     } else if (body.publishedAt !== undefined) {
       update.publishedAt = body.publishedAt ? new Date(body.publishedAt) : undefined
     }
 
-    const post = await BlogPost.findByIdAndUpdate(id, update, { returnDocument: 'after' }).populate(
+    // Publication state and unchanged saves must not alter the content modification date.
+    const contentFields = [...directFields, 'slug']
+    const normalize = (value: any): any => Array.isArray(value)
+      ? value.map(normalize)
+      : value && typeof value === 'object' ? String(value) : value ?? ''
+    const contentChanged = contentFields.some(field => field in update &&
+      JSON.stringify(normalize(update[field])) !== JSON.stringify(normalize(current[field])))
+    const post = await BlogPost.findByIdAndUpdate(id, update, {
+      returnDocument: 'after', timestamps: contentChanged,
+    }).populate(
       'categories',
       'name slug'
     )
