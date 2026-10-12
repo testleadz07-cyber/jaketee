@@ -11,12 +11,10 @@ function truncateAtWord(value: string, maxLength: number) {
   return (boundary > Math.floor(maxLength * 0.65) ? shortened.slice(0, boundary) : shortened.slice(0, maxLength)).trim()
 }
 
-export function productMetaTitle(name: string, customTitle?: string | null) {
-  const supplied = cleanMetaText(customTitle)
-  if (supplied) return truncateAtWord(supplied, 60)
+export function productMetaTitle(name: string) {
   const productName = cleanMetaText(name) || 'Custom Jacket'
-  const prefix = productName.toLowerCase().startsWith('custom ') ? productName : `Custom ${productName}`
-  return `${truncateAtWord(prefix, 60 - BRAND_SUFFIX.length)}${BRAND_SUFFIX}`
+  // Keep the complete catalog name aligned with the product H1.
+  return `${productName}${BRAND_SUFFIX}`
 }
 
 export function productMetaDescription(input: { name: string; categoryName?: string | null; customDescription?: string | null }) {

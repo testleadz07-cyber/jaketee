@@ -5,7 +5,7 @@ const PAGE_URL = `${SITE_URL}/returns`
 
 export const metadata: Metadata = {
   title: 'Returns & Exchanges — Jacketee',
-  description: 'Eligible stock jackets may be returned within 10 days. Learn about Jacketee return eligibility, restocking fees and custom-item exceptions.',
+  description: 'Eligible stock jackets may be returned within 10 days of delivery. Learn about Jacketee return eligibility, restocking fees and custom-item exceptions.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Returns & Exchanges — Jacketee',

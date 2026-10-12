@@ -33,13 +33,33 @@ export const returnPolicyText = {
   fee: 'A restocking fee of 15% of the jacket price, with a minimum of $35, is deducted from approved change-of-mind returns.',
   personalized: 'Personalized or custom items',
   customExchange: 'Custom jackets are not exchangeable for a change of mind',
-  faulty: 'If your jacket arrives faulty or incorrect, contact us with your order number and photos. We will review the issue and arrange an appropriate remedy. The change-of-mind restocking fee does not apply to these cases.',
+  faulty: 'Report faulty, damaged or incorrect items within 48 hours of delivery, with your order number and photos. We will review the issue and arrange an appropriate remedy. The change-of-mind restocking fee does not apply to these cases.',
 } as const
+
+// Keep database-backed FAQs aligned with the current policy, including older imports.
+export function faultReportFaqAnswer(question: string, answer: string[]): string[] {
+  switch (question.trim().toLowerCase()) {
+    case 'what should i do if my order arrives damaged or incorrect?':
+    case 'i received a faulty item, what do i do?':
+      return [returnPolicyText.faulty]
+    case 'can repairs be made on the garment?':
+      return [`We're currently unable to offer repair services after a jacket has shipped. ${returnPolicyText.faulty}`]
+    default:
+      return answer
+  }
+}
 
 export const deliveryTooltip = `Made and shipped in ${deliverySettings.handlingMin}–${deliverySettings.handlingMax} business days after your design is approved. Delivery takes ${deliverySettings.transitMin}–${deliverySettings.transitMax} business days. Customs in some countries can add time.`
 
+const cutoffTime = deliverySettings.cutoff === '23:59:59' ? 'midnight' :
+  new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: 'UTC' })
+    .format(new Date(`2000-01-01T${deliverySettings.cutoff}Z`))
+const cutoffTimezone = deliverySettings.cutoffTimezone === 'America/Chicago' ? 'US Central Time' :
+  deliverySettings.cutoffTimezone.replace(/_/g, ' ')
+
 export const fulfillmentConfig = {
   individualProduction: `Made and shipped in ${deliverySettings.handlingMin}–${deliverySettings.handlingMax} business days after your design is approved.`,
+  processingCutoff: `Orders placed by ${cutoffTime} ${cutoffTimezone} on a business day start processing that day. Weekend orders start the next business day.`,
   individualDelivery: `Delivery takes ${deliverySettings.transitMin}–${deliverySettings.transitMax} business days. Customs in some countries can add time.`,
   bulkProductionDelivery: process.env.NEXT_PUBLIC_BULK_PRODUCTION_DELIVERY_WINDOW || 'Orders of 10 or more jackets typically take 3-4 weeks in total, including production and delivery.',
   singleJacketShipping: `$${STANDARD_SHIPPING_USD} USD for one jacket.`,

@@ -43,7 +43,7 @@ export async function generateMetadata({
   const title = post.seoTitle || `${post.title} — Jacketee Blog`
   const description = blogDescription(post)
   const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
-  const authorName = post.author?.name || 'Jacketee'
+  const authorName = 'Jacketee Team'
   const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
   const modifiedTime = post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined
 

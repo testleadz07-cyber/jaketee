@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
       tags: tags || [],
       status: finalStatus,
       publishedAt: finalPublishedAt,
-      author: { name: session.user?.name || 'Admin', userId: (session.user as any).id },
+      author: { name: 'Jacketee Team', userId: (session.user as any).id },
       seoTitle,
       seoDescription,
       ogImage,

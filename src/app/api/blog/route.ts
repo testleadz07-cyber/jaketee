@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       featuredImage: resolveBlogImage(p, imageCandidates),
       categories: (p.categories || []).map((c: any) => ({ id: String(c._id), name: c.name, slug: c.slug })),
       tags: p.tags,
-      author: p.author,
+      author: { name: 'Jacketee Team' },
       publishedAt: p.publishedAt,
       views: p.views,
     }))

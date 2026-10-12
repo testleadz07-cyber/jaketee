@@ -112,7 +112,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
             <span className="flex items-center gap-1.5">
               <User className="h-4 w-4" />
-              {post.author?.name || 'Jacketee'}
+              {'Jacketee Team'}
             </span>
             <span aria-hidden="true"> · </span>
             <span className="flex items-center gap-1.5">
@@ -152,8 +152,8 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                 ['/contact', 'Contact our team', 'Ask about a design, product, or order requirement.'],
               ].map(([href, label, description]) => (
                 <Link key={href} href={href} className="group min-h-28 bg-background p-4 hover:bg-muted/40">
-                  <span className="flex items-center justify-between font-semibold">{label}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></span>
-                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{description}</span>
+                  <h3 className="flex items-center justify-between font-semibold">{label}<ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
                 </Link>
               ))}
             </div>
@@ -164,8 +164,8 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
             <div className="flex flex-wrap items-center gap-2 mt-8 pt-8 border-t">
               <Tag className="h-4 w-4 text-muted-foreground" />
               {post.tags.map((tag) => (
-                <Badge key={tag} variant="outline">
-                  {tag}
+                <Badge key={tag} variant="outline" asChild className="rounded-full px-3 py-1">
+                  <Link href={`/blog?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
                 </Badge>
               ))}
             </div>
@@ -178,13 +178,13 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
               <h2 className="text-2xl font-bold mb-6">Shop This Post</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {post.taggedProducts.map((product) => (
-                  <Link key={product.id} href={product.href}>
+                  <div key={product.id}>
                     <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
-                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer pt-0 shadow-sm">
+                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group pt-0 shadow-sm">
                         <div className="relative aspect-square overflow-hidden bg-muted">
                           <Image
                             src={product.thumbnail || '/placeholder.png'}
-                            alt={product.name}
+                            alt=""
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="media-zoom object-cover"
@@ -192,7 +192,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                         </div>
                         <CardContent className="p-4">
                           <h3 className="font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                            {product.name}
+                            <Link href={product.href} className="hover:underline">{product.name}</Link>
                           </h3>
                           {!!product.averageRating && (
                             <div className="flex items-center gap-1 mb-2">
@@ -215,7 +215,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                         </CardContent>
                       </Card>
                     </motion.div>
-                  </Link>
+                  </div>
                 ))}
               </div>
               </div>
@@ -229,13 +229,13 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
               <h2 className="text-2xl font-bold mb-6">Related Posts</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {post.relatedPosts.map((related) => (
-                  <Link key={related.id} href={`/blog/${related.slug}`}>
+                  <div key={related.id}>
                     <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
-                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer pt-0 shadow-sm">
+                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group pt-0 shadow-sm">
                         <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                           <Image
                             src={related.featuredImage || '/placeholder.png'}
-                            alt={related.title}
+                            alt=""
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="media-zoom object-cover"
@@ -243,7 +243,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                         </div>
                         <CardContent className="p-4">
                           <h3 className="font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                            {related.title}
+                            <Link href={`/blog/${related.slug}`} className="hover:underline">{related.title}</Link>
                           </h3>
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                             {related.excerpt}
@@ -255,7 +255,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
                         </CardContent>
                       </Card>
                     </motion.div>
-                  </Link>
+                  </div>
                 ))}
               </div>
               </div>

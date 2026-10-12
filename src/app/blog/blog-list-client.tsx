@@ -49,13 +49,14 @@ function formatDate(dateString: string) {
   }
 }
 
-export default function BlogListPage({ posts, categories, page, pages, total, categorySlug }: {
+export default function BlogListPage({ posts, categories, page, pages, total, categorySlug, tag }: {
   posts: BlogPostSummary[]
   categories: BlogCategory[]
   page: number
   pages: number
   total: number
   categorySlug?: string
+  tag?: string
 }) {
 
   return (
@@ -142,7 +143,7 @@ export default function BlogListPage({ posts, categories, page, pages, total, ca
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <User className="h-3.5 w-3.5" />
-                              {post.author?.name || 'Jacketee'}
+                              {'Jacketee Team'}
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />
@@ -163,13 +164,13 @@ export default function BlogListPage({ posts, categories, page, pages, total, ca
                   <PaginationContent>
                     {page > 1 && <PaginationItem>
                       <PaginationPrevious
-                        href={blogArchivePath(page - 1, categorySlug)}
+                        href={blogArchivePath(page - 1, categorySlug, '/blog', tag)}
                       />
                     </PaginationItem>}
                     {[...Array(pages)].map((_, i) => (
                       <PaginationItem key={i}>
                         <PaginationLink
-                          href={blogArchivePath(i + 1, categorySlug)}
+                          href={blogArchivePath(i + 1, categorySlug, '/blog', tag)}
                           isActive={page === i + 1}
                         >
                           {i + 1}
@@ -178,7 +179,7 @@ export default function BlogListPage({ posts, categories, page, pages, total, ca
                     ))}
                     {page < pages && <PaginationItem>
                       <PaginationNext
-                        href={blogArchivePath(page + 1, categorySlug)}
+                        href={blogArchivePath(page + 1, categorySlug, '/blog', tag)}
                       />
                     </PaginationItem>}
                   </PaginationContent>

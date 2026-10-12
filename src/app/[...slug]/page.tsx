@@ -1,9 +1,11 @@
 import { Metadata } from 'next'
+import { VARSITY_CATEGORY_SEO } from '@/lib/varsity-category-seo'
+import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
+import { getProductRecommendations } from '@/lib/product-recommendations'
 import { permanentRedirect, notFound } from 'next/navigation'
 import { resolveSlugPath } from '@/lib/route-resolver'
 import { ProductDetailView, type ProductDetailData } from '@/components/product-detail-view'
-import { deliverySettings, returnPolicyText } from '@/config/fulfillment'
-import { shippingCountries } from '@/config/fulfillment'
+import { getProductReturnPolicy } from '@/lib/product-return-policy'
 import { shippingDetailsJsonLd } from '@/lib/shipping-schema'
 import { CategoryDetailView } from '@/components/category-detail-view'
 import { connectDB } from '@/lib/mongodb'
@@ -54,7 +56,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
   if (resolution.type === 'product') {
     const product = resolution.product
-    const title = productMetaTitle(product.name, product.seoTitle)
+    const title = productMetaTitle(product.name)
     const description = productMetaDescription({
       name: product.name,
       categoryName: product.categoryPath?.at(-1)?.name || product.categoryId?.name,
@@ -74,7 +76,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   }
 
   if (resolution.type === 'category') {
-    const category = resolution.category
+    const category = resolution.category.slug === 'varsity-jackets'
+    ? { ...resolution.category, ...VARSITY_CATEGORY_SEO }
+    : resolution.category
     const pageTitleSuffix = requestedPage > 1 ? ` - Page ${requestedPage}` : ''
     const title = category.seoTitle
       ? `${category.seoTitle}${pageTitleSuffix}`
@@ -168,6 +172,21 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
     } catch (error) {
       console.error('Error fetching product FAQs:', error)
     }
+    const recommendations = await getProductRecommendations(String(product._id || product.id))
+    // Pass only plain card data across the client component boundary.
+    const relatedProducts = (recommendations?.youMayAlsoLike || []).map((related: any) => ({
+      id: String(related.id || related._id),
+      name: related.name,
+      slug: related.slug,
+      description: related.description || '',
+      price: Number(related.price || 0),
+      compareAtPrice: related.compareAtPrice == null ? null : Number(related.compareAtPrice),
+      compareAtPriceVerified: Boolean(related.compareAtPriceVerified),
+      images: (related.images || []).map((image: any) => ({ url: image.url, alt: image.alt || '' })),
+      category: related.category ? { name: related.category.name, slug: related.category.slug } : undefined,
+      categoryPath: related.categoryPath || [],
+      isFeatured: Boolean(related.isFeatured),
+    }))
     const initialProduct: ProductDetailData = {
       id: String(product._id || product.id),
       name: product.name,
@@ -234,17 +253,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         itemCondition: 'https://schema.org/NewCondition',
         seller: { '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: 'Jacketee', url: SITE_URL },
         shippingDetails: shippingDetailsJsonLd,
-        hasMerchantReturnPolicy: {
-          '@type': 'MerchantReturnPolicy',
-          applicableCountry: shippingCountries,
-          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-          merchantReturnDays: deliverySettings.returnDays,
-          returnMethod: 'https://schema.org/ReturnByMail',
-          returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
-          description: `${returnPolicyText.eligibility} ${returnPolicyText.fee} Non-returnable Items: ${returnPolicyText.personalized}. ${returnPolicyText.customExchange}.`,
-          merchantReturnLink: `${SITE_URL}/returns`,
-          url: `${SITE_URL}/returns`,
-        },
+        hasMerchantReturnPolicy: getProductReturnPolicy(initialProduct, SITE_URL),
       },
     }
 
@@ -311,12 +320,14 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c') }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }} />
-        <ProductDetailView key={product.slug} slug={product.slug} initialProduct={initialProduct} faqs={productFaqs} />
+        <ProductDetailView key={product.slug} slug={product.slug} initialProduct={initialProduct} faqs={productFaqs} relatedProducts={<YouMayAlsoLike products={relatedProducts} />} />
       </>
     )
   }
 
-  const category = resolution.category
+  const category = resolution.category.slug === 'varsity-jackets'
+    ? { ...resolution.category, ...VARSITY_CATEGORY_SEO }
+    : resolution.category
   let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; heading?: string; introShort?: string; introLong?: string; image?: string; parentId: string | null; _count: { products: number } }> = []
   let initialProducts: any[] = []
   let initialTotalProducts = 0
@@ -522,7 +533,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       <CategoryDetailView
         key={`${category.slug}-${requestedPage}`}
         slug={category.slug}
-        initialCategories={initialCategories}
+        initialCategories={initialCategories.map((item) => item.slug === 'varsity-jackets' ? { ...item, ...VARSITY_CATEGORY_SEO } : item)}
         initialProducts={initialProducts}
         initialTotalProducts={initialTotalProducts}
         initialPage={requestedPage}

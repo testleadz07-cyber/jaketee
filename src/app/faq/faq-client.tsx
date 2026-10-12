@@ -1,6 +1,7 @@
 'use client'
 
 import type { FaqCategory } from '@/lib/faq-page-data'
+import { faqSectionId } from '@/lib/faq-page-data'
 import { FaqText } from '@/components/faq-text'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,7 +38,7 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
 }
 
 export default function FaqPage({ categories }: { categories: FaqCategory[] }) {
-  const mergedCategories = categories.map(category => ({ ...category, icon: SECTION_ICONS[category.title] || ShoppingBag }))
+  const mergedCategories = categories.filter(category => category.items.length > 0).map(category => ({ ...category, icon: SECTION_ICONS[category.title] || ShoppingBag }))
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
@@ -60,7 +61,7 @@ export default function FaqPage({ categories }: { categories: FaqCategory[] }) {
           {/* FAQ Categories */}
           <div className="space-y-6">
             {mergedCategories.map((category) => (
-              <Card key={category.title} className="border-2">
+              <Card key={category.title} id={faqSectionId(category.title)} className="border-2 scroll-mt-24">
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-2">
                     <category.icon className="h-6 w-6 text-primary" />

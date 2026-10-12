@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 }
 
 export default function VarsityDesignGuide() {
-  const schema = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description, mainEntityOfPage: url, author: { '@type': 'Organization', name: 'Jacketee', url: SITE_URL } }
+  const schema = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description, mainEntityOfPage: url, author: { '@type': 'Organization', name: 'Jacketee Team', url: SITE_URL } }
   return <div className="flex min-h-screen flex-col"><Header /><main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />
     <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground"><Link href="/">Home</Link> / <Link href="/blog">Blog</Link> / Varsity design guide</nav>

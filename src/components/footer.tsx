@@ -288,7 +288,7 @@ export function Footer() {
             </button>
           </div>
           <p className="leading-relaxed md:mt-4">
-            (c) {new Date().getFullYear()} Jacketee. All rights reserved. Designed for excellence.
+            © {new Date().getFullYear()} Jacketee. All rights reserved. Designed for excellence.
           </p>
         </div>
       </div>

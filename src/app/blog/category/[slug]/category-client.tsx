@@ -136,7 +136,7 @@ export default function BlogCategoryPage({ category, posts, page, pages, total }
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <User className="h-3.5 w-3.5" />
-                              {post.author?.name || 'Jacketee'}
+                              {'Jacketee Team'}
                             </span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />

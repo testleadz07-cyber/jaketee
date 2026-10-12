@@ -55,7 +55,7 @@ export default async function Page({ params, searchParams }: {
     categories: (post.categories ?? []).map((item) => ({
       id: String(item._id), name: item.name, slug: item.slug,
     })),
-    author: { name: post.author?.name ?? 'Jacketee' },
+    author: { name: 'Jacketee Team' },
     publishedAt: post.publishedAt?.toISOString() ?? '',
   }))
 

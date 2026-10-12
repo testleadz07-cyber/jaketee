@@ -1,4 +1,4 @@
-import { internationalShippingAnswer, fulfillmentConfig } from '@/config/fulfillment'
+import { internationalShippingAnswer, returnPolicyText, faultReportFaqAnswer } from '@/config/fulfillment'
 
 export interface FaqItem {
   question: string
@@ -45,7 +45,7 @@ const faqCategories: FaqCategory[] = [
       {
         question: 'What should I do if my order arrives damaged or incorrect?',
         answer:
-          'Please contact our support team within 48 hours of delivery with photos of the item and packaging. We will arrange a replacement, refund, or exchange as quickly as possible.',
+          returnPolicyText.faulty,
       },
     ],
   },
@@ -55,7 +55,7 @@ const faqCategories: FaqCategory[] = [
       {
         question: 'How long does shipping take?',
         answer:
-          `${fulfillmentConfig.individualProduction} ${fulfillmentConfig.individualDelivery} ${fulfillmentConfig.bulkProductionDelivery}`,
+          'See [production and delivery times](/faq#production-delivery) for individual and bulk orders.',
       },
       {
         question: 'Do you ship internationally?',
@@ -156,6 +156,9 @@ const CATEGORY_TITLES: Record<string, string> = {
 export function hasFaqAnswer(faq: { answer: string | string[]; bullets?: string[]; ordered?: string[] }) {
   return [...(Array.isArray(faq.answer) ? faq.answer : [faq.answer]), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text?.trim())
 }
+export function faqSectionId(title: string) {
+  return title.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+}
 export function buildFaqCategories(dbFaqs: DbFaqItem[]): FaqCategory[] {
   const normalize = (text: string) => text.trim().toLowerCase()
   // Database entries override fallback questions, including drafts and empty answers.
@@ -175,7 +178,7 @@ export function buildFaqCategories(dbFaqs: DbFaqItem[]): FaqCategory[] {
       categories.push(category)
       byTitle.set(title, category)
     }
-    category.items.push({ question: faq.question, answer: faq.answer, bullets: faq.bullets, ordered: faq.ordered })
+    category.items.push({ question: faq.question, answer: faultReportFaqAnswer(faq.question, faq.answer), bullets: faq.bullets, ordered: faq.ordered })
   }
   return categories.filter(category => category.items.length > 0).sort((a, b) => FAQ_SECTION_ORDER.indexOf(a.title) - FAQ_SECTION_ORDER.indexOf(b.title))
 }

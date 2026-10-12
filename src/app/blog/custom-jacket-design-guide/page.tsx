@@ -8,7 +8,7 @@ const title = 'Design a Bomber, Coach, or Puffer Jacket | Jacketee'
 const description = 'Compare bomber, coach, and puffer jacket designs, choose materials and colors, and plan your custom text and artwork.'
 export const metadata: Metadata = { title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'article' } }
 export default function CustomJacketGuide() {
-  const schema = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description, mainEntityOfPage: url, author: { '@type': 'Organization', name: 'Jacketee' } }
+  const schema = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description, mainEntityOfPage: url, author: { '@type': 'Organization', name: 'Jacketee Team' } }
   return <div className="flex min-h-screen flex-col"><Header /><main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />
     <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground"><Link href="/">Home</Link> / <Link href="/blog">Blog</Link> / Custom jacket guide</nav>

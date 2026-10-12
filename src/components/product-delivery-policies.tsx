@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { deliverySettings, deliveryTooltip, returnPolicyText, shippingCountryOptions, shippingCountryError } from '@/config/fulfillment'
 import { allCountries } from '@/config/shipping-countries'
 import { estimateDelivery, formatDeliveryDate } from '@/lib/delivery-dates'
+import { getProductReturnLabel } from '@/lib/product-return-policy'
 
 const COUNTRY_KEY = 'jacketee-delivery-country'
 const validCountry = (value: string | null) => allCountries.some(country => country.code === value)
@@ -18,7 +19,7 @@ function PolicyTip({ label, children }: { label: string; children: React.ReactNo
   </Popover>
 }
 
-export function ProductDeliveryPolicies({ quantity }: { quantity: number }) {
+export function ProductDeliveryPolicies({ quantity, product }: { quantity: number; product: Parameters<typeof getProductReturnLabel>[0] }) {
   const id = useId()
   const [open, setOpen] = useState(true)
   const [dates, setDates] = useState<ReturnType<typeof estimateDelivery> | null>(null)
@@ -66,7 +67,7 @@ export function ProductDeliveryPolicies({ quantity }: { quantity: number }) {
         </button></PopoverTrigger><PopoverContent className="max-w-[calc(100vw-2rem)] text-sm leading-6">{deliveryTooltip}</PopoverContent></Popover>
       </div></div>
       <div className="flex items-start gap-3"><PackageCheck className={iconClass} /><div className="flex flex-1 flex-wrap items-center gap-x-1 py-1">
-        <p><Link href="/returns" className="inline-flex min-h-11 items-center underline underline-offset-4">Returns &amp; exchanges accepted</Link> within {deliverySettings.returnDays} days</p>
+        <p><Link href="/returns" className="inline-flex min-h-11 items-center underline underline-offset-4">{getProductReturnLabel(product)}</Link></p>
         <PolicyTip label="Return eligibility and personalized item policy"><p>{returnPolicyText.eligibility}</p><p>{returnPolicyText.fee}</p><p>Non-returnable Items: {returnPolicyText.personalized}</p><p>{returnPolicyText.customExchange}</p><p>{returnPolicyText.faulty}</p></PolicyTip>
       </div></div>
       <div className="flex items-start gap-3"><Truck className={iconClass} /><div className="flex-1 py-2">

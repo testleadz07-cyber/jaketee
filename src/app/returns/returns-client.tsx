@@ -159,10 +159,10 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                 <div className="p-4 rounded-lg bg-muted">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-primary" />
-                    Request a return within {deliverySettings.returnDays} days
+                    Request a return within {deliverySettings.returnDays} days of delivery
                   </h3>
                   <p className="text-sm text-muted-foreground ml-7">
-                    From the date of delivery confirmation
+                    The return window starts on the date of delivery
                   </p>
                 </div>
               </div>

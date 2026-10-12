@@ -84,7 +84,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       id: String(category._id), name: category.name, slug: category.slug,
     })),
     tags: post.tags ?? [],
-    author: { name: post.author?.name ?? 'Jacketee' },
+    author: { name: 'Jacketee Team' },
     publishedAt: post.publishedAt?.toISOString() ?? '',
     updatedAt: post.updatedAt?.toISOString() ?? post.publishedAt?.toISOString() ?? '',
     views: (post.views ?? 0) + 1,

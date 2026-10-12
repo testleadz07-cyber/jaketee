@@ -12,24 +12,24 @@ export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 9
 
-export async function generateMetadata({ searchParams }: { searchParams: Promise<{ page?: string; category?: string }> }): Promise<Metadata> {
-  const { page, category } = await searchParams
-  const url = `https://www.jacketee.com${blogArchivePath(blogPageNumber(page), category)}`
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ page?: string; category?: string; tag?: string }> }): Promise<Metadata> {
+  const { page, category, tag } = await searchParams
+  const url = `https://www.jacketee.com${blogArchivePath(blogPageNumber(page), category, '/blog', tag)}`
   return { ...archiveMetadata, alternates: { canonical: url }, openGraph: { ...archiveMetadata.openGraph, url } }
 }
 
 export default async function Page({ searchParams }: {
-  searchParams: Promise<{ page?: string; category?: string }>
+  searchParams: Promise<{ page?: string; category?: string; tag?: string }>
 }) {
   if (!(await connectDB())) {
     throw new Error('Blog content is temporarily unavailable')
   }
 
-  const { page: requestedPage, category: categorySlug } = await searchParams
+  const { page: requestedPage, category: categorySlug, tag } = await searchParams
   const page = blogPageNumber(requestedPage)
   const category = categorySlug ? await BlogCategory.findOne({ slug: categorySlug }).lean() : null
   if (categorySlug && !category) notFound()
-  const query = { status: 'published', ...(category ? { categories: category._id } : {}) }
+  const query = { status: 'published', ...(tag ? { tags: tag } : {}), ...(category ? { categories: category._id } : {}) }
 
   const [databaseTotal, databasePosts, rawCategories, imageCandidates] = await Promise.all([
     BlogPost.countDocuments(query),
@@ -42,7 +42,7 @@ export default async function Page({ searchParams }: {
     getBlogImageCandidates(),
   ])
 
-  const guides = category ? [] : STATIC_BLOG_GUIDES.filter(guide => !databasePosts.some(post => post.slug === guide.slug))
+  const guides = category || tag ? [] : STATIC_BLOG_GUIDES.filter(guide => !databasePosts.some(post => post.slug === guide.slug))
   const total = databaseTotal + guides.length
   if (page > Math.max(1, Math.ceil(total / PAGE_SIZE))) notFound()
   const rawPosts = [...databasePosts, ...guides].slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -58,7 +58,7 @@ export default async function Page({ searchParams }: {
       slug: category.slug,
     })),
     tags: post.tags,
-    author: { name: post.author?.name ?? 'Jacketee' },
+    author: { name: 'Jacketee Team' },
     publishedAt: ('publishedAt' in post && post.publishedAt instanceof Date) ? post.publishedAt.toISOString() : '',
     views: post.views ?? 0,
   }))
@@ -68,5 +68,5 @@ export default async function Page({ searchParams }: {
     slug: category.slug,
   }))
 
-  return <BlogListPage posts={posts} categories={categories} categorySlug={categorySlug} page={page} pages={Math.ceil(total / PAGE_SIZE)} total={total} />
+  return <BlogListPage posts={posts} categories={categories} categorySlug={categorySlug} tag={tag} page={page} pages={Math.ceil(total / PAGE_SIZE)} total={total} />
 }

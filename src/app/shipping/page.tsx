@@ -34,6 +34,7 @@ export default function ShippingPage() {
           <h2 id="shipping-timing" className="text-2xl font-semibold">Production & delivery</h2>
           <p className="mt-4 max-w-3xl text-muted-foreground">{fulfillmentConfig.bulkProductionDelivery} We confirm the schedule before production begins.</p>
           <p className="mt-4 max-w-3xl text-muted-foreground"><strong className="text-foreground">Individual and custom orders:</strong> {fulfillmentConfig.individualProduction} {fulfillmentConfig.individualDelivery}</p>
+          <p className="mt-4 max-w-3xl text-muted-foreground">{fulfillmentConfig.processingCutoff}</p>
           <p className="mt-4 text-muted-foreground">Tracking details are sent when your order ships. Delivery times can vary by destination and customs processing.</p>
         </section>
 

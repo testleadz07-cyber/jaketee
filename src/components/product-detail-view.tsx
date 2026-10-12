@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { FaqText } from '@/components/faq-text'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -17,7 +17,6 @@ import { ReviewsSection } from '@/components/reviews-section'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 // import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
 import { SizeGuide } from '@/components/size-guide'
-import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
@@ -84,10 +83,11 @@ export interface ProductDetailData {
 interface ProductDetailViewProps {
   slug: string
   initialProduct: ProductDetailData
+  relatedProducts?: ReactNode
   faqs?: ProductFaqData[]
 }
 
-export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDetailViewProps) {
+export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProducts }: ProductDetailViewProps) {
   const { data: session } = useSession()
   const router = useRouter()
 
@@ -600,7 +600,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                     </div>
                   </div>
 
-                  <ProductDeliveryPolicies quantity={quantity} />
+                  <ProductDeliveryPolicies quantity={quantity} product={product} />
 
                   <div className="rounded-md border bg-muted/30 p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -702,7 +702,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
                 </div>
               )}
 
-              {!isJacket && <ProductDeliveryPolicies quantity={quantity} />}
+              {!isJacket && <ProductDeliveryPolicies quantity={quantity} product={product} />}
 
               <section className="rounded-md border bg-muted/35 px-4 py-5 sm:px-5" aria-labelledby="product-details-heading">
                 <h2 id="product-details-heading" className="text-lg font-semibold">Product details</h2>
@@ -730,9 +730,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [] }: ProductDe
 
         </div>
 
-        <section className="store-section store-section--soft store-section--accent">
-          <div className="section-shell"><YouMayAlsoLike currentProduct={product} /></div>
-        </section>
+        {relatedProducts}
 
         <section id="reviews" className="store-section store-section--plain scroll-mt-24">
           <div className="section-shell"><ReviewsSection productId={product.id} onReviewSubmitted={fetchProduct} /></div>

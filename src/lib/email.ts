@@ -135,7 +135,7 @@ function emailLayout({
               </tr>
             </table>
             <p style="max-width: 640px; margin: 18px auto 0; color: #71717a; font-size: 12px; line-height: 1.6; text-align: center;">
-              (c) ${year} ${BRAND_NAME}. Custom jackets, patches, embroidery, and team apparel.<br />
+              © ${year} ${BRAND_NAME}. Custom jackets, patches, embroidery, and team apparel.<br />
               <a href="${APP_URL}" style="color: #52525b; text-decoration: underline;">${APP_URL}</a>
             </p>
           </td>

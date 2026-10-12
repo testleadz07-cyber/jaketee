@@ -4,6 +4,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
 import BlogPost from '@/models/BlogPost'
+import { returnPolicyText, faultReportFaqAnswer } from '@/config/fulfillment'
 
 type Topic = 'shipping' | 'returns'
 
@@ -43,7 +44,7 @@ const resourceConfig = {
       {
         id: 'returns-custom',
         question: 'Can I return a customized jacket?',
-        answer: ['Customized jackets cannot be returned or exchanged for a change of mind. If your jacket is faulty or incorrect, contact us with your order number and photos so we can review it.'],
+        answer: [`Customized jackets cannot be returned or exchanged for a change of mind. ${returnPolicyText.faulty}`],
       },
     ],
     articleSlugs: [
@@ -72,7 +73,7 @@ export async function PolicyResources({ topic }: { topic: Topic }) {
         }).select('slug title excerpt').lean(),
       ])
       faqs = faqRows
-        .map((faq) => ({ id: String(faq._id), question: faq.question, answer: faq.answer || [] }))
+        .map((faq) => ({ id: String(faq._id), question: faq.question, answer: faultReportFaqAnswer(faq.question, faq.answer || []) }))
         .sort((a, b) => faqOrder.indexOf(a.question) - faqOrder.indexOf(b.question))
       articles = posts
         .map((post) => ({ slug: post.slug, title: post.title, excerpt: post.excerpt }))
