@@ -42,6 +42,7 @@ export interface IOrder extends Document {
   carrier?: 'UPS' | 'FedEx' | 'USPS' | 'DHL' | 'Other'
   estimatedDelivery?: Date
   deliveredAt?: Date
+  archivedAt?: Date | null
   reviewRequestSentAt?: Date
   reviewRequestClaimedAt?: Date
   statusHistory: Array<{ status: string; timestamp: Date; note?: string }>
@@ -150,6 +151,7 @@ const OrderSchema = new Schema<IOrder>(
     carrier: { type: String, enum: ['UPS', 'FedEx', 'USPS', 'DHL', 'Other'] },
     estimatedDelivery: { type: Date },
     deliveredAt: { type: Date },
+    archivedAt: { type: Date, default: null },
     reviewRequestSentAt: { type: Date },
     reviewRequestClaimedAt: { type: Date },
     statusHistory: { type: [StatusHistorySchema], default: [] },
@@ -158,5 +160,11 @@ const OrderSchema = new Schema<IOrder>(
 )
 
 OrderSchema.index({ userId: 1, createdAt: -1 })
+
+// Next.js can retain the compiled model across development reloads. Upgrade
+// cached schemas too, otherwise strict updates silently drop archivedAt.
+if (mongoose.models.Order && !mongoose.models.Order.schema.path('archivedAt')) {
+  mongoose.models.Order.schema.add({ archivedAt: { type: Date, default: null } })
+}
 
 export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema)

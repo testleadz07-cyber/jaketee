@@ -46,6 +46,8 @@ import {
   FileText,
   X,
   Pencil,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react'
 import Link from 'next/link'
 import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
@@ -62,6 +64,7 @@ interface OrderItem {
 }
 
 interface Order {
+  archivedAt?: string | null
   promoCode?: string
   statusHistory?: Array<{ status: string; timestamp: string; note?: string }>
   deliveredAt?: string
@@ -149,10 +152,12 @@ export default function AdminOrders() {
 
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDemoMode, setIsDemoMode] = useState(false)
+  const isDemoMode = orders.some(order => order._id?.startsWith('mock') || order.id?.startsWith('mock'))
   
   // Status filter state
   const [activeTab, setActiveTab] = useState<string>('all')
+  const [archiveFilter, setArchiveFilter] = useState('active')
+  const [archivingId, setArchivingId] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -240,12 +245,18 @@ export default function AdminOrders() {
       const params = new URLSearchParams()
       params.set('page', String(page))
       params.set('limit', String(limit))
+      params.set('archived', String(archiveFilter === 'archived'))
       if (activeTab !== 'all') params.set('status', activeTab)
       if (searchQuery.trim()) params.set('search', searchQuery.trim())
 
       const res = await fetch(`/api/orders?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
+        const resultPages = Number(res.headers.get('X-Pages') || 1)
+        if (page > resultPages) {
+          setPage(resultPages)
+          return
+        }
         setOrders(data)
         setTotal(Number(res.headers.get('X-Total-Count') || data.length))
         setPages(Number(res.headers.get('X-Pages') || 1))
@@ -255,27 +266,41 @@ export default function AdminOrders() {
     } finally {
       setLoading(false)
     }
-  }, [page, activeTab, searchQuery])
+  }, [page, activeTab, searchQuery, archiveFilter])
 
   useEffect(() => {
     if (status === 'authenticated') fetchOrders()
   }, [status, fetchOrders])
-
-  // Detect if db connection actually failed
-  useEffect(() => {
-    // If no db, stats endpoint yields "mock-1" or similar ids, and categories doesn't set id.
-    // Use `total` (unfiltered count from the API) rather than the current page's
-    // `orders` array, since a search/status filter can legitimately return zero
-    // results without the store being in demo mode.
-    const isMock = orders.some(o => o._id?.startsWith('mock') || o.id?.startsWith('mock'))
-    setIsDemoMode(isMock || (total === 0 && activeTab === 'all' && !searchQuery))
-  }, [orders, total, activeTab, searchQuery])
 
   const toggleExpand = (orderId: string) => {
     setExpandedOrders(prev => ({
       ...prev,
       [orderId]: !prev[orderId]
     }))
+  }
+
+  const handleArchive = async (order: Order) => {
+    if (isDemoMode || archivingId) return
+    const orderId = order._id || order.id || ''
+    const archived = !order.archivedAt
+    setArchivingId(orderId)
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived }),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Could not update order archive.')
+      }
+      toast({ title: archived ? 'Order archived' : 'Order restored', description: `${order.orderNumber} ${archived ? 'moved to Archived orders' : 'returned to Active orders'}.` })
+      await fetchOrders()
+    } catch (error) {
+      toast({ title: 'Update failed', description: error instanceof Error ? error.message : 'Could not update order archive.', variant: 'destructive' })
+    } finally {
+      setArchivingId(null)
+    }
   }
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
@@ -794,6 +819,14 @@ export default function AdminOrders() {
       </div>
 
       {/* Status Filters sub-tabs */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Label htmlFor="order-archive-filter">Show orders</Label>
+        <select id="order-archive-filter" value={archiveFilter} onChange={event => { setArchiveFilter(event.target.value); setPage(1) }} className="rounded-lg border bg-background px-3 py-2 text-sm">
+          <option value="active">Active orders</option>
+          <option value="archived">Archived orders</option>
+        </select>
+        <p className="text-xs text-muted-foreground">Archiving preserves the order and its status. Restore it anytime.</p>
+      </div>
       <div className="flex border-b overflow-x-auto gap-2 py-1 select-none">
         {tabsList.map(tab => (
           <button
@@ -841,6 +874,7 @@ export default function AdminOrders() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-bold text-lg">{order.orderNumber}</span>
                         {getStatusBadge(order.status)}
+                        {order.archivedAt && <Badge variant="secondary">Archived</Badge>}
                         {order.isCustomOrder && (
                           <Badge className="bg-violet-100 text-violet-800 border-violet-200 text-[10px]">CUSTOM ORDER</Badge>
                         )}
@@ -866,6 +900,10 @@ export default function AdminOrders() {
                         <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" disabled={isDemoMode || archivingId !== null || isUpdating} onClick={event => { event.stopPropagation(); handleArchive(order) }}>
+                          {archivingId === orderId ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : order.archivedAt ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+                          {order.archivedAt ? 'Restore' : 'Archive'}
+                        </Button>
                         <Button variant="outline" size="sm" disabled={isDemoMode} onClick={(event) => { event.stopPropagation(); handleEditOrder(order) }}>
                           <Pencil className="h-4 w-4 mr-2" /> Edit
                         </Button>

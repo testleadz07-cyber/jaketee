@@ -7,7 +7,9 @@ import { useToast } from '@/hooks/use-toast'
 import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Loader2, Edit, Trash2, Check, ChevronLeft, LogOut, Tags as TagsIcon } from 'lucide-react'
+import { Edit, Trash2, Check, ChevronLeft, ChevronRight, Search, Tags as TagsIcon } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Link from 'next/link'
 
 export default function TagsPage() {
@@ -21,6 +23,21 @@ export default function TagsPage() {
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
+  const [letter, setLetter] = useState('all')
+  const [sortOrder, setSortOrder] = useState('asc')
+  const [pageSize, setPageSize] = useState(10)
+  const [page, setPage] = useState(1)
+
+  const filteredTags = tags
+    .filter(tag => tag.toLowerCase().includes(search.trim().toLowerCase()))
+    .filter(tag => letter === 'all' || (letter === 'other'
+      ? !/^[a-z]/i.test(tag.trim())
+      : tag.trim().toLowerCase().startsWith(letter)))
+    .sort((a, b) => sortOrder === 'asc' ? a.localeCompare(b) : b.localeCompare(a))
+  const totalPages = Math.max(1, Math.ceil(filteredTags.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const startIndex = (currentPage - 1) * pageSize
+  const visibleTags = filteredTags.slice(startIndex, startIndex + pageSize)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -115,6 +132,7 @@ export default function TagsPage() {
       })
       if (!res.ok) throw new Error('Failed to delete')
       setTags(prev => prev.filter(t => t !== tag))
+      setPage(visibleTags.length === 1 ? Math.max(1, currentPage - 1) : currentPage)
       toast({ title: 'Tag deleted', description: `${tag} removed.` })
     } catch (error) {
       console.error(error)
@@ -162,23 +180,60 @@ export default function TagsPage() {
           <Button onClick={handleAddTag} disabled={saving || !newTag.trim()}>Add</Button>
         </div>
 
-        {/* Search */}
-        <Input
-          placeholder="Search tags..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
+        <div className="rounded-xl border bg-card p-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-2">
+              <Label htmlFor="tag-search">Search tags</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <Input id="tag-search" placeholder="Search by tag name..." value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tag-letter">Starts with</Label>
+              <Select value={letter} onValueChange={value => { setLetter(value); setPage(1) }}>
+                <SelectTrigger id="tag-letter"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All letters</SelectItem>
+                  {'abcdefghijklmnopqrstuvwxyz'.split('').map(value => <SelectItem key={value} value={value}>{value.toUpperCase()}</SelectItem>)}
+                  <SelectItem value="other">Numbers &amp; symbols</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tag-sort">Sort by</Label>
+              <Select value={sortOrder} onValueChange={value => { setSortOrder(value); setPage(1) }}>
+                <SelectTrigger id="tag-sort"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">Name: A–Z</SelectItem>
+                  <SelectItem value="desc">Name: Z–A</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tag-page-size">Tags per page</Label>
+              <Select value={String(pageSize)} onValueChange={value => { setPageSize(Number(value)); setPage(1) }}>
+                <SelectTrigger id="tag-page-size"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[10, 25, 50].map(value => <SelectItem key={value} value={String(value)}>{value}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {(search || letter !== 'all' || sortOrder !== 'asc') && (
+            <Button variant="outline" size="sm" onClick={() => { setSearch(''); setLetter('all'); setSortOrder('asc'); setPage(1) }}>Clear filters</Button>
+          )}
+        </div>
 
         {/* Tag list */}
         <ul className="space-y-2 max-w-lg">
           {tags.length === 0 && (
             <li className="text-muted-foreground text-sm py-4">No tags yet. Add your first tag above.</li>
           )}
-          {tags.filter(t => t.toLowerCase().includes(search.toLowerCase())).length === 0 && tags.length > 0 && (
-            <li className="text-muted-foreground text-sm py-4">No tags match &quot;{search}&quot;.</li>
+          {filteredTags.length === 0 && tags.length > 0 && (
+            <li className="text-muted-foreground text-sm py-4">No tags match your search and filters.</li>
           )}
-          {tags.filter(t => t.toLowerCase().includes(search.toLowerCase())).map(tag => (
+          {visibleTags.map(tag => (
             <li key={tag} className="flex items-center gap-2 p-3 rounded-xl border bg-card hover:bg-muted/20 transition-colors">
               {editingTag === tag ? (
                 <>
@@ -196,6 +251,21 @@ export default function TagsPage() {
             </li>
           ))}
         </ul>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-4">
+          <p className="text-sm text-muted-foreground" role="status">
+            Showing {filteredTags.length === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, filteredTags.length)} of {filteredTags.length} tags
+            {filteredTags.length !== tags.length && ` (${tags.length} total)`}
+          </p>
+          <nav aria-label="Tags pagination" className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setPage(currentPage - 1)} disabled={currentPage === 1}>
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </Button>
+            <span className="text-sm">Page {currentPage} of {totalPages}</span>
+            <Button variant="outline" size="sm" onClick={() => setPage(currentPage + 1)} disabled={currentPage === totalPages}>
+              Next <ChevronRight className="h-4 w-4" />
+            </Button>
+          </nav>
+        </div>
       </main>
     </div>
   )

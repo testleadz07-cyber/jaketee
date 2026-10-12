@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
     let query: any = {}
 
     if (userRole === 'admin') {
+      // Null also matches legacy orders without an archivedAt field.
+      query.archivedAt = searchParams.get('archived') === 'true' ? { $ne: null } : null
       if (userIdQuery) {
         query.userId = userIdQuery
       }

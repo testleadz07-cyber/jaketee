@@ -77,6 +77,12 @@ export async function PATCH(
     }
 
     const update: Record<string, any> = {}
+    if (body.archived !== undefined) {
+      if (typeof body.archived !== 'boolean') {
+        return NextResponse.json({ error: 'archived must be a boolean' }, { status: 400 })
+      }
+      update.archivedAt = body.archived ? (existingOrder.archivedAt || new Date()) : null
+    }
     for (const field of ['userName', 'userEmail', 'notes'] as const) {
       if (body[field] !== undefined) {
         if (typeof body[field] !== 'string' || (field !== 'notes' && !body[field].trim())) {
@@ -169,6 +175,10 @@ export async function PATCH(
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    if (body.archived !== undefined && Boolean((order as any).archivedAt) !== body.archived) {
+      return NextResponse.json({ error: 'Order archive was not saved. Please try again.' }, { status: 500 })
     }
 
     return NextResponse.json({ ...order, id: String((order as any)._id) })
