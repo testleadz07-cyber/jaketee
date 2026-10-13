@@ -359,7 +359,7 @@ export default function AdminProducts() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 aria-label="Search products"
-                placeholder="Search name, slug or description"
+                placeholder="Search product ID, name, slug or description"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"

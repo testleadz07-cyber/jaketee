@@ -5,6 +5,7 @@ import Category from '@/models/Category'
 import { resolveDescendantIds, resolveAncestorChain, type CategoryNode } from '@/lib/categories'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
+import { Types } from 'mongoose'
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,6 +74,9 @@ export async function GET(request: NextRequest) {
         { slug: { $regex: escaped, $options: 'i' } },
         { description: { $regex: escaped, $options: 'i' } },
       ]
+      if (/^[a-f\d]{24}$/i.test(search.trim())) {
+        filter.$or.push({ _id: new Types.ObjectId(search.trim()) })
+      }
     }
 
     let sortObj: any = {}

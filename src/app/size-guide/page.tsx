@@ -56,6 +56,20 @@ export default function SizeGuidePage() {
         </nav>
 
         <JacketSizeReference />
+
+        <section className="border-t" aria-labelledby="explore-jacket-styles">
+          <div className="container mx-auto px-4 py-10">
+            <h2 id="explore-jacket-styles" className="text-2xl font-semibold">Find your jacket style</h2>
+            <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
+              Use your measurements to compare our{' '}
+              <Link href="/varsity-jackets" className="font-medium text-foreground underline underline-offset-4 hover:text-primary">custom varsity jackets</Link>{' '}
+              and{' '}
+              <Link href="/puffer-jackets" className="font-medium text-foreground underline underline-offset-4 hover:text-primary">puffer jackets</Link>.
+              {' '}Check the selected style&apos;s fit and allow room for the layers you plan to wear underneath.
+            </p>
+          </div>
+        </section>
+
         <SizeGuideResources />
 
         <section className="border-t bg-zinc-950 text-white">
