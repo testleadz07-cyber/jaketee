@@ -1,5 +1,5 @@
 
-import { STANDARD_SHIPPING_USD, shippingCountries } from '@/config/fulfillment'
+import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -110,9 +110,9 @@ export async function POST(request: NextRequest) {
     // 2. Build Stripe Checkout Session
     const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      shipping_address_collection: {
-        allowed_countries: shippingCountries as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
-      },
+      // Shipping was already validated and saved on the order. Do not ask
+      // customers to enter it again on the hosted payment page.
+      billing_address_collection: 'auto',
       line_items: lineItems,
       shipping_options: shippingAmount ? [{
         shipping_rate_data: {

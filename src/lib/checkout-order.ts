@@ -4,7 +4,7 @@ import { normalizeShippingCountry, shippingCountryError } from '@/config/fulfill
 import { GARMENT_CATEGORIES, GARMENT_TEMPLATES, getGarmentCategory, validateGarmentOptions, getGarmentPrice, getGarmentSvg, type GarmentCategory } from '@/lib/garment-template'
 import Product from '@/models/Product'
 import Discount from '@/models/Discount'
-import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
+import { JACKET_VIEWS, JACKET_TEXT_LAYOUTS, type JacketTextLayout, type JacketCustomization } from '@/types/jacket-customization'
 import { getCustomizationFee } from '@/lib/customization-pricing'
 import { VARSITY_TEMPLATE_ID, validateVarsityOptions, getVarsityPrice, getVarsitySvg } from '@/lib/varsity-template'
 
@@ -81,13 +81,15 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
       if (content) {
         const color = typeof text.color === 'string' && /^#[0-9a-f]{6}$/i.test(text.color) ? text.color.toLowerCase() : ''
         const fontStyle = typeof text.fontStyle === 'string' && JACKET_FONT_STYLES.has(text.fontStyle) ? text.fontStyle as NonNullable<typeof cleanSide.text>['fontStyle'] : 'varsity'
+        if (text.layout != null && !JACKET_TEXT_LAYOUTS.includes(text.layout as JacketTextLayout)) throw new CheckoutError('Invalid text layout')
+        const layout = (text.layout || 'straight') as JacketTextLayout
         const size = Number(text.size)
         const x = Number(text.x)
         const y = Number(text.y)
         if (content.length > maxTextLength || !color || !Number.isFinite(size) || size < 24 || size > 72 || !inUnitRange(x) || !inUnitRange(y)) {
           throw new CheckoutError('Invalid embroidered text design')
         }
-        cleanSide.text = { value: content, color, fontStyle, size, x, y }
+        cleanSide.text = { value: content, color, fontStyle, layout, size, x, y }
       }
     }
 

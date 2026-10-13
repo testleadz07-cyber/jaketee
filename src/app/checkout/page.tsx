@@ -132,6 +132,22 @@ function CheckoutContent() {
       fetchUserProfile()
       fetchPaypalConfig()
     } else if (status === 'unauthenticated') {
+      // Keep the guest's shipping details across the hosted payment redirect
+      // (including cancellation), scoped to this browser tab.
+      try {
+        const draft = JSON.parse(sessionStorage.getItem('jacketee-guest-shipping') || 'null')
+        if (draft && typeof draft === 'object') {
+          const value = (key: string) => typeof draft[key] === 'string' ? draft[key] : ''
+          setShippingName(value('name'))
+          setShippingEmail(value('email'))
+          setShippingPhone(value('phone'))
+          setShippingStreet(value('street'))
+          setShippingCity(value('city'))
+          setShippingState(value('state'))
+          setShippingZip(value('zip'))
+          setShippingCountry(normalizeShippingCountry(value('country')) || '')
+        }
+      } catch { /* Checkout still works if browser storage is unavailable. */ }
       fetchPaypalConfig()
     }
   }, [status, session])
@@ -527,6 +543,15 @@ function CheckoutContent() {
       // Sync refs back to states
       setShippingName(nameVal)
       setShippingEmail(emailVal.trim())
+      if (!session?.user) {
+        try {
+          sessionStorage.setItem('jacketee-guest-shipping', JSON.stringify({
+            name: nameVal, email: emailVal.trim(), phone: phoneVal,
+            street: streetVal, city: cityVal, state: stateVal,
+            zip: zipVal, country: countryVal,
+          }))
+        } catch { /* Retaining the draft is optional. */ }
+      }
       sessionStorage.setItem('jacketee-checkout-email', emailVal.trim().toLowerCase())
       setShippingStreet(streetVal)
       setShippingCity(cityVal)

@@ -52,6 +52,7 @@ export interface IOrder extends Document {
 
 const JacketSideSchema = new Schema({
   text: {
+    layout: { type: String, enum: ['straight', 'curve-up', 'curve-down', 'vertical'], default: 'straight' },
     value: String,
     color: String,
     fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
@@ -115,7 +116,9 @@ const ShippingAddressSchema = new Schema(
     name: { type: String, required: true },
     street: { type: String, required: true },
     city: { type: String, required: true },
-    state: { type: String, required: true },
+    // Payment sessions created before storefront-only address collection may
+    // contain an international shipping address without a state/region.
+    state: { type: String, default: '' },
     zip: { type: String, required: true },
     country: { type: String, default: 'United States' },
     phone: { type: String },

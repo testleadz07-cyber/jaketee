@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useDesignHistory } from '@/hooks/use-design-history'
+import { DesignHistoryControls } from '@/components/design-history-controls'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
@@ -13,7 +15,7 @@ import { useCartStore } from '@/store/cart'
 import { captureJacketDesignPreviews, getJacketChestWidth } from '@/lib/jacket-design-preview'
 import { getCustomizationFee } from '@/lib/customization-pricing'
 import { GARMENT_TEMPLATES, GARMENT_COLORS as colorChoices, getGarmentDefaults, getGarmentTemplateId, getGarmentImages, getGarmentSvg, getGarmentPrice, validateGarmentOptions, type GarmentCategory } from '@/lib/garment-template'
-import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
+import { JACKET_VIEWS } from '@/types/jacket-customization'
 import { GARMENT_PART_COLORS as partColors } from '@/lib/garment-svg'
 
 const COLOR_SWATCHES = [
@@ -30,8 +32,8 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
   const name = template.name
 
   const router = useRouter()
-  const [options, setOptions] = useState(() => getGarmentDefaults(category))
-  const [design, setDesign] = useState<JacketCustomization>({})
+  const history = useDesignHistory(() => getGarmentDefaults(category))
+  const { options, design, setOptions, setDesign, restore } = history
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -59,13 +61,12 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
         if (side && (typeof side !== 'object' || (side.artworks && !Array.isArray(side.artworks)) || (side.text && typeof side.text.value !== 'string'))) return
       }
       queueMicrotask(() => {
-        setOptions(restored)
-        setDesign(saved.design)
+        restore(restored, saved.design)
         setMessage('Your saved jacket design has been restored.')
       })
     } catch { /* A stale draft should not prevent starting a new jacket. */ }
     // Each category page mounts its own designer and restores only its own draft.
-  }, [category])
+  }, [category, restore])
 
   const changeOption = (name: string, value: string) => {
     setOptions(current => ({ ...current, [name]: value }))
@@ -137,7 +138,7 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
   const getColor = (name: string) => options[name]
   const colorControl = (name: string) => <div key={name} className={`flex items-center justify-between gap-2 rounded-lg border p-3 text-sm ${selectedColor === name ? 'border-primary bg-primary/5' : ''}`}>
     <button type="button" aria-pressed={selectedColor === name} onClick={() => { setSelectedColor(name); colorControlsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }} className="min-h-9 flex-1 text-left">{name}</button>
-    <input type="color" aria-label={name} value={getColor(name)} onChange={event => changeOption(name, event.target.value)} className="h-9 w-10 shrink-0 cursor-pointer rounded border" />
+    <input type="color" aria-label={name} value={getColor(name)} onFocus={history.beginInteraction} onBlur={history.endInteraction} onChange={event => changeOption(name, event.target.value)} className="h-9 w-10 shrink-0 cursor-pointer rounded border" />
   </div>
 
   const optionControl = (name: keyof typeof optionChoices) => <fieldset key={name}>
@@ -232,7 +233,13 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
       {error && <p role="alert" className="mb-4 rounded-lg border border-destructive p-3 text-destructive">{error}</p>}
       {busy && <p role="status" className="mb-4">Saving your four design previews…</p>}
       <div inert={busy} aria-busy={busy}>
-        <JacketDesignCanvas images={images} maxTextLength={24} selectedSize={options.Size} value={configuration}
+        <JacketDesignCanvas
+          historyControls={<DesignHistoryControls canUndo={history.canUndo} canRedo={history.canRedo}
+            onUndo={() => { history.undo(); setMessage(''); setError('') }}
+            onRedo={() => { history.redo(); setMessage(''); setError('') }}
+            onReset={() => { history.reset(); setSelectedColor('Body color'); setMessage('Design reset to defaults. You can undo this change.'); setError('') }} />}
+          onInteractionStart={history.beginInteraction} onInteractionEnd={history.endInteraction}
+          images={images} maxTextLength={24} selectedSize={options.Size} value={configuration}
           onPartSelect={id => { const name = partColors[id]; if (name) { if (colorControlsRef.current) colorControlsRef.current.open = true; setSelectedColor(name); colorControlsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) } }}
           onChange={value => { const { garmentOptions: _options, garmentCategory: _category, snapshots: _snapshots, snapshotUrl: _snapshot, ...artwork } = value; setDesign(artwork); setMessage('') }}
           leftContentTop={controls} leftContentBottom={review} />

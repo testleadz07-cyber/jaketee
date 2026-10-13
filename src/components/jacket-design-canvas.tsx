@@ -16,6 +16,7 @@ import {
 import { JACKET_VIEWS, getJacketViewLabel, type JacketCustomization, type JacketSideCustomization, type JacketView } from '@/types/jacket-customization'
 
 import { CANVAS_SIZE, drawJacketDesign, getJacketChestWidth } from '@/lib/jacket-design-preview'
+import { TEXT_LAYOUT_CHOICES } from '@/lib/jacket-text-layout'
 const TEXT_COLORS = ['#111111', '#ffffff', '#b91c1c', '#d4a017', '#1d4ed8']
 
 interface JacketDesignCanvasProps {
@@ -27,6 +28,9 @@ interface JacketDesignCanvasProps {
   onDifficulty?: (reason: string) => void
   leftContentTop?: React.ReactNode
   leftContentBottom?: React.ReactNode
+  historyControls?: React.ReactNode
+  onInteractionStart?: () => void
+  onInteractionEnd?: () => void
   onPartSelect?: (partId: string) => void
 }
 
@@ -42,7 +46,7 @@ function getViewImageUrl(images: { url: string; alt?: string | null }[], view: J
   return images[viewIndex[view]]?.url || images[0]?.url
 }
 
-export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value, onChange, onDifficulty, leftContentTop, leftContentBottom, onPartSelect }: JacketDesignCanvasProps) {
+export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value, onChange, onDifficulty, leftContentTop, leftContentBottom, onPartSelect, historyControls, onInteractionStart, onInteractionEnd }: JacketDesignCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const dragTarget = useRef<DragTarget | null>(null)
@@ -124,7 +128,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   }, [artworkImages, background, chestWidth, selectedArtworkId, side])
 
   const updateText = (updates: Partial<NonNullable<JacketSideCustomization['text']>>) => {
-    updateSide({ text: { value: '', color: '#ffffff', fontStyle: 'varsity', size: 42, x: 0.5, y: 0.38, ...side.text, ...updates } })
+    updateSide({ text: { value: '', color: '#ffffff', fontStyle: 'varsity', layout: 'straight', size: 42, x: 0.5, y: 0.38, ...side.text, ...updates } })
   }
 
   const selectArtwork = (item: CatalogArtwork) => {
@@ -153,11 +157,28 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
 
   const handlePointerDown = (event: PointerEvent<HTMLCanvasElement>) => {
     const position = pointerPosition(event)
-    const textDistance = side.text?.value ? Math.hypot(position.x - side.text.x, position.y - side.text.y) : Infinity
+    let textDistance = Infinity
+    if (side.text?.value) {
+      const context = event.currentTarget.getContext('2d')
+      if (context) {
+        const size = side.text.size * 42 / chestWidth
+        context.save()
+        context.font = `600 ${size}px ${getJacketFontFamily(side.text.fontStyle)}`
+        const measured = context.measureText(side.text.value).width
+        context.restore()
+        const vertical = side.text.layout === 'vertical'
+        const curved = side.text.layout === 'curve-up' || side.text.layout === 'curve-down'
+        const width = vertical ? size : Math.min(420, measured + (curved ? size : 0))
+        const height = vertical ? Math.min(350, Array.from(side.text.value).length * size * 1.15) : size + (curved ? Math.min(80, measured * .2) : 0)
+        const dx = Math.abs(position.x - side.text.x) * CANVAS_SIZE
+        const dy = Math.abs(position.y - side.text.y) * CANVAS_SIZE
+        if (dx <= width / 2 + 12 && dy <= height / 2 + 12) textDistance = Math.min(.17, Math.hypot(position.x - side.text.x, position.y - side.text.y))
+      }
+    }
     const closestArtwork = [...(side.artworks || [])].reverse().map((artwork) => ({ artwork, distance: Math.hypot(position.x - artwork.x, position.y - artwork.y) })).sort((a, b) => a.distance - b.distance)[0]
     dragTarget.current = textDistance <= (closestArtwork?.distance ?? Infinity) && textDistance < 0.18 ? 'text' : closestArtwork?.distance < 0.22 ? closestArtwork.artwork.id : null
     if (dragTarget.current && dragTarget.current !== 'text') setSelectedArtworkId(dragTarget.current)
-    if (dragTarget.current) event.currentTarget.setPointerCapture(event.pointerId)
+    if (dragTarget.current) { onInteractionStart?.(); event.currentTarget.setPointerCapture(event.pointerId) }
     else if (onPartSelect) {
       const context = event.currentTarget.getContext('2d')
       const x = position.x * CANVAS_SIZE
@@ -165,6 +186,10 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       const part = context && partPaths.find(part => part.paths.some(path => context.isPointInPath(path, x, y)))
       if (part) onPartSelect(part.id)
     }
+  }
+
+  const finishInteraction = () => {
+    if (dragTarget.current) { dragTarget.current = null; onInteractionEnd?.() }
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
@@ -212,16 +237,22 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
         <div className="space-y-6">
           <div className="space-y-3">
           <Label htmlFor="design-text" className="flex items-center gap-2"><Type className="h-4 w-4" /> {getJacketViewLabel(view)} embroidered text</Label>
-          <Input id="design-text" value={side.text?.value || ''} maxLength={maxTextLength} placeholder="Name, initials, or team" onChange={(event) => updateText({ value: event.target.value })} />
+          <Input onFocus={onInteractionStart} onBlur={onInteractionEnd} id="design-text" value={side.text?.value || ''} maxLength={maxTextLength} placeholder="Name, initials, or team" onChange={(event) => updateText({ value: event.target.value })} />
+          {!side.text?.value && <p className="text-xs text-muted-foreground">Enter your text to choose its layout, font, color, and size.</p>}
           {!!side.text?.value && <div className="grid gap-4 sm:grid-cols-2">
+            <fieldset className="space-y-2 sm:col-span-2">
+              <legend className="text-sm font-semibold">Text layout</legend>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{TEXT_LAYOUT_CHOICES.map(choice => <button key={choice.value} type="button" aria-pressed={(side.text?.layout || 'straight') === choice.value} onClick={() => updateText({ layout: choice.value })} className={`min-h-11 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${(side.text?.layout || 'straight') === choice.value ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'}`}>{choice.label}</button>)}</div>
+              <p className="text-xs text-muted-foreground">{TEXT_LAYOUT_CHOICES.find(choice => choice.value === (side.text?.layout || 'straight'))?.example} Drag the text on the jacket to move it. Longer text is fitted to the preview.</p>
+            </fieldset>
             <div className="space-y-2"><Label className="text-xs">Thread color</Label><div className="flex flex-wrap items-center gap-2">
               {TEXT_COLORS.map((color) => <button key={color} type="button" title={color} aria-label={`Use ${color} thread`} onClick={() => updateText({ color })} className={`h-8 w-8 rounded-full border-2 ${side.text?.color === color ? 'ring-2 ring-primary ring-offset-2' : ''}`} style={{ backgroundColor: color }} />)}
-              <input type="color" value={side.text.color} onChange={(event) => updateText({ color: event.target.value })} className="h-8 w-10 cursor-pointer rounded border bg-background p-0.5" aria-label="Custom thread color" />
+              <input type="color" onFocus={onInteractionStart} onBlur={onInteractionEnd} value={side.text.color} onChange={(event) => updateText({ color: event.target.value })} className="h-8 w-10 cursor-pointer rounded border bg-background p-0.5" aria-label="Custom thread color" />
             </div></div>
             <div className="space-y-2"><Label htmlFor="text-font" className="text-xs">Font style</Label><select id="text-font" value={side.text.fontStyle} onChange={(event) => updateText({ fontStyle: event.target.value as NonNullable<JacketSideCustomization['text']>['fontStyle'] })} className="h-11 min-w-0 w-full rounded-md border bg-background px-3 text-base sm:h-9 sm:text-sm">
               {jacketFontStyles.map((font) => <option key={font.value} value={font.value}>{font.label}</option>)}
             </select></div>
-            <div className="space-y-2"><Label className="text-xs">Text size</Label><Slider min={24} max={72} step={2} value={[side.text?.size || 42]} onValueChange={([size]) => updateText({ size })} /></div>
+            <div className="space-y-2"><Label className="text-xs">Text size</Label><Slider onPointerDown={onInteractionStart} onPointerUp={onInteractionEnd} onPointerCancel={onInteractionEnd} onKeyDown={onInteractionStart} onKeyUp={onInteractionEnd} onBlur={onInteractionEnd} onValueCommit={onInteractionEnd} min={24} max={72} step={2} value={[side.text?.size || 42]} onValueChange={([size]) => updateText({ size })} /></div>
           </div>}
         </div>
 
@@ -275,11 +306,11 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
                 </Button>
               </div>
               <div className="space-y-2"><div className="flex justify-between text-xs"><Label>Selected patch width</Label><span>{selectedArtwork.widthInches.toFixed(1)} in</span></div>
-                <Slider min={2} max={6} step={0.5} value={[Math.min(selectedArtwork.widthInches, 6)]} onValueChange={([widthInches]) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, widthInches } : artwork) })} aria-label="Selected artwork width" />
+                <Slider onPointerDown={onInteractionStart} onPointerUp={onInteractionEnd} onPointerCancel={onInteractionEnd} onKeyDown={onInteractionStart} onKeyUp={onInteractionEnd} onBlur={onInteractionEnd} onValueCommit={onInteractionEnd} min={2} max={6} step={0.5} value={[Math.min(selectedArtwork.widthInches, 6)]} onValueChange={([widthInches]) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, widthInches } : artwork) })} aria-label="Selected artwork width" />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2"><Label htmlFor="artwork-color" className="text-xs">Artwork color</Label><div className="flex items-center gap-2">
-                  <input id="artwork-color" type="color" value={selectedArtwork.color || '#ffffff'} onChange={(event) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, color: event.target.value } : artwork) })} className="h-9 w-12 cursor-pointer rounded border bg-background p-0.5" />
+                  <input id="artwork-color" type="color" onFocus={onInteractionStart} onBlur={onInteractionEnd} value={selectedArtwork.color || '#ffffff'} onChange={(event) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, color: event.target.value } : artwork) })} className="h-9 w-12 cursor-pointer rounded border bg-background p-0.5" />
                   <span className="text-xs uppercase text-muted-foreground">{selectedArtwork.color || 'Original'}</span>
                 </div></div>
                 {isLetterOrNumberArtwork(selectedArtwork.catalogId) && <div className="space-y-2"><Label htmlFor="artwork-font" className="text-xs">Letter / number font</Label><select id="artwork-font" value={selectedArtwork.fontStyle || 'varsity'} onChange={(event) => updateSide({ artworks: side.artworks?.map((artwork) => artwork.id === selectedArtwork.id ? { ...artwork, fontStyle: event.target.value as NonNullable<JacketSideCustomization['text']>['fontStyle'] } : artwork) })} className="h-11 min-w-0 w-full rounded-md border bg-background px-3 text-base sm:h-9 sm:text-sm">
@@ -297,6 +328,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
 
       {/* Right side: Canvas & Controls */}
       <div className="order-1 min-w-0 space-y-4 lg:order-2 lg:sticky lg:top-4">
+        {historyControls}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-md border p-1 sm:grid-cols-4" aria-label="Jacket view">
             {JACKET_VIEWS.map((item) => (
@@ -324,7 +356,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
         <div className="relative w-full min-w-0 overflow-hidden rounded-md border bg-muted" style={{ aspectRatio: '1 / 1' }}>
           <canvas id="jacket-design-canvas-element" ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="absolute inset-0 block h-full w-full touch-none cursor-move"
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
-            onPointerUp={() => { dragTarget.current = null }} onPointerCancel={() => { dragTarget.current = null }}
+            onPointerUp={finishInteraction} onPointerCancel={finishInteraction} onLostPointerCapture={finishInteraction}
             aria-label={`Live ${getJacketViewLabel(view)} jacket customization preview. Drag text or artwork to reposition it.`} />
         </div>
         <p className="text-xs text-muted-foreground">Previewing size {selectedSize || 'M'}. Patch dimensions are saved in inches and scale proportionally for the selected jacket size.</p>

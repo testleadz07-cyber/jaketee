@@ -1,11 +1,14 @@
 export const JACKET_VIEWS = ['front', 'back', 'leftSleeve', 'rightSleeve'] as const
 export type JacketView = (typeof JACKET_VIEWS)[number]
 export type JacketFontStyle = 'varsity' | 'block' | 'classic' | 'script' | 'sans' | 'serif'
+export const JACKET_TEXT_LAYOUTS = ['straight', 'curve-up', 'curve-down', 'vertical'] as const
+export type JacketTextLayout = typeof JACKET_TEXT_LAYOUTS[number]
 
 export interface JacketTextCustomization {
   value: string
   color: string
   fontStyle: JacketFontStyle
+  layout?: JacketTextLayout
   size: number
   x: number
   y: number

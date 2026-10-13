@@ -1,6 +1,7 @@
 'use client'
 
 import { getCatalogArtworkDataUrl, getJacketFontFamily } from '@/components/jacket-artwork-catalog'
+import { drawJacketTextLayout } from '@/lib/jacket-text-layout'
 import { getCustomizedViews, type JacketCustomization, type JacketSideCustomization, type JacketView } from '@/types/jacket-customization'
 
 export const CANVAS_SIZE = 720
@@ -67,9 +68,8 @@ export function drawJacketDesign(canvas: HTMLCanvasElement, background: HTMLImag
     context.textBaseline = 'middle'
     context.lineWidth = Math.max(2, fontSize / 18)
     context.strokeStyle = side.text.color === '#ffffff' ? '#111111' : '#ffffff'
-    context.strokeText(side.text.value, side.text.x * CANVAS_SIZE, side.text.y * CANVAS_SIZE)
     context.fillStyle = side.text.color
-    context.fillText(side.text.value, side.text.x * CANVAS_SIZE, side.text.y * CANVAS_SIZE)
+    drawJacketTextLayout(context, side.text.value, side.text.layout, fontSize, side.text.x * CANVAS_SIZE, side.text.y * CANVAS_SIZE)
     context.restore()
   }
 }

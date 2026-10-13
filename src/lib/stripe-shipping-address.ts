@@ -6,7 +6,7 @@ import { normalizeShippingCountry, shippingCountryError } from '@/config/fulfill
 export function applyStripeShippingAddress(order: { shippingAddress: any }, session: Stripe.Checkout.Session) {
   const details = session.collected_information?.shipping_details ||
     (session as unknown as { shipping_details?: { name: string; address: Stripe.Address } }).shipping_details
-  if (!details?.address) return // Sessions created before address collection was enabled.
+  if (!details?.address) return // New sessions use the address already saved on the order.
   const address = details.address
   const error = shippingCountryError(address.country)
   if (error) throw new Error(error)

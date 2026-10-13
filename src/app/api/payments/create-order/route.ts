@@ -107,9 +107,20 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           intent: 'CAPTURE',
+          application_context: { shipping_preference: 'SET_PROVIDED_ADDRESS' },
           purchase_units: [
             {
               custom_id: String(pendingOrder._id),
+              shipping: {
+                name: { full_name: pendingOrder.shippingAddress.name },
+                address: {
+                  address_line_1: pendingOrder.shippingAddress.street,
+                  admin_area_2: pendingOrder.shippingAddress.city,
+                  admin_area_1: pendingOrder.shippingAddress.state,
+                  postal_code: pendingOrder.shippingAddress.zip,
+                  country_code: pendingOrder.shippingAddress.country,
+                },
+              },
               amount: {
                 currency_code: 'USD',
                 value: Number(amount).toFixed(2),
