@@ -1,5 +1,7 @@
 'use client'
 
+import { VideoMedia } from '@/components/video-media'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
@@ -19,7 +21,6 @@ import {
   Trash2,
   MessageSquare,
   ImageIcon,
-  VideoIcon,
   Search,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -316,18 +317,7 @@ export default function AdminReviewsPage() {
                         </a>
                       ))}
                       {review.videos?.map((url, idx) => (
-                        <a
-                          key={`vid-${idx}`}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="relative h-20 w-20 rounded-lg overflow-hidden bg-muted border flex items-center justify-center"
-                        >
-                          <video src={url} className="object-cover w-full h-full" muted />
-                          <div className="absolute top-1 left-1 bg-black/60 rounded-full p-0.5">
-                            <VideoIcon className="h-3 w-3 text-white" />
-                          </div>
-                        </a>
+                        <VideoMedia key={`vid-${idx}`} url={url} title={`Review video ${idx + 1}`} />
                       ))}
                     </div>
                   )}

@@ -1,3 +1,4 @@
+import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -63,6 +64,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { productId, rating, title, comment, images, videos } = body
+    const videoUrls = validateVideoUrls(videos, 2)
+    if (!videoUrls) return NextResponse.json({ error: 'Add up to 2 valid HTTPS YouTube or Cloudinary video URLs' }, { status: 400 })
     const ratingNumber = Number(rating)
     const cleanTitle = typeof title === 'string' ? title.trim() : ''
     const cleanComment = typeof comment === 'string' ? comment.trim() : ''
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
       comment: cleanComment,
       isVerified: isVerifiedPurchase,
       images: Array.isArray(images) ? images.filter((u: any) => typeof u === 'string').slice(0, 5) : [],
-      videos: Array.isArray(videos) ? videos.filter((u: any) => typeof u === 'string').slice(0, 2) : [],
+      videos: videoUrls,
       status: 'pending', // New reviews require admin moderation before they appear publicly
     })
 

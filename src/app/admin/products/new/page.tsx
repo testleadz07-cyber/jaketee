@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { VideoLinksEditor } from '@/components/video-links-editor'
 import { ImageUpload } from '@/components/image-upload'
 import { useToast } from '@/hooks/use-toast'
 import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
@@ -118,6 +119,7 @@ export default function NewProduct() {
     compareAtPriceVerified: false,
     categoryId: '',
     imageUrls: [] as string[],
+    videos: [] as string[],
     isFeatured: false,
     status: 'active' as 'active' | 'inactive',
     inStock: true,
@@ -181,6 +183,7 @@ export default function NewProduct() {
       compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
       compareAtPriceVerified: formData.compareAtPriceVerified,
       categoryId: formData.categoryId,
+      videos: formData.videos,
       images: formData.imageUrls.map((url, idx) => ({ url, alt: productImageAlt(formData.name, url, idx), order: idx })),
       variants: variants.map(v => ({
         name: v.name.trim(),
@@ -667,6 +670,7 @@ export default function NewProduct() {
                 )}
 
                 <div className="space-y-2">
+                  <VideoLinksEditor videos={formData.videos} onChange={(videos) => setFormData({ ...formData, videos })} limit={6} disabled={submitting} />
                   <ImageUpload
                     onUpload={(urls) => setFormData({ ...formData, imageUrls: urls })}
                     initialImages={formData.imageUrls}

@@ -13,6 +13,7 @@ import { Header } from '@/components/header'
 import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
+import { VideoMedia } from '@/components/video-media'
 import { ReviewsSection } from '@/components/reviews-section'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 // import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
@@ -46,6 +47,7 @@ export interface ProductDetailData {
   id: string
   name: string
   slug: string
+  videos?: string[]
   description: string
   specificationDetails?: string
   careInstructions?: string
@@ -733,6 +735,11 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
         {relatedProducts}
 
         <section id="reviews" className="store-section store-section--plain scroll-mt-24">
+          {Boolean(product.videos?.length) && <section className="section-shell space-y-4" aria-label="Product videos">
+            <h2 className="text-2xl font-semibold">Product videos</h2>
+            <p className="text-sm text-muted-foreground">See this product in action.</p>
+            <div className="flex flex-wrap gap-3">{product.videos?.map((url, index) => <VideoMedia key={`${url}-${index}`} url={url} title={`${product.name} ? video ${index + 1}`} />)}</div>
+          </section>}
           <div className="section-shell"><ReviewsSection productId={product.id} onReviewSubmitted={fetchProduct} /></div>
         </section>
 

@@ -31,6 +31,7 @@ export interface IProduct extends Document {
   compareAtPriceVerified: boolean
   categoryId: mongoose.Types.ObjectId
   category?: { _id: string; name: string; slug: string }
+  videos?: string[]
   images: IProductImage[]
   variants: IProductVariant[]
   embroidery?: IProductEmbroidery
@@ -84,6 +85,7 @@ const ProductSchema = new Schema<IProduct>(
     compareAtPriceVerified: { type: Boolean, default: false },
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
     images: [ProductImageSchema],
+    videos: { type: [String], default: [] },
     variants: [ProductVariantSchema],
     embroidery: { type: ProductEmbroiderySchema },
     measurementFields: { type: [String], default: [] },

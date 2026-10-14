@@ -1,5 +1,7 @@
 'use client'
 
+import { VideoMedia } from '@/components/video-media'
+import { VideoLinksEditor } from '@/components/video-links-editor'
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
@@ -93,6 +95,9 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
     setIsUploadingMedia(true)
     let succeeded = 0
 
+    let videoCount = reviewVideos.length
+    let imageCount = reviewImages.length
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const isImage = file.type.startsWith('image/')
@@ -104,6 +109,11 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
           description: `File "${file.name}" must be an image or video.`,
           variant: 'destructive',
         })
+        continue
+      }
+
+      if ((isVideo && videoCount >= 2) || (isImage && imageCount >= 5)) {
+        toast({ title: 'Media limit reached', description: 'Add up to 5 photos and 2 videos per review.', variant: 'destructive' })
         continue
       }
 
@@ -130,8 +140,10 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
 
         if (res.ok) {
           if (isVideo) {
+            videoCount++
             setReviewVideos((prev) => [...prev, data.url])
           } else {
+            imageCount++
             setReviewImages((prev) => [...prev, data.url])
           }
           succeeded++
@@ -167,9 +179,6 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
     setReviewImages((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const removeReviewVideo = (index: number) => {
-    setReviewVideos((prev) => prev.filter((_, i) => i !== index))
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -362,18 +371,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                       </a>
                     ))}
                     {review.videos?.map((url, idx) => (
-                      <a
-                        key={`vid-${idx}`}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted border flex items-center justify-center"
-                      >
-                        <video src={url} className="object-cover w-full h-full" muted />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                          <VideoIcon className="h-5 w-5 text-white" />
-                        </div>
-                      </a>
+                      <VideoMedia key={`vid-${idx}`} url={url} title={`Review video ${idx + 1}`} />
                     ))}
                   </div>
                 )}
@@ -455,21 +453,6 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                     </button>
                   </div>
                 ))}
-                {reviewVideos.map((url, idx) => (
-                  <div key={`vid-${idx}`} className="relative h-16 w-16 rounded-lg overflow-hidden border bg-muted group">
-                    <video src={url} className="object-cover w-full h-full" muted />
-                    <div className="absolute top-0.5 left-0.5 bg-black/60 rounded-full p-0.5">
-                      <VideoIcon className="h-3 w-3 text-white" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeReviewVideo(idx)}
-                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                    >
-                      <X className="h-4 w-4 text-white" />
-                    </button>
-                  </div>
-                ))}
 
                 <button
                   type="button"
@@ -501,7 +484,9 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
               />
             </div>
 
-            <Button type="submit" disabled={submitting}>
+            <VideoLinksEditor videos={reviewVideos} onChange={setReviewVideos} disabled={submitting || isUploadingMedia} />
+
+            <Button type="submit" disabled={submitting || isUploadingMedia}>
               {submitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

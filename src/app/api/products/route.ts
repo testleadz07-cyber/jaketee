@@ -1,3 +1,4 @@
+import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
@@ -133,6 +134,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    const videoUrls = validateVideoUrls(body.videos, 6)
+    if (!videoUrls) return NextResponse.json({ error: 'Add up to 6 valid HTTPS YouTube or Cloudinary video URLs' }, { status: 400 })
     const { name, slug, description, seoTitle, seoDescription, price, compareAtPrice, compareAtPriceVerified, categoryId, images, variants, embroidery, measurementFields, isFeatured, isDraft, status, inStock } = body
 
     if (!name || !slug || !price || !categoryId) {
@@ -153,6 +156,7 @@ export async function POST(request: NextRequest) {
       compareAtPrice: compareAtPrice || null,
       compareAtPriceVerified: Boolean(compareAtPriceVerified),
       categoryId,
+      videos: videoUrls,
       images: images || [],
       variants: variants || [],
       embroidery: embroidery || undefined,

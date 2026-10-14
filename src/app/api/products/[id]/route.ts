@@ -1,3 +1,4 @@
+import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
@@ -78,6 +79,8 @@ export async function PUT(
     }
 
     const body = await request.json()
+    const videoUrls = validateVideoUrls(body.videos, 6)
+    if (!videoUrls) return NextResponse.json({ error: 'Add up to 6 valid HTTPS YouTube or Cloudinary video URLs' }, { status: 400 })
     if (body.compareAtPriceVerified && (!body.compareAtPrice || Number(body.compareAtPrice) <= Number(body.price))) {
       return NextResponse.json({ error: 'A verified compare-at price must be greater than the selling price' }, { status: 400 })
     }
@@ -90,6 +93,7 @@ export async function PUT(
       compareAtPrice: body.compareAtPrice || null,
       compareAtPriceVerified: Boolean(body.compareAtPriceVerified),
       categoryId: body.categoryId,
+      ...(body.videos !== undefined ? { videos: videoUrls } : {}),
       images: body.images || [],
       variants: body.variants || [],
       embroidery: body.embroidery || undefined,

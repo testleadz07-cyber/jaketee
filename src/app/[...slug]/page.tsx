@@ -191,6 +191,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       id: String(product._id || product.id),
       name: product.name,
       slug: product.slug,
+      videos: product.videos || [],
       description: product.description || '',
       specificationDetails: product.specificationDetails || undefined,
       careInstructions: product.careInstructions || undefined,

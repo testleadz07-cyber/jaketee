@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { VideoLinksEditor } from '@/components/video-links-editor'
 import { ImageUpload } from '@/components/image-upload'
 import { useToast } from '@/hooks/use-toast'
 import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
@@ -601,6 +602,7 @@ export default function EditProduct() {
               )}
 
               <div className="space-y-2">
+                <VideoLinksEditor videos={product.videos || []} onChange={(videos) => setProduct({ ...product, videos })} limit={6} disabled={saving} />
                 <ImageUpload
                   initialImages={product.images?.map((img: any) => img.url) || []}
                   onUpload={(urls) => setProduct({
