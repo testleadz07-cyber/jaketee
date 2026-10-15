@@ -47,14 +47,7 @@ export const authOptions: NextAuthOptions = {
           return { id: String(user._id), email: user.email, name: user.name, username: user.username, role: user.role }
         }
 
-        // Fallback: hardcoded admin (no DB)
-        if (identifier === 'admin@jacketee.com' && credentials.password === 'admin123') {
-          resetLoginAttempts(identifier)
-          return { id: '1', email: 'admin@jacketee.com', name: 'Admin User', username: 'admin', role: 'admin' }
-        }
-
-        recordFailedLogin(identifier)
-        throw new Error('Invalid email or username or password')
+        throw new Error('Sign-in is temporarily unavailable. Please try again later.')
       },
     }),
   ],

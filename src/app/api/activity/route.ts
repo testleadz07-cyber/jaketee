@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Activity from '@/models/Activity'
 import GuestActivity from '@/models/GuestActivity'
 import { getGeoFromRequest } from '@/lib/geo'
-
-const GUEST_ID_COOKIE = 'guest_id'
-const GUEST_ID_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
+import { MAX_ACTIVITY_BYTES, parseActivity } from '@/lib/activity-schema'
+import { GUEST_ID_COOKIE, guestCookieOptions, resolveGuestIdentity } from '@/lib/guest-identity'
+import { hasValidActivityOrigin } from '@/lib/activity-origin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,16 +15,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Analytics consent required' }, { status: 403 })
     }
 
+    if (!hasValidActivityOrigin(request)) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+    }
+    if (Number(request.headers.get('content-length')) > MAX_ACTIVITY_BYTES) {
+      return NextResponse.json({ error: 'Activity payload too large' }, { status: 413 })
+    }
+    // Read a bounded stream rather than allocating an unbounded JSON request.
+    const reader = request.body?.getReader()
+    if (!reader) return NextResponse.json({ error: 'Missing body' }, { status: 400 })
+    const chunks: Uint8Array[] = []
+    let size = 0
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      size += value.byteLength
+      if (size > MAX_ACTIVITY_BYTES) {
+        await reader.cancel()
+        return NextResponse.json({ error: 'Activity payload too large' }, { status: 413 })
+      }
+      chunks.push(value)
+    }
+    let event: ReturnType<typeof parseActivity>
+    try {
+      event = parseActivity(JSON.parse(Buffer.concat(chunks).toString('utf8')))
+    } catch {
+      return NextResponse.json({ error: 'Invalid activity payload' }, { status: 400 })
+    }
+    const { action, details } = event
+
     const db = await connectDB()
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
-    }
-
-    const body = await request.json()
-    const { action, details } = body
-
-    if (!action) {
-      return NextResponse.json({ error: 'Missing action' }, { status: 400 })
     }
 
     const xForwardedFor = request.headers.get('x-forwarded-for')
@@ -41,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (session?.user) {
       const userId = (session.user as any).id
       const mongoose = await import('mongoose')
-      const newActivity = await Activity.create({
+      await Activity.create({
         userId: new mongoose.Types.ObjectId(userId),
         action,
         details,
@@ -52,17 +73,14 @@ export async function POST(request: NextRequest) {
         city: geo.city,
       })
 
-      return NextResponse.json({ success: true, activity: newActivity })
+      return NextResponse.json({ success: true })
     }
 
     // No session - track as a guest, identified by a long-lived cookie.
-    let guestId = request.cookies.get(GUEST_ID_COOKIE)?.value
-    const isNewGuestId = !guestId
-    if (!guestId) {
-      guestId = randomUUID()
-    }
+    const identity = resolveGuestIdentity(request.cookies.get(GUEST_ID_COOKIE)?.value, process.env.NEXTAUTH_SECRET || '')
+    const { guestId } = identity
 
-    const newGuestActivity = await GuestActivity.create({
+    await GuestActivity.create({
       guestId,
       action,
       details,
@@ -73,18 +91,23 @@ export async function POST(request: NextRequest) {
       city: geo.city,
     })
 
-    const response = NextResponse.json({ success: true, activity: newGuestActivity })
-    if (isNewGuestId) {
-      response.cookies.set(GUEST_ID_COOKIE, guestId, {
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: GUEST_ID_MAX_AGE,
-        path: '/',
-      })
+    const response = NextResponse.json({ success: true })
+    if (identity.isNew) {
+      response.cookies.set(GUEST_ID_COOKIE, identity.cookie, guestCookieOptions)
     }
     return response
   } catch (error: any) {
     console.error('Failed to log activity:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
+}
+
+/** Consent withdrawal resets identity, without deleting historical records. */
+export async function DELETE(request: NextRequest) {
+  if (request.headers.get('x-analytics-consent') !== 'denied' || !hasValidActivityOrigin(request)) {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 403 })
+  }
+  const response = NextResponse.json({ success: true })
+  response.cookies.set(GUEST_ID_COOKIE, '', { ...guestCookieOptions, maxAge: 0 })
+  return response
 }

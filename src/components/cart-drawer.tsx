@@ -306,7 +306,7 @@ export function CartDrawer() {
                 </div>
               </div>
 
-              <Link href="/checkout" className="w-full">
+              <Link href="/checkout" className="w-full" onClick={() => void logUserActivity('begin_checkout', { source: 'cart', itemCount: visibleItemCount, total, currency: 'USD' })}>
                 <Button className="w-full" size="lg">
                   Proceed to Checkout
                 </Button>

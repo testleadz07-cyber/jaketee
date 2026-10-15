@@ -3,11 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
-import { NewsletterPopup } from "@/components/newsletter-popup";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { SupportChatWidget } from "@/components/support-chat-widget";
 import { SessionTracker } from "@/components/SessionTracker";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { GuestActivityTracker } from "@/components/guest-activity-tracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -135,11 +135,11 @@ export default function RootLayout({
         />
         <Providers>
           {children}
-          <NewsletterPopup />
           <CookieConsentBanner />
           <SupportChatWidget />
           <SessionTracker />
           <GoogleAnalytics />
+          <GuestActivityTracker />
           <Toaster />
         </Providers>
       </body>

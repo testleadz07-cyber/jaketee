@@ -1,86 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
-import { connectDB } from '@/lib/mongodb'
+import { requireGuestActivityAdmin } from '@/lib/guest-activity-admin'
 import GuestActivity from '@/models/GuestActivity'
+import { ACTIVITY_REPORTING_TIMEZONE, activityDateRange, activityFilterText } from '@/lib/guest-activity-query'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const db = await connectDB()
-    if (!db) {
-      return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
-    }
-
+    const denied = await requireGuestActivityAdmin()
+    if (denied) return denied
     const { searchParams } = new URL(request.url)
-    const guestId = searchParams.get('guestId')
-    
-    if (!guestId) {
-      return NextResponse.json({ error: 'Guest ID is required' }, { status: 400 })
+    let guestId: string, range: ReturnType<typeof activityDateRange>
+    try {
+      guestId = activityFilterText(searchParams, 'guestId')
+      if (!guestId) throw new Error('Guest ID is required')
+      range = activityDateRange(searchParams, 90)
+    } catch (error) {
+      return NextResponse.json({ error: (error as Error).message }, { status: 400 })
     }
-
-    const activities = await GuestActivity.find({ guestId }).sort({ createdAt: 1 }).lean()
-
-    const actionCounts: Record<string, number> = {}
-    const pageCounts: Record<string, number> = {}
-    const timelineData: Record<string, number> = {}
-    const uniqueDays = new Set<string>()
-    let firstSeen: Date | null = null as Date | null
-    let lastSeen: Date | null = null as Date | null
-    const countriesSet = new Set<string>()
-
-    activities.forEach((a: any) => {
-      // Actions
-      actionCounts[a.action] = (actionCounts[a.action] || 0) + 1
-      
-      // Pages
-      const page = a.details?.path || a.details?.url || a.details?.page || 'Unknown'
-      pageCounts[page] = (pageCounts[page] || 0) + 1
-      
-      // Timeline
-      const dateObj = new Date(a.createdAt)
-      const dateStr = dateObj.toISOString().split('T')[0]
-      timelineData[dateStr] = (timelineData[dateStr] || 0) + 1
-      uniqueDays.add(dateStr)
-
-      // First/Last seen
-      if (!firstSeen || dateObj < firstSeen) firstSeen = dateObj
-      if (!lastSeen || dateObj > lastSeen) lastSeen = dateObj
-
-      // Countries
-      if (a.country) countriesSet.add(a.country)
-    })
-
-    const actions = Object.entries(actionCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, value]) => ({ name, value }))
-
-    const pages = Object.entries(pageCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([name, value]) => ({ name, value }))
-    
-    const timeline = Object.entries(timelineData)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([date, count]) => ({ date, count }))
-
+    const match: Record<string, unknown> = { guestId }
+    if (Object.keys(range).length) match.createdAt = range
+    const [result] = await GuestActivity.aggregate([
+      { $match: match },
+      { $facet: {
+        summary: [{ $group: {
+          _id: null, totalActivities: { $sum: 1 },
+          firstSeen: { $min: '$createdAt' }, lastSeen: { $max: '$createdAt' },
+          countries: { $addToSet: '$country' },
+        } }],
+        actions: [
+          { $group: { _id: '$action', value: { $sum: 1 } } },
+          { $sort: { value: -1, _id: 1 } },
+          { $project: { _id: 0, name: '$_id', value: 1 } },
+        ],
+        pages: [
+          // New page views have a dedicated event; clicks/cart actions are not visits.
+          { $match: { action: 'page_view', 'details.path': { $type: 'string', $regex: '^/(?!/)' } } },
+          { $group: { _id: '$details.path', value: { $sum: 1 } } },
+          { $sort: { value: -1, _id: 1 } },
+          { $limit: 10 },
+          { $project: { _id: 0, name: '$_id', value: 1 } },
+        ],
+        uniquePages: [
+          { $match: { action: 'page_view', 'details.path': { $type: 'string', $regex: '^/(?!/)' } } },
+          { $group: { _id: '$details.path' } },
+          { $count: 'count' },
+        ],
+        timeline: [
+          { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: ACTIVITY_REPORTING_TIMEZONE } }, count: { $sum: 1 } } },
+          { $sort: { _id: 1 } },
+          { $project: { _id: 0, date: '$_id', count: 1 } },
+        ],
+      } },
+    ]).option({ maxTimeMS: 10000 })
+    const summary = result?.summary?.[0]
     return NextResponse.json({
-      actions,
-      pages,
-      timeline,
-      totalActivities: activities.length,
-      uniqueActions: Object.keys(actionCounts).length,
-      uniquePages: Object.keys(pageCounts).length,
-      uniqueDays: uniqueDays.size,
-      firstSeen: firstSeen?.toISOString() || null,
-      lastSeen: lastSeen?.toISOString() || null,
-      countries: Array.from(countriesSet),
+      actions: result?.actions || [], pages: result?.pages || [], timeline: result?.timeline || [],
+      totalActivities: summary?.totalActivities || 0,
+      uniqueActions: result?.actions?.length || 0,
+      uniquePages: result?.uniquePages?.[0]?.count || 0,
+      uniqueDays: result?.timeline?.length || 0,
+      firstSeen: summary?.firstSeen || null, lastSeen: summary?.lastSeen || null,
+      countries: (summary?.countries || []).filter((value: unknown) => typeof value === 'string' && value),
+      timezone: ACTIVITY_REPORTING_TIMEZONE,
+      from: range.$gte?.toISOString() || null, to: range.$lt?.toISOString() || null,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Admin guest activity stats fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch guest activity stats' }, { status: 500 })
   }

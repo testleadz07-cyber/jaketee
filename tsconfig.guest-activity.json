@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/components/google-analytics.tsx",
+    "src/app/api/activity/route.ts",
+    "src/app/api/admin/guest-activity/**/*.ts",
+    "src/app/admin/guest-activity/page.tsx",
+    "src/lib/activity*.ts",
+    "src/lib/guest-*.ts",
+    "src/lib/cookie-consent.ts",
+    "src/hooks/use-activity-view.ts",
+    "src/hooks/use-customization-insights.ts",
+    "src/components/guest-activity-tracker.tsx",
+    "src/components/jacket-customizer.tsx",
+    "src/components/jacket-design-canvas.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "scripts"
+  ]
+}

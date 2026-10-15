@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { resolveAncestorChain, buildCategoryUrl } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { useActivityView } from '@/hooks/use-activity-view'
 
 interface Category {
   id: string
@@ -145,6 +146,8 @@ export function CategoryDetailView({
   const [categoryHeroImage, setCategoryHeroImage] = useState<{ slug: string; image: string | null } | null>(null)
   const [insights, setInsights] = useState<CategoryInsights | null>(initialInsights || null)
   const skipInitialProductFetch = useRef(initialProducts.length > 0)
+  const trackedCategory = categories.find(category => category.slug === slug)
+  useActivityView('view_category', { categoryId: trackedCategory?.id, slug }, Boolean(trackedCategory))
 
   useEffect(() => {
     if (initialInsights) return
@@ -247,9 +250,6 @@ export function CategoryDetailView({
           return [...prev, ...prodData.filter((product: Product) => !existingIds.has(product.id))]
         })
 
-        if (current && isFirstPage) {
-          logUserActivity('view_category', { categoryId: current.id, slug })
-        }
       } catch (error) {
         console.error('Error loading category page:', error)
       } finally {

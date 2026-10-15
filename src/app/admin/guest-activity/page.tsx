@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,6 +40,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { isGuestStatsData, isGuestActivityList } from '@/lib/guest-activity-response'
 
 interface GuestActivityRow {
   id: string
@@ -98,7 +99,7 @@ const formatDateFull = (dateStr: string) => {
 
 const formatDateTime = (dateStr: string) => {
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC'
 }
 
 const formatPageName = (name: string) => {
@@ -189,25 +190,39 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string;
 
 /* ── Main Dialog ──────────────────────────────────── */
 
-function GuestStatsDialog({ guestId, open, onOpenChange }: { guestId: string | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: string | null; open: boolean; onOpenChange: (open: boolean) => void; from: string; to: string }) {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<GuestStatsData | null>(null)
 
+  const [error, setError] = useState('')
+  const [retry, setRetry] = useState(0)
   useEffect(() => {
-    if (open && guestId) {
-      setLoading(true)
-      fetch(`/api/admin/guest-activity/stats?guestId=${guestId}`)
-        .then((res) => res.json())
-        .then((d) => { setData(d); setLoading(false) })
-        .catch((err) => { console.error(err); setLoading(false) })
-    } else {
+    const controller = new AbortController()
+    let active = true
+    const timer = window.setTimeout(() => {
       setData(null)
-    }
-  }, [open, guestId])
+      setError('')
+      if (!open || !guestId) { setLoading(false); return }
+      setLoading(true)
+      const params = new URLSearchParams({ guestId })
+      if (from) params.set('from', from)
+      if (to) params.set('to', to)
+      void fetch(`/api/admin/guest-activity/stats?${params}`, { signal: controller.signal })
+        .then(async res => {
+          const value = await res.json()
+          if (!res.ok) throw new Error(value.error || 'Unable to load guest statistics')
+          if (!isGuestStatsData(value)) throw new Error('Invalid statistics response')
+          if (active) setData(value)
+        })
+        .catch(err => { if (active && err.name !== 'AbortError') setError(err.message) })
+        .finally(() => { if (active) setLoading(false) })
+    }, 0)
+    return () => { active = false; window.clearTimeout(timer); controller.abort() }
+  }, [open, guestId, from, to, retry])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl w-[150vw] max-h-[92vh] overflow-y-auto p-0">
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-7xl max-h-[92vh] overflow-y-auto p-0">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b px-6 py-4">
           <DialogHeader>
@@ -227,7 +242,12 @@ function GuestStatsDialog({ guestId, open, onOpenChange }: { guestId: string | n
         </div>
 
         <div className="px-6 pb-6 space-y-6">
-          {loading ? (
+          {error ? (
+            <div role="alert" className="py-8 text-center space-y-3">
+              <p className="text-destructive">{error}</p>
+              <Button variant="outline" onClick={() => setRetry(value => value + 1)}>Retry</Button>
+            </div>
+          ) : loading ? (
             <div className="py-16 flex flex-col items-center gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">Loading activity data…</p>
@@ -242,7 +262,7 @@ function GuestStatsDialog({ guestId, open, onOpenChange }: { guestId: string | n
                 <StatCard icon={CalendarDays} label="Active Days" value={data.uniqueDays} />
                 <StatCard
                   icon={Clock}
-                  label="First Seen"
+                  label="First Seen in Range"
                   value={data.firstSeen ? formatDateTime(data.firstSeen).split(',')[0] : 'N/A'}
                   sub={data.lastSeen ? `Last: ${formatDateTime(data.lastSeen)}` : undefined}
                 />
@@ -260,7 +280,7 @@ function GuestStatsDialog({ guestId, open, onOpenChange }: { guestId: string | n
                 <TabsContent value="timeline" className="mt-4">
                   <div className="border rounded-xl p-5 bg-card shadow-sm">
                     <h3 className="font-semibold text-sm mb-1">Activity Over Time</h3>
-                    <p className="text-xs text-muted-foreground mb-4">Daily event count for this guest</p>
+                    <p className="text-xs text-muted-foreground mb-4">Daily event count in UTC; selected date range or the last 90 days</p>
                     {data.timeline.length > 0 ? (
                       <div className="h-96">
                         <ResponsiveContainer width="100%" height="100%">
@@ -325,7 +345,7 @@ function GuestStatsDialog({ guestId, open, onOpenChange }: { guestId: string | n
                 <TabsContent value="pages" className="mt-4">
                   <div className="border rounded-xl p-5 bg-card shadow-sm">
                     <h3 className="font-semibold text-sm mb-1">Top Pages Visited</h3>
-                    <p className="text-xs text-muted-foreground mb-4">Most frequently viewed pages (top 10)</p>
+                    <p className="text-xs text-muted-foreground mb-4">Recorded page views (top 10); legacy events without page views are excluded</p>
                     {data.pages.length > 0 ? (
                       <div style={{ height: Math.max(300, data.pages.length * 48 + 60) }}>
                         <ResponsiveContainer width="100%" height="100%">
@@ -380,14 +400,18 @@ export default function AdminGuestActivityPage() {
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [limit, setLimit] = useState(20)
+  const [error, setError] = useState('')
+  const requestNumber = useRef(0)
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
   }, [status, router])
 
-  const fetchActivity = useCallback(async () => {
+  const fetchActivity = useCallback(async (signal?: AbortSignal) => {
+    const number = ++requestNumber.current
     setLoading(true)
+    setError('')
     try {
       const params = new URLSearchParams()
       params.set('page', String(page))
@@ -398,26 +422,33 @@ export default function AdminGuestActivityPage() {
       if (from) params.set('from', from)
       if (to) params.set('to', to)
 
-      const res = await fetch(`/api/admin/guest-activity?${params.toString()}`)
-      if (res.ok) {
-        const data = await res.json()
-        setActivities(data.activities || [])
-        setPages(data.pages || 1)
-        setTotal(data.total || 0)
-        setActions(data.actions || [])
-      }
+      const res = await fetch(`/api/admin/guest-activity?${params.toString()}`, { signal })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to load guest activity')
+      if (!isGuestActivityList(data)) throw new Error('Invalid activity response')
+      if (signal?.aborted || number !== requestNumber.current) return
+      setActivities(data.activities)
+      setPages(data.pages)
+      setTotal(data.total)
+      setActions(data.actions)
+      if (page > data.pages) setPage(data.pages)
     } catch (error) {
-      console.error('Error fetching guest activity:', error)
+      if (!signal?.aborted && number === requestNumber.current) {
+        setError(error instanceof Error ? error.message : 'Unable to load guest activity')
+        setActivities([])
+        setTotal(0)
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted && number === requestNumber.current) setLoading(false)
     }
   }, [page, limit, actionFilter, countryFilter, guestIdFilter, from, to])
 
   useEffect(() => {
-    if (status !== 'authenticated') return
-    const timer = window.setTimeout(() => void fetchActivity(), 0)
-    return () => window.clearTimeout(timer)
-  }, [status, fetchActivity])
+    if (status !== 'authenticated' || (session?.user as any)?.role !== 'admin') return
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => void fetchActivity(controller.signal), 200)
+    return () => { window.clearTimeout(timer); controller.abort(); requestNumber.current++ }
+  }, [status, session, fetchActivity])
 
   const pageNumbers = Array.from(new Set([1, page - 1, page, page + 1, pages]))
     .filter((value) => value >= 1 && value <= pages)
@@ -452,7 +483,7 @@ export default function AdminGuestActivityPage() {
         <div>
           <h2 className="text-xl font-bold tracking-tight">Guest Activity</h2>
           <p className="text-sm text-muted-foreground">
-            Browsing activity from anonymous (not logged in) visitors, identified by a per-browser guest ID.
+            Browsing activity from anonymous (not logged in) visitors, identified by a per-browser guest ID. Dates and times use UTC.
           </p>
         </div>
 
@@ -472,33 +503,38 @@ export default function AdminGuestActivityPage() {
           <div className="relative flex-1 min-w-[180px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Filter by country..."
+              aria-label="Filter by country" placeholder="Filter by country..."
               value={countryFilter}
               onChange={(e) => { setCountryFilter(e.target.value); setPage(1) }}
               className="pl-9"
             />
           </div>
           <Input
-            placeholder="Filter by guest ID..."
+            aria-label="Filter by guest ID" placeholder="Filter by guest ID..."
             value={guestIdFilter}
             onChange={(e) => { setGuestIdFilter(e.target.value); setPage(1) }}
             className="w-full sm:w-56"
           />
           <Input
-            type="date"
+            type="date" aria-label="Start date (UTC)"
             value={from}
             onChange={(e) => { setFrom(e.target.value); setPage(1) }}
             className="w-full sm:w-40"
           />
           <Input
-            type="date"
+            type="date" aria-label="End date (UTC)"
             value={to}
             onChange={(e) => { setTo(e.target.value); setPage(1) }}
             className="w-full sm:w-40"
           />
         </div>
 
-        {loading ? (
+        {error ? (
+          <div role="alert" className="rounded-lg border p-6 text-center space-y-3">
+            <p className="text-destructive">{error}</p>
+            <Button variant="outline" onClick={() => void fetchActivity()}>Retry</Button>
+          </div>
+        ) : loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
             <span className="text-sm text-muted-foreground">Loading guest activity...</span>
@@ -531,7 +567,7 @@ export default function AdminGuestActivityPage() {
                 {activities.map((activity) => (
                   <TableRow key={activity.id}>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(activity.createdAt).toLocaleString()}
+                      {new Date(activity.createdAt).toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC'}
                     </TableCell>
                     <TableCell className="text-xs font-mono text-muted-foreground">
                       {activity.id}
@@ -572,7 +608,7 @@ export default function AdminGuestActivityPage() {
           </div>
         )}
 
-        <GuestStatsDialog guestId={selectedGuestId} open={!!selectedGuestId} onOpenChange={(open) => !open && setSelectedGuestId(null)} />
+        <GuestStatsDialog key={`${selectedGuestId}:${from}:${to}`} from={from} to={to} guestId={selectedGuestId} open={!!selectedGuestId} onOpenChange={(open) => !open && setSelectedGuestId(null)} />
 
         {total > 0 && (
           <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">

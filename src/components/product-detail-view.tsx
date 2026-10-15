@@ -22,6 +22,7 @@ import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { useActivityView } from '@/hooks/use-activity-view'
 import {
   Star,
   Check,
@@ -162,8 +163,9 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       category: product.category,
       isFeatured: product.isFeatured,
     })
-    logUserActivity('view_product', { productId: product.id })
   }, [product?.id])
+
+  useActivityView('view_product', { productId: product.id })
 
   const getSelectedVariantPriceAdjust = () => {
     return Object.entries(selectedVariants).reduce((total, [name, value]) =>
@@ -225,7 +227,6 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       productId: product.id,
       price,
       quantity,
-      variants,
     })
 
     setAddedToCart(true)
@@ -259,7 +260,6 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       productId: product.id,
       price,
       quantity: 1,
-      variants,
     })
 
     router.push('/checkout?mode=buy-now')

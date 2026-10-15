@@ -1,3 +1,5 @@
+import { resetGuestActivityIdentity } from '@/lib/activity-transport'
+
 export type CookieConsent = {
   necessary: true
   functional: boolean
@@ -47,6 +49,7 @@ export function saveConsent(consent: Omit<CookieConsent, 'necessary' | 'updatedA
     updatedAt: new Date().toISOString(),
   }
   window.localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(full))
+  if (!full.analytics) void resetGuestActivityIdentity()
   window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_UPDATED_EVENT, { detail: full }))
 }
 

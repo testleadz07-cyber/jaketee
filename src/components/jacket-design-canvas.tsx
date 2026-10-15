@@ -228,7 +228,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start xl:gap-10">
+    <div data-customization-step="design" className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start xl:gap-10">
       {/* Left side: Customization Options */}
       <div className="order-2 min-w-0 space-y-6 lg:order-1 lg:space-y-8">
         {leftContentTop && <div>{leftContentTop}</div>}

@@ -28,5 +28,6 @@ const GuestActivitySchema = new Schema<IGuestActivity>(
 
 GuestActivitySchema.index({ guestId: 1, createdAt: -1 })
 GuestActivitySchema.index({ action: 1, createdAt: -1 })
+GuestActivitySchema.index({ createdAt: -1, _id: -1 })
 
 export default mongoose.models.GuestActivity || mongoose.model<IGuestActivity>('GuestActivity', GuestActivitySchema)

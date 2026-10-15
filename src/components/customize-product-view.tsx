@@ -17,6 +17,7 @@ import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { useActivityView } from '@/hooks/use-activity-view'
 import { WhatsAppButton } from '@/components/whatsapp-help'
 import { useCustomizationInsights } from '@/hooks/use-customization-insights'
 import type { JacketCustomization } from '@/types/jacket-customization'
@@ -86,9 +87,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   const categoryHref = categoryPath.length > 0 ? buildCategoryUrl(categoryPath) : '/'
   const isJacket = isJacketCategoryPath(categoryPath)
 
-  useEffect(() => {
-    logUserActivity('view_product', { source: 'customize_page', productId: product.id })
-  }, [product.id])
+  useActivityView('view_product', { source: 'customize_page', productId: product.id })
 
   useEffect(() => {
     void import('@/components/jacket-customizer')
@@ -139,7 +138,6 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
       productId: product.id,
       price: item.price,
       quantity,
-      variants: item.variants,
     })
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2000)
@@ -160,7 +158,6 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
       productId: product.id,
       price: item.price,
       quantity: 1,
-      variants: item.variants,
     })
     router.push('/checkout?mode=buy-now')
   }

@@ -22,25 +22,33 @@ function decodeHeader(value: string | null): string | undefined {
  * Vercel: x-vercel-ip-country carries a plain ISO country code.
  */
 export function getGeoFromRequest(request: NextRequest): RequestGeo {
-  const netlifyGeo = request.headers.get('x-nf-geo')
+  // Only trust headers when deployment explicitly selects an overwriting edge.
+  const provider = process.env.ACTIVITY_GEO_PROVIDER ||
+    (process.env.VERCEL === '1' ? 'vercel' : process.env.NETLIFY === 'true' ? 'netlify' : '')
+  const netlifyGeo = provider === 'netlify' ? request.headers.get('x-nf-geo') : null
   if (netlifyGeo) {
     try {
       const parsed = JSON.parse(Buffer.from(netlifyGeo, 'base64').toString('utf-8'))
       return {
-        country: parsed?.country?.name || parsed?.country?.code,
-        region: parsed?.subdivision?.name || parsed?.subdivision?.code,
-        city: parsed?.city,
+        country: boundedGeo(parsed?.country?.code || parsed?.country?.name),
+        region: boundedGeo(parsed?.subdivision?.name || parsed?.subdivision?.code),
+        city: boundedGeo(parsed?.city),
       }
     } catch {
       // malformed header - fall through to other sources
     }
   }
 
+  if (provider !== 'vercel') return {}
   return {
-    country: decodeHeader(request.headers.get('x-vercel-ip-country')),
-    region: decodeHeader(request.headers.get('x-vercel-ip-country-region')),
-    city: decodeHeader(request.headers.get('x-vercel-ip-city')),
+    country: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country'))),
+    region: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country-region'))),
+    city: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-city'))),
   }
+}
+
+function boundedGeo(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length <= 200 && !/[\x00-\x1f]/.test(value) ? value : undefined
 }
 
 export function getCountryFromRequest(request: NextRequest): string | undefined {

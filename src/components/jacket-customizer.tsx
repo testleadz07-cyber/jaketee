@@ -90,6 +90,17 @@ export function JacketCustomizer({
   const embroideryAvailable = !!product.embroidery?.available
 
   const optionSteps = OPTION_GROUP_ORDER.filter((name) => groupedVariants[name]?.length)
+  const initialStep = optionSteps[0] || 'design'
+  useEffect(() => {
+    onStepChange?.(initialStep, 0)
+  }, [initialStep, onStepChange])
+
+  const trackSection = (target: EventTarget) => {
+    if (!(target instanceof Element)) return
+    const section = target.closest<HTMLElement>('[data-customization-step]')?.dataset.customizationStep
+    const steps = [...optionSteps, 'design', 'sizing', 'review']
+    if (section && steps.includes(section)) onStepChange?.(section, steps.indexOf(section))
+  }
 
   const customizationFee = hasJacketCustomization(customization) ? getCustomizationFee(customization) : 0
   const totalPrice = basePrice + customizationFee
@@ -153,7 +164,7 @@ export function JacketCustomizer({
   const handleBuyNow = () => handlePurchase(true)
 
   const purchaseControls = (
-    <div className="space-y-4">
+    <div className="space-y-4" data-customization-step="review">
       {captureError && <p role="alert" className="text-sm text-destructive">{captureError} Your design is still here. Select Add to Cart or Buy Now to try again.</p>}
       <div className="flex flex-wrap items-center gap-4">
         <span className="text-sm font-medium">Quantity:</span>
@@ -230,7 +241,7 @@ export function JacketCustomizer({
   )
 
   const optionBlocks = optionSteps.map((name) => (
-    <div key={name} className="rounded-lg border bg-muted/10 p-4">
+    <div key={name} data-customization-step={name} className="rounded-lg border bg-muted/10 p-4">
       <Label className="text-sm font-medium block mb-2">{name}</Label>
       <div className="flex flex-wrap gap-2">
         {groupedVariants[name].map((variant, idx) => {
@@ -261,7 +272,7 @@ export function JacketCustomizer({
   ))
 
   const sizingBlock = (hasSize || hasMeasurements) && (
-    <div className="rounded-lg border bg-muted/10 p-4 space-y-4">
+    <div data-customization-step="sizing" className="rounded-lg border bg-muted/10 p-4 space-y-4">
       <Label className="text-sm font-medium block mb-2">Sizing</Label>
       {hasSize && hasMeasurements && (
         <div className="flex flex-wrap gap-2">
@@ -337,7 +348,7 @@ export function JacketCustomizer({
   )
 
   const reviewBlock = (
-    <div className="rounded-lg border bg-muted/10 p-4 space-y-1.5">
+    <div data-customization-step="review" className="rounded-lg border bg-muted/10 p-4 space-y-1.5">
       <Label className="text-sm font-medium block mb-2">Order Summary</Label>
       {optionSteps.map((name) =>
         selectedVariants[name] ? (
@@ -382,7 +393,9 @@ export function JacketCustomizer({
   )
 
   return (
-    <div className="w-full min-w-0" inert={isProcessing} aria-busy={isProcessing}>
+    <div className="w-full min-w-0" inert={isProcessing} aria-busy={isProcessing}
+      onPointerDownCapture={event => trackSection(event.target)}
+      onFocusCapture={event => trackSection(event.target)}>
       <JacketDesignCanvas
         images={images}
         maxTextLength={product.embroidery?.maxChars || 24}
