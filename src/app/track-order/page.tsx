@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/optimized-image'
 import { motion } from 'framer-motion'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'

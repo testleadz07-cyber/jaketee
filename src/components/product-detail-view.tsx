@@ -7,18 +7,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Header } from '@/components/header'
 import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import { VideoMedia } from '@/components/video-media'
-import { ReviewsSection } from '@/components/reviews-section'
+import dynamic from 'next/dynamic'
+const ProductImageZoom = dynamic(() => import('@/components/product-image-zoom'), { ssr: false })
+const ReviewsSection = dynamic(() => import('@/components/reviews-section').then((mod) => mod.ReviewsSection))
 import { Breadcrumbs } from '@/components/breadcrumbs'
 // import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
-import { SizeGuide } from '@/components/size-guide'
-import { RecentlyViewed } from '@/components/RecentlyViewed'
+const SizeGuide = dynamic(() => import('@/components/size-guide').then((mod) => mod.SizeGuide))
+const RecentlyViewed = dynamic(() => import('@/components/RecentlyViewed').then((mod) => mod.RecentlyViewed))
 import { Footer } from '@/components/footer'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
@@ -36,7 +37,7 @@ import {
   Palette,
 } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/optimized-image'
 import { useRouter } from 'next/navigation'
 import type { JacketCustomization } from '@/types/jacket-customization'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
@@ -385,14 +386,12 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                   ))}
                 </div>
               )}
-              <Dialog open={zoomOpen} onOpenChange={setZoomOpen}>
-                <DialogContent className="max-w-5xl border-0 bg-background p-4">
-                  <DialogTitle className="pr-8 text-base">{product.name}</DialogTitle>
-                  <div className="relative h-[75vh] w-full">
-                    <Image src={overrideImage || (product.images?.[selectedImage]?.url || '/placeholder.png')} alt={product.images?.[selectedImage]?.alt || product.name} fill sizes="100vw" className="object-contain" />
-                  </div>
-                </DialogContent>
-              </Dialog>
+              {zoomOpen && <ProductImageZoom
+                src={overrideImage || product.images?.[selectedImage]?.url || '/placeholder.png'}
+                alt={product.images?.[selectedImage]?.alt || product.name}
+                title={product.name}
+                onOpenChange={setZoomOpen}
+              />}
             </div>
 
             {/* Product Info */}

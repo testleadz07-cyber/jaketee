@@ -3,7 +3,7 @@
 import { STANDARD_SHIPPING_USD, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
 import { Suspense, useState, useEffect, useRef } from 'react'
-import Image from 'next/image'
+import Image from '@/components/optimized-image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { HomeHero } from '@/components/home-hero'
 import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
 import CategoryModel from '@/models/Category'
@@ -113,5 +114,5 @@ export default async function Page() {
     curatedCategorySlugs.map((slug, index) => [slug, rawCategoryRows[index].map(mapProduct)])
   ) as Record<string, Product[]>
 
-  return <Home categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
+  return <Home hero={<HomeHero />} categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
 }

@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/optimized-image'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, FileCheck2, Palette, PencilRuler, Users } from 'lucide-react'
 import { Header } from '@/components/header'

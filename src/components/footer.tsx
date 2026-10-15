@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Factory, Loader2, LockKeyhole, RotateCcw, Send } from 'lucide-react'
+import { Factory, LockKeyhole, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import dynamic from 'next/dynamic'
+const NewsletterForm = dynamic(() => import('@/components/newsletter-form').then((mod) => mod.NewsletterForm))
 import { buildCategoryUrl } from '@/lib/categories'
 import { openCookiePreferences } from '@/lib/cookie-consent'
 import { getStaticCategories } from '@/lib/static-data'
-import { useToast } from '@/hooks/use-toast'
 import { BrandLogo } from '@/components/brand-logo'
 
 interface Category {
@@ -91,9 +91,6 @@ const socialLinks = [
 
 export function Footer() {
   const [categories, setCategories] = useState<Category[]>(() => getStaticCategories())
-  const [email, setEmail] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { toast } = useToast()
 
   useEffect(() => {
     let isMounted = true
@@ -112,44 +109,6 @@ export function Footer() {
     }
   }, [])
 
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
-
-    setIsSubmitting(true)
-    try {
-      const res = await fetch('/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-
-      const data = await res.json()
-
-      if (res.ok) {
-        toast({
-          title: 'Subscription Successful!',
-          description: data.message || 'Thank you for subscribing to our newsletter.',
-        })
-        setEmail('')
-      } else {
-        toast({
-          title: 'Subscription Failed',
-          description: data.error || 'Something went wrong.',
-          variant: 'destructive',
-        })
-      }
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to communicate with server.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   const categoryLinks: FooterLink[] = categories
     .filter((category) => !category.parentId)
@@ -174,41 +133,7 @@ export function Footer() {
     </div>
   )
 
-  const newsletterForm = (
-    <form
-      onSubmit={handleSubscribe}
-      className="flex flex-col gap-2 sm:flex-row"
-      data-mcp-action="newsletter_signup"
-      data-mcp-description="Subscribe to Jacketee custom jacket updates and offers"
-    >
-      <Input
-        id="footer-newsletter-email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        placeholder="email@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="h-11 w-full bg-background text-sm"
-        required
-      />
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        className="h-11 w-full shrink-0 gap-2 px-4 sm:w-auto md:w-11 md:px-0"
-        aria-label="Subscribe to newsletter"
-      >
-        {isSubmitting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <>
-            <Send className="h-4 w-4" />
-            <span className="md:sr-only">Subscribe</span>
-          </>
-        )}
-      </Button>
-    </form>
-  )
+
 
   return (
     <footer className="mt-auto border-t bg-card text-card-foreground">
@@ -257,7 +182,7 @@ export function Footer() {
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
               Get custom jacket updates, subscriber offers, and design guides.
             </p>
-            {newsletterForm}
+            <NewsletterForm />
           </div>
 
           {[

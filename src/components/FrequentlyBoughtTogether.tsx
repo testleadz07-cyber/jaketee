@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useCartStore } from '@/store/cart'
 import { useToast } from '@/hooks/use-toast'
-import Image from 'next/image'
+import Image from '@/components/optimized-image'
 
 interface Product {
   id: string

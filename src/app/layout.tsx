@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
-import { SupportChatWidget } from "@/components/support-chat-widget";
+import { DeferredWidgets } from "@/components/deferred-widgets";
 import { SessionTracker } from "@/components/SessionTracker";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { GuestActivityTracker } from "@/components/guest-activity-tracker";
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Jacketee Team" }],
   verification: Object.keys(verification).length > 0 ? verification : undefined,
   icons: {
-    icon: "/logo.png",
+    icon: "/logo.webp",
   },
   openGraph: {
     title: HOME_TITLE,
@@ -72,7 +72,7 @@ const organizationJsonLd = {
   name: "Jacketee",
   areaServed: "Worldwide",
   url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
+  logo: `${SITE_URL}/logo.webp`,
   foundingDate: "2026",
   email: "info@jacketee.com",
   telephone: "+92 318 7328027",
@@ -121,6 +121,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
         suppressHydrationWarning
@@ -136,7 +139,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <CookieConsentBanner />
-          <SupportChatWidget />
+          <DeferredWidgets />
           <SessionTracker />
           <GoogleAnalytics />
           <GuestActivityTracker />

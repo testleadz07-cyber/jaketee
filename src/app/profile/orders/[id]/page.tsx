@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/optimized-image'
 import { motion } from 'framer-motion'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'

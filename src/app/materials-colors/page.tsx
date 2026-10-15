@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/optimized-image'
 import Link from 'next/link'
 import { ArrowRight, Check, Layers, Palette, Ruler, Sparkles } from 'lucide-react'
 import { Header } from '@/components/header'

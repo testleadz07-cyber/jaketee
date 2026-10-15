@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer'
 import type { JacketCustomization } from '@/types/jacket-customization'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://jacketee.com'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const BRAND_NAME = 'Jacketee'
 const INFO_EMAIL = 'info@jacketee.com'
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || INFO_EMAIL

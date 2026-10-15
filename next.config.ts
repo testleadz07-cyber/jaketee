@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: false,
   images: {
-    unoptimized: true,
     formats: ["image/avif", "image/webp"],
     qualities: [60, 65, 70, 75, 80],
     minimumCacheTTL: 86400,
@@ -48,7 +47,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/favicon.ico",
-        destination: "/logo.png",
+        destination: "/logo.webp",
         permanent: true,
       },
     ];

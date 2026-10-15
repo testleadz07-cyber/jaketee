@@ -9,7 +9,7 @@ import {
   type CookieConsent,
 } from '@/lib/cookie-consent'
 
-const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-CBXZ857LW9'
 
 declare global {
   interface Window {
