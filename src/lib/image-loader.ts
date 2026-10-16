@@ -1,7 +1,7 @@
 import type { ImageLoaderProps } from 'next/image'
 
 // Cloudinary negotiates AVIF/WebP from the browser's Accept header.
-// Append the delivery transform after existing transforms to preserve crops.
+// Replace existing transformations with a single responsive delivery transform.
 export default function imageLoader({ src, width, quality }: ImageLoaderProps): string {
   const match = src.match(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.*)$/)
   if (match) {
@@ -9,7 +9,7 @@ export default function imageLoader({ src, width, quality }: ImageLoaderProps): 
     let index = 0
     while (index < parts.length - 1 && !/^v\d+$/.test(parts[index]) &&
       /^(?:(?:a|ar|b|bo|c|co|d|dl|dn|dpr|e|f|fl|g|h|if|l|o|q|r|t|u|w|x|y|z)_|\$)/.test(parts[index])) index++
-    parts.splice(index, 0, `f_auto,q_auto,c_limit,w_${width}`)
+    parts.splice(0, index, `f_auto,q_auto,c_limit,w_${width}`)
     return match[1] + parts.join('/')
   }
   if (src.startsWith('data:') || src.startsWith('blob:') || /\.svg(?:\?|$)/i.test(src)) return src

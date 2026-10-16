@@ -1,36 +1,37 @@
 import 'dotenv/config'
 import mongoose from 'mongoose'
-
-function imageAlt(name, url, index) {
-  const filename = decodeURIComponent(String(url).split('/').pop()?.split('?')[0] || '').toLowerCase()
-  const detailNumber = filename.match(/(?:^|[-_])detail[-_]?(\d+)/)?.[1]
-  const label = /(?:^|[-_])back(?:[-_.]|$)/.test(filename) ? 'back view'
-    : /(?:^|[-_])side(?:[-_.]|$)/.test(filename) ? 'side view'
-    : /(?:^|[-_])front(?:[-_.]|$)/.test(filename) ? 'front view'
-    : /(?:^|[-_])sleeve(?:[-_.]|$)/.test(filename) ? 'sleeve detail'
-    : /(?:^|[-_])lining(?:[-_.]|$)/.test(filename) ? 'lining detail'
-    : /(?:^|[-_])collar(?:[-_.]|$)/.test(filename) ? 'collar detail'
-    : /(?:^|[-_])pocket(?:[-_.]|$)/.test(filename) ? 'pocket detail'
-    : /(?:^|[-_])patch(?:[-_.]|$)/.test(filename) ? 'patch detail'
-    : /(?:^|[-_])detail(?:[-_.]|$)/.test(filename) || detailNumber ? `detail view${detailNumber ? ` ${detailNumber}` : ''}`
-    : /(?:^|[-_])main(?:[-_.]|$)/.test(filename) || index === 0 ? 'primary product view'
-    : `additional product view ${index + 1}`
-  return `${name} - ${label}`
-}
+import { mkdir, writeFile } from 'node:fs/promises'
+import { productImageAlt, cleanProductName } from '../src/lib/image-alt.mjs'
 
 if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI is required')
-await mongoose.connect(process.env.MONGODB_URI)
-const collection = mongoose.connection.db.collection('products')
-const products = await collection.find({}).toArray()
-let imagesUpdated = 0
-for (const product of products) {
-  const images = (product.images || []).map((image, index) => {
-    const generic = !String(image.alt || '').trim() || String(image.alt).trim().toLowerCase() === String(product.name).trim().toLowerCase()
-    if (!generic) return image
-    imagesUpdated++
-    return { ...image, alt: imageAlt(product.name, image.url, index) }
+const apply = process.argv.includes('--apply')
+await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 15000 })
+try {
+  const collection = mongoose.connection.db.collection('products')
+  const products = await collection.find({}).toArray()
+  const changes = products.flatMap((product) => {
+    const name = cleanProductName(product.name)
+    const images = (product.images || []).map((image, index) => ({
+      ...image, alt: productImageAlt(name, image.url, image.order ?? index),
+    }))
+    if (name === product.name && JSON.stringify(images) === JSON.stringify(product.images || [])) return []
+    return [{ product, name, images }]
   })
-  await collection.updateOne({ _id: product._id }, { $set: { images, updatedAt: new Date() } })
+  console.log(`${apply ? 'Applying' : 'Previewing'} ${changes.length} product updates; ${changes.filter(({ product, name }) => product.name !== name).length} name corrections.`)
+  for (const { product, name } of changes) {
+    if (product.name !== name) console.log(`${product.name} -> ${name}`)
+  }
+  if (apply && changes.length) {
+    await mkdir('output', { recursive: true })
+    const backupPath = `output/image-alt-backup-${Date.now()}.json`
+    await writeFile(backupPath, JSON.stringify(changes.map(({ product }) => ({ _id: String(product._id), name: product.name, images: product.images, updatedAt: product.updatedAt })), null, 2))
+    console.log(`Backup saved to ${backupPath}`)
+    const result = await collection.bulkWrite(changes.map(({ product, name, images }) => ({
+      updateOne: { filter: { _id: product._id, name: product.name, images: product.images }, update: { $set: { name, images, updatedAt: new Date() } } },
+    })))
+    console.log(`Updated ${result.modifiedCount} products.`)
+    if (result.matchedCount !== changes.length) throw new Error('Some products changed concurrently; rerun the preview.')
+  }
+} finally {
+  await mongoose.disconnect()
 }
-console.log(`Updated ${imagesUpdated} image alt values across ${products.length} products.`)
-await mongoose.disconnect()

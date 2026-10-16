@@ -40,6 +40,7 @@ import Link from 'next/link'
 import Image from '@/components/optimized-image'
 import { useRouter } from 'next/navigation'
 import type { JacketCustomization } from '@/types/jacket-customization'
+import { productImageAlt } from '@/lib/image-alt'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
 import { buildProductFaqs, type ProductFaq as ProductFaqData } from '@/lib/product-faqs'
 import { ProductDeliveryPolicies } from '@/components/product-delivery-policies'
@@ -339,7 +340,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                 <button type="button" onClick={() => setZoomOpen(true)} className="absolute inset-0" aria-label={`Enlarge image of ${product.name}`}>
                   <Image
                     src={overrideImage || (product.images?.[selectedImage]?.url || '/placeholder.png')}
-                    alt={product.images?.[selectedImage]?.alt || product.name}
+                    alt={productImageAlt(product.name, overrideImage || product.images?.[selectedImage]?.url || '', overrideImage ? 0 : (product.images?.[selectedImage]?.order ?? selectedImage))}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-contain"
@@ -365,6 +366,9 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                   {product.images?.map((image, index) => (
                     <button
                       key={image.id || `image-${index}`}
+                      type="button"
+                      aria-label={`View image ${index + 1}`}
+                      aria-pressed={selectedImage === index}
                       onClick={() => {
                         setSelectedImage(index)
                         setOverrideImage(null)
@@ -377,7 +381,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                     >
                       <Image
                         src={image.url}
-                        alt={image.alt || `${product.name} ${index + 1}`}
+                        alt=""
                         fill
                         sizes="(max-width: 1024px) 25vw, 15vw"
                         className="object-contain"
@@ -388,7 +392,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
               )}
               {zoomOpen && <ProductImageZoom
                 src={overrideImage || product.images?.[selectedImage]?.url || '/placeholder.png'}
-                alt={product.images?.[selectedImage]?.alt || product.name}
+                alt={productImageAlt(product.name, overrideImage || product.images?.[selectedImage]?.url || '', overrideImage ? 0 : (product.images?.[selectedImage]?.order ?? selectedImage))}
                 title={product.name}
                 onOpenChange={setZoomOpen}
               />}
