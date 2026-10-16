@@ -103,11 +103,6 @@ export function useCustomizationInsights(productId: string) {
     setNeedsHelp(false)
     track('customization_completed', { method })
   }, [getCurrent, track])
-  const requestHelp = () => {
-    track('customization_help_requested')
-    setNeedsHelp(false)
-    window.dispatchEvent(new CustomEvent('customization-support-request', { detail: { productId, step: getCurrent().step } }))
-  }
   const dismissHelp = () => { setNeedsHelp(false); track('customization_help_dismissed') }
-  return { needsHelp, stepChanged, difficulty, complete, requestHelp, dismissHelp }
+  return { needsHelp, stepChanged, difficulty, complete, dismissHelp }
 }

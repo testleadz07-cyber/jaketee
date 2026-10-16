@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
-import { DeferredWidgets } from "@/components/deferred-widgets";
+import { FloatingWhatsAppButton } from "@/components/floating-whatsapp-button";
 import { SessionTracker } from "@/components/SessionTracker";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { GuestActivityTracker } from "@/components/guest-activity-tracker";
@@ -139,7 +139,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <CookieConsentBanner />
-          <DeferredWidgets />
+          <FloatingWhatsAppButton />
           <SessionTracker />
           <GoogleAnalytics />
           <GuestActivityTracker />
