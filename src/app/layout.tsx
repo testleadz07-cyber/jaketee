@@ -122,6 +122,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="p:domain_verify" content="08807a7d7703b87b516bdfd9ebb9697f" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
       </head>
       <body

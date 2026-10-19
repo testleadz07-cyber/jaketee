@@ -9,10 +9,11 @@ export async function GET(request: NextRequest) {
     if (denied) return denied
 
     const { searchParams } = new URL(request.url)
-    let action: string, country: string, guestId: string, dateRange: ReturnType<typeof activityDateRange>
+    let action: string, country: string, excludeCountry: string, guestId: string, dateRange: ReturnType<typeof activityDateRange>
     try {
       action = activityFilterText(searchParams, 'action') || 'all'
       country = activityFilterText(searchParams, 'country')
+      excludeCountry = activityFilterText(searchParams, 'excludeCountry')
       guestId = activityFilterText(searchParams, 'guestId')
       dateRange = activityDateRange(searchParams)
     } catch (error) {
@@ -28,6 +29,12 @@ export async function GET(request: NextRequest) {
     if (country) {
       query.country = { $regex: country.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
     }
+    if (excludeCountry) {
+      query.country = {
+        ...query.country,
+        $not: new RegExp(`^${excludeCountry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+      }
+    }
     if (guestId) {
       query.guestId = guestId
     }
@@ -42,6 +49,10 @@ export async function GET(request: NextRequest) {
       .lean()
 
     const distinctActions = await GuestActivity.distinct('action').maxTimeMS(10000)
+    const distinctCountries: unknown[] = await GuestActivity.distinct('country').maxTimeMS(10000)
+    const countries = distinctCountries
+      .filter((value): value is string => typeof value === 'string' && Boolean(value.trim()))
+      .sort((a, b) => a.localeCompare(b))
 
     return NextResponse.json({
       activities: activities.map((a: any) => ({
@@ -60,6 +71,7 @@ export async function GET(request: NextRequest) {
       page,
       pages: Math.max(1, Math.ceil(total / limit)),
       actions: distinctActions,
+      countries,
     })
   } catch (error: any) {
     console.error('Admin guest activity fetch error:', error)

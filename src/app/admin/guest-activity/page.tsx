@@ -393,6 +393,8 @@ export default function AdminGuestActivityPage() {
   const [loading, setLoading] = useState(true)
   const [actionFilter, setActionFilter] = useState('all')
   const [countryFilter, setCountryFilter] = useState('')
+  const [countries, setCountries] = useState<string[]>([])
+  const [excludedCountry, setExcludedCountry] = useState('')
   const [guestIdFilter, setGuestIdFilter] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -418,6 +420,7 @@ export default function AdminGuestActivityPage() {
       params.set('limit', String(limit))
       if (actionFilter !== 'all') params.set('action', actionFilter)
       if (countryFilter.trim()) params.set('country', countryFilter.trim())
+      if (excludedCountry) params.set('excludeCountry', excludedCountry)
       if (guestIdFilter.trim()) params.set('guestId', guestIdFilter.trim())
       if (from) params.set('from', from)
       if (to) params.set('to', to)
@@ -431,6 +434,7 @@ export default function AdminGuestActivityPage() {
       setPages(data.pages)
       setTotal(data.total)
       setActions(data.actions)
+      setCountries(data.countries)
       if (page > data.pages) setPage(data.pages)
     } catch (error) {
       if (!signal?.aborted && number === requestNumber.current) {
@@ -441,7 +445,7 @@ export default function AdminGuestActivityPage() {
     } finally {
       if (!signal?.aborted && number === requestNumber.current) setLoading(false)
     }
-  }, [page, limit, actionFilter, countryFilter, guestIdFilter, from, to])
+  }, [page, limit, actionFilter, countryFilter, excludedCountry, guestIdFilter, from, to])
 
   useEffect(() => {
     if (status !== 'authenticated' || (session?.user as any)?.role !== 'admin') return
@@ -509,6 +513,17 @@ export default function AdminGuestActivityPage() {
               className="pl-9"
             />
           </div>
+          <Select value={excludedCountry || '__none__'} onValueChange={(value) => { setExcludedCountry(value === '__none__' ? '' : value); setPage(1) }}>
+            <SelectTrigger aria-label="Exclude country" className="w-full sm:w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Exclude country: None</SelectItem>
+              {countries.map((country) => (
+                <SelectItem key={country} value={country}>Exclude: {country}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Input
             aria-label="Filter by guest ID" placeholder="Filter by guest ID..."
             value={guestIdFilter}
