@@ -34,3 +34,15 @@ export function activityFilterText(params: URLSearchParams, key: string, max = 2
   if (value.length > max) throw new Error(`${key} is too long`)
   return value
 }
+
+export function activityExcludedCountries(params: URLSearchParams) {
+  return [...new Set(params.getAll('excludeCountry').map((value) => {
+    const country = value.trim()
+    if (country.length > 200) throw new Error('excludeCountry is too long')
+    return country.toLowerCase()
+  }).filter(Boolean))]
+}
+
+export function activityCountryExclusions(countries: string[]) {
+  return countries.map((country) => new RegExp(`^${country.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'))
+}

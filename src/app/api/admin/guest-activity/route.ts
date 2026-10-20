@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireGuestActivityAdmin } from '@/lib/guest-activity-admin'
 import GuestActivity from '@/models/GuestActivity'
-import { activityDateRange, activityFilterText } from '@/lib/guest-activity-query'
+import { activityDateRange, activityFilterText, activityExcludedCountries, activityCountryExclusions } from '@/lib/guest-activity-query'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,11 +9,11 @@ export async function GET(request: NextRequest) {
     if (denied) return denied
 
     const { searchParams } = new URL(request.url)
-    let action: string, country: string, excludeCountry: string, guestId: string, dateRange: ReturnType<typeof activityDateRange>
+    let action: string, country: string, excludedCountries: string[], guestId: string, dateRange: ReturnType<typeof activityDateRange>
     try {
       action = activityFilterText(searchParams, 'action') || 'all'
       country = activityFilterText(searchParams, 'country')
-      excludeCountry = activityFilterText(searchParams, 'excludeCountry')
+      excludedCountries = activityExcludedCountries(searchParams)
       guestId = activityFilterText(searchParams, 'guestId')
       dateRange = activityDateRange(searchParams)
     } catch (error) {
@@ -29,10 +29,10 @@ export async function GET(request: NextRequest) {
     if (country) {
       query.country = { $regex: country.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
     }
-    if (excludeCountry) {
+    if (excludedCountries.length) {
       query.country = {
         ...query.country,
-        $not: new RegExp(`^${excludeCountry.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+        $nin: activityCountryExclusions(excludedCountries),
       }
     }
     if (guestId) {
