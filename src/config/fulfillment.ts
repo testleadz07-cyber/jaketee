@@ -4,7 +4,7 @@ export const deliverySettings = {
   handlingMin: 6, handlingMax: 7, transitMin: 5, transitMax: 7,
   businessDays: [1, 2, 3, 4, 5],
   cutoffTimezone: 'America/Chicago', cutoff: '23:59:59',
-  returnDays: 10, singleJacketShipping: 45,
+  returnDays: 10, singleJacketShipping: 45, additionalJacketShipping: 20,
   excludedCountries: ['IL', 'RU'], holidays: [] as string[],
   carrierExcludedCountries: [] as string[],
 } as const
@@ -28,6 +28,11 @@ export const shippingCoverageText = `We ship worldwide, except to ${deliverySett
 export const internationalShippingAnswer = `Yes. ${shippingCoverageText.replace(/\.$/, '')} at this time. Individual orders are made and shipped within ${deliverySettings.handlingMin}–${deliverySettings.handlingMax} business days after design approval, and delivery takes ${deliverySettings.transitMin}–${deliverySettings.transitMax} business days. Customs processing in some countries can add time, and any import duties or taxes are the buyer’s responsibility.`
 
 export const STANDARD_SHIPPING_USD = deliverySettings.singleJacketShipping
+
+export function calculateShipping(quantity: number, freeShipping = false): number {
+  if (!Number.isSafeInteger(quantity) || quantity < 1) throw new Error('Invalid shipping quantity')
+  return freeShipping ? 0 : STANDARD_SHIPPING_USD + (quantity - 1) * deliverySettings.additionalJacketShipping
+}
 export const returnPolicyText = {
   eligibility: `Eligible, non-customized stock jackets can be returned within ${deliverySettings.returnDays} days of delivery.`,
   fee: 'A restocking fee of 15% of the jacket price, with a minimum of $35, is deducted from approved change-of-mind returns.',
@@ -55,7 +60,7 @@ const cutoffTime = deliverySettings.cutoff === '23:59:59' ? 'midnight' :
   new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: 'UTC' })
     .format(new Date(`2000-01-01T${deliverySettings.cutoff}Z`))
 const cutoffTimezone = deliverySettings.cutoffTimezone === 'America/Chicago' ? 'US Central Time' :
-  deliverySettings.cutoffTimezone.replace(/_/g, ' ')
+  String(deliverySettings.cutoffTimezone).replace(/_/g, ' ')
 
 export const fulfillmentConfig = {
   individualProduction: `Made and shipped in ${deliverySettings.handlingMin}–${deliverySettings.handlingMax} business days after your design is approved.`,
@@ -63,7 +68,7 @@ export const fulfillmentConfig = {
   individualDelivery: `Delivery takes ${deliverySettings.transitMin}–${deliverySettings.transitMax} business days. Customs in some countries can add time.`,
   bulkProductionDelivery: process.env.NEXT_PUBLIC_BULK_PRODUCTION_DELIVERY_WINDOW || 'Orders of 10 or more jackets typically take 3-4 weeks in total, including production and delivery.',
   singleJacketShipping: `$${STANDARD_SHIPPING_USD} USD for one jacket.`,
-  multipleJacketShipping: 'Two or more jackets require a shipping quote based on quantity and package weight.',
+  multipleJacketShipping: `$${STANDARD_SHIPPING_USD} USD for the first jacket, plus $${deliverySettings.additionalJacketShipping} USD for each additional jacket in the same order.`,
   internationalShipping: `${shippingCoverageText} Delivery takes ${deliverySettings.transitMin}–${deliverySettings.transitMax} business days after dispatch. Customs processing can add time in some countries.`,
   freeShipping: 'Free shipping applies only when an eligible free-shipping coupon is accepted at checkout.',
 } as const

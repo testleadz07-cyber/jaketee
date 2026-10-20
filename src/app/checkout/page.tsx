@@ -1,6 +1,6 @@
 'use client'
 
-import { STANDARD_SHIPPING_USD, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
+import { calculateShipping, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
 import { Suspense, useState, useEffect, useRef } from 'react'
 import Image from '@/components/optimized-image'
@@ -21,6 +21,7 @@ import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, X,
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
 import { logUserActivity } from '@/lib/activity'
+import { checkoutAddressKey, EMPTY_CHECKOUT_ADDRESS, readCheckoutAddressDraft, suggestCheckoutLocation, type CheckoutAddressDraft, type AddressConfirmation } from '@/lib/checkout-address-draft'
 
 interface SavedAddress {
   label: string
@@ -67,7 +68,7 @@ function CheckoutContent() {
   const discountAmount = appliedPromo && subtotal >= appliedPromo.minOrderValue ? appliedPromo.discountAmount : 0
   const discountedSubtotal = Math.max(0, subtotal - discountAmount)
   const jacketCount = checkoutItems.reduce((count, item) => count + item.quantity, 0)
-  const shippingAmount = jacketCount === 1 && !appliedPromo?.freeShipping ? STANDARD_SHIPPING_USD : 0
+  const shippingAmount = jacketCount > 0 ? calculateShipping(jacketCount, Boolean(appliedPromo?.freeShipping)) : 0
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -86,6 +87,22 @@ function CheckoutContent() {
   const [shippingState, setShippingState] = useState('')
   const [shippingZip, setShippingZip] = useState('')
   const [shippingCountry, setShippingCountry] = useState('')
+  const [addressReady, setAddressReady] = useState(false)
+  const [addressSuggested, setAddressSuggested] = useState(false)
+  const [addressConfirmation, setAddressConfirmation] = useState<AddressConfirmation | null>(null)
+  const [isConfirmingAddress, setIsConfirmingAddress] = useState(false)
+  const draftOwner = status === 'authenticated' ? `user:${(session?.user as any)?.id}` : 'guest'
+  const [readyOwner, setReadyOwner] = useState<string | null>(null)
+  const addressRevision = useRef(0)
+  const currentAddress: CheckoutAddressDraft = {
+    name: shippingName, email: shippingEmail, phone: shippingPhone, street: shippingStreet,
+    city: shippingCity, state: shippingState, zip: shippingZip, country: shippingCountry,
+  }
+  const applyDraft = (address: CheckoutAddressDraft) => {
+    setShippingName(address.name); setShippingEmail(address.email); setShippingPhone(address.phone)
+    setShippingStreet(address.street); setShippingCity(address.city); setShippingState(address.state)
+    setShippingZip(address.zip); setShippingCountry(normalizeShippingCountry(address.country) || '')
+  }
 
   // Saved address book (logged-in users only)
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
@@ -124,33 +141,87 @@ function CheckoutContent() {
     }
   }, [mounted, checkoutItems.length, router])
 
-  // Fetch PayPal Config and User Profile on mount
+  // Restore this identity's draft before saved addresses or IP suggestions.
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      setShippingName(session.user.name || '')
-      setShippingEmail(session.user.email || '')
-      fetchUserProfile()
-      fetchPaypalConfig()
-    } else if (status === 'unauthenticated') {
-      // Keep the guest's shipping details across the hosted payment redirect
-      // (including cancellation), scoped to this browser tab.
+    if (status === 'loading') return
+    let cancelled = false
+    const controller = new AbortController()
+    addressRevision.current++
+    const timeout = window.setTimeout(() => controller.abort(), 5000)
+    setAddressReady(false)
+    setReadyOwner(null)
+    setAddressConfirmation(null)
+    setAddressSuggested(false)
+    setStep(1)
+    setSavedAddresses([])
+    setSelectedAddressIndex('new')
+    paypalButtonRendered.current = false
+    const initialize = async () => {
+      let restored: ReturnType<typeof readCheckoutAddressDraft> = null
+      try { restored = readCheckoutAddressDraft(sessionStorage.getItem(checkoutAddressKey(draftOwner))) } catch { /* Storage is optional. */ }
+      if (!restored && draftOwner === 'guest') {
+        try {
+          const legacy = JSON.parse(sessionStorage.getItem('jacketee-guest-shipping') || 'null')
+          if (legacy) restored = readCheckoutAddressDraft(JSON.stringify({
+            address: { ...EMPTY_CHECKOUT_ADDRESS, ...legacy }, updatedAt: Date.now(),
+          }))
+        } catch { /* Ignore malformed drafts from older checkouts. */ }
+      }
+      let address = restored?.address || { ...EMPTY_CHECKOUT_ADDRESS }
+      if (status === 'authenticated') {
+        address = { ...address, name: address.name || session?.user?.name || '', email: session?.user?.email || address.email }
+        try {
+          const res = await fetch('/api/users/profile', { signal: controller.signal, cache: 'no-store' })
+          if (res.ok) {
+            const user = await res.json()
+            if (cancelled) return
+            const addresses: SavedAddress[] = Array.isArray(user.addresses) ? user.addresses : []
+            setSavedAddresses(addresses)
+            address.email = user.email || address.email
+            if (!restored && addresses.length) {
+              const defaultIndex = addresses.findIndex(item => item.isDefault)
+              const index = defaultIndex >= 0 ? defaultIndex : 0
+              address = { ...address, ...addresses[index], email: address.email, phone: addresses[index].phone || user.phone || '' }
+              setSelectedAddressIndex(index)
+            } else if (!restored) address.phone = user.phone || ''
+          }
+        } catch { /* Address entry remains available without the profile response. */ }
+      }
+      let suggested = restored?.suggested || false
       try {
-        const draft = JSON.parse(sessionStorage.getItem('jacketee-guest-shipping') || 'null')
-        if (draft && typeof draft === 'object') {
-          const value = (key: string) => typeof draft[key] === 'string' ? draft[key] : ''
-          setShippingName(value('name'))
-          setShippingEmail(value('email'))
-          setShippingPhone(value('phone'))
-          setShippingStreet(value('street'))
-          setShippingCity(value('city'))
-          setShippingState(value('state'))
-          setShippingZip(value('zip'))
-          setShippingCountry(normalizeShippingCountry(value('country')) || '')
+        if (!address.street && !address.country && !address.city && !address.state && !address.zip) {
+          const res = await fetch('/api/checkout/location', { signal: controller.signal, cache: 'no-store' })
+          if (res.ok) {
+            const data = await res.json()
+            const next = suggestCheckoutLocation(address, data.suggestion)
+            suggested = next !== address
+            address = next
+          }
         }
-      } catch { /* Checkout still works if browser storage is unavailable. */ }
-      fetchPaypalConfig()
+      } catch { /* Missing headers or failed suggestions leave normal address entry. */ }
+      if (cancelled) return
+      clearTimeout(timeout)
+      applyDraft(address)
+      setAddressSuggested(suggested)
+      // A changed account email must be confirmed again.
+      setAddressConfirmation(restored && restored.address.email === address.email ? restored.confirmation : null)
+      setReadyOwner(draftOwner)
+      setAddressReady(true)
     }
-  }, [status, session])
+    void initialize()
+    void fetchPaypalConfig()
+    return () => { cancelled = true; clearTimeout(timeout); controller.abort() }
+  }, [status, draftOwner])
+
+  useEffect(() => {
+    if (!addressReady || readyOwner !== draftOwner || status === 'loading') return
+    try {
+      sessionStorage.setItem(checkoutAddressKey(draftOwner), JSON.stringify({
+        address: currentAddress, confirmation: addressConfirmation, suggested: addressSuggested, updatedAt: Date.now(),
+      }))
+    } catch { /* Storage restrictions must not prevent payment. */ }
+  }, [addressReady, readyOwner, draftOwner, status, shippingName, shippingEmail, shippingPhone, shippingStreet,
+    shippingCity, shippingState, shippingZip, shippingCountry, addressConfirmation, addressSuggested])
 
   // Coupon validity self-healing on checkout page
   useEffect(() => {
@@ -190,31 +261,10 @@ function CheckoutContent() {
     }
   }
 
-  const fetchUserProfile = async () => {
-    try {
-      const res = await fetch('/api/users/profile')
-      if (res.ok) {
-        const user = await res.json()
-        if (user.phone) setShippingPhone(user.phone)
-
-        // Find default or first address
-        if (user.addresses && user.addresses.length > 0) {
-          setSavedAddresses(user.addresses)
-          const defaultIndex = user.addresses.findIndex((a: any) => a.isDefault)
-          const indexToUse = defaultIndex >= 0 ? defaultIndex : 0
-          applyAddress(user.addresses[indexToUse], user.name)
-          setSelectedAddressIndex(indexToUse)
-        } else {
-          setSelectedAddressIndex('new')
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-    }
-  }
-
   // Fill the shipping form fields from a saved address
   const applyAddress = (address: SavedAddress, fallbackName?: string) => {
+    setAddressConfirmation(null)
+    setAddressSuggested(false)
     setShippingName(address.name || fallbackName || '')
     setShippingStreet(address.street || '')
     setShippingCity(address.city || '')
@@ -225,6 +275,9 @@ function CheckoutContent() {
   }
 
   const handleSelectAddress = (index: number | 'new') => {
+    const revision = ++addressRevision.current
+    setAddressConfirmation(null)
+    setAddressSuggested(false)
     setSelectedAddressIndex(index)
     if (index === 'new') {
       setShippingName(session?.user?.name || '')
@@ -234,6 +287,20 @@ function CheckoutContent() {
       setShippingZip('')
       setShippingCountry('')
       setSaveNewAddress(false)
+      const controller = new AbortController()
+      const timeout = window.setTimeout(() => controller.abort(), 5000)
+      void fetch('/api/checkout/location', { cache: 'no-store', signal: controller.signal })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (addressRevision.current !== revision) return
+          const suggested = suggestCheckoutLocation(EMPTY_CHECKOUT_ADDRESS, data?.suggestion)
+          if (suggested === EMPTY_CHECKOUT_ADDRESS) return
+          setShippingCountry(suggested.country); setShippingState(suggested.state)
+          setShippingCity(suggested.city); setShippingZip(suggested.zip)
+          setAddressSuggested(true)
+        })
+        .catch(() => { /* The buyer can enter their destination manually. */ })
+        .finally(() => clearTimeout(timeout))
     } else {
       applyAddress(savedAddresses[index])
     }
@@ -258,11 +325,12 @@ function CheckoutContent() {
         isDefault: savedAddresses.length === 0,
       }
       const nextAddresses = [...savedAddresses, newAddress]
-      await fetch('/api/users/profile', {
+      const response = await fetch('/api/users/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ addresses: nextAddresses }),
       })
+      if (!response.ok) throw new Error('Address could not be saved to your profile')
       setSavedAddresses(nextAddresses)
     } catch (error) {
       console.error('Error saving address to profile:', error)
@@ -296,6 +364,10 @@ function CheckoutContent() {
 
   // Load PayPal SDK Script dynamically on Step 3
   useEffect(() => {
+    if (isSubmittingOrder) {
+      paypalButtonRendered.current = false
+      return
+    }
     if (step === 3 && paymentMethod === 'paypal' && paypalClientId && paypalClientId !== 'your_paypal_client_id' && !window.paypal) {
       const script = document.createElement('script')
       script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`
@@ -313,7 +385,7 @@ function CheckoutContent() {
       setIsPaypalLoading(false)
       renderPaypalButtons()
     }
-  }, [step, paypalClientId, paymentMethod])
+  }, [step, paypalClientId, paymentMethod, isSubmittingOrder])
 
   const renderPaypalButtons = () => {
     if (paypalButtonRendered.current) return
@@ -336,6 +408,7 @@ function CheckoutContent() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 email: shippingEmail,
+                addressConfirmationToken: addressConfirmation?.token,
                 promoCode: appliedPromo?.code,
                 items: checkoutItems.map(item => ({
                   productId: item.productId,
@@ -359,6 +432,9 @@ function CheckoutContent() {
             })
             const data = await res.json()
             if (!res.ok || !data.id || !data.orderId) {
+              if (res.status === 409 && /confirm your delivery address/.test(data.error || '')) {
+                setAddressConfirmation(null); setStep(2); paypalButtonRendered.current = false
+              }
               throw new Error(data.error || 'Could not start PayPal checkout')
             }
             paypalDbOrderIdRef.current = data.orderId
@@ -443,6 +519,8 @@ function CheckoutContent() {
 
     const payload = {
       email: shippingEmail,
+      checkoutMode: isDirectOrder ? 'buy-now' : 'cart',
+      addressConfirmationToken: addressConfirmation?.token,
       items: checkoutItems.map(item => ({
         productId: item.productId,
         name: item.name,
@@ -465,7 +543,7 @@ function CheckoutContent() {
     }
 
     try {
-      sessionStorage.setItem('jacketee-checkout-email', shippingEmail.trim().toLowerCase())
+      try { sessionStorage.setItem('jacketee-checkout-email', shippingEmail.trim().toLowerCase()) } catch { /* Optional receipt lookup hint. */ }
       const res = await fetch('/api/payments/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -481,6 +559,9 @@ function CheckoutContent() {
         }
       } else {
         const err = await res.json()
+        if (res.status === 409 && /confirm your delivery address/.test(err.error || '')) {
+          setAddressConfirmation(null); setStep(2); paypalButtonRendered.current = false
+        }
         logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'stripe_checkout_failed' })
         toast({
           title: 'Stripe Initialization Failed',
@@ -500,21 +581,48 @@ function CheckoutContent() {
     }
   }
 
-  const handleNextStep = async () => {
-    if (jacketCount !== 1) {
-      logUserActivity('checkout_error', { checkoutStep: 'shipping', errorCode: 'shipping_quote_required' })
-      toast({ title: 'Shipping quote required', description: 'Contact us for shipping on two or more jackets before checkout.', variant: 'destructive' })
+  const confirmDeliveryAddress = async () => {
+    if (isConfirmingAddress) return
+    if (addressConfirmation && addressConfirmation.expiresAt > Date.now()) {
+      setStep(3)
       return
     }
-    // Sync values from refs if browser autofill didn't trigger state changes
-    const nameVal = shippingName || nameRef.current?.value || ''
-    const emailVal = shippingEmail || emailRef.current?.value || ''
-    const streetVal = shippingStreet || streetRef.current?.value || ''
-    const cityVal = shippingCity || cityRef.current?.value || ''
-    const stateVal = shippingState || stateRef.current?.value || ''
-    const zipVal = shippingZip || zipRef.current?.value || ''
-    const phoneVal = shippingPhone || phoneRef.current?.value || ''
-    const countryVal = shippingCountry || countryRef.current?.value || ''
+    setIsConfirmingAddress(true)
+    try {
+      const res = await fetch('/api/checkout/address/confirm', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmed: true, email: shippingEmail, shippingAddress: {
+          name: shippingName, street: shippingStreet, city: shippingCity, state: shippingState,
+          zip: shippingZip, country: shippingCountry, phone: shippingPhone,
+        } }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Please check your delivery address')
+      applyDraft({ ...data.shippingAddress, email: data.email })
+      setAddressConfirmation({ token: data.token, expiresAt: data.expiresAt })
+      if (session?.user && selectedAddressIndex === 'new' && saveNewAddress) {
+        await saveAddressToProfile(data.shippingAddress)
+        setSaveNewAddress(false)
+      }
+      paypalButtonRendered.current = false
+      setStep(3)
+    } catch (error) {
+      setAddressConfirmation(null)
+      setStep(1)
+      toast({ title: 'Check your delivery address', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' })
+    } finally { setIsConfirmingAddress(false) }
+  }
+
+  const handleNextStep = async () => {
+    // Sync values from refs if browser autofill didn't trigger state changes.
+    const nameVal = nameRef.current?.value ?? shippingName
+    const emailVal = emailRef.current?.value ?? shippingEmail
+    const streetVal = streetRef.current?.value ?? shippingStreet
+    const cityVal = cityRef.current?.value ?? shippingCity
+    const stateVal = stateRef.current?.value ?? shippingState
+    const zipVal = zipRef.current?.value ?? shippingZip
+    const phoneVal = phoneRef.current?.value ?? shippingPhone
+    const countryVal = countryRef.current?.value ?? shippingCountry
 
     if (step === 1) {
       const countryError = shippingCountryError(countryVal)
@@ -541,18 +649,12 @@ function CheckoutContent() {
       }
 
       // Sync refs back to states
+      if (nameVal !== shippingName || emailVal !== shippingEmail || streetVal !== shippingStreet ||
+        cityVal !== shippingCity || stateVal !== shippingState || zipVal !== shippingZip ||
+        phoneVal !== shippingPhone || countryVal !== shippingCountry) setAddressConfirmation(null)
       setShippingName(nameVal)
       setShippingEmail(emailVal.trim())
-      if (!session?.user) {
-        try {
-          sessionStorage.setItem('jacketee-guest-shipping', JSON.stringify({
-            name: nameVal, email: emailVal.trim(), phone: phoneVal,
-            street: streetVal, city: cityVal, state: stateVal,
-            zip: zipVal, country: countryVal,
-          }))
-        } catch { /* Retaining the draft is optional. */ }
-      }
-      sessionStorage.setItem('jacketee-checkout-email', emailVal.trim().toLowerCase())
+      try { sessionStorage.setItem('jacketee-checkout-email', emailVal.trim().toLowerCase()) } catch { /* Optional receipt lookup hint. */ }
       setShippingStreet(streetVal)
       setShippingCity(cityVal)
       setShippingState(stateVal)
@@ -560,21 +662,9 @@ function CheckoutContent() {
       setShippingPhone(phoneVal)
       setShippingCountry(countryVal)
 
-      if (session?.user && selectedAddressIndex === 'new' && saveNewAddress) {
-        await saveAddressToProfile({
-          name: nameVal,
-          street: streetVal,
-          city: cityVal,
-          state: stateVal,
-          zip: zipVal,
-          country: countryVal,
-          phone: phoneVal,
-        })
-      }
-
       setStep(2)
     } else if (step === 2) {
-      setStep(3)
+      await confirmDeliveryAddress()
     }
   }
 
@@ -643,6 +733,9 @@ function CheckoutContent() {
                       <CardDescription>Enter your delivery details. No account is required.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      {!addressReady && <p role="status" className="text-sm text-muted-foreground">Loading delivery details...</p>}
+                      <fieldset disabled={!addressReady} className="space-y-4" onChangeCapture={() => { addressRevision.current++; setAddressConfirmation(null) }}>
+                      {addressSuggested && <p role="status" className="rounded-md border bg-muted/30 p-3 text-sm">We estimated your location. Please check the suggested country, region, city and postal code, then enter your street and apartment details. You will confirm the full delivery address before payment.</p>}
                       {/* Saved address picker (logged-in users with an address book) */}
                       {session?.user && savedAddresses.length > 0 && (
                         <div className="space-y-2 pb-2">
@@ -692,6 +785,8 @@ function CheckoutContent() {
                           <Label htmlFor="shippingName">Recipient Name</Label>
                           <Input
                             id="shippingName"
+                            name="shippingName"
+                            autoComplete="shipping name"
                             ref={nameRef}
                             placeholder="John Doe"
                             value={shippingName}
@@ -703,6 +798,9 @@ function CheckoutContent() {
                           <Label htmlFor="shippingPhone">Phone Number</Label>
                           <Input
                             id="shippingPhone"
+                            name="shippingPhone"
+                            autoComplete="shipping tel"
+                            type="tel"
                             ref={phoneRef}
                             placeholder="+1 (555) 123-4567"
                             value={shippingPhone}
@@ -715,6 +813,7 @@ function CheckoutContent() {
                         <Label htmlFor="shippingEmail">Email Address</Label>
                         <Input
                           id="shippingEmail"
+                          name="email"
                           ref={emailRef}
                           type="email"
                           autoComplete="email"
@@ -731,6 +830,8 @@ function CheckoutContent() {
                         <Label htmlFor="shippingStreet">Street Address</Label>
                         <Input
                           id="shippingStreet"
+                          name="shippingStreet"
+                          autoComplete="shipping street-address"
                           ref={streetRef}
                           placeholder="123 Fashion St, Apt 4B"
                           value={shippingStreet}
@@ -744,6 +845,8 @@ function CheckoutContent() {
                           <Label htmlFor="shippingCity">City</Label>
                           <Input
                             id="shippingCity"
+                            name="shippingCity"
+                            autoComplete="shipping address-level2"
                             ref={cityRef}
                             placeholder="New York"
                             value={shippingCity}
@@ -755,6 +858,8 @@ function CheckoutContent() {
                           <Label htmlFor="shippingState">State</Label>
                           <Input
                             id="shippingState"
+                            name="shippingState"
+                            autoComplete="shipping address-level1"
                             ref={stateRef}
                             placeholder="NY"
                             value={shippingState}
@@ -766,6 +871,8 @@ function CheckoutContent() {
                           <Label htmlFor="shippingZip">ZIP Code</Label>
                           <Input
                             id="shippingZip"
+                            name="shippingZip"
+                            autoComplete="shipping postal-code"
                             ref={zipRef}
                             placeholder="10001"
                             value={shippingZip}
@@ -779,6 +886,8 @@ function CheckoutContent() {
                         <Label htmlFor="shippingCountry">Country</Label>
                         <select
                           id="shippingCountry"
+                          name="shippingCountry"
+                          autoComplete="shipping country"
                           ref={countryRef}
                           className="min-h-11 w-full rounded-md border bg-background px-3 text-sm"
                           value={shippingCountry}
@@ -815,6 +924,7 @@ function CheckoutContent() {
                           'Review Order details'
                         )}
                       </Button>
+                      </fieldset>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -884,7 +994,10 @@ function CheckoutContent() {
                         <p className="text-muted-foreground">{shippingStreet}</p>
                         <p className="text-muted-foreground">{shippingCity}, {shippingState} {shippingZip}</p>
                         <p className="text-muted-foreground">{shippingCountry}</p>
+                        {shippingPhone && <p className="text-muted-foreground">{shippingPhone}</p>}
+                        <Button type="button" variant="link" className="h-auto px-0" onClick={() => setStep(1)} disabled={isConfirmingAddress}>Edit delivery address</Button>
                       </div>
+                      <p className="text-sm text-muted-foreground">Please check the complete delivery address above. We will use this address for your order and PayPal shipping details. Stripe will not ask for shipping again; your payment provider may request billing details if needed.</p>
 
                       <p className="text-xs text-muted-foreground text-center">
                         By placing this order, you agree to our{' '}
@@ -899,11 +1012,11 @@ function CheckoutContent() {
                       </p>
 
                       <div className="flex gap-4">
-                        <Button variant="outline" className="flex-1" onClick={handlePrevStep}>
+                        <Button variant="outline" className="flex-1" onClick={handlePrevStep} disabled={isConfirmingAddress}>
                           Back
                         </Button>
-                        <Button className="flex-1" onClick={handleNextStep}>
-                          Proceed to Payment
+                        <Button className="flex-1 whitespace-normal" onClick={handleNextStep} disabled={isConfirmingAddress}>
+                          {isConfirmingAddress ? 'Confirming address...' : addressConfirmation && addressConfirmation.expiresAt > Date.now() ? 'Continue to payment' : 'Confirm delivery address and continue'}
                         </Button>
                       </div>
                     </CardContent>
@@ -1097,10 +1210,10 @@ function CheckoutContent() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium">{jacketCount === 1 ? (shippingAmount ? `$${shippingAmount.toFixed(2)}` : 'FREE') : 'Quote required'}</span>
+                    <span className="font-medium">{shippingAmount ? `$${shippingAmount.toFixed(2)}` : 'FREE'}</span>
                   </div>
                   {jacketCount > 1 && (
-                    <p className="text-xs text-muted-foreground">Shipping for multiple jackets depends on quantity and weight. <Link href="/contact" className="font-medium underline">Request a quote</Link> before checkout.</p>
+                    <p className="text-xs text-muted-foreground">$45 for the first jacket, plus $20 for each additional jacket.</p>
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Estimated Tax</span>
@@ -1159,7 +1272,7 @@ function CheckoutContent() {
 
                 <div className="flex justify-between items-baseline font-bold text-xl pt-2">
                   <span>Total</span>
-                  <span className="text-primary">{jacketCount > 1 ? 'Quote required' : `$${mounted ? (discountedSubtotal + shippingAmount).toFixed(2) : '0.00'}`}</span>
+                  <span className="text-primary">{`$${mounted ? (discountedSubtotal + shippingAmount).toFixed(2) : '0.00'}`}</span>
                 </div>
               </CardContent>
             </Card>

@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { CalendarDays, PackageCheck, Truck, MapPin, ChevronDown, Pencil, Info } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { deliverySettings, deliveryTooltip, returnPolicyText, shippingCountryOptions, shippingCountryError } from '@/config/fulfillment'
+import { calculateShipping, deliverySettings, deliveryTooltip, returnPolicyText, shippingCountryOptions, shippingCountryError } from '@/config/fulfillment'
 import { allCountries } from '@/config/shipping-countries'
 import { estimateDelivery, formatDeliveryDate } from '@/lib/delivery-dates'
 import { getProductReturnLabel } from '@/lib/product-return-policy'
@@ -71,7 +71,7 @@ export function ProductDeliveryPolicies({ quantity, product }: { quantity: numbe
         <PolicyTip label="Return eligibility and personalized item policy"><p>{returnPolicyText.eligibility}</p><p>{returnPolicyText.fee}</p><p>Non-returnable Items: {returnPolicyText.personalized}</p><p>{returnPolicyText.customExchange}</p><p>{returnPolicyText.faulty}</p></PolicyTip>
       </div></div>
       <div className="flex items-start gap-3"><Truck className={iconClass} /><div className="flex-1 py-2">
-        {quantity < 2 ? <p>Shipping: ${deliverySettings.singleJacketShipping} USD</p> : <Link href="/contact#contact-form" className="inline-flex min-h-11 items-center underline underline-offset-4">Shipping quote required for 2+ jackets</Link>}
+        <p>Shipping: ${calculateShipping(quantity)} USD</p>
       </div></div>
       <div className="flex items-start gap-3"><MapPin className={iconClass} /><div className="min-w-0 flex-1">
         <Popover open={selectorOpen} onOpenChange={value => { setSelectorOpen(value); if (!value) setSearch('') }}><PopoverTrigger asChild><button type="button" className="flex min-h-11 items-center gap-2 text-left" aria-label="Change delivery country">Deliver to <strong>{country?.name || 'Select country'}</strong><Pencil className="size-4 text-[#d5b56b]" /></button></PopoverTrigger>

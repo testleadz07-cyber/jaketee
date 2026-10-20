@@ -44,28 +44,31 @@ const stripeTypes = fs.readFileSync('node_modules/stripe/esm/resources/Checkout/
 const stripeCountries = [...stripeTypes.match(/namespace ShippingAddressCollection \{\s*type AllowedCountry = ([^;]+);/)[1].matchAll(/'([A-Z]{2})'/g)].map(match => match[1])
 assert.deepEqual(config.shippingCountries, countries.allCountryCodes.filter(code => !['IL', 'RU'].includes(code) && stripeCountries.includes(code)))
 const popover = load('src/components/ui/popover.tsx', { '@/lib/utils': { cn: (...items) => items.filter(Boolean).join(' ') } })
+const returnPolicy = load('src/lib/product-return-policy.ts', { '../config/fulfillment': config })
 const { ProductDeliveryPolicies } = load('src/components/product-delivery-policies.tsx', {
+  '@/lib/product-return-policy': returnPolicy,
   '@/components/ui/popover': popover, '@/config/fulfillment': config,
   '@/config/shipping-countries': countries,
   '@/lib/delivery-dates': load('src/lib/delivery-dates.ts', { '@/config/fulfillment': config }),
 })
 for (const quantity of [1, 2, 10]) {
-  const html = renderToStaticMarkup(React.createElement(ProductDeliveryPolicies, { quantity }))
+  const html = renderToStaticMarkup(React.createElement(ProductDeliveryPolicies, { quantity, product: {} }))
   assert.ok(html.includes('aria-expanded="true"'))
   assert.ok(html.includes('Calculating delivery dates'))
   assert.ok(html.includes('Returns &amp; exchanges accepted'))
   assert.ok(!/free delivery|free shipping/i.test(html))
-  assert.ok(quantity === 1 ? html.includes('Shipping: $45 USD') : html.includes('Shipping quote required for 2+ jackets'))
+  assert.ok(html.includes(`Shipping: $${config.calculateShipping(quantity)} USD`))
 }
 for (const countryCode of ['IL', 'RU']) {
   let stateIndex = 0
   const testReact = { ...React, useState: initial => React.useState(stateIndex++ === 2 ? countryCode : initial) }
   const component = load('src/components/product-delivery-policies.tsx', {
+    '@/lib/product-return-policy': returnPolicy,
     react: testReact, '@/components/ui/popover': popover, '@/config/fulfillment': config,
     '@/config/shipping-countries': countries,
     '@/lib/delivery-dates': load('src/lib/delivery-dates.ts', { '@/config/fulfillment': config }),
   }).ProductDeliveryPolicies
-  const html = renderToStaticMarkup(React.createElement(component, { quantity: 1 }))
+  const html = renderToStaticMarkup(React.createElement(component, { quantity: 1, product: {} }))
   assert.ok(html.includes(`We are not able to ship to ${countryCode === 'IL' ? 'Israel' : 'Russia'} at this time.`))
 }
 
@@ -75,11 +78,11 @@ checkoutMocks['@/config/fulfillment'] = config
 const checkout = load('src/lib/checkout-order.ts', checkoutMocks)
 const address = country => ({ name: 'Test', street: 'Street', city: 'City', state: 'State', zip: '12345', country })
 for (const country of ['IL', 'RU', 'Israel', 'Russia', 'Russian Federation', 'il', ' ru ', 'IR', 'invalid']) {
-  assert.throws(() => checkout.resolveCheckoutCustomer(undefined, 'test@example.com', address(country)), checkout.CheckoutError)
+  await assert.rejects(() => checkout.resolveCheckoutCustomer(undefined, 'test@example.com', address(country)), checkout.CheckoutError)
 }
 for (const country of ['AU', 'United Kingdom', 'Canada', 'pk']) {
   const value = address(country)
-  checkout.resolveCheckoutCustomer(undefined, 'test@example.com', value)
+  await checkout.resolveCheckoutCustomer(undefined, 'test@example.com', value)
   assert.ok(config.shippingCountries.includes(value.country))
 }
 // Exercise both payment endpoints without creating orders or contacting providers.
@@ -89,6 +92,7 @@ try {
   for (const route of ['src/app/api/payments/stripe/checkout/route.ts', 'src/app/api/payments/create-order/route.ts']) {
     const handler = load(route, {
       '@/config/fulfillment': config, '@/lib/checkout-order': checkout,
+      '@/lib/address-confirmation': { verifyAddressConfirmation: () => { throw new Error('Invalid destination must be rejected before confirmation') } },
       'next-auth': { getServerSession: async () => null }, '@/lib/auth-options': { authOptions: {} },
       '@/lib/mongodb': { connectDB: async () => true },
       '@/models/Order': { create: () => { throw new Error('An unavailable destination must never create an order') } },

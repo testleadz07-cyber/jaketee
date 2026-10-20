@@ -1,5 +1,6 @@
 
-import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+import { calculateShipping } from '@/config/fulfillment'
+import { verifyAddressConfirmation } from '@/lib/address-confirmation'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -56,11 +57,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const { userId, userEmail, userName } = resolveCheckoutCustomer(session?.user as any, email, shippingAddress)
+    const { userId, userEmail, userName } = await resolveCheckoutCustomer(session?.user as any, email, shippingAddress)
+    const shippingAddressConfirmedAt = verifyAddressConfirmation(body.addressConfirmationToken, shippingAddress, userEmail, userId)
     const items = await resolveCheckoutItems(rawItems)
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const discount = await resolveCheckoutDiscount(promoCode, subtotal)
-    const shippingAmount = discount.freeShipping ? 0 : STANDARD_SHIPPING_USD
+    const shippingAmount = calculateShipping(items.reduce((count, item) => count + item.quantity, 0), discount.freeShipping)
     const amount = Number((subtotal - discount.amount + shippingAmount).toFixed(2))
 
     // Create a PENDING order up front, before the payment is captured. This
@@ -90,6 +92,7 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       paymentMethod: 'paypal',
       shippingAddress,
+      shippingAddressConfirmedAt,
       statusHistory: [{ status: 'pending', timestamp: new Date() }],
     })
 

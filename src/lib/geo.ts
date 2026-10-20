@@ -4,6 +4,7 @@ export interface RequestGeo {
   country?: string
   region?: string
   city?: string
+  postalCode?: string
 }
 
 function decodeHeader(value: string | null): string | undefined {
@@ -44,6 +45,7 @@ export function getGeoFromRequest(request: NextRequest): RequestGeo {
     country: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country'))),
     region: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country-region'))),
     city: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-city'))),
+    postalCode: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-postal-code'))),
   }
 }
 
