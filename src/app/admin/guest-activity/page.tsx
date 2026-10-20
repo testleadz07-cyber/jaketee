@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/table'
 import {
   ChevronLeft,
+  ChevronDown,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
@@ -394,7 +396,7 @@ export default function AdminGuestActivityPage() {
   const [actionFilter, setActionFilter] = useState('all')
   const [countryFilter, setCountryFilter] = useState('')
   const [countries, setCountries] = useState<string[]>([])
-  const [excludedCountry, setExcludedCountry] = useState('')
+  const [excludedCountries, setExcludedCountries] = useState<string[]>([])
   const [guestIdFilter, setGuestIdFilter] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -420,7 +422,7 @@ export default function AdminGuestActivityPage() {
       params.set('limit', String(limit))
       if (actionFilter !== 'all') params.set('action', actionFilter)
       if (countryFilter.trim()) params.set('country', countryFilter.trim())
-      if (excludedCountry) params.set('excludeCountry', excludedCountry)
+      excludedCountries.forEach((country) => params.append('excludeCountry', country))
       if (guestIdFilter.trim()) params.set('guestId', guestIdFilter.trim())
       if (from) params.set('from', from)
       if (to) params.set('to', to)
@@ -445,7 +447,7 @@ export default function AdminGuestActivityPage() {
     } finally {
       if (!signal?.aborted && number === requestNumber.current) setLoading(false)
     }
-  }, [page, limit, actionFilter, countryFilter, excludedCountry, guestIdFilter, from, to])
+  }, [page, limit, actionFilter, countryFilter, excludedCountries, guestIdFilter, from, to])
 
   useEffect(() => {
     if (status !== 'authenticated' || (session?.user as any)?.role !== 'admin') return
@@ -513,17 +515,34 @@ export default function AdminGuestActivityPage() {
               className="pl-9"
             />
           </div>
-          <Select value={excludedCountry || '__none__'} onValueChange={(value) => { setExcludedCountry(value === '__none__' ? '' : value); setPage(1) }}>
-            <SelectTrigger aria-label="Exclude country" className="w-full sm:w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">Exclude country: None</SelectItem>
-              {countries.map((country) => (
-                <SelectItem key={country} value={country}>Exclude: {country}</SelectItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" aria-label="Exclude countries" title={excludedCountries.join(', ')} className="w-full sm:w-56 justify-between">
+                <span className="truncate">{excludedCountries.length ? `Exclude: ${excludedCountries.join(', ')}` : 'Exclude countries: None'}</span>
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-y-auto">
+              <DropdownMenuLabel>Exclude countries</DropdownMenuLabel>
+              <DropdownMenuItem disabled={!excludedCountries.length} onSelect={() => { setExcludedCountries([]); setPage(1) }}>
+                Clear all
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {[...new Set([...countries, ...excludedCountries])].sort((a, b) => a.localeCompare(b)).map((country) => (
+                <DropdownMenuCheckboxItem
+                  key={country}
+                  checked={excludedCountries.includes(country)}
+                  onSelect={(event) => event.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    setExcludedCountries((selected) => checked ? [...selected, country] : selected.filter((value) => value !== country))
+                    setPage(1)
+                  }}
+                >
+                  {country}
+                </DropdownMenuCheckboxItem>
               ))}
-            </SelectContent>
-          </Select>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Input
             aria-label="Filter by guest ID" placeholder="Filter by guest ID..."
             value={guestIdFilter}

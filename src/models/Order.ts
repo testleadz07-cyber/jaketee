@@ -38,6 +38,7 @@ export interface IOrder extends Document {
     phone?: string
   }
   notes?: string
+  shippingAddressConfirmedAt?: Date
   trackingNumber?: string
   carrier?: 'UPS' | 'FedEx' | 'USPS' | 'DHL' | 'Other'
   estimatedDelivery?: Date
@@ -149,6 +150,7 @@ const OrderSchema = new Schema<IOrder>(
     paymentId: { type: String },
     isCustomOrder: { type: Boolean, default: false },
     shippingAddress: ShippingAddressSchema,
+    shippingAddressConfirmedAt: { type: Date },
     notes: { type: String },
     trackingNumber: { type: String },
     carrier: { type: String, enum: ['UPS', 'FedEx', 'USPS', 'DHL', 'Other'] },
@@ -163,6 +165,10 @@ const OrderSchema = new Schema<IOrder>(
 )
 
 OrderSchema.index({ userId: 1, createdAt: -1 })
+
+if (mongoose.models.Order && !mongoose.models.Order.schema.path('shippingAddressConfirmedAt')) {
+  mongoose.models.Order.schema.add({ shippingAddressConfirmedAt: { type: Date } })
+}
 
 // Next.js can retain the compiled model across development reloads. Upgrade
 // cached schemas too, otherwise strict updates silently drop archivedAt.

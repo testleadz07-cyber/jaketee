@@ -14,6 +14,7 @@ import { ShoppingBag, CheckCircle, Package, ArrowRight, Calendar, MapPin, Credit
 import Link from 'next/link'
 import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
 import { useCartStore } from '@/store/cart'
+import { checkoutAddressKey, readCheckoutAddressDraft } from '@/lib/checkout-address-draft'
 
 interface OrderItem {
   productId: string
@@ -49,7 +50,7 @@ interface Order {
 function ConfirmationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const clearCart = useCartStore((state) => state.clearCart)
   const clearDirectOrderItem = useCartStore((state) => state.clearDirectOrderItem)
   const orderId = searchParams.get('id') || searchParams.get('orderId')
@@ -67,6 +68,16 @@ function ConfirmationContent() {
     clearCart()
     clearDirectOrderItem()
   }, [order?._id, clearCart, clearDirectOrderItem])
+
+  useEffect(() => {
+    if (!order || order.status === 'pending' || order.status === 'cancelled' || status === 'loading') return
+    try {
+      const owner = session?.user ? `user:${(session.user as any).id}` : 'guest'
+      const key = checkoutAddressKey(owner)
+      const draft = readCheckoutAddressDraft(sessionStorage.getItem(key))
+      if (draft) sessionStorage.setItem(key, JSON.stringify({ ...draft, confirmation: null, updatedAt: Date.now() }))
+    } catch { /* Keep the address reusable, but require confirmation for the next order. */ }
+  }, [order?._id, order?.status, status, session?.user])
 
   useEffect(() => {
     if (!orderId) {

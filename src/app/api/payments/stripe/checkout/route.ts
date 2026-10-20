@@ -1,5 +1,6 @@
 
-import { STANDARD_SHIPPING_USD } from '@/config/fulfillment'
+import { calculateShipping } from '@/config/fulfillment'
+import { verifyAddressConfirmation } from '@/lib/address-confirmation'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const { userId, userEmail, userName } = resolveCheckoutCustomer(session?.user as any, email, shippingAddress)
+    const { userId, userEmail, userName } = await resolveCheckoutCustomer(session?.user as any, email, shippingAddress)
+    const shippingAddressConfirmedAt = verifyAddressConfirmation(body.addressConfirmationToken, shippingAddress, userEmail, userId)
     const items = await resolveCheckoutItems(rawItems)
 
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -74,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     // Setup calculations
     const taxAmount = 0
-    const shippingAmount = isFreeShipping ? 0 : STANDARD_SHIPPING_USD
+    const shippingAmount = calculateShipping(items.reduce((count, item) => count + item.quantity, 0), isFreeShipping)
     const total = Math.max(0, subtotal - discountAmount + shippingAmount + taxAmount)
 
     const orderNumber = `LX-${Date.now()}`
@@ -103,6 +105,7 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       paymentMethod: 'stripe',
       shippingAddress,
+      shippingAddressConfirmedAt,
     })
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -130,7 +133,7 @@ export async function POST(request: NextRequest) {
         orderNumber,
       },
       success_url: `${appUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}&orderId=${order._id}`,
-      cancel_url: `${appUrl}/checkout`,
+      cancel_url: `${appUrl}/checkout${body.checkoutMode === 'buy-now' ? '?mode=buy-now' : ''}`,
     })
 
     // Update order with the Stripe Session ID to link them

@@ -25,7 +25,7 @@ export default function ShippingPage() {
             </div>
             <div className="border-l-2 border-foreground pl-5">
               <h3 className="font-semibold">Two or more jackets</h3>
-              <p className="mt-1 text-muted-foreground">{fulfillmentConfig.multipleJacketShipping} Contact us before placing your order.</p>
+              <p className="mt-1 text-muted-foreground">{fulfillmentConfig.multipleJacketShipping}</p>
             </div>
           </div>
         </section>
@@ -40,17 +40,17 @@ export default function ShippingPage() {
 
         <section className="border-t py-8" aria-labelledby="international-shipping">
           <h2 id="international-shipping" className="text-2xl font-semibold">International destinations</h2>
-          <p className="mt-4 max-w-3xl text-muted-foreground">{fulfillmentConfig.internationalShipping} Share the full destination when requesting a quote so Jacketee can confirm the available service, charge, and current estimate.</p>
+          <p className="mt-4 max-w-3xl text-muted-foreground">{fulfillmentConfig.internationalShipping} Shipping is calculated automatically at checkout from the total jacket quantity.</p>
           <details className="mt-4 rounded-md border p-4"><summary className="min-h-11 cursor-pointer font-medium">Available delivery countries</summary>
-            <p className="mt-2 text-sm text-muted-foreground">Payment-provider and carrier availability also applies. The same available destinations appear at checkout and in shipping quotes.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Payment-provider and carrier availability also applies. The same available destinations appear at checkout.</p>
             <ul className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">{shippingCountryOptions.map(country => <li key={country.code}>{country.name}</li>)}</ul>
           </details>
           <p className="mt-4 max-w-3xl text-muted-foreground">Custom items do not automatically receive free shipping based on order value. {fulfillmentConfig.freeShipping}</p>
         </section>
 
         <section className="border-t py-8" aria-labelledby="shipping-help">
-          <h2 id="shipping-help" className="text-2xl font-semibold">Need a shipping quote?</h2>
-          <p className="mt-3 text-muted-foreground">Tell us the jacket quantity, sizes and destination so we can confirm your shipping charge and timeline.</p>
+          <h2 id="shipping-help" className="text-2xl font-semibold">Questions about shipping?</h2>
+          <p className="mt-3 text-muted-foreground">Shipping is $45 USD for the first jacket, plus $20 USD for each additional jacket in the same order. Contact us for help with destinations or delivery timelines.</p>
           <Link href="/contact" className="mt-5 inline-flex h-10 items-center bg-foreground px-5 text-sm font-medium text-background hover:opacity-90">Contact Jacketee</Link>
         </section>
       </main>

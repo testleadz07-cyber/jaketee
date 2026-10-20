@@ -4,6 +4,7 @@ import { normalizeShippingCountry, shippingCountryError } from '@/config/fulfill
 import { GARMENT_CATEGORIES, GARMENT_TEMPLATES, getGarmentCategory, validateGarmentOptions, getGarmentPrice, getGarmentSvg, type GarmentCategory } from '@/lib/garment-template'
 import Product from '@/models/Product'
 import Discount from '@/models/Discount'
+import User from '@/models/User'
 import { JACKET_VIEWS, JACKET_TEXT_LAYOUTS, type JacketTextLayout, type JacketCustomization } from '@/types/jacket-customization'
 import { getCustomizationFee } from '@/lib/customization-pricing'
 import { VARSITY_TEMPLATE_ID, validateVarsityOptions, getVarsityPrice, getVarsitySvg } from '@/lib/varsity-template'
@@ -16,30 +17,48 @@ export class CheckoutError extends Error {
   }
 }
 
-export function resolveCheckoutCustomer(
+export async function resolveCheckoutCustomer(
   user: { id?: string; email?: string | null; name?: string | null } | undefined,
   guestEmail: unknown,
   shippingAddress: unknown
 ) {
-  const address = shippingAddress as Record<string, unknown> | null
-  if (!address || typeof address !== 'object') throw new CheckoutError('Shipping address is required')
-  for (const field of ['name', 'street', 'city', 'state', 'zip', 'country']) {
-    if (typeof address[field] !== 'string' || !String(address[field]).trim()) {
-      throw new CheckoutError(`Shipping ${field} is required`)
+  if (!shippingAddress || typeof shippingAddress !== 'object' || Array.isArray(shippingAddress)) {
+    throw new CheckoutError('Shipping address is required')
+  }
+  const address = shippingAddress as Record<string, unknown>
+  const limits: Record<string, number> = { name: 200, street: 500, city: 200, state: 200, zip: 32, country: 200 }
+  for (const [field, limit] of Object.entries(limits)) {
+    const value = address[field]
+    if (typeof value !== 'string' || !value.trim() || value.trim().length > limit || /[\x00-\x1f]/.test(value)) {
+      throw new CheckoutError(`Valid shipping ${field} is required`)
     }
+    address[field] = value.trim()
+  }
+  if (address.phone != null) {
+    if (typeof address.phone !== 'string' || address.phone.length > 50 || /[\x00-\x1f]/.test(address.phone)) {
+      throw new CheckoutError('Invalid shipping phone number')
+    }
+    address.phone = address.phone.trim()
   }
 
-  const email = (user?.email || guestEmail)
+  // Session identity is server-issued; refresh account status and contact data from the database.
+  let customer: { email?: string | null; name?: string | null; isActive?: boolean } | null | undefined = user
+  if (user) {
+    if (!mongoose.isValidObjectId(user.id)) throw new CheckoutError('Invalid customer account', 401)
+    customer = await User.findById(user.id).select('_id name email isActive').lean()
+    if (!customer || !customer.isActive) throw new CheckoutError('Customer account is unavailable', 403)
+  }
+  const email = (customer?.email || guestEmail)
   const countryError = shippingCountryError(address.country)
   if (countryError) throw new CheckoutError(countryError)
   address.country = normalizeShippingCountry(address.country)!
-  if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+  if (typeof email !== 'string' || email.trim().length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     throw new CheckoutError('A valid email address is required')
   }
   return {
     userId: user?.id || undefined,
     userEmail: email.trim().toLowerCase(),
-    userName: user?.name || String(address.name).trim(),
+    userName: customer?.name || String(address.name).trim(),
   }
 }
 
@@ -53,7 +72,7 @@ interface CheckoutItemInput {
 
 function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCustomization | undefined {
   if (value == null) return undefined
-  if (!value || typeof value !== 'object') throw new CheckoutError('Invalid jacket customization')
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new CheckoutError('Invalid jacket customization')
   const input = value as Record<string, unknown>
   const output: JacketCustomization = {}
   if (input.varsityOptions != null) {
@@ -150,35 +169,51 @@ function inUnitRange(value: number) {
 }
 
 export async function resolveCheckoutItems(rawItems: unknown) {
-  if (!Array.isArray(rawItems) || rawItems.length !== 1) {
-    throw new CheckoutError('Checkout supports one jacket per order. Contact us for a bulk quote.')
+  if (!Array.isArray(rawItems) || rawItems.length < 1 || rawItems.length > 100) {
+    throw new CheckoutError('Checkout requires between 1 and 100 cart items')
   }
-  const input = rawItems[0] as CheckoutItemInput
+  // Aggregate every line for a product so split lines cannot bypass stock checks.
+  const quantities = new Map<string, number>()
+  for (const raw of rawItems) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw) ||
+      typeof raw.productId !== 'string' || !Number.isSafeInteger(raw.quantity) || raw.quantity < 1 || raw.quantity > 1000 ||
+      typeof raw.price !== 'number' || !Number.isFinite(raw.price) || raw.price < 0) {
+      throw new CheckoutError('Invalid checkout item, quantity or price')
+    }
+    const key = raw.productId.toLowerCase()
+    quantities.set(key, (quantities.get(key) || 0) + raw.quantity)
+  }
+  const items: Awaited<ReturnType<typeof resolveCheckoutItem>> = []
+  for (const raw of rawItems) {
+    items.push(...await resolveCheckoutItem(raw, quantities.get(raw.productId.toLowerCase())!))
+  }
+  return items
+}
+
+async function resolveCheckoutItem(input: CheckoutItemInput, requestedQuantity: number) {
   const category = getGarmentCategory(input?.productId)
   if (category) {
-    if (input.quantity !== 1) throw new CheckoutError('Checkout supports one jacket per order')
     const customization = sanitizeCustomization(input.customization, 24)
     if (!customization?.garmentOptions || customization.garmentCategory !== category) throw new CheckoutError('Jacket configuration does not match the category')
     const price = Number((getGarmentPrice(category, customization.garmentOptions) + getCustomizationFee(customization)).toFixed(2))
     if (!Number.isFinite(input.price) || Math.abs(input.price - price) > .01) throw new CheckoutError('Jacket price has changed. Refresh your cart.', 409)
-    return [{ productId: input.productId, name: `Custom ${GARMENT_TEMPLATES[category].name}`, image: customization.snapshotUrl || `data:image/svg+xml;charset=utf-8,${encodeURIComponent(getGarmentSvg(category, customization.garmentOptions, 'front'))}`, price, quantity: 1, variants: Object.entries(customization.garmentOptions).map(([name, value]) => ({ name, value })), customization }]
+    return [{ productId: input.productId, name: `Custom ${GARMENT_TEMPLATES[category].name}`, image: customization.snapshotUrl || `data:image/svg+xml;charset=utf-8,${encodeURIComponent(getGarmentSvg(category, customization.garmentOptions, 'front'))}`, price, quantity: input.quantity, variants: Object.entries(customization.garmentOptions).map(([name, value]) => ({ name, value })), customization }]
   }
   if (input?.productId === VARSITY_TEMPLATE_ID) {
-    if (input.quantity !== 1) throw new CheckoutError('Checkout supports one jacket per order')
     const customization = sanitizeCustomization(input.customization, 24)
     if (!customization?.varsityOptions || customization.garmentOptions) throw new CheckoutError('Varsity jacket configuration is required')
     const price = Number((getVarsityPrice(customization.varsityOptions) + getCustomizationFee(customization)).toFixed(2))
     if (!Number.isFinite(input.price) || Math.abs(input.price - price) > 0.01) throw new CheckoutError('Jacket price has changed. Refresh your cart.', 409)
     return [{ productId: VARSITY_TEMPLATE_ID, name: 'Custom Varsity Jacket',
       image: customization.snapshotUrl || `data:image/svg+xml;charset=utf-8,${encodeURIComponent(getVarsitySvg(customization.varsityOptions, 'front'))}`,
-      price, quantity: 1, variants: Object.entries(customization.varsityOptions).map(([name, value]) => ({ name, value })), customization }]
+      price, quantity: input.quantity, variants: Object.entries(customization.varsityOptions).map(([name, value]) => ({ name, value })), customization }]
   }
-  if (!mongoose.isValidObjectId(input?.productId) || input.quantity !== 1) {
+  if (!mongoose.isValidObjectId(input?.productId)) {
     throw new CheckoutError('Invalid checkout item')
   }
   const product = await Product.findById(input.productId).lean()
-  if (!product || product.status !== 'active' || !product.inStock || Number(product.stockCount) < 1) {
-    throw new CheckoutError('This jacket is no longer available', 409)
+  if (!product || product.status !== 'active' || !product.inStock || !Number.isSafeInteger(product.stockCount) || Number(product.stockCount) < requestedQuantity) {
+    throw new CheckoutError('This jacket is unavailable or has insufficient stock', 409)
   }
 
   const variants = input.variants ?? []
@@ -204,7 +239,7 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     }
     if (name.startsWith('Measurement: ')) {
       const field = name.slice('Measurement: '.length)
-      if (!product.measurementFields?.includes(field) || !/^\d+(?:\.\d+)?in$/.test(value)) {
+      if (!product.measurementFields?.includes(field) || (!/^\d+(?:\.\d+)?in$/.test(value) || !Number.isFinite(Number(value.slice(0, -2))) || Number(value.slice(0, -2)) <= 0)) {
         throw new CheckoutError('Invalid jacket measurement')
       }
       continue
@@ -227,7 +262,7 @@ export async function resolveCheckoutItems(rawItems: unknown) {
 
   // NOTE: input.price from frontend already includes customization fees calculated by getCustomizationFee,
   // so the comparison here is valid and ensures frontend and backend calculations match.
-  if (!Number.isFinite(unitPrice) || unitPrice < 0 || Math.abs(Number(input.price) - unitPrice) > 0.01) {
+  if (!Number.isFinite(unitPrice) || unitPrice < 0 || Math.abs(input.price - unitPrice) > 0.01) {
     throw new CheckoutError('Jacket price has changed. Refresh your cart before checking out.', 409)
   }
 
@@ -236,13 +271,14 @@ export async function resolveCheckoutItems(rawItems: unknown) {
     name: product.name,
     image: product.images?.[0]?.url || '/placeholder.png',
     price: unitPrice,
-    quantity: 1,
+    quantity: input.quantity,
     variants: variants.map((variant) => ({ name: variant.name.trim(), value: variant.value.trim() })),
     customization,
   }]
 }
 
 export async function resolveCheckoutDiscount(rawCode: unknown, subtotal: number) {
+  if (rawCode != null && (typeof rawCode !== 'string' || rawCode.length > 100)) throw new CheckoutError('Invalid promo code')
   const code = typeof rawCode === 'string' ? rawCode.trim().toUpperCase() : ''
   if (!code) return { code: undefined, amount: 0, freeShipping: false, type: undefined, value: 0 }
   const discount = await Discount.findOne({ code, isActive: true }).lean()
