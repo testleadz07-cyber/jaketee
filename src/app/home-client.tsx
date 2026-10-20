@@ -324,7 +324,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
                 </p>
               </div>
               <Button asChild variant="secondary">
-                <Link href="/bulk-orders">Explore Bulk Orders <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/bulk-orders">Explore Bulk &amp; Teams <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
             <div className="grid gap-3 md:grid-cols-3">

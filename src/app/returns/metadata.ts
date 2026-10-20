@@ -1,9 +1,10 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/returns`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Returns & Exchanges — Jacketee',
   description: 'Eligible stock jackets may be returned within 10 days of delivery. Learn about Jacketee return eligibility, restocking fees and custom-item exceptions.',
   alternates: { canonical: PAGE_URL },
@@ -19,4 +20,4 @@ export const metadata: Metadata = {
     title: 'Returns & Exchanges — Jacketee',
     description: 'Jacketee 10-day stock-jacket returns and custom-item exceptions.',
   },
-}
+})

@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Header } from '@/components/header'
@@ -8,10 +9,10 @@ const title = 'How to Design Your Own Varsity Jacket | Jacketee'
 const description = 'Plan a custom varsity jacket: choose body and sleeve materials, coordinate colors, select your collar and closure, and position text and artwork.'
 const url = `${SITE_URL}/blog/custom-varsity-jacket-design-guide`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title, description, alternates: { canonical: url },
   openGraph: { title, description, url, type: 'article' },
-}
+})
 
 export default function VarsityDesignGuide() {
   const schema = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description, mainEntityOfPage: url, author: { '@type': 'Organization', name: 'Jacketee Team', url: SITE_URL } }

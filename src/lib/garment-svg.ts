@@ -5,6 +5,7 @@ export const GARMENT_PART_COLORS: Record<string, string> = {
   body: 'Body color', 'left-sleeve': 'Sleeves color', 'right-sleeve': 'Sleeves color',
   collar: 'Collar color', 'left-cuff': 'Cuffs color', 'right-cuff': 'Cuffs color',
   waistband: 'Waistband color', pockets: 'Pockets color', 'sleeve-pocket': 'Pockets color',
+  'hood-lining': 'Hood lining color', drawstrings: 'Drawstrings color',
   closure: 'Closure color', hood: 'Hood color', lining: 'Lining color', 'knit-stripes': 'Stripe color', 'collar-stripes': 'Stripe color',
 }
 

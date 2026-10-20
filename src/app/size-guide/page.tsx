@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
@@ -10,7 +11,7 @@ import { SizeGuideResources } from '@/components/size-guide-resources'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Jacket & Vest Size Guide | Jacketee',
   description: 'Measure your chest, waist, sleeve, and jacket length. Compare reference body and garment measurements, then confirm the fit for your Jacketee style.',
   alternates: { canonical: `${SITE_URL}/size-guide` },
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     siteName: 'Jacketee',
     type: 'website',
   },
-}
+})
 
 export default function SizeGuidePage() {
   return (

@@ -1,12 +1,12 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { cache } from 'react'
 import { Metadata } from 'next'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
-import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
+import { socialImageUrl } from '@/lib/seo-metadata'
 import { BLOG_SITE_URL, blogDescription } from '@/lib/blog-post-seo'
 
 const SITE_URL = BLOG_SITE_URL
-const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 
 const getPost = cache(async (slug: string) => {
   try {
@@ -32,22 +32,22 @@ export async function generateMetadata({
   const post: any = await getPost(slug)
 
   if (!post) {
-    return {
+    return withSocialMetadata({
       title: 'Post Not Found — Jacketee Blog',
       description: 'The requested blog post could not be found.',
       robots: { index: false, follow: false },
-    }
+    })
   }
 
   const pageUrl = `${SITE_URL}/blog/${slug}`
   const title = post.seoTitle || `${post.title} — Jacketee Blog`
   const description = blogDescription(post)
-  const imageUrl = post.ogImage || resolveBlogImage(post, await getBlogImageCandidates()) || DEFAULT_IMAGE
+  const imageUrl = socialImageUrl(post.featuredImage)
   const authorName = 'Jacketee Team'
   const publishedTime = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined
   const modifiedTime = post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined
 
-  return {
+  return withSocialMetadata({
     title,
     description,
     alternates: { canonical: pageUrl },
@@ -69,7 +69,7 @@ export async function generateMetadata({
       description,
       images: [imageUrl],
     },
-  }
+  })
 }
 
 export default function BlogPostLayout({ children }: { children: React.ReactNode }) {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Factory, LockKeyhole, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa6'
+import { FaFacebookF, FaInstagram, FaLinkedinIn, FaPinterestP, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6'
 import { Button } from '@/components/ui/button'
 import dynamic from 'next/dynamic'
 const NewsletterForm = dynamic(() => import('@/components/newsletter-form').then((mod) => mod.NewsletterForm))
@@ -49,10 +49,11 @@ const legalLinks: FooterLink[] = [
 ]
 
 const customJacketLinks: FooterLink[] = [
-  { href: '/design/varsity', label: 'Design Your Own Varsity Jacket' },
-  { href: '/design/bomber', label: 'Design Your Own Bomber Jacket' },
-  { href: '/design/coach', label: 'Design Your Own Coach Jacket' },
-  { href: '/design/puffer', label: 'Design Your Own Puffer Jacket' },
+  { href: '/design/varsity', label: 'Build Your Varsity Jacket' },
+  { href: '/design/bomber', label: 'Build Your Bomber Jacket' },
+  { href: '/design/coach', label: 'Build Your Coach Jacket' },
+  { href: '/design/puffer', label: 'Build Your Puffer Jacket' },
+  { href: '/design/hoodie', label: 'Build Your Fleece Hoodie' },
   { href: '/custom-letterman-jackets', label: 'Custom Letterman Jackets' },
   { href: '/custom-bomber-jackets', label: 'Custom Bomber Jackets' },
   { href: '/custom-coach-jackets', label: 'Custom Coach Jackets' },
@@ -73,9 +74,24 @@ const socialLinks = [
     icon: FaFacebookF,
   },
   {
-    href: 'https://www.instagram.com/jack_etee/',
+    href: 'https://www.instagram.com/jacketeeofficial/',
     label: 'Follow Jacketee on Instagram',
     icon: FaInstagram,
+  },
+  {
+    href: 'https://www.pinterest.com/ShopJacketee/',
+    label: 'Follow Jacketee on Pinterest',
+    icon: FaPinterestP,
+  },
+  {
+    href: 'https://x.com/ShopJacketee',
+    label: 'Follow Jacketee on X',
+    icon: FaXTwitter,
+  },
+  {
+    href: 'https://www.linkedin.com/in/info-jacketee-552187445/?isSelfProfile=true',
+    label: 'Follow Jacketee on LinkedIn',
+    icon: FaLinkedinIn,
   },
   {
     href: 'https://www.tiktok.com/@jacketeeofficial',
@@ -161,7 +177,7 @@ export function Footer() {
             <p className="text-sm leading-relaxed text-muted-foreground">
               Custom jackets, patches, embroidery, and team apparel made for standout everyday wear.
             </p>
-            <div className="flex items-center gap-2" aria-label="Social media links">
+            <div className="flex flex-wrap items-center gap-2" aria-label="Social media links">
               {socialLinks.map(({ href, label, icon: Icon }) => (
                 <a
                   key={href}

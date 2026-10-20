@@ -5,7 +5,7 @@ import { GARMENT_CATEGORIES, GARMENT_TEMPLATES, getGarmentCategory, validateGarm
 import Product from '@/models/Product'
 import Discount from '@/models/Discount'
 import User from '@/models/User'
-import { JACKET_VIEWS, JACKET_TEXT_LAYOUTS, type JacketTextLayout, type JacketCustomization } from '@/types/jacket-customization'
+import { JACKET_VIEWS, MAX_JACKET_TEXTS, JACKET_TEXT_LAYOUTS, type JacketTextLayout, type JacketCustomization } from '@/types/jacket-customization'
 import { getCustomizationFee } from '@/lib/customization-pricing'
 import { VARSITY_TEMPLATE_ID, validateVarsityOptions, getVarsityPrice, getVarsitySvg } from '@/lib/varsity-template'
 
@@ -93,10 +93,23 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
     const side = rawSide as Record<string, unknown>
     const cleanSide: NonNullable<JacketCustomization[typeof view]> = {}
 
-    if (side.text != null) {
-      if (typeof side.text !== 'object') throw new CheckoutError('Invalid embroidered text design')
-      const text = side.text as Record<string, unknown>
-      const content = typeof text.value === 'string' ? text.value.trim() : ''
+    if (side.texts != null && (!Array.isArray(side.texts) || side.texts.length > MAX_JACKET_TEXTS)) throw new CheckoutError('Invalid text collection')
+    if (side.text != null && (typeof side.text !== 'object' || Array.isArray(side.text))) throw new CheckoutError('Invalid embroidered text design')
+    const legacyText = side.text as Record<string, unknown> | undefined
+    if (legacyText?.value != null && typeof legacyText.value !== 'string') throw new CheckoutError('Invalid text content')
+    const hasLegacyText = typeof legacyText?.value === 'string' && legacyText.value.trim()
+    if (side.texts != null && hasLegacyText) throw new CheckoutError('Use one text format')
+    const rawTexts = (side.texts as unknown[] | undefined) ?? (hasLegacyText ? [legacyText] : [])
+    const textIds = new Set<string>()
+    cleanSide.texts = []
+    for (const rawText of rawTexts) {
+      if (!rawText || typeof rawText !== 'object' || Array.isArray(rawText)) throw new CheckoutError('Invalid embroidered text design')
+      const text = rawText as Record<string, unknown>
+      const id = side.texts == null ? 'legacy-text' : typeof text.id === 'string' ? text.id.trim() : ''
+      if (!id || id.length > 100 || textIds.has(id)) throw new CheckoutError('Invalid text ID')
+      textIds.add(id)
+      if (typeof text.value !== 'string') throw new CheckoutError('Invalid text content')
+      const content = text.value.trim()
       if (content) {
         const color = typeof text.color === 'string' && /^#[0-9a-f]{6}$/i.test(text.color) ? text.color.toLowerCase() : ''
         const fontStyle = typeof text.fontStyle === 'string' && JACKET_FONT_STYLES.has(text.fontStyle) ? text.fontStyle as NonNullable<typeof cleanSide.text>['fontStyle'] : 'varsity'
@@ -108,7 +121,7 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
         if (content.length > maxTextLength || !color || !Number.isFinite(size) || size < 24 || size > 72 || !inUnitRange(x) || !inUnitRange(y)) {
           throw new CheckoutError('Invalid embroidered text design')
         }
-        cleanSide.text = { value: content, color, fontStyle, layout, size, x, y }
+        cleanSide.texts.push({ id, value: content, color, fontStyle, layout, size, x, y })
       }
     }
 
@@ -139,7 +152,7 @@ function sanitizeCustomization(value: unknown, maxTextLength: number): JacketCus
       })
     }
 
-    if (cleanSide.text || cleanSide.artworks?.length) output[view] = cleanSide
+    if (cleanSide.texts?.length || cleanSide.artworks?.length) output[view] = cleanSide
   }
 
   if (input.snapshotUrl != null) {

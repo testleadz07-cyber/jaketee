@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import mongoose from 'mongoose'
@@ -84,10 +85,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const product = await getCustomizeProduct(slug)
   if (!product) {
-    return {
+    return withSocialMetadata({
       title: 'Customize Jacket - Jacketee',
       description: 'Create a custom jacket design with Jacketee.',
-    }
+    })
   }
 
   const title = `Customize ${product.name} - Jacketee`
@@ -97,13 +98,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   )
   const imageUrl = socialImageUrl(product.images?.[0]?.url)
 
-  return {
+  return withSocialMetadata({
     title,
     description,
     alternates: { canonical: `${SITE_URL}/customize/${product.slug}` },
     openGraph: { title, description, images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }], url: `${SITE_URL}/customize/${product.slug}` },
     twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
-  }
+  })
 }
 
 export default async function CustomizePage({ params }: Props) {

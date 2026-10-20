@@ -1,3 +1,5 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
+import { categorySocialImage } from '@/lib/category-social-image'
 import { Metadata } from 'next'
 import { VARSITY_CATEGORY_SEO } from '@/lib/varsity-category-seo'
 import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
@@ -24,7 +26,6 @@ interface Props {
 }
 
 const SITE_URL = 'https://www.jacketee.com'
-const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
 const CATEGORY_PRODUCTS_PER_PAGE = 24
 
 function parsePageParam(page?: string | string[]) {
@@ -56,7 +57,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
   if (resolution.type === 'product') {
     const product = resolution.product
-    const title = productMetaTitle(product.name)
+    const title = productMetaTitle(product.name, product.seoTitle)
     const description = productMetaDescription({
       name: product.name,
       categoryName: product.categoryPath?.at(-1)?.name || product.categoryId?.name,
@@ -65,14 +66,14 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const imageUrl = socialImageUrl(product.images?.[0]?.url)
     const imageAlt = product.images?.[0]?.alt || product.name
 
-    return {
+    return withSocialMetadata({
       title,
       description,
       alternates: { canonical: canonicalUrl },
       openGraph: { title, description, images: [{ url: imageUrl, width: 1200, height: 630, alt: imageAlt }], url: canonicalUrl },
       twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
       other: { 'og:type': 'product' },
-    }
+    })
   }
 
   if (resolution.type === 'category') {
@@ -87,21 +88,21 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       category.seoDescription || category.description,
       `Shop ${category.name} at Jacketee. Compare available styles, materials, sizing and customization options for individual and group jacket orders.`
     )
-    const imageUrl = socialImageUrl(category.image || DEFAULT_IMAGE)
+    const imageUrl = await categorySocialImage(String(category._id), requestedPage)
 
-    return {
+    return withSocialMetadata({
       title,
       description,
       alternates: { canonical: canonicalUrl },
       openGraph: { title, description, images: [{ url: imageUrl, width: 1200, height: 630, alt: category.name }], type: 'website', url: canonicalUrl },
       twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
-    }
+    })
   }
 
-  return {
+  return withSocialMetadata({
     title: 'Page Not Found - Jacketee',
     description: 'The requested page could not be found.',
-  }
+  })
 }
 
 export default async function CatchAllPage({ params, searchParams }: Props) {

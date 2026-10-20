@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Image from '@/components/optimized-image'
 import Link from 'next/link'
@@ -23,7 +24,7 @@ const assetFolder = `${legacyAssetBrand}/exports/materials-colors`
 const cloudinaryAsset = (version: number, fileName: string) =>
   `https://res.cloudinary.com/dhdfbl8pc/image/upload/v${version}/${assetFolder}/${fileName}`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Varsity Jacket Materials & Colors | Jacketee',
   description:
     'Compare melton wool, leather, satin, fleece, twill, soft-shell, nylon, suede, snaps, zips, and 30+ jacket color swatches before starting a custom order.',
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
     title: 'Varsity Jacket Materials & Colors | Jacketee',
     description: 'Compare materials and color swatches before you start a custom jacket order.',
   },
-}
+})
 
 type Swatch = {
   name: string

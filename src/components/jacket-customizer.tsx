@@ -1,5 +1,7 @@
 'use client'
 
+import { getJacketTextSummary } from '@/types/jacket-customization'
+
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -378,7 +380,7 @@ export function JacketCustomizer({
         return (
           <div key={view} className="border-t pt-2 first:border-t-0 first:pt-0 mt-2">
             <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">{getJacketViewLabel(view)}</p>
-            {side.text?.value.trim() && <div className="flex justify-between gap-3 text-sm"><span>Embroidery</span><span className="min-w-0 break-words text-right font-medium">{side.text.value.trim()}</span></div>}
+            {getJacketTextSummary(side) && <div className="flex justify-between gap-3 text-sm"><span>Embroidery</span><span className="min-w-0 break-words text-right font-medium">{getJacketTextSummary(side)}</span></div>}
             {!!side.artworks?.length && <div className="flex justify-between gap-3 text-sm"><span>Artwork</span><span className="max-w-[60%] text-right font-medium">{side.artworks.length} piece{side.artworks.length === 1 ? '' : 's'}</span></div>}
           </div>
         )

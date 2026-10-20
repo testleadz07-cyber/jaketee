@@ -1,5 +1,6 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
-import { HomeHero } from '@/components/home-hero'
+import { HomeHero, homeHeroImage } from '@/components/home-hero'
 import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
 import CategoryModel from '@/models/Category'
@@ -9,7 +10,7 @@ import Home, { type Category, type Product } from './home-client'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Custom Varsity Jackets & Letterman Jackets | Jacketee',
   description: 'Design custom varsity jackets and letterman jackets with chenille patches, embroidery and your team colors. Bulk pricing for schools, teams and brands.',
   alternates: { canonical: 'https://www.jacketee.com/' },
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     url: 'https://www.jacketee.com/',
     siteName: 'Jacketee',
     type: 'website',
-    images: [{ url: 'https://www.jacketee.com/opengraph-image', width: 1200, height: 630, alt: 'Jacketee custom varsity and letterman jackets' }],
+    images: [{ url: homeHeroImage, width: 1200, height: 630, alt: 'Jacketee custom varsity and letterman jackets' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     description: 'Design custom varsity jackets and letterman jackets with chenille patches, embroidery and your team colors. Bulk pricing for schools, teams and brands.',
     images: ['https://www.jacketee.com/opengraph-image'],
   },
-}
+})
 
 export default async function Page() {
   if (!(await connectDB())) throw new Error('Catalog is temporarily unavailable')

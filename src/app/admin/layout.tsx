@@ -1,9 +1,10 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 import { AdminHeader } from '@/components/admin/admin-header'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   robots: { index: false, follow: false },
-}
+})
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

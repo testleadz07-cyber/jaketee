@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Image from '@/components/optimized-image'
 import Link from 'next/link'
@@ -9,7 +10,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const heroImage = 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1788899943/clothaa/exports/patches-embroidery/hero__varsity-jacket-patches-embroidery-hero.jpg'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'About Jacketee | Custom Jacket Factory & Team',
   description: 'Meet Jacketee, founded in 2026 in Sialkot, Pakistan. Learn about our in-house jacket production, customization options, and customer support.',
   alternates: { canonical: `${siteUrl}/about` },
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [{ url: heroImage, alt: 'Custom varsity jacket with patches and embroidery' }],
   },
-}
+})
 
 const orderSteps = [
   ['Choose a starting style', 'Browse varsity, bomber, leather, puffer, denim, and other jacket options.'],

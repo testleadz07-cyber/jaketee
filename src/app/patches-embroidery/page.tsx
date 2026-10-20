@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Image from '@/components/optimized-image'
 import Link from 'next/link'
@@ -29,7 +30,7 @@ function patchImage(key: string) {
 
 const heroImage = patchImage('hero').src
 
-const defaultMetadata: Metadata = {
+const defaultMetadata: Metadata = withSocialMetadata({
   title: 'Chenille Patches for Letterman Jackets | Jacketee',
   description:
     'Compare chenille patches for letterman jackets, varsity jacket embroidery, felt, tackle twill, printing and label options for custom jacket designs.',
@@ -55,7 +56,7 @@ const defaultMetadata: Metadata = {
     title: 'Varsity Jacket Patches & Embroidery Guide | Jacketee',
     description: 'Compare custom patch, embroidery, and print options before starting your jacket order.',
   },
-}
+})
 
 type ImageItem = {
   src: string
@@ -378,14 +379,14 @@ const faqJsonLd = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const images = await getPatchSectionImages()
-  return {
+  return withSocialMetadata({
     ...defaultMetadata,
     openGraph: {
       ...defaultMetadata.openGraph,
       images: [{ url: images.hero?.url || heroImage, width: 1200, height: 630, alt: images.hero?.alt || 'Varsity jacket patches and embroidery examples' }],
     },
     twitter: { ...defaultMetadata.twitter, images: [images.hero?.url || heroImage] },
-  }
+  })
 }
 
 export default async function PatchesEmbroideryPage() {

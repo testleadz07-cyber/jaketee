@@ -25,6 +25,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/design/bomber',
     '/design/coach',
     '/design/puffer',
+    '/design/hoodie',
+    '/blog/custom-fleece-hoodie-design-guide',
     '/blog/custom-jacket-design-guide',
     '/blog/custom-varsity-jacket-design-guide',
     '/size-guide',

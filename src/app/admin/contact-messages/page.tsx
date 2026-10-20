@@ -177,7 +177,7 @@ export default function AdminContactMessagesPage() {
         <div>
           <h2 className="text-xl font-bold tracking-tight">Contact Messages</h2>
           <p className="text-sm text-muted-foreground">
-            Submissions from the site's Contact Us form ({total} total, {unreadCount} unread).
+            Contact Us messages and bulk quote requests ({total} total, {unreadCount} unread).
           </p>
         </div>
 

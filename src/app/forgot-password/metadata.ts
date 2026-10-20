@@ -1,9 +1,10 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/forgot-password`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Forgot Password — Jacketee',
   description: 'Reset your Jacketee account password. Enter your email address and we\'ll send you a reset link.',
   alternates: { canonical: PAGE_URL },
@@ -15,4 +16,4 @@ export const metadata: Metadata = {
     siteName: 'Jacketee',
     type: 'website',
   },
-}
+})

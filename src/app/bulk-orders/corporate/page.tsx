@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, BadgeCheck, Building2, CalendarDays, PackageCheck, ShieldCheck, Shirt, Users } from 'lucide-react'
@@ -13,7 +14,7 @@ import { BulkOrderResources } from '@/components/bulk-order-resources'
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders/corporate`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Corporate Varsity Jackets & Company Orders | Jacketee',
   description:
     'Order corporate varsity jackets and custom company jackets for uniforms, events and office teams. Plan logos, materials, sizing and delivery.',
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     siteName: 'Jacketee',
     type: 'website',
   },
-}
+})
 
 const programs = [
   ['Employee apparel', 'Consistent jackets for staff, office teams, field crews, and hospitality teams.'],
@@ -51,7 +52,7 @@ export default function CorporateBulkOrdersPage() {
         <section className="border-b bg-zinc-950 text-white">
           <div className="container mx-auto px-4 py-16 md:py-24">
             <Breadcrumbs
-              items={[{ label: 'Bulk Orders', href: '/bulk-orders' }, { label: 'Corporate' }]}
+              items={[{ label: 'Bulk & Teams', href: '/bulk-orders' }, { label: 'Corporate' }]}
               className="mb-8 text-white/70"
             />
             <div className="max-w-3xl">

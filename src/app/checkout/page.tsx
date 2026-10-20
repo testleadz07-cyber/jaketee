@@ -1,5 +1,7 @@
 'use client'
 
+import { getJacketTextSummary } from '@/types/jacket-customization'
+
 import { calculateShipping, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
 import { Suspense, useState, useEffect, useRef } from 'react'
@@ -46,7 +48,7 @@ function getCustomizationSummary(customization?: JacketCustomization) {
   return getCustomizedViews(customization).map((view) => {
     const side = customization[view]
     const details: string[] = []
-    if (side?.text?.value?.trim()) details.push(`Text: ${side.text.value.trim()}`)
+    if (getJacketTextSummary(side)) details.push(`Text: ${getJacketTextSummary(side)}`)
     if (side?.artworks?.length) {
       const names = side.artworks.map((artwork) => artwork.name).filter(Boolean)
       details.push(`${side.artworks.length} artwork piece${side.artworks.length === 1 ? '' : 's'}${names.length ? `: ${names.join(', ')}` : ''}`)

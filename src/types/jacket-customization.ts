@@ -29,11 +29,25 @@ export interface JacketArtworkCustomization {
 
 export interface JacketSideCustomization {
   text?: JacketTextCustomization
+  texts?: JacketTextElement[]
   artworks?: JacketArtworkCustomization[]
 }
 
+export interface JacketTextElement extends JacketTextCustomization { id: string }
+export const MAX_JACKET_TEXTS = 12
+
+// A defined list takes precedence, including an empty list after removing legacy text.
+export function getJacketTexts(side?: JacketSideCustomization | null): JacketTextElement[] {
+  if (side?.texts) return side.texts
+  return side?.text?.value ? [{ ...side.text, id: 'legacy-text' }] : []
+}
+
+export function getJacketTextSummary(side?: JacketSideCustomization | null) {
+  return getJacketTexts(side).map(text => text.value.trim()).filter(Boolean).join(', ')
+}
+
 export interface JacketCustomization {
-  garmentCategory?: 'bomber' | 'coach' | 'puffer'
+  garmentCategory?: 'bomber' | 'coach' | 'puffer' | 'hoodie'
   garmentOptions?: Record<string, string>
   varsityOptions?: Record<string, string>
   front?: JacketSideCustomization
@@ -49,7 +63,7 @@ export function hasJacketCustomization(customization?: JacketCustomization | nul
   if (customization.varsityOptions || customization.garmentOptions) return true
   return JACKET_VIEWS.some((view) => {
     const side = customization[view]
-    return Boolean(side?.text?.value.trim() || side?.artworks?.length)
+    return Boolean(getJacketTextSummary(side) || side?.artworks?.length)
   })
 }
 
@@ -58,7 +72,7 @@ export function getCustomizedViews(customization?: JacketCustomization | null) {
   if (customization.varsityOptions || customization.garmentOptions) return [...JACKET_VIEWS]
   return JACKET_VIEWS.filter((view) => {
     const side = customization[view]
-    return Boolean(side?.text?.value.trim() || side?.artworks?.length)
+    return Boolean(getJacketTextSummary(side) || side?.artworks?.length)
   })
 }
 

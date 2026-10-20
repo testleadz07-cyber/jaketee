@@ -1,5 +1,7 @@
 'use client'
 
+import { getJacketTextSummary } from '@/types/jacket-customization'
+
 import { useEffect, useState, Suspense } from 'react'
 import Image from '@/components/optimized-image'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -263,9 +265,9 @@ function ConfirmationContent() {
                       </p>
                       {getCustomizedViews(item.customization).map((view) => (
                         <p key={view} className="text-xs text-muted-foreground">
-                          {getJacketViewLabel(view)}: {item.customization?.[view]?.text?.value || ''}
+                          {getJacketViewLabel(view)}: {getJacketTextSummary(item.customization?.[view])}
                           {item.customization?.[view]?.artworks?.length
-                            ? `${item.customization?.[view]?.text?.value ? ' + ' : ''}${item.customization[view]?.artworks?.map((artwork) => artwork.name).join(', ')}`
+                            ? `${getJacketTextSummary(item.customization?.[view]) ? ' + ' : ''}${item.customization[view]?.artworks?.map((artwork) => artwork.name).join(', ')}`
                             : ''}
                         </p>
                       ))}

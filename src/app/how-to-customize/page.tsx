@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Image from '@/components/optimized-image'
 import Link from 'next/link'
@@ -33,7 +34,7 @@ import {
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/how-to-customize`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'How to Customize a Jacket | Step-by-Step Customization Guide | Jacketee',
   description:
     'Learn how to design and customize your selected jacket on Jacketee. Follow our easy 6-step guide to pick materials, colors, chenille patches, embroidery, custom sizing, and artwork.',
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     description:
       'Learn how to customize any jacket on Jacketee with our simple 6-step builder guide.',
   },
-}
+})
 
 const customizationSteps = [
   {

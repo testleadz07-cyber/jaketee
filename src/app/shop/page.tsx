@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic'
 const SHOP_TITLE = 'Shop All Custom Jackets | Varsity, Bomber & More | Jacketee'
 const SHOP_DESCRIPTION = 'Browse all custom jackets at Jacketee, including varsity, letterman, bomber, coach, puffer and denim styles. Add patches, embroidery and team colors.'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: SHOP_TITLE,
   description: SHOP_DESCRIPTION,
   alternates: { canonical: 'https://www.jacketee.com/shop' },
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
     title: SHOP_TITLE,
     description: SHOP_DESCRIPTION,
   },
-}
+})
 
 export default async function Page({ searchParams }: {
   searchParams: Promise<{ category?: string; search?: string }>

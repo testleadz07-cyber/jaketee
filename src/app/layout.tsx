@@ -47,8 +47,6 @@ export const metadata: Metadata = {
     icon: "/logo.webp",
   },
   openGraph: {
-    title: HOME_TITLE,
-    description: HOME_DESCRIPTION,
     url: SITE_URL,
     siteName: "Jacketee",
     type: "website",
@@ -56,8 +54,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: HOME_TITLE,
-    description: HOME_DESCRIPTION,
     images: [DEFAULT_SOCIAL_IMAGE.url],
   },
   other: {
@@ -84,7 +80,10 @@ const organizationJsonLd = {
   },
   sameAs: [
     "https://www.facebook.com/jacketeeofficial",
-    "https://www.instagram.com/jack_etee/",
+    "https://www.instagram.com/jacketeeofficial/",
+    "https://www.pinterest.com/ShopJacketee/",
+    "https://x.com/ShopJacketee",
+    "https://www.linkedin.com/in/info-jacketee-552187445/?isSelfProfile=true",
     "https://www.tiktok.com/@jacketeeofficial",
     "https://www.youtube.com/@jacketeeofficial",
   ],

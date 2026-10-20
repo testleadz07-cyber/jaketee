@@ -9,13 +9,14 @@ import { Footer } from '@/components/footer'
 import { CustomizationSection } from '@/components/customization-section'
 import { JacketDesignCanvas } from '@/components/jacket-design-canvas'
 import { Button } from '@/components/ui/button'
+import { HoodieSizeGuide } from '@/components/hoodie-size-guide'
 import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import { FulfillmentNotice } from '@/components/fulfillment-notice'
 import { useCartStore } from '@/store/cart'
 import { captureJacketDesignPreviews, getJacketChestWidth } from '@/lib/jacket-design-preview'
 import { getCustomizationFee } from '@/lib/customization-pricing'
-import { GARMENT_TEMPLATES, GARMENT_COLORS as colorChoices, getGarmentDefaults, getGarmentTemplateId, getGarmentImages, getGarmentSvg, getGarmentPrice, validateGarmentOptions, type GarmentCategory } from '@/lib/garment-template'
-import { JACKET_VIEWS } from '@/types/jacket-customization'
+import { GARMENT_TEMPLATES, getGarmentColors, getGarmentDefaults, getGarmentTemplateId, getGarmentImages, getGarmentSvg, getGarmentPrice, validateGarmentOptions, type GarmentCategory } from '@/lib/garment-template'
+import { JACKET_VIEWS, MAX_JACKET_TEXTS } from '@/types/jacket-customization'
 import { GARMENT_PART_COLORS as partColors } from '@/lib/garment-svg'
 
 const COLOR_SWATCHES = [
@@ -30,6 +31,8 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
   const templateId = getGarmentTemplateId(category)
   const DRAFT_KEY = `jacketee-${category}-design-v1`
   const name = template.name
+  const isHoodie = category === 'hoodie'
+  const colorChoices = getGarmentColors(category)
 
   const router = useRouter()
   const history = useDesignHistory(() => getGarmentDefaults(category))
@@ -58,7 +61,7 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
       if (!saved.design || typeof saved.design !== 'object' || Array.isArray(saved.design)) return
       for (const view of JACKET_VIEWS) {
         const side = saved.design[view]
-        if (side && (typeof side !== 'object' || (side.artworks && !Array.isArray(side.artworks)) || (side.text && typeof side.text.value !== 'string'))) return
+        if (side && (typeof side !== 'object' || (side.artworks && !Array.isArray(side.artworks)) || (side.texts && (!Array.isArray(side.texts) || side.texts.length > MAX_JACKET_TEXTS || side.texts.some((text: { id?: unknown; value?: unknown }) => !text || typeof text.id !== 'string' || typeof text.value !== 'string'))) || (side.text && typeof side.text.value !== 'string'))) return
       }
       queueMicrotask(() => {
         restore(restored, saved.design)
@@ -69,7 +72,11 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
   }, [category, restore])
 
   const changeOption = (name: string, value: string) => {
-    setOptions(current => ({ ...current, [name]: value }))
+    setOptions(current => {
+      const next = { ...current, [name]: value }
+      if (isHoodie && name === 'Closure' && next['Pocket style'] !== 'No pockets') next['Pocket style'] = value === 'Full-zip' ? 'Split pockets' : 'Kangaroo pocket'
+      return next
+    })
     setMessage('')
     setError('')
   }
@@ -128,7 +135,7 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
         router.push('/checkout?mode=buy-now')
       } else {
         addItem(item)
-        setMessage('Your jacket has been added to the cart.')
+        setMessage(isHoodie ? 'Your fleece hoodie has been added to the cart.' : 'Your jacket has been added to the cart.')
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Your design could not be saved. Please retry.')
@@ -143,38 +150,40 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
 
   const optionControl = (name: keyof typeof optionChoices) => <fieldset key={name}>
     <legend className="mb-2 font-semibold">{name}</legend>
-    {name === 'Size' && <div className="mb-3"><JacketSizeGuide sizes={[...optionChoices.Size]} /></div>}
+    {name === 'Size' && <div className="mb-3">{isHoodie ? <HoodieSizeGuide fit={options.Fit} /> : <JacketSizeGuide sizes={[...optionChoices.Size]} />}</div>}
+    {name === 'Fleece weight' && <p className="mb-2 text-xs text-muted-foreground">Choose your preferred fleece weight. Texture is illustrative; contact us to confirm exact fabric specifications.</p>}
+    {name === 'Fit' && <p className="mb-2 text-xs text-muted-foreground">Relaxed adds room through the body and sleeves. Check the size guide and contact us for hoodie measurements.</p>}
     {name === 'Lining' && <p className="mb-2 text-xs text-muted-foreground">The interior fabric is visible at the neckline. The chosen lining is saved with your order.</p>}
     {name === 'Cuff style' && <p className="mb-2 text-xs text-muted-foreground">Elastic cuffs show a gathered seam. Straight cuffs have a clean finish.</p>}
     {name === 'Padding weight' && <p className="mb-2 text-xs text-muted-foreground">The preview illustrates panel spacing for your chosen padding weight. All weights currently use the same price.</p>}
-    <div className="flex flex-wrap gap-2">{optionChoices[name].map(value => <button type="button" key={value} aria-pressed={options[name] === value} onClick={() => changeOption(name, value)} className={`min-h-11 rounded-lg border px-3 py-2 text-sm ${options[name] === value ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:border-primary'}`}>{value}</button>)}</div>
+    <div className="flex flex-wrap gap-2">{optionChoices[name].filter(value => !isHoodie || name !== 'Pocket style' || value === 'No pockets' || value === (options.Closure === 'Full-zip' ? 'Split pockets' : 'Kangaroo pocket')).map(value => <button type="button" key={value} aria-pressed={options[name] === value} onClick={() => changeOption(name, value)} className={`min-h-11 rounded-lg border px-3 py-2 text-sm ${options[name] === value ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:border-primary'}`}>{value}</button>)}</div>
   </fieldset>
 
   const controls = (
     <div className="space-y-6">
       <CustomizationSection title="1. Materials">
-        {optionControl('Body material')}
-        {optionControl('Sleeve material')}
+        {isHoodie ? <><p className="text-sm text-muted-foreground">Cotton fleece body and sleeves, with ribbed cuffs and waistband.</p>{optionControl('Fleece weight')}</> : <>{optionControl('Body material')}{optionControl('Sleeve material')}</>}
       </CustomizationSection>
       <CustomizationSection title="2. Construction">
-        {Object.keys(optionChoices).filter(key => !['Body material', 'Sleeve material', 'Collar style', 'Hood', 'Closure', 'Pocket style', 'Lining', 'Size'].includes(key)).map(optionControl)}
+        {isHoodie ? <>{optionControl('Closure')}{optionControl('Fit')}{optionControl('Sleeve style')}</> : Object.keys(optionChoices).filter(key => !['Body material', 'Sleeve material', 'Collar style', 'Hood', 'Closure', 'Pocket style', 'Lining', 'Size'].includes(key)).map(optionControl)}
       </CustomizationSection>
-      <CustomizationSection title="3. Collar & hood">
+      <CustomizationSection title={isHoodie ? "3. Hood & drawstrings" : "3. Collar & hood"}>
         <img src={collarPreview} alt="Current neckline close-up" className="mx-auto h-48 w-full rounded-lg bg-muted object-contain" />
-        {optionControl('Collar style')}
-        {optionControl('Hood')}
+        {isHoodie ? <><p className="text-sm text-muted-foreground">An attached hood is included with both hoodie styles.</p>{optionControl('Hood lining')}{optionControl('Drawstrings')}</> : <>{optionControl('Collar style')}{optionControl('Hood')}</>}
       </CustomizationSection>
       <CustomizationSection title="4. Finishing">
-        {(['Closure', 'Pocket style', 'Lining'] as const).map(optionControl)}
+        {isHoodie ? <>{optionControl('Pocket style')}<p className="text-xs text-muted-foreground">Full-zip hoodies use split pockets; pullovers use a kangaroo pocket.</p></> : (['Closure', 'Pocket style', 'Lining'] as const).map(optionControl)}
       </CustomizationSection>
       <CustomizationSection detailsRef={colorControlsRef} title="5. Colors">
         <p className="mt-1 text-sm text-muted-foreground">One sleeve color applies to both sleeves.</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {Object.keys(colorChoices).filter(name =>
-            (name !== 'Waistband color' || category === 'bomber') &&
+            (name !== 'Waistband color' || (category === 'bomber' || isHoodie)) &&
             (name !== 'Stripe color' || category === 'bomber') &&
-            (!name.startsWith('Hood') || options.Hood === 'Hooded') &&
+            (!name.startsWith('Hood') || isHoodie || options.Hood === 'Hooded') &&
             (name !== 'Stripe color' || options['Knit style'] !== 'Plain') &&
+            (name !== 'Drawstrings color' || options.Drawstrings === 'With drawstrings') &&
+            (name !== 'Closure color' || !isHoodie || options.Closure === 'Full-zip') &&
             (name !== 'Pockets color' || options['Pocket style'] !== 'No pockets' || options['Sleeve pocket'] === 'Utility pocket')
           ).map(colorControl)}
         </div>
@@ -201,10 +210,10 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
         </div>
         <div className="space-y-5 p-5 sm:p-6">
           <dl className="space-y-3 text-sm">
-            <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Base jacket</dt><dd className="font-medium tabular-nums">$55.00</dd></div>
-            {(options['Body material'] !== 'Cotton fleece' || options['Sleeve material'] !== 'Cotton fleece') && <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Material upgrade</dt><dd className="font-medium tabular-nums">$10.00</dd></div>}
-            {options.Hood === 'Hooded' && <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Hood</dt><dd className="font-medium tabular-nums">$5.00</dd></div>}
-            {options.Closure === 'Zipper' && <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Zipper</dt><dd className="font-medium tabular-nums">$2.00</dd></div>}
+            <div className="flex justify-between gap-4"><dt className="text-muted-foreground">{isHoodie ? 'Base hoodie (hood included)' : 'Base jacket'}</dt><dd className="font-medium tabular-nums">$55.00</dd></div>
+            {!isHoodie && (options['Body material'] !== 'Cotton fleece' || options['Sleeve material'] !== 'Cotton fleece') && <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Material upgrade</dt><dd className="font-medium tabular-nums">$10.00</dd></div>}
+            {!isHoodie && options.Hood === 'Hooded' && <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Hood</dt><dd className="font-medium tabular-nums">$5.00</dd></div>}
+            {(options.Closure === 'Zipper' || (isHoodie && options.Closure === 'Full-zip')) && <div className="flex justify-between gap-4"><dt className="text-muted-foreground">{isHoodie ? 'Full-zip upgrade' : 'Zipper'}</dt><dd className="font-medium tabular-nums">$2.00</dd></div>}
             {artworkFee > 0 && <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Artwork & embroidery</dt><dd className="font-medium tabular-nums">${artworkFee.toFixed(2)}</dd></div>}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4"><dt className="font-semibold">Total <span className="text-xs font-normal text-muted-foreground">USD</span></dt><dd className="text-3xl font-bold tracking-tight tabular-nums">${total.toFixed(2)}</dd></div>
           </dl>
@@ -239,6 +248,7 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
             onRedo={() => { history.redo(); setMessage(''); setError('') }}
             onReset={() => { history.reset(); setSelectedColor('Body color'); setMessage('Design reset to defaults. You can undo this change.'); setError('') }} />}
           onInteractionStart={history.beginInteraction} onInteractionEnd={history.endInteraction}
+          frontPlacement={isHoodie ? (options.Closure === 'Full-zip' ? 'full-zip-hoodie' : 'pullover-hoodie') : undefined}
           images={images} maxTextLength={24} selectedSize={options.Size} value={configuration}
           onPartSelect={id => { const name = partColors[id]; if (name) { if (colorControlsRef.current) colorControlsRef.current.open = true; setSelectedColor(name); colorControlsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) } }}
           onChange={value => { const { garmentOptions: _options, garmentCategory: _category, snapshots: _snapshots, snapshotUrl: _snapshot, ...artwork } = value; setDesign(artwork); setMessage('') }}

@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 import urlRedirects from "./src/data/url-redirects.json";
+import contentLinkRepairs from "./src/data/content-link-repairs.json";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   output: "standalone",
   poweredByHeader: false,
   typescript: {
@@ -34,7 +36,7 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      ...urlRedirects.map(({ source, destination }) => ({
+      ...[...urlRedirects, ...contentLinkRepairs].map(({ source, destination }) => ({
         source,
         destination,
         statusCode: 301 as const,

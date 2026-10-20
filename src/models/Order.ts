@@ -61,6 +61,16 @@ const JacketSideSchema = new Schema({
     x: Number,
     y: Number,
   },
+  texts: { type: [{
+    id: String,
+    layout: { type: String, enum: ['straight', 'curve-up', 'curve-down', 'vertical'], default: 'straight' },
+    value: String,
+    color: String,
+    fontStyle: { type: String, enum: ['varsity', 'block', 'classic', 'script', 'sans', 'serif'] },
+    size: Number,
+    x: Number,
+    y: Number,
+  }], default: undefined },
   artworks: [{
     id: String,
     source: { type: String, enum: ['catalog', 'upload'] },
@@ -84,7 +94,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
     quantity: { type: Number, required: true },
     variants: [{ name: String, value: String }],
     customization: {
-      garmentCategory: { type: String, enum: ['bomber', 'coach', 'puffer'] },
+      garmentCategory: { type: String, enum: ['bomber', 'coach', 'puffer', 'hoodie'] },
       garmentOptions: { type: Map, of: String },
       varsityOptions: { type: Map, of: String },
       front: JacketSideSchema,
