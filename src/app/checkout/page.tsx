@@ -1,5 +1,6 @@
 'use client'
 
+import { Footer } from '@/components/footer'
 import { getJacketTextSummary } from '@/types/jacket-customization'
 
 import { calculateShipping, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
@@ -1282,11 +1283,7 @@ function CheckoutContent() {
         </motion.div>
       </main>
 
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

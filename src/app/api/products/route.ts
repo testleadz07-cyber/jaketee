@@ -1,3 +1,4 @@
+import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters } from '@/lib/catalog-filters'
 import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
@@ -70,6 +71,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    if (searchParams.get('facets') === 'true' && !all) {
+      const facetProducts = await Product.find(filter).select('price variants -_id').lean()
+      return NextResponse.json(getCatalogFacetData(facetProducts as any))
+    }
+    Object.assign(filter, catalogFilterQuery(readCatalogFilters(searchParams)))
+
     if (search) {
       const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       filter.$or = [
@@ -90,7 +97,7 @@ export async function GET(request: NextRequest) {
     else sortObj = { createdAt: -1 }
 
     const products = await Product.find(filter)
-      .sort(sortObj)
+      .sort({ ...sortObj, _id: 1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .populate('categoryId', 'name slug')

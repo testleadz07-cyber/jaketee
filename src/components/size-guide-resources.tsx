@@ -1,5 +1,5 @@
+import { BlogCard } from '@/components/blog-card'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
 import BlogPost from '@/models/BlogPost'
@@ -83,14 +83,8 @@ export async function SizeGuideResources() {
               </div>
               <Link href="/blog" className="text-sm font-semibold underline underline-offset-4">View all articles</Link>
             </div>
-            <div className="grid gap-x-10 md:grid-cols-2">
-              {posts.map((post) => (
-                <Link key={post.slug} href={`/blog/${post.slug}`} className="group flex min-w-0 flex-col border-b py-6">
-                  <h3 className="text-lg font-semibold leading-snug group-hover:underline">{post.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">{post.excerpt}</p>
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold">Read article <ArrowRight className="h-4 w-4" /></span>
-                </Link>
-              ))}
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {posts.map(post => <BlogCard key={post.slug} article={post} />)}
             </div>
           </div>
         </section>

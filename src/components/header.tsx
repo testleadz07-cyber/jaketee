@@ -88,7 +88,7 @@ interface SearchSuggestion {
   categoryPath?: Array<{ name: string; slug: string }>
 }
 
-export function Header() {
+export function Header({ home = false }: { home?: boolean }) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -196,7 +196,7 @@ export function Header() {
 
   const renderMobileSection = (title: string, links: NavLink[]) => (
     <AccordionItem value={title} className="border-b last:border-b-0">
-      <AccordionTrigger className={`min-h-12 items-center rounded-none px-3 py-3 text-sm font-semibold hover:bg-accent hover:no-underline data-[state=open]:bg-accent [&>svg]:hidden ${title === 'Build Your Jacket' ? 'text-red-600 dark:text-red-400' : ''}`}>
+      <AccordionTrigger className={`min-h-12 items-center rounded-none px-3 py-3 text-sm font-semibold hover:bg-accent hover:no-underline data-[state=open]:bg-accent [&>svg]:hidden ${(title === 'Build Your Jacket' || title === 'Design Your Own') ? 'text-red-600 dark:text-red-400' : ''}`}>
         {title}
       </AccordionTrigger>
       <AccordionContent className="p-0">
@@ -224,7 +224,7 @@ export function Header() {
       <button
         type="button"
         aria-haspopup="true"
-        className={`inline-flex h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${label === 'Build Your Jacket' ? 'text-red-600 dark:text-red-400' : ''}`}
+        className={`inline-flex h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${(label === 'Build Your Jacket' || label === 'Design Your Own') ? 'text-red-600 dark:text-red-400' : ''}`}
       >
         {label}
         <ChevronDown className="h-4 w-4" />
@@ -313,10 +313,10 @@ export function Header() {
 
             <nav className="hidden items-center gap-1 xl:flex" aria-label="Main navigation">
               {renderDesktopMenu('Varsity Jackets', varsitySubcategoryLinks, { href: '/varsity-jackets', label: 'All Varsity Jackets', description: '' })}
-              {renderDesktopMenu('Build Your Jacket', customJacketLinks)}
-              {renderDesktopMenu('Bombers & More', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
-              {renderDesktopMenu('Bulk & Teams', bulkOrderLinks, { href: '/bulk-orders', label: 'Bulk & Teams', description: '' })}
-              {renderDesktopMenu('Support', supportLinks)}
+              {renderDesktopMenu(home ? 'Design Your Own' : 'Build Your Jacket', customJacketLinks)}
+              {renderDesktopMenu(home ? 'Shop Jackets' : 'Bombers & More', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
+              {renderDesktopMenu(home ? 'Bulk Orders' : 'Bulk & Teams', bulkOrderLinks, { href: '/bulk-orders', label: 'Bulk & Teams', description: '' })}
+              {renderDesktopMenu(home ? 'Help' : 'Support', supportLinks)}
             </nav>
           </div>
 
@@ -562,10 +562,10 @@ export function Header() {
                   { href: '/varsity-jackets', label: 'All Varsity Jackets', description: 'Classic custom letterman styles' },
                   ...varsitySubcategoryLinks,
                 ])}
-                {renderMobileSection('Build Your Jacket', customJacketLinks)}
-                {renderMobileSection('Bombers & More', otherStyleLinks)}
-                {renderMobileSection('Bulk & Teams', bulkOrderLinks)}
-                {renderMobileSection('Support', supportLinks)}
+                {renderMobileSection(home ? 'Design Your Own' : 'Build Your Jacket', customJacketLinks)}
+                {renderMobileSection(home ? 'Shop Jackets' : 'Bombers & More', otherStyleLinks)}
+                {renderMobileSection(home ? 'Bulk Orders' : 'Bulk & Teams', bulkOrderLinks)}
+                {renderMobileSection(home ? 'Help' : 'Support', supportLinks)}
                 </Accordion>
               </nav>
 

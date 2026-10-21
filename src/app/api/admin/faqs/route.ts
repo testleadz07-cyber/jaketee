@@ -35,6 +35,7 @@ function normalizeDisplayPages(value: unknown) {
 function mapFaq(faq: any) {
   return {
     id: String(faq._id),
+    sourceBatch: faq.sourceBatch || '',
     status: faq.status || 'published',
     question: faq.question,
     answer: faq.answer || [],
@@ -67,6 +68,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim()
     const category = searchParams.get('category')?.trim()
     const displayPage = searchParams.get('displayPage')?.trim()
+    const publication = searchParams.get('status')
+    const sourceBatch = searchParams.get('sourceBatch')?.trim()
 
     const query: Record<string, any> = {}
     if (search) {
@@ -82,6 +85,9 @@ export async function GET(request: NextRequest) {
     }
     if (category && category !== 'all') query.category = category
     if (displayPage && displayPage !== 'all') query.displayPages = displayPage
+    if (publication === 'draft') query.status = 'draft'
+    if (publication === 'published') query.status = { $ne: 'draft' }
+    if (sourceBatch && sourceBatch !== 'all') query.sourceBatch = sourceBatch
 
     const total = await Faq.countDocuments(query)
     const faqs = await Faq.find(query)
@@ -90,9 +96,10 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean()
 
-    const [categories, displayPages] = await Promise.all([
+    const [categories, displayPages, sourceBatches] = await Promise.all([
       Faq.distinct('category'),
       Faq.distinct('displayPages'),
+      Faq.distinct('sourceBatch'),
     ])
 
     return NextResponse.json({
@@ -102,6 +109,7 @@ export async function GET(request: NextRequest) {
       pages: Math.max(1, Math.ceil(total / limit)),
       categories: categories.filter(Boolean).sort(),
       displayPages: displayPages.filter(Boolean).sort(),
+      sourceBatches: sourceBatches.filter(Boolean).sort(),
     })
   } catch (error) {
     console.error('Admin FAQs fetch error:', error)

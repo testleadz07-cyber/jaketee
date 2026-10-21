@@ -10,7 +10,7 @@ import { ProductDetailView, type ProductDetailData } from '@/components/product-
 import { getProductReturnPolicy } from '@/lib/product-return-policy'
 import { shippingDetailsJsonLd } from '@/lib/shipping-schema'
 import { CategoryDetailView } from '@/components/category-detail-view'
-import { CustomDesignSection } from '@/components/custom-design-section'
+import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters, type CatalogFacetData } from '@/lib/catalog-filters'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Faq from '@/models/Faq'
@@ -23,7 +23,7 @@ import { buildProductFaqs, productFaqAnswerText, type ProductFaq as ProductFaqDa
 
 interface Props {
   params: Promise<{ slug: string[] }>
-  searchParams: Promise<{ page?: string | string[] }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 const SITE_URL = 'https://www.jacketee.com'
@@ -333,6 +333,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
     : resolution.category
   let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; heading?: string; introShort?: string; introLong?: string; image?: string; parentId: string | null; _count: { products: number } }> = []
   let initialProducts: any[] = []
+  let initialFacets: CatalogFacetData | undefined
   let initialTotalProducts = 0
   let initialInsights: { reviewCount: number; averageRating: number; reviews: any[]; faqs: any[] } = {
     reviewCount: 0,
@@ -354,7 +355,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         introLong: item.introLong || '',
         parentId: item.parentId ? String(item.parentId) : null,
       }))
-      const counts = await Product.aggregate([{ $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } }, { $group: { _id: '$categoryId', count: { $sum: 1 } } }])
+      const counts = await Product.aggregate([{ $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } }, { $sort: { isFeatured: -1, createdAt: -1 } }, { $group: { _id: '$categoryId', count: { $sum: 1 }, image: { $first: { $arrayElemAt: ['$images.url', 0] } } } }])
       const countById = new Map<string, number>(counts.map((item: any) => [String(item._id), Number(item.count)]))
       initialCategories = rawCategories.map((item: any) => {
         const id = String(item._id)
@@ -366,7 +367,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           heading: item.heading || '',
           introShort: item.introShort || '',
           introLong: item.introLong || '',
-          image: item.image || '',
+          image: item.image || counts.find((row: any) => String(row._id) === id)?.image || '',
           parentId: item.parentId ? String(item.parentId) : null,
           _count: { products: resolveDescendantIds(nodes, id).reduce((sum, descendantId) => sum + (countById.get(descendantId) || 0), 0) },
         }
@@ -374,16 +375,22 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
       const categoryId = String(category._id)
       const descendantIds = resolveDescendantIds(nodes, categoryId)
-      const productFilter = { inStock: true, isDraft: { $ne: true }, status: 'active', categoryId: { $in: descendantIds } }
-      const [rawProducts, total] = await Promise.all([
+      const filterParams = new URLSearchParams()
+      for (const [key, value] of Object.entries(query)) for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) filterParams.append(key, item)
+      const productFilter = { inStock: true, isDraft: { $ne: true }, status: 'active', categoryId: { $in: descendantIds }, ...catalogFilterQuery(readCatalogFilters(filterParams)) }
+      const sortOption = filterParams.get('sort')
+      const productSort: Record<string, 1 | -1> = sortOption === 'price-asc' ? { price: 1 } : sortOption === 'price-desc' ? { price: -1 } : sortOption === 'name' ? { name: 1 } : sortOption === 'newest' ? { createdAt: -1 } : { isFeatured: -1, createdAt: -1 }
+      const [rawProducts, total, facetProducts] = await Promise.all([
         Product.find(productFilter)
-          .sort({ isFeatured: -1, createdAt: -1 })
+          .sort({ ...productSort, _id: 1 })
           .skip((requestedPage - 1) * CATEGORY_PRODUCTS_PER_PAGE)
           .limit(CATEGORY_PRODUCTS_PER_PAGE)
           .populate('categoryId', 'name slug')
           .lean(),
         Product.countDocuments(productFilter),
+        Product.find({ inStock: true, isDraft: { $ne: true }, status: 'active', categoryId: { $in: descendantIds } }).select('price variants -_id').lean(),
       ])
+      initialFacets = getCatalogFacetData(facetProducts as any)
       initialTotalProducts = total
       initialProducts = rawProducts.map((product: any) => {
         const leafId = String(product.categoryId?._id || product.categoryId)
@@ -473,7 +480,10 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           }
         })
       }
-      initialInsights = { faqs, reviewCount, averageRating, reviews }
+      const buyingFaqs = fallbackFaqs.filter(([question]) => /size|customize|materials|shipping|return/i.test(question)).map(([question, answer, href], index) => ({ id: `buying-${index}`, question, answer: [answer], bullets: [], ordered: [], href }))
+      const faqPriority = (question: string) => /siz|fit/i.test(question) ? 0 : /material|color/i.test(question) ? 1 : /customiz|names|numbers/i.test(question) ? 2 : /shipping|deliver/i.test(question) ? 3 : /return/i.test(question) ? 4 : 5
+      const purchaseQuestions = [...new Map([...faqs, ...buyingFaqs].map(faq => [faq.question.toLowerCase(), faq])).values()].sort((a, b) => faqPriority(a.question) - faqPriority(b.question)).slice(0, 5)
+      initialInsights = { faqs: purchaseQuestions, reviewCount, averageRating, reviews }
     } else {
       initialCategories = getStaticCategoriesWithCount().map((item: any) => ({
         id: String(item.id), name: item.name, slug: item.slug, description: item.description || '', heading: item.heading || '', introShort: item.introShort || '', introLong: item.introLong || '', image: item.image || '',
@@ -514,7 +524,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       })),
     ],
   }
-  const visibleFaqs = initialInsights.faqs.slice(0, 10)
+  const visibleFaqs = initialInsights.faqs.slice(0, 5)
   const faqJsonLd = visibleFaqs.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -534,7 +544,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }} />
       {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }} />}
       <CategoryDetailView
-        customDesign={<CustomDesignSection categorySlugs={resolution.ancestorChain.map(item => item.slug)} />}
+        initialFacets={initialFacets}
         key={`${category.slug}-${requestedPage}`}
         slug={category.slug}
         initialCategories={initialCategories.map((item) => item.slug === 'varsity-jackets' ? { ...item, ...VARSITY_CATEGORY_SEO } : item)}

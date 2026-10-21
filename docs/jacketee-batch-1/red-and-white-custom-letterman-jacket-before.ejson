@@ -1,0 +1,101 @@
+{
+  "_id": {
+    "$oid": "6ad900af05b9b4f0615ecd0e"
+  },
+  "name": "Red and White Custom Letterman Jacket",
+  "slug": "red-and-white-custom-letterman-jacket",
+  "description": "Red and white form a traditional custom letterman starting point. The red body and white sleeves establish the proposed color placement. This is a custom design starting point; check the measurements, decoration placement and final construction before ordering. Any lettering shown is generic sample personalization.\n\nDetails\n- Body: Red melton wool\n- Sleeves: White cowhide leather\n- Collar: ribbed stand collar\n- Cuffs and waistband: red with white stripes\n- Lining: lining specification to be confirmed before production\n- Closure: front snaps\n- Fit: unisex regular\n\nCustomization options\nDiscuss a chenille letter, name, number, year patch or embroidery for suitable areas. Placement depends on the selected construction. Confirm the final artwork, size and colors before production. Use your own approved personalization details when requesting a finished design.",
+  "seoTitle": "Red and White Custom Letterman Jacket | Jacketee",
+  "seoDescription": "Explore this design and confirm the details before production. Red and White melton wool and cowhide leather jacket design can be customized.",
+  "price": 59.5,
+  "categoryId": {
+    "$oid": "6a9efc07f67a6c3a3788c394"
+  },
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792607801/jacketee/draft-products/red-and-white-custom-letterman-jacket/front.jpg",
+      "alt": "Red and White Custom Letterman Jacket, front view",
+      "order": 0
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792607891/jacketee/draft-products/red-and-white-custom-letterman-jacket/back.jpg",
+      "alt": "Red and White Custom Letterman Jacket, back view",
+      "order": 1
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792608024/jacketee/draft-products/red-and-white-custom-letterman-jacket/left-sleeve.jpg",
+      "alt": "Red and White Custom Letterman Jacket, left sleeve view",
+      "order": 2
+    },
+    {
+      "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792608209/jacketee/draft-products/red-and-white-custom-letterman-jacket/right-sleeve.jpg",
+      "alt": "Red and White Custom Letterman Jacket, right sleeve view",
+      "order": 3
+    }
+  ],
+  "variants": [
+    {
+      "name": "Size",
+      "value": "XS",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "S",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "M",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "L",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "2XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "3XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Color",
+      "value": "Red and White",
+      "priceAdjust": 0,
+      "inStock": true
+    }
+  ],
+  "careInstructions": "Brush the melton wool gently and wipe leather sleeves with a soft dry cloth. Use a specialist experienced in wool and leather for thorough cleaning. Do not machine wash, soak, tumble dry or apply direct heat. Follow the final sewn-in care label.",
+  "isDraft": true,
+  "status": "inactive",
+  "inStock": true,
+  "isFeatured": false,
+  "averageRating": 0,
+  "reviewCount": 0,
+  "compareAtPriceVerified": false,
+  "tags": [],
+  "createdAt": {
+    "$date": "2026-10-21T18:13:03.828Z"
+  },
+  "updatedAt": {
+    "$date": "2026-10-21T18:43:34.614Z"
+  }
+}

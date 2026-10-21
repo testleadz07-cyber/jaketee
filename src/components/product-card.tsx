@@ -29,12 +29,15 @@ interface ProductCardProps {
     categoryPath?: Array<{ name: string; slug: string }>
     isFeatured: boolean
   }
+  categoryLabel?: string
+  collection?: boolean
+  home?: boolean
   listingPosition?: number
 }
 
-export function ProductCard({ product, listingPosition }: ProductCardProps) {
+export function ProductCard({ product, listingPosition, home = false, collection = false, categoryLabel }: ProductCardProps) {
   const { data: session } = useSession()
-  const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id))
+  const isInWishlist = useWishlistStore((state) => state.items.some((item) => item.productId === product.id))
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const imageUrl = product.images[0]?.url || '/placeholder.png'
@@ -67,10 +70,11 @@ export function ProductCard({ product, listingPosition }: ProductCardProps) {
               fill
               sizes="(max-width: 1023px) 50vw, (max-width: 1279px) 25vw, 320px"
               quality={70}
-              className="media-zoom object-cover"
+              priority={collection && listingPosition === 1}
+              className={(home || collection) ? "media-zoom object-contain bg-white p-2" : "media-zoom object-cover"}
               onError={(event) => { event.currentTarget.src = '/placeholder.png' }}
             />
-            
+
             <Button
               size="icon"
               variant="secondary"
@@ -106,7 +110,7 @@ export function ProductCard({ product, listingPosition }: ProductCardProps) {
                 {discount}% OFF
               </Badge>
             )}
-            {product.isFeatured && (
+            {product.isFeatured && !home && !collection && (
               <Badge className="absolute bottom-3 left-3 z-10" variant="secondary">
                 <Star className="h-3 w-3 mr-1 fill-yellow-500 text-yellow-500" />
                 Featured
@@ -116,9 +120,10 @@ export function ProductCard({ product, listingPosition }: ProductCardProps) {
           </div>
 
           <CardContent className="flex flex-1 flex-col p-3 sm:p-4">
-            <Badge variant="outline" className="mb-2 max-w-full self-start truncate text-xs">
+            {categoryLabel && <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{categoryLabel}</p>}
+            {!home && <Badge variant="outline" className="mb-2 max-w-full self-start truncate text-xs">
               {product.category?.name || 'Uncategorized'}
-            </Badge>
+            </Badge>}
 
             <h3 className="mb-3 min-h-10 text-sm font-semibold leading-5 line-clamp-2 group-hover:text-primary transition-colors sm:min-h-12 sm:text-base sm:leading-6">
               {product.name}

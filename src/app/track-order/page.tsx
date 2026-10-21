@@ -1,5 +1,6 @@
 'use client'
 
+import { Footer } from '@/components/footer'
 import { useState } from 'react'
 import Image from '@/components/optimized-image'
 import { motion } from 'framer-motion'
@@ -490,11 +491,7 @@ export default function TrackOrderPage() {
         </motion.div>
       </main>
 
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

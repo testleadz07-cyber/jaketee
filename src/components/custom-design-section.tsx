@@ -1,3 +1,4 @@
+import { HomeDesignPreview } from '@/components/home-design-preview'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import Image from '@/components/optimized-image'
@@ -20,7 +21,7 @@ const categoryDesigners: Record<string, { href: string; label: string; title: st
   'fleece-hoodies': { href: '/design/hoodie', label: 'Customize a fleece hoodie', title: 'Design Your Own Fleece Hoodie' },
 }
 
-export async function CustomDesignSection({ categorySlugs = [] }: { categorySlugs?: string[] } = {}) {
+export async function CustomDesignSection({ categorySlugs = [], home = false }: { categorySlugs?: string[]; home?: boolean } = {}) {
   // Resolve through the ancestor chain so material/fit subcategories inherit
   // their jacket family's designer. Other collections use the designer hub.
   const designer = categorySlugs.map(slug => categoryDesigners[slug]).find(Boolean)
@@ -34,6 +35,8 @@ export async function CustomDesignSection({ categorySlugs = [] }: { categorySlug
   } catch (error) {
     console.error('Unable to load custom design images', error)
   }
+
+  if (home) return <HomeDesignPreview images={images} />
 
   return (
     <section className="store-section store-section--soft" aria-labelledby="custom-design-heading">

@@ -1,5 +1,5 @@
+import { BlogCard } from '@/components/blog-card'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
@@ -115,14 +115,8 @@ export async function PolicyResources({ topic }: { topic: Topic }) {
               <h2 id={`${topic}-article-heading`} className="text-2xl font-semibold">Related articles</h2>
               <Link href="/blog" className="text-sm font-semibold underline underline-offset-4">View all articles</Link>
             </div>
-            <div className="grid gap-x-8 md:grid-cols-3">
-              {articles.map((article) => (
-                <Link key={article.slug} href={`/blog/${article.slug}`} className="group flex min-w-0 flex-col border-b py-6">
-                  <h3 className="text-lg font-semibold leading-snug group-hover:underline">{article.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
-                  <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold">Read article <ArrowRight className="h-4 w-4" /></span>
-                </Link>
-              ))}
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.map(article => <BlogCard key={article.slug} article={article} />)}
             </div>
           </div>
         </section>

@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
 import CategoryModel from '@/models/Category'
 import { resolveAncestorChain, resolveDescendantIds, type CategoryNode } from '@/lib/categories'
+import { selectHomeFeatured } from '@/lib/home-featured'
 import { curatedCategorySlugs } from '@/lib/curated-category-slugs'
 import { CustomDesignSection } from '@/components/custom-design-section'
 import Home, { type Category, type Product } from './home-client'
@@ -58,7 +59,7 @@ export default async function Page() {
       .populate('categoryId', 'name slug')
       .lean()
   })
-  const [counts, rawFeatured, rawNewest, ...rawCategoryRows] = await Promise.all([
+  const [counts, rawFeatured, rawNewest, candidateGroups, ...rawCategoryRows] = await Promise.all([
     ProductModel.aggregate([
       { $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } },
       { $group: { _id: '$categoryId', count: { $sum: 1 } } },
@@ -73,6 +74,12 @@ export default async function Page() {
       .limit(8)
       .populate('categoryId', 'name slug')
       .lean(),
+    ProductModel.aggregate([
+      { $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } },
+      { $sort: { isFeatured: -1, createdAt: -1, _id: 1 } },
+      { $group: { _id: '$categoryId', products: { $push: '$_id' } } },
+      { $project: { products: { $slice: ['$products', Math.max(rawCategories.length, 1)] } } },
+    ]),
     ...categoryQueries,
   ])
   const countById = new Map<string, number>(counts.map((row) => [String(row._id), row.count]))
@@ -108,13 +115,30 @@ export default async function Page() {
       inStock: item.inStock,
     }
   }
-  const featuredProducts = rawFeatured.map(mapProduct)
+  const legacyFeatured = rawFeatured.map(mapProduct)
+  const excludedFeaturedCategoryIds = new Set(
+    categories.filter(category => ['patches-embroidery', 'patches', 'embroidery'].includes(category.slug))
+      .flatMap(category => resolveDescendantIds(nodes, category.id))
+  )
+  const coverage = selectHomeFeatured(categories.filter(category => !excludedFeaturedCategoryIds.has(category.id)), new Map<string, string[]>(candidateGroups.map(group => [
+    String(group._id), group.products.map((id: unknown) => String(id)),
+  ])), curatedCategorySlugs)
+  if (coverage.unmatched.length) {
+    console.warn('Homepage categories without a unique eligible product:', coverage.unmatched.map(category => category.slug))
+  }
+  const selectedRows = await ProductModel.find({ _id: { $in: coverage.selections.map(selection => selection.productId) }, inStock: true, isDraft: { $ne: true }, status: 'active' })
+    .populate('categoryId', 'name slug').lean()
+  const selectedProducts = new Map<string, Product>(selectedRows.map(item => [String(item._id), mapProduct(item)]))
+  const featuredProducts = coverage.selections.flatMap(({ category, productId }) => {
+    const product = selectedProducts.get(productId)
+    return product ? [{ ...product, featuredCategory: { name: category.name, slug: category.slug } }] : []
+  })
   const newArrivals = rawNewest.map(mapProduct)
-    .filter((item) => !featuredProducts.some((featured) => featured.id === item.id))
+    .filter((item) => !legacyFeatured.some((featured) => featured.id === item.id))
     .slice(0, 4)
   const categoryProducts = Object.fromEntries(
     curatedCategorySlugs.map((slug, index) => [slug, rawCategoryRows[index].map(mapProduct)])
   ) as Record<string, Product[]>
 
-  return <Home customDesign={<CustomDesignSection />} hero={<HomeHero />} categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
+  return <Home customDesign={<CustomDesignSection home />} hero={<HomeHero />} categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
 }

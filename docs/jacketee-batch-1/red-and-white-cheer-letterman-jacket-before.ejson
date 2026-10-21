@@ -1,0 +1,107 @@
+{
+  "_id": {
+    "$oid": "6ad9273a0d8f98908ab0b003"
+  },
+  "slug": "red-and-white-cheer-letterman-jacket",
+  "averageRating": 0,
+  "careInstructions": "Spot clean the wool body with a damp cloth and mild cleaner. Condition genuine leather sleeves with a suitable leather conditioner, testing a hidden area first. Do not machine wash, soak or tumble dry. Use a cleaner experienced with mixed wool and leather garments when needed.",
+  "categoryId": {
+    "$oid": "6a9efc07f67a6c3a3788c394"
+  },
+  "createdAt": {
+    "$date": "2026-10-21T20:57:30.293Z"
+  },
+  "currency": "USD",
+  "description": "This cheer letterman jacket suits cheerleaders and squads seeking a bright, coordinated layer. The white wool body and red sleeves frame one included chenille megaphone patch for a cheer-focused look.\n\nDetails\n- Body: white 24 oz melton wool\n- Sleeves: red genuine cowhide leather\n- Trim: white and red striped knit collar, cuffs and waistband\n- Lining: quilted lining\n- Closure: snap-button front\n- Pockets: two welt pockets\n- Fit: True-to-size fit; compare your measurements with the size guide\n- Sizes: XXS through 6XL\n\nCustomization options\n- Chenille letter and name embroidery\n- Number, patches and back lettering\n- Free digital design proof before production.\n\nExplore cheerleader letterman jacket styling or cheer letterman jacket custom styling or cheer letterman jacket patches with your own personal details. Choose your layout through our [custom letterman jacket](/custom-letterman-jackets) options and review the placement before production.\n\nProduction and delivery\nMade in our Sialkot factory. Made in 6–7 business days after design approval. Delivery in 5–7 business days.",
+  "images": [],
+  "inStock": true,
+  "isDraft": true,
+  "isFeatured": false,
+  "landingPages": [],
+  "name": "Red and White Cheer Letterman Jacket",
+  "price": 60,
+  "primaryKeyword": "cheer letterman jacket",
+  "reviewCount": 0,
+  "secondaryKeywords": [
+    "cheerleader letterman jacket",
+    "cheer letterman jacket custom",
+    "cheer letterman jacket patches"
+  ],
+  "seoDescription": "Cheer letterman jacket with a white wool body, red leather sleeves and a megaphone patch. Add your name, number and squad letter. Free design proof.",
+  "seoTitle": "Red and White Cheer Letterman Jacket | Jacketee",
+  "sourceBatch": "jacketee-batch-1",
+  "specificationDetails": "Body: white 24 oz melton wool\nSleeves: red genuine cowhide leather\nTrim: white and red striped knit collar, cuffs and waistband\nLining: quilted lining\nClosure: snap-button front\nPockets: two welt pockets\nFit: True-to-size fit; compare your measurements with the size guide\nSizes: XXS through 6XL",
+  "status": "inactive",
+  "tags": [],
+  "updatedAt": {
+    "$date": "2026-10-21T20:57:30.293Z"
+  },
+  "variants": [
+    {
+      "name": "Size",
+      "value": "XXS",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "XS",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "S",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "M",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "L",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "2XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "3XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "4XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "5XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "6XL",
+      "priceAdjust": 0,
+      "inStock": true
+    }
+  ]
+}

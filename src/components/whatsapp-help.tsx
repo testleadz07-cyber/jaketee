@@ -21,7 +21,7 @@ function shouldIncludePageDetail(pathname: string, hasContextMessage: boolean) {
   return hasContextMessage || pathname !== '/'
 }
 
-export function WhatsAppButton({ message, className = '' }: { message?: string; className?: string }) {
+export function WhatsAppButton({ message, className = '', compact = false }: { message?: string; className?: string; compact?: boolean }) {
   const pathname = usePathname() || '/'
   return (
     <a
@@ -52,7 +52,7 @@ export function WhatsAppButton({ message, className = '' }: { message?: string; 
       }}
     >
       <MessageCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
-      WhatsApp
+      <span className={compact ? "sr-only sm:not-sr-only" : undefined}>WhatsApp help</span>
     </a>
   )
 }

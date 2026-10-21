@@ -1,5 +1,6 @@
 'use client'
 
+import { Footer } from '@/components/footer'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/header'
@@ -74,11 +75,7 @@ export default function NotFound() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

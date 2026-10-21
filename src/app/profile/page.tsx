@@ -1,5 +1,6 @@
 'use client'
 
+import { Footer } from '@/components/footer'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -1102,11 +1103,7 @@ export default function ProfilePage() {
         </DialogContent>
       </Dialog>
 
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

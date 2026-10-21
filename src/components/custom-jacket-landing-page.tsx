@@ -1,3 +1,4 @@
+import { BlogCard } from '@/components/blog-card'
 import Image from '@/components/optimized-image'
 import { cache } from 'react'
 import { withSocialMetadata, socialImageUrl } from '@/lib/seo-metadata'
@@ -164,7 +165,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
         </section>
 
         <section className="border-b py-12 md:py-16">
-          <div className="container mx-auto px-4"><h2 className="text-2xl font-bold md:text-3xl">Related design guides</h2><div className="mt-7 grid gap-6 border-t pt-7 md:grid-cols-3">{config.guides.map((guide) => <Link key={guide.slug} href={`/blog/${guide.slug}`} className="group border-b pb-5"><span className="text-lg font-semibold group-hover:underline">{guide.title}</span><span className="mt-4 flex items-center gap-1 text-sm font-semibold">Read guide <ArrowRight className="h-4 w-4" /></span></Link>)}</div></div>
+          <div className="container mx-auto px-4"><h2 className="text-2xl font-bold md:text-3xl">Related design guides</h2><div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{config.guides.map(guide => <BlogCard key={guide.slug} article={{ ...guide, excerpt: "" }} />)}</div></div>
         </section>
 
         <section className="bg-red-800 py-12 text-white md:py-16"><div className="container mx-auto flex flex-col gap-6 px-4 md:flex-row md:items-end md:justify-between"><div><CheckCircle2 className="h-7 w-7" /><h2 className="mt-4 text-2xl font-bold md:text-3xl">Ready to plan your {config.keyword.toLowerCase()}?</h2><p className="mt-3 max-w-2xl text-white/80">Choose a starting jacket or send the team your artwork, quantity, sizes, and destination for a project-specific quote and free mockup.</p></div><Link href="/contact" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 bg-white px-5 text-sm font-semibold text-red-900 hover:bg-white/90">Start your project <ArrowRight className="h-4 w-4" /></Link></div></section>

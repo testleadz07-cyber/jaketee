@@ -1,5 +1,13 @@
 import type { ReactNode } from 'react'
 
+// Only turn local Markdown links into anchors; all catalog copy stays text.
+function linkedText(text: string) {
+  return text.split(/(\[[^\]]+\]\(\/(?!\/)[^\s)]*\))/g).map((part, index) => {
+    const link = part.match(/^\[([^\]]+)\]\((\/[^\s)]*)\)$/)
+    return link ? <a key={index} href={link[2]} className="font-medium underline underline-offset-4">{link[1]}</a> : part
+  })
+}
+
 function lines(value: string, heading?: string) {
   return value.split(/\r?\n/).map(line => line.trim()).filter(line =>
     line && (!heading || line.replace(/^#+\s*|[:\s]+$/g, '').toLowerCase() !== heading.toLowerCase())
@@ -33,7 +41,7 @@ export function ProductCopy({ description, specificationDetails, careInstruction
   const overview = sections.filter(section => !['Details', 'Customization options'].includes(lines(section)[0]))
   return <div className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
     {overview.length > 0 && <CopySection title="Overview" open>
-      {overview.map((section, index) => <p key={index} className="whitespace-pre-line">{section}</p>)}
+      {overview.map((section, index) => <p key={index} className="whitespace-pre-line">{linkedText(section)}</p>)}
     </CopySection>}
     {sections.map((section, index) => {
       const content = lines(section)

@@ -79,7 +79,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
 
   const addItem = useCartStore((state) => state.addItem)
   const setDirectOrderItem = useCartStore((state) => state.setDirectOrderItem)
-  const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id))
+  const isInWishlist = useWishlistStore((state) => state.items.some((item) => item.productId === product.id))
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
 

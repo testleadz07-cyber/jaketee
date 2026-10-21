@@ -27,7 +27,20 @@ const guides = [
   { title: 'Patches & Embroidery', description: 'Plan chenille patches, embroidery placement, lettering, artwork, and team personalization.', href: '/patches-embroidery', action: 'Explore patches & embroidery', images: patches },
 ]
 
-export function CustomOptionsSection() {
+export function CustomOptionsSection({ compact = false }: { compact?: boolean }) {
+  if (compact) return (
+    <section className="store-section store-section--plain" aria-label="Make it yours">
+      <div className="section-shell grid gap-5 py-8! md:grid-cols-2">
+        {guides.map(guide => (
+          <Link key={guide.href} href={guide.href} className="group grid grid-cols-[0.8fr_1.2fr] items-center overflow-hidden rounded-xl border bg-card focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
+            <div className="relative h-full min-h-40 bg-muted"><Image src={guide.images[0].url} alt={guide.images[0].alt} fill sizes="(max-width: 767px) 40vw, 22vw" className="object-cover" /></div>
+            <div className="p-4 sm:p-6"><h2 className="text-lg font-bold sm:text-2xl">{guide.title}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{guide.title === 'Materials & Colors' ? 'Find your fabric. Choose your colors.' : 'Add your name, letters, or team artwork.'}</p><span className="mt-3 inline-flex items-center gap-2 text-sm font-semibold">Explore <ArrowRight aria-hidden="true" className="h-4 w-4" /></span></div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+
   return (
     <section className="store-section store-section--plain store-section--accent" aria-labelledby="custom-options-heading">
       <div className="section-shell">

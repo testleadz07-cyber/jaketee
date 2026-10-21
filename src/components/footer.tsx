@@ -141,7 +141,7 @@ export function Footer() {
         <Link
           key={link.id || link.href}
           href={link.href}
-          className="text-sm text-muted-foreground transition-colors duration-200 hover:text-primary md:hover:translate-x-0.5"
+          className="inline-flex min-h-11 items-center text-sm md:min-h-0 text-muted-foreground transition-colors duration-200 hover:text-primary md:hover:translate-x-0.5"
         >
           {link.label}
         </Link>
@@ -152,9 +152,9 @@ export function Footer() {
 
 
   return (
-    <footer className="mt-auto border-t bg-card text-card-foreground">
+    <footer className="site-footer mt-auto border-t-4 border-[#b8483e] bg-card text-card-foreground">
       <div className="border-b bg-background">
-        <div className="container mx-auto grid grid-cols-2 gap-px bg-border md:grid-cols-4">
+        <div className="container mx-auto grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
           <Link href="/checkout" className="flex min-h-24 items-center gap-3 bg-background px-4 py-5">
             <LockKeyhole className="h-5 w-5 shrink-0" />
             <span><strong className="block text-sm">Secure checkout</strong><span className="text-xs text-muted-foreground">Protected payment flow</span></span>
@@ -206,11 +206,12 @@ export function Footer() {
             { title: 'Customer Care', links: customerCareLinks },
             { title: 'Custom Jackets', links: customJacketLinks },
           ].filter(section => section.links.length > 0).map(section => (
-            <div key={section.title} className="space-y-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">{section.title}</h3>
+            <details key={section.title} className="group border-b pb-4 md:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold uppercase tracking-wider">{section.title}<span aria-hidden="true" className="group-open:rotate-45">+</span></summary>
               {renderLinkList(section.links)}
-            </div>
+            </details>
           ))}
+          {[{ title: 'Categories', links: categoryLinks }, { title: 'Customer Care', links: customerCareLinks.filter(link => ['/about', '/size-guide', '/contact', '/shipping', '/track-order', '/returns', '/faq'].includes(link.href)) }, { title: 'Custom Jackets', links: [...customJacketLinks.slice(0, 5), { href: '/design', label: 'Explore all designers' }, { href: '/bulk-orders', label: 'Bulk orders' }] }].map(section => <div key={section.title} className="hidden space-y-4 md:block"><h3 className="text-sm font-semibold uppercase tracking-wider">{section.title}</h3>{renderLinkList(section.links)}</div>)}
         </div>
 
         <div className="mt-8 border-t border-muted pt-6 text-xs text-muted-foreground md:mt-12 md:text-center">
@@ -229,7 +230,7 @@ export function Footer() {
             </button>
           </div>
           <p className="leading-relaxed md:mt-4">
-            © {new Date().getFullYear()} Jacketee. All rights reserved. Designed for excellence.
+            &copy; {new Date().getFullYear()} Jacketee. All rights reserved.
           </p>
         </div>
       </div>
