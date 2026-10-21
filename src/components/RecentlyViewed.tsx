@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { History } from 'lucide-react'
 import { ProductCard } from '@/components/product-card'
+import { productGridClassName } from '@/lib/product-grid'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
 
 interface RecentlyViewedProps {
@@ -21,19 +22,20 @@ export function RecentlyViewed({ excludeProductId, limit = 4, sectionClassName }
   if (products.length === 0) return null
 
   const content = (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-6">
       <div className="flex items-center gap-2">
         <History className="h-5 w-5 text-primary" />
-        <h3 className="text-xl font-bold tracking-tight">Recently Viewed</h3>
+        <h3 className="text-2xl font-bold tracking-tight md:text-3xl">Recently Viewed</h3>
       </div>
 
       <motion.div
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        className={productGridClassName}
       >
         {products.map((product, index) => (
           <motion.div
             key={product.id}
+            className="h-full min-w-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.4 }}
@@ -49,7 +51,7 @@ export function RecentlyViewed({ excludeProductId, limit = 4, sectionClassName }
 
   return (
     <section className={sectionClassName}>
-      <div className="container mx-auto px-4 py-12 md:py-16">{content}</div>
+      <div className="section-shell">{content}</div>
     </section>
   )
 }

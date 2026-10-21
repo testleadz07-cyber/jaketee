@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { FaqText } from '@/components/faq-text'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -11,6 +12,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
+import { productGridClassName } from '@/lib/product-grid'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -54,6 +56,7 @@ interface Product {
 }
 
 interface CategoryDetailViewProps {
+  customDesign?: ReactNode
   slug: string
   initialCategories?: Category[]
   initialProducts?: Product[]
@@ -127,6 +130,7 @@ function CategoryLongContent({ content }: { content: string }) {
 }
 
 export function CategoryDetailView({
+  customDesign,
   slug,
   initialCategories = [],
   initialProducts = [],
@@ -281,7 +285,7 @@ export function CategoryDetailView({
             </div>
             <div className="hidden aspect-[4/3] animate-pulse rounded-md bg-muted md:block" />
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className={productGridClassName}>
             {[...Array(8)].map((_, index) => (
               <div key={index} className="aspect-[3/4] animate-pulse rounded-lg bg-muted" />
             ))}
@@ -525,12 +529,12 @@ export function CategoryDetailView({
         </div>
 
         {loading && products.length === 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4" aria-label="Loading products">
+          <div className={productGridClassName} aria-label="Loading products">
             {Array.from({ length: 8 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-md bg-muted" />)}
           </div>
         ) : products.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className={productGridClassName}>
               {products.map((product, index) => (
                 <ProductCard key={product.id} product={product} listingPosition={index + 1} />
               ))}
@@ -591,6 +595,8 @@ export function CategoryDetailView({
         )}
           </div>
         </section>
+
+        {customDesign}
 
         {category.introLong && (
           <section className="store-section store-section--plain" aria-labelledby="category-long-guide-heading">

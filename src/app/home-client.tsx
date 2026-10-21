@@ -7,8 +7,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/header'
 import { ProductCard } from '@/components/product-card'
+import { productGridClassName } from '@/lib/product-grid'
 import dynamic from 'next/dynamic'
 const RecentlyViewed = dynamic(() => import('@/components/RecentlyViewed').then((mod) => mod.RecentlyViewed))
+import { HomeDesignCta } from '@/components/home-design-cta'
+import { CustomOptionsSection } from '@/components/custom-options-section'
 import { Footer } from '@/components/footer'
 import { buildCategoryUrl } from '@/lib/categories'
 import { curatedCategorySlugs } from '@/lib/curated-category-slugs'
@@ -111,8 +114,9 @@ const homeFaqJsonLd = {
   })),
 }
 
-export default function Home({ categories, featuredProducts, newArrivals, categoryProducts, hero }: {
+export default function Home({ categories, featuredProducts, newArrivals, categoryProducts, hero, customDesign }: {
   hero: React.ReactNode
+  customDesign: React.ReactNode
   categories: Category[]
   featuredProducts: Product[]
   newArrivals: Product[]
@@ -156,7 +160,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
   const productGrid = (products: Product[], skeletonCount = 4) => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={productGridClassName}>
           {Array.from({ length: skeletonCount }).map((_, index) => (
             <div key={index} className="aspect-[3/4] rounded-lg bg-muted animate-pulse" />
           ))}
@@ -173,7 +177,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
     }
 
     return (
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={productGridClassName}>
         {products.map((product) => (
           <div key={product.id}>
             <ProductCard product={product} />
@@ -207,91 +211,49 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
       </section>
 
       <main className="flex-1">
-        <section className="store-section store-section--contrast">
+        <section className="store-section store-section--plain" aria-labelledby="jacket-types-heading">
           <div className="section-shell">
-            <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <div>
-                <p className="text-sm font-semibold uppercase text-white/65">Design your own</p>
-                <h2 className="mt-2 text-3xl font-bold md:text-4xl">Start a custom jacket design</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
-                  Choose a jacket style, add letters, patches, embroidery, names, numbers, or uploaded artwork.
-                </p>
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <Button asChild size="lg" className="bg-red-700 text-white hover:bg-red-800">
-                    <Link href="/design/varsity">Custom Letterman / Varsity</Link>
-                  </Button>
-                  <Button asChild size="lg" variant="secondary">
-                    <Link href="/design/puffer">Custom Puffer</Link>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  ['Custom bomber jacket', '/design/bomber'],
-                  ['Custom coach jacket', '/design/coach'],
-                  ['Patches & embroidery', '/patches-embroidery'],
-                  ['Materials & colors', '/materials-colors'],
-                ].map(([label, href]) => (
-                  <Link key={href} href={href} className="group flex min-h-20 items-center justify-between rounded-md border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10">
-                    {label}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="store-section store-section--plain store-section--accent">
-          <div className="section-shell">
-          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
+            <div className="mb-6 text-center">
               <p className="text-sm font-semibold uppercase tracking-wider text-primary">Shop by category</p>
-              <h2 className="mt-2 text-3xl font-bold md:text-4xl">Start with the jacket style</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Explore varsity, bomber, leather, and other jacket styles to find the right starting point.
-              </p>
+              <h2 id="jacket-types-heading" className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">Start with the jacket style</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">Explore varsity, bomber, leather, and other jacket styles to find the right starting point.</p>
             </div>
-            <Button asChild variant="outline">
-              <Link href="/shop">View All Products</Link>
-            </Button>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categoryTiles.map((category) => {
-              const sampleProduct = categoryProducts[category.slug]?.find((product) => product.images?.[0]?.url)
-              const imageUrl = sampleProduct?.images?.[0]?.url || category.image
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 lg:gap-6">
+              {categoryTiles.map((category) => {
+                const sampleProduct = categoryProducts[category.slug]?.find((product) => product.images?.some((image) => image.url))
+                const productImage = sampleProduct?.images.find((image) => image.url)
+                const imageUrl = category.image || productImage?.url
 
-              return (
-                <Link
-                  key={category.id}
-                  href={buildCategoryUrl([{ slug: category.slug }])}
-                  className="interactive-lift group relative min-h-[220px] overflow-hidden rounded-lg border border-white/10 bg-zinc-900 p-6 text-white"
-                >
-                  {imageUrl && (
-                    <Image
-                      src={imageUrl}
-                      alt={sampleProduct?.images?.[0]?.alt || category.name}
-                      fill
-                      sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
-                      quality={65}
-                      className="media-zoom object-cover opacity-50"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-black/35" />
-                  <div className="relative flex h-full flex-col justify-end">
-                    <p className="text-sm text-white/75">{category._count.products} products</p>
-                    <h3 className="mt-2 text-2xl font-bold">{category.name}</h3>
-                    <p className="mt-3 flex items-center text-sm font-semibold">
-                      Shop category
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </p>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
+                return (
+                  <Link
+                    key={category.id}
+                    href={buildCategoryUrl([{ slug: category.slug }])}
+                    className="group relative isolate aspect-[3/4] overflow-hidden rounded-xl bg-zinc-100 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                  >
+                    {imageUrl && (
+                      <Image
+                        src={imageUrl}
+                        alt={category.image ? category.name : productImage?.alt || category.name}
+                        fill
+                        sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 17vw"
+                        quality={80}
+                        className="object-contain transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
+                      />
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
+                    <h3 className="absolute inset-x-0 bottom-0 px-2 pb-4 pt-8 text-center text-base font-bold leading-snug text-white drop-shadow-sm xl:text-lg">
+                      {category.name}
+                    </h3>
+                  </Link>
+                )
+              })}
+            </div>
+            <div className="mt-6 text-center">
+              <Button asChild variant="outline">
+                <Link href="/shop">View All Products</Link>
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -313,80 +275,42 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
           </div>
         </section>
 
-        <section className="store-section store-section--contrast">
+        {customDesign}
+
+        <section className="store-section store-section--contrast" aria-labelledby="bulk-orders-heading">
           <div className="section-shell">
-            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase text-white/65">Made for your group</p>
-                <h2 className="mt-2 text-3xl font-bold md:text-4xl">Custom & bulk jackets</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
-                  Explore jacket options for schools, businesses, and independent labels.
-                </p>
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm font-semibold uppercase tracking-wider text-white/65">Made for your group</p>
+              <h2 id="bulk-orders-heading" className="mt-2 text-3xl font-bold md:text-4xl">Custom jackets for schools, teams &amp; brands</h2>
+              <p className="mt-4 text-sm leading-7 text-white/75 md:text-base">
+                Coordinate school groups, company events, and private-label collections with Jacketee. Plan your materials, brand colors, logo artwork, and individual names or numbers in one order. Share your quantity, size breakdown, and delivery needs, then review your quote and digital proof before production.
+              </p>
+              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button asChild size="lg" className="bg-red-700 text-white hover:bg-red-800">
+                  <Link href="/bulk-orders#bulk-quote">Request a Free Bulk Quote <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                </Button>
+                <Link href="/bulk-orders" className="text-sm font-semibold underline decoration-white/40 underline-offset-4 hover:decoration-white">How bulk orders work</Link>
               </div>
-              <Button asChild variant="secondary">
-                <Link href="/bulk-orders">Explore Bulk &amp; Teams <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
+              <p className="mt-4 text-sm leading-6 text-white/65">
+                Planning 10 or more jackets? Start with our <Link href="/materials-colors" className="text-white underline underline-offset-4">materials &amp; colors</Link> and <Link href="/size-guide" className="text-white underline underline-offset-4">size guide</Link> to prepare your brief.
+              </p>
             </div>
-            <div className="grid gap-3 md:grid-cols-3">
+            <nav aria-label="Bulk jacket programs" className="mt-8 grid gap-4 md:grid-cols-3">
               {[
-                { title: 'Schools & teams', href: '/bulk-orders/schools' },
-                { title: 'Corporate apparel', href: '/bulk-orders/corporate' },
-                { title: 'Private label', href: '/bulk-orders/private-label' },
+                { title: 'Schools & teams', description: 'Class jackets, clubs, alumni, and player names and numbers.', href: '/bulk-orders/schools' },
+                { title: 'Corporate apparel', description: 'Company logos for staff, conferences, events, and employee gifts.', href: '/bulk-orders/corporate' },
+                { title: 'Private label', description: 'Plan labels, trims, packaging, samples, and repeat orders.', href: '/bulk-orders/private-label' },
               ].map((item) => (
-                <Link key={item.href} href={item.href} className="group flex items-center justify-between border-t border-white/25 py-5 text-lg font-semibold transition-colors hover:text-white/70 md:border-y">
-                  {item.title}<ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                <Link key={item.href} href={item.href} className="group border-t border-white/25 pt-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  <span className="flex items-center justify-between gap-3 text-base font-semibold">{item.title}<ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" /></span>
+                  <span className="mt-2 block text-sm leading-6 text-white/65">{item.description}</span>
                 </Link>
               ))}
-            </div>
+            </nav>
           </div>
         </section>
 
-        <section className="store-section store-section--plain store-section--accent">
-          <div className="section-shell">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase text-muted-foreground">Make it yours</p>
-              <h2 className="mt-2 text-3xl font-bold md:text-4xl">Explore custom options</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Compare jacket materials, then plan the patches and embroidery that make the design your own.
-              </p>
-            </div>
-            <Button asChild className="bg-red-700 text-white hover:bg-red-800">
-              <Link href="/design/varsity">Start Custom Design</Link>
-            </Button>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Link
-              href="/materials-colors"
-              className="interactive-lift group rounded-lg border bg-card p-6 hover:border-primary/50 md:p-8"
-            >
-              <Palette className="h-8 w-8 text-primary" />
-              <h2 className="mt-5 text-2xl font-bold">Materials & Colors</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Compare wool, leather, satin, fleece, twill, and color options before choosing your custom jacket.
-              </p>
-              <span className="mt-6 inline-flex items-center text-sm font-semibold text-primary">
-                Explore guide
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-            <Link
-              href="/patches-embroidery"
-              className="interactive-lift group rounded-lg border bg-card p-6 hover:border-primary/50 md:p-8"
-            >
-              <Ruler className="h-8 w-8 text-primary" />
-              <h2 className="mt-5 text-2xl font-bold">Patches & Embroidery</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                Plan chenille patches, embroidery placement, lettering, artwork, and team personalization.
-              </p>
-              <span className="mt-6 inline-flex items-center text-sm font-semibold text-primary">
-                View options
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-          </div>
-          </div>
-        </section>
+        <CustomOptionsSection />
 
         {(loading || newArrivals.length > 0) && <section className="store-section store-section--soft">
           <div className="section-shell">
@@ -519,6 +443,8 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
       </main>
 
       <RecentlyViewed limit={4} sectionClassName="store-section store-section--soft" />
+
+      <HomeDesignCta />
 
       <Footer />
     </div>

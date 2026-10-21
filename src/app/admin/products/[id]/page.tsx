@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { ProductTagsEditor } from '@/components/admin/product-tags-editor'
 import { VideoLinksEditor } from '@/components/video-links-editor'
 import { ImageUpload } from '@/components/image-upload'
 import { useToast } from '@/hooks/use-toast'
@@ -241,6 +242,7 @@ export default function EditProduct() {
                 <Label htmlFor="name">Product Name</Label>
                 <Input id="name" value={product.name} onChange={(e) => setProduct({ ...product, name: e.target.value })} disabled={saving} />
               </div>
+              <ProductTagsEditor value={product.tags || []} onChange={tags => setProduct({ ...product, tags })} disabled={saving} />
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" rows={4} value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} disabled={saving} />

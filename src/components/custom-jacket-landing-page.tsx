@@ -7,6 +7,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
+import { productGridClassName } from '@/lib/product-grid'
 import { connectDB } from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
@@ -116,7 +117,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
               <div><p className="text-sm font-semibold uppercase text-muted-foreground">Choose a starting style</p><h2 id={`${pageKey}-products`} className="mt-2 text-2xl font-bold md:text-3xl">Current {config.keyword.toLowerCase()}</h2></div>
               <Link href={config.categoryHref} className="inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">View the full collection <ArrowRight className="h-4 w-4" /></Link>
             </div>
-            {products.length > 0 ? <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="mt-8 text-muted-foreground">Contact Jacketee to discuss the current styles available for this project.</p>}
+            {products.length > 0 ? <div className={`${productGridClassName} mt-8`}>{products.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="mt-8 text-muted-foreground">Contact Jacketee to discuss the current styles available for this project.</p>}
           </div>
         </section>
 

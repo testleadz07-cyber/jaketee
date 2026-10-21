@@ -85,7 +85,6 @@ export const useCartStore = create<CartStore>()(
           directOrderItem: {
             ...item,
             id: crypto.randomUUID(),
-            quantity: 1,
           },
           appliedPromo: null,
         }),

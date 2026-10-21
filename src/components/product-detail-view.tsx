@@ -164,6 +164,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
         alt: img.alt || '',
       })),
       category: product.category,
+      categoryPath: product.categoryPath,
       isFeatured: product.isFeatured,
     })
   }, [product?.id])
@@ -255,14 +256,14 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       image: product.images?.[0]?.url || '/placeholder.png',
       variants,
       customization,
-      quantity: 1,
+      quantity,
     })
 
     logUserActivity('begin_checkout', {
       source: 'buy_now',
       productId: product.id,
       price,
-      quantity: 1,
+      quantity,
     })
 
     router.push('/checkout?mode=buy-now')

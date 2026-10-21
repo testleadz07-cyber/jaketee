@@ -15,6 +15,7 @@ export interface RecentlyViewedItem {
     slug: string
   }
   isFeatured: boolean
+  categoryPath?: Array<{ name: string; slug: string }>
   viewedAt: number
 }
 

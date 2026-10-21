@@ -10,6 +10,7 @@ import { ProductDetailView, type ProductDetailData } from '@/components/product-
 import { getProductReturnPolicy } from '@/lib/product-return-policy'
 import { shippingDetailsJsonLd } from '@/lib/shipping-schema'
 import { CategoryDetailView } from '@/components/category-detail-view'
+import { CustomDesignSection } from '@/components/custom-design-section'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Faq from '@/models/Faq'
@@ -533,6 +534,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }} />
       {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }} />}
       <CategoryDetailView
+        customDesign={<CustomDesignSection categorySlugs={resolution.ancestorChain.map(item => item.slug)} />}
         key={`${category.slug}-${requestedPage}`}
         slug={category.slug}
         initialCategories={initialCategories.map((item) => item.slug === 'varsity-jackets' ? { ...item, ...VARSITY_CATEGORY_SEO } : item)}

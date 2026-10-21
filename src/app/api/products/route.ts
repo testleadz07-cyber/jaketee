@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const categorySlug = searchParams.get('category')
     const search = searchParams.get('search')
+    const tag = searchParams.get('tag')
     const sort = searchParams.get('sort') || 'name'
     const order = searchParams.get('order') || 'asc'
     const page = parseInt(searchParams.get('page') || '1')
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
     }
 
     const filter: any = {}
+    if (tag) filter.tags = tag
     if (!all) {
       filter.inStock = true
       filter.isDraft = { $ne: true }
@@ -148,6 +150,7 @@ export async function POST(request: NextRequest) {
 
     const product = await Product.create({
       name,
+      tags: Array.isArray(body.tags) ? [...new Set(body.tags.filter((tag: unknown): tag is string => typeof tag === 'string').map((tag: string) => tag.trim()).filter(Boolean))] : [],
       slug,
       description: description || '',
       seoTitle: seoTitle || '',

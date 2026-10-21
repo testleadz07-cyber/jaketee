@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/header'
 import { ProductCard } from '@/components/product-card'
+import { productGridClassName } from '@/lib/product-grid'
 import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { Footer } from '@/components/footer'
 import { Sparkles, ShoppingBag, Filter, ChevronDown } from 'lucide-react'
@@ -351,7 +352,7 @@ export default function ShopClient({ initialProducts, initialCategories, initial
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className={productGridClassName}>
               {products.map((product, index) => (
                 <div key={product.id}>
                   <ProductCard product={product} listingPosition={index + 1} />

@@ -2,8 +2,9 @@ import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Image from '@/components/optimized-image'
 import Link from 'next/link'
-import { ArrowRight, BadgeCheck, Layers, MapPin, Palette, Scissors, Sparkles } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Layers, MapPin, Palette } from 'lucide-react'
 import { Header } from '@/components/header'
+import { CustomDesignSection } from '@/components/custom-design-section'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
@@ -607,28 +608,7 @@ export default async function PatchesEmbroideryPage() {
           </div>
         </section>
 
-        <section className="border-t bg-muted/25">
-          <div className="container mx-auto px-4 py-12 md:py-16">
-            <div className="rounded-lg border bg-card p-6 text-center md:p-10">
-              <Sparkles className="mx-auto h-8 w-8 text-primary" />
-              <h2 className="mt-4 text-3xl font-bold">Ready to add patches or embroidery?</h2>
-              <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
-                Pick your jacket, choose the decoration method, and send us artwork for a proof before production.
-              </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Button asChild size="lg">
-                  <Link href="/design/varsity">
-                    <Scissors className="mr-2 h-4 w-4" />
-                    Start Designing
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/materials-colors">View Materials & Colors</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <CustomDesignSection categorySlugs={['patches-embroidery']} />
       </main>
 
       <Footer />

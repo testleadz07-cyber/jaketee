@@ -6,6 +6,7 @@ import ProductModel from '@/models/Product'
 import CategoryModel from '@/models/Category'
 import { resolveAncestorChain, resolveDescendantIds, type CategoryNode } from '@/lib/categories'
 import { curatedCategorySlugs } from '@/lib/curated-category-slugs'
+import { CustomDesignSection } from '@/components/custom-design-section'
 import Home, { type Category, type Product } from './home-client'
 
 export const dynamic = 'force-dynamic'
@@ -115,5 +116,5 @@ export default async function Page() {
     curatedCategorySlugs.map((slug, index) => [slug, rawCategoryRows[index].map(mapProduct)])
   ) as Record<string, Product[]>
 
-  return <Home hero={<HomeHero />} categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
+  return <Home customDesign={<CustomDesignSection />} hero={<HomeHero />} categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
 }
