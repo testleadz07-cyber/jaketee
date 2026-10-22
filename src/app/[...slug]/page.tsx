@@ -9,6 +9,8 @@ import { resolveSlugPath } from '@/lib/route-resolver'
 import { ProductDetailView, type ProductDetailData } from '@/components/product-detail-view'
 import { getProductReturnPolicy } from '@/lib/product-return-policy'
 import { shippingDetailsJsonLd } from '@/lib/shipping-schema'
+import { collectionDesignImages } from '@/lib/collection-design-images'
+import { getCustomDesignImages } from '@/components/custom-design-section'
 import { CategoryDetailView } from '@/components/category-detail-view'
 import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters, type CatalogFacetData } from '@/lib/catalog-filters'
 import { connectDB } from '@/lib/mongodb'
@@ -331,7 +333,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
   const category = resolution.category.slug === 'varsity-jackets'
     ? { ...resolution.category, ...VARSITY_CATEGORY_SEO }
     : resolution.category
-  let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; heading?: string; introShort?: string; introLong?: string; image?: string; parentId: string | null; _count: { products: number } }> = []
+  let initialCategories: Array<{ id: string; name: string; slug: string; description?: string; heading?: string; introShort?: string; introLong?: string; image?: string; designImages?: string[]; parentId: string | null; _count: { products: number } }> = []
   let initialProducts: any[] = []
   let initialFacets: CatalogFacetData | undefined
   let initialTotalProducts = 0
@@ -355,8 +357,9 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         introLong: item.introLong || '',
         parentId: item.parentId ? String(item.parentId) : null,
       }))
-      const counts = await Product.aggregate([{ $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } }, { $sort: { isFeatured: -1, createdAt: -1 } }, { $group: { _id: '$categoryId', count: { $sum: 1 }, image: { $first: { $arrayElemAt: ['$images.url', 0] } } } }])
+      const counts = await Product.aggregate([{ $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } }, { $sort: { isFeatured: -1, createdAt: -1, _id: 1 } }, { $group: { _id: '$categoryId', count: { $sum: 1 }, image: { $first: { $arrayElemAt: ['$images.url', 0] } }, productImages: { $push: '$images.url' } } }])
       const countById = new Map<string, number>(counts.map((item: any) => [String(item._id), Number(item.count)]))
+      const imageCategories = rawCategories.map((item: any) => ({ id: String(item._id), parentId: item.parentId ? String(item.parentId) : null, name: item.name, image: item.image || '', productImages: (counts.find((row: any) => String(row._id) === String(item._id))?.productImages || []).flat().filter((url: unknown) => typeof url === 'string') }))
       initialCategories = rawCategories.map((item: any) => {
         const id = String(item._id)
         return {
@@ -367,7 +370,8 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           heading: item.heading || '',
           introShort: item.introShort || '',
           introLong: item.introLong || '',
-          image: item.image || counts.find((row: any) => String(row._id) === id)?.image || '',
+          image: item.image || collectionDesignImages(imageCategories, id)[0] || '',
+          designImages: collectionDesignImages(imageCategories, id),
           parentId: item.parentId ? String(item.parentId) : null,
           _count: { products: resolveDescendantIds(nodes, id).reduce((sum, descendantId) => sum + (countById.get(descendantId) || 0), 0) },
         }
@@ -434,7 +438,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
 
       const fallbackFaqs = [
         [`What is included in the ${category.name} collection?`, category.description || `Browse the ${category.name} products shown on this page.`, '#category-products'],
-        [`How do I choose a size for ${category.name}?`, 'Use our size guide and check the options on each product page before ordering.', '/size-guide'],
+        [`How do I choose a size for ${category.name}?`, chain.some(item => item.slug === 'patches-embroidery') ? 'Check the dimensions and placement options on the product page. Contact our team to confirm the size for your artwork.' : 'Use our size guide and check the options on each product page before ordering.', chain.some(item => item.slug === 'patches-embroidery') ? '/contact' : '/size-guide'],
         [`Can I customize ${category.name}?`, 'Customization varies by product. Review its available options or contact our team.', '/contact'],
         [`Which materials and colors are available for ${category.name}?`, 'Compare the available fabrics and colors in our materials guide.', '/materials-colors'],
         [`Can patches or embroidery be added to ${category.name}?`, 'See our patches and embroidery guide for techniques and placement options.', '/patches-embroidery'],
@@ -461,7 +465,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         const reviewMatch = { productId: { $in: productIds }, status: 'approved' }
         const [summary, latestReviews] = await Promise.all([
           Review.aggregate([{ $match: reviewMatch }, { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } }]),
-          Review.find(reviewMatch).sort({ createdAt: -1 }).limit(2).lean(),
+          Review.find(reviewMatch).sort({ createdAt: -1 }).limit(3).lean(),
         ])
         reviewCount = Number(summary[0]?.count || 0)
         averageRating = Number(summary[0]?.average || 0)
@@ -481,7 +485,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         })
       }
       const buyingFaqs = fallbackFaqs.filter(([question]) => /size|customize|materials|shipping|return/i.test(question)).map(([question, answer, href], index) => ({ id: `buying-${index}`, question, answer: [answer], bullets: [], ordered: [], href }))
-      const faqPriority = (question: string) => /siz|fit/i.test(question) ? 0 : /material|color/i.test(question) ? 1 : /customiz|names|numbers/i.test(question) ? 2 : /shipping|deliver/i.test(question) ? 3 : /return/i.test(question) ? 4 : 5
+      const faqPriority = (question: string) => /baby|toddler|child|kids|parent/i.test(question) && !/baby|toddler|child|kids/i.test(category.name) ? 10 : /siz|fit/i.test(question) ? 0 : /material|color/i.test(question) ? 1 : /customiz|names|numbers/i.test(question) ? 2 : /shipping|deliver/i.test(question) ? 3 : /return/i.test(question) ? 4 : 5
       const purchaseQuestions = [...new Map([...faqs, ...buyingFaqs].map(faq => [faq.question.toLowerCase(), faq])).values()].sort((a, b) => faqPriority(a.question) - faqPriority(b.question)).slice(0, 5)
       initialInsights = { faqs: purchaseQuestions, reviewCount, averageRating, reviews }
     } else {
@@ -544,10 +548,13 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }} />
       {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }} />}
       <CategoryDetailView
+        customDesignImages={await getCustomDesignImages()}
         initialFacets={initialFacets}
-        key={`${category.slug}-${requestedPage}`}
+        key={category.slug}
         slug={category.slug}
         initialCategories={initialCategories.map((item) => item.slug === 'varsity-jackets' ? { ...item, ...VARSITY_CATEGORY_SEO } : item)}
+        initialFilters={readCatalogFilters(new URLSearchParams(Object.entries(query).flatMap(([key, value]) => (Array.isArray(value) ? value : value === undefined ? [] : [value]).map(item => [key, item]))))}
+        initialSort={typeof query.sort === 'string' && ['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(query.sort) ? query.sort : 'featured'}
         initialProducts={initialProducts}
         initialTotalProducts={initialTotalProducts}
         initialPage={requestedPage}

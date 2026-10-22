@@ -82,6 +82,9 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Review eligibility and charges before requesting a return.
             </p>
+            <p className="mt-5 rounded-lg border bg-primary/5 p-4 text-left text-sm leading-6 text-muted-foreground">
+              {returnPolicyText.statutoryRights}
+            </p>
           </div>
 
           {/* Return Policy Overview */}

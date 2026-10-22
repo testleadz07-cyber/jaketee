@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { createFunctionalStorage } from '@/lib/functional-storage'
 
 export interface WishlistItem {
   id: string
@@ -90,6 +91,7 @@ export const useWishlistStore = create<WishlistStore>()(
     }),
     {
       name: 'wishlist-storage',
+      storage: createFunctionalStorage<WishlistStore>(),
     }
   )
 )

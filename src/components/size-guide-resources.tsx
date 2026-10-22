@@ -1,4 +1,6 @@
-import { BlogCard } from '@/components/blog-card'
+import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
+import { FaqText } from '@/components/faq-text'
+import { BlogCard, type BlogCardArticle } from '@/components/blog-card'
 import Link from 'next/link'
 import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
@@ -14,21 +16,22 @@ const articleSlugs = [
 
 export async function SizeGuideResources() {
   let faqs: Array<{ id: string; question: string; answer: string[]; bullets: string[]; ordered: string[] }> = []
-  let posts: Array<{ slug: string; title: string; excerpt: string }> = []
+  let posts: BlogCardArticle[] = []
 
   try {
     const db = await connectDB()
     if (db) {
       const now = new Date()
-      const [faqRows, postRows] = await Promise.all([
-        Faq.find({ status: { $ne: 'draft' }, category: { $in: ['jacket-sizing', 'Jacket Sizing'] } }).sort({ order: 1 }).limit(6).lean(),
+      const [faqRows, postRows, imageCandidates] = await Promise.all([
+        Faq.find({ status: { $ne: 'draft' }, mergedInto: null, category: { $in: ['jacket-sizing', 'Jacket Sizing'] } }).sort({ order: 1 }).limit(6).lean(),
         BlogPost.find({
           slug: { $in: articleSlugs },
-          $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],
-        }).select('slug title excerpt').lean(),
+          status: 'published', $or: [{ publishedAt: { $lte: now } }, { publishedAt: null }],
+        }).select('slug title excerpt featuredImage taggedProducts publishedAt').lean(),
+        getBlogImageCandidates(),
       ])
 
-      faqs = faqRows.map((faq) => ({
+      faqs = faqRows.filter(faq => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim())).map((faq) => ({
         id: String(faq._id),
         question: faq.question,
         answer: faq.answer || [],
@@ -36,14 +39,25 @@ export async function SizeGuideResources() {
         ordered: faq.ordered || [],
       }))
       posts = postRows
-        .map((post) => ({ slug: post.slug, title: post.title, excerpt: post.excerpt }))
-        .sort((a, b) => articleSlugs.indexOf(a.slug) - articleSlugs.indexOf(b.slug))
+        .map((post) => ({ slug: post.slug, title: post.title, excerpt: post.excerpt, featuredImage: resolveBlogImage(post, imageCandidates), publishedAt: post.publishedAt ? new Date(post.publishedAt).toISOString() : null }))
+        .sort((a, b) => articleSlugs.indexOf(a.slug) - articleSlugs.indexOf(b.slug)).slice(0, 3)
     }
   } catch (error) {
     console.error('Error loading size guide resources:', error)
   }
 
-  if (faqs.length === 0 && posts.length === 0) return null
+  const fallback = [
+    ['Should I measure my body or a jacket I already own?', 'Use body circumferences with the body chart. Use a closed garment laid flat with the finished-garment chart. Do not compare body chest circumference directly with flat jacket width.'],
+    ['Is the estimated size a guaranteed fit?', 'No. The estimate uses the reference body chart on this page. Confirm the dimensions and fit of the exact product before ordering.'],
+    ['What should I do if I fall between sizes?', 'Compare your chest and waist with the product measurements and consider the layers you intend to wear. Ask our team if the measurements point to different sizes.'],
+    ['Where should I measure sleeve length?', 'For the finished jacket reference, measure from the shoulder seam to the end of the cuff, including ribbing. Confirm the measuring method for the exact product.'],
+    ['Are these charts for every jacket and vest?', 'These are planning references, not specifications for every product. Finished vest dimensions, tall options and individual style measurements should be confirmed on the product page or with our team.'],
+    ['Can you help with sizes for a group order?', 'Collect chest and waist measurements for each person using the same method and units. Contact our team with your selected products and measurements before confirming the order.'],
+  ]
+  for (const [question, answer] of fallback) {
+    if (faqs.length >= 6) break
+    if (!faqs.some(item => item.question.toLowerCase() === question.toLowerCase())) faqs.push({ id: `sizing-guide-${faqs.length}`, question, answer: [answer], bullets: [], ordered: [] })
+  }
 
   return (
     <>
@@ -62,7 +76,7 @@ export async function SizeGuideResources() {
                 <AccordionItem key={faq.id} value={faq.id}>
                   <AccordionTrigger className="text-left font-medium">{faq.question}</AccordionTrigger>
                   <AccordionContent className="space-y-2 text-sm leading-6 text-muted-foreground">
-                    {faq.answer.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+                    {faq.answer.map((paragraph, index) => <p key={index}><FaqText text={paragraph} /></p>)}
                     {faq.bullets.length > 0 && <ul className="list-disc pl-5">{faq.bullets.map((bullet, index) => <li key={index}>{bullet}</li>)}</ul>}
                     {faq.ordered.length > 0 && <ol className="list-decimal pl-5">{faq.ordered.map((step, index) => <li key={index}>{step}</li>)}</ol>}
                   </AccordionContent>

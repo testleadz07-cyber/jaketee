@@ -4,26 +4,23 @@ import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import { CategoryFilters, AppliedCategoryFilters, type CategoryFacetData } from '@/components/category-filters'
 import { appendCatalogFilters, readCatalogFilters, emptyCatalogFilters, type CatalogFilters } from '@/lib/catalog-filters'
-import { FaqText } from '@/components/faq-text'
+import { CollectionSupport } from '@/components/collection-support'
+import { getCategoryHeroDescription } from '@/data/category-hero-copy'
+import { CollectionDesignImage } from '@/components/collection-design-image'
+import { CustomDesignCollection, type CustomDesignImages } from '@/components/custom-design-collection'
+import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { WhatsAppHelp } from '@/components/whatsapp-help'
 import Image from '@/components/optimized-image'
-import { ArrowRight, BadgeCheck, MessageCircle, PackageSearch, Palette, RefreshCw, Ruler, Star, Truck, Users } from 'lucide-react'
+import { ArrowRight, BadgeCheck, MessageCircle, PackageSearch, Palette, RefreshCw, Ruler, Truck, Users } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
 import { productGridClassName } from '@/lib/product-grid'
 import { Button } from '@/components/ui/button'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { CatalogSort } from '@/components/catalog-sort'
 import { resolveAncestorChain, buildCategoryUrl } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
 import { useActivityView } from '@/hooks/use-activity-view'
@@ -37,6 +34,7 @@ interface Category {
   introShort?: string
   introLong?: string
   image?: string
+  designImages?: string[]
   parentId?: string | null
   _count?: { products: number }
 }
@@ -63,6 +61,9 @@ interface CategoryDetailViewProps {
   initialTotalProducts?: number
   initialPage?: number
   pageSize?: number
+  initialFilters?: CatalogFilters
+  initialSort?: string
+  customDesignImages?: CustomDesignImages
   initialFacets?: CategoryFacetData
   initialInsights?: CategoryInsights
 }
@@ -124,26 +125,31 @@ export function CategoryDetailView({
   pageSize = DEFAULT_PRODUCTS_PER_PAGE,
   initialInsights,
   initialFacets,
+  customDesignImages,
+  initialFilters = emptyCatalogFilters,
+  initialSort = 'featured',
 }: CategoryDetailViewProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [loading, setLoading] = useState(initialProducts.length === 0)
   const [loadingMore, setLoadingMore] = useState(false)
   const [isMissing, setIsMissing] = useState(false)
-  const [filters, setFilters] = useState<CatalogFilters>(emptyCatalogFilters)
+  const [filters, setFilters] = useState<CatalogFilters>(initialFilters)
   const [facets, setFacets] = useState<CategoryFacetData>(initialFacets || { groups: [], minPrice: 0, maxPrice: 0 })
   const [fetchError, setFetchError] = useState(false)
-  const [sortBy, setSortBy] = useState('featured')
+  const [sortBy, setSortBy] = useState(initialSort)
   const [currentPage, setCurrentPage] = useState(initialPage)
   const [totalProducts, setTotalProducts] = useState(initialTotalProducts)
   const [insights, setInsights] = useState<CategoryInsights | null>(initialInsights || null)
-  const skipInitialProductFetch = useRef(initialProducts.length > 0)
+  const skipInitialProductFetch = useRef(initialCategories.length > 0)
+  const [searchDraft, setSearchDraft] = useState(initialFilters.search)
   const trackedCategory = categories.find(category => category.slug === slug)
   useActivityView('view_category', { categoryId: trackedCategory?.id, slug }, Boolean(trackedCategory))
 
   useEffect(() => {
     const restore = (force = false) => {
       const params = new URLSearchParams(window.location.search)
+      setSearchDraft(readCatalogFilters(params).search)
       setFilters(previous => { const next = readCatalogFilters(params); return !force && JSON.stringify(next) === JSON.stringify(previous) ? previous : next })
       setSortBy(['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(params.get('sort') || '') ? params.get('sort')! : 'featured')
       if (force) { setLoading(true); setProducts([]) }
@@ -167,6 +173,7 @@ export function CategoryDetailView({
 
   const applyFilters = (next: CatalogFilters) => {
     setLoading(true)
+    setSearchDraft(next.search)
     setFilters({ ...next })
     const urlParams = appendCatalogFilters(new URLSearchParams(), next)
     if (sortBy !== 'featured') urlParams.set('sort', sortBy)
@@ -197,12 +204,13 @@ export function CategoryDetailView({
   }
 
   useEffect(() => {
-    if (skipInitialProductFetch.current && currentPage === initialPage && sortBy === 'featured' && JSON.stringify(filters) === JSON.stringify(emptyCatalogFilters)) {
+    if (skipInitialProductFetch.current) {
       skipInitialProductFetch.current = false
       setLoading(false)
       return
     }
     let cancelled = false
+    const controller = new AbortController()
 
     const load = async () => {
       const isFirstPage = currentPage === 1
@@ -214,10 +222,9 @@ export function CategoryDetailView({
       setIsMissing(false)
       setFetchError(false)
       try {
-        const catRes = await fetch('/api/categories')
-        const catData: Category[] = await catRes.json()
+        const catData: Category[] = categories.length ? categories : await fetch('/api/categories', { signal: controller.signal }).then(response => { if (!response.ok) throw new Error('Categories unavailable'); return response.json() })
         if (cancelled) return
-        setCategories(previous => catData.map(item => ({ ...item, image: item.image || previous.find(existing => existing.id === item.id)?.image })))
+        setCategories(previous => catData.map(item => ({ ...item, image: item.image || previous.find(existing => existing.id === item.id)?.image, designImages: previous.find(existing => existing.id === item.id)?.designImages })))
 
         const current = catData.find((c) => c.slug === slug)
         if (!current) {
@@ -241,19 +248,16 @@ export function CategoryDetailView({
           params.set('sort', sortBy)
         }
 
-        const prodRes = await fetch(`/api/products?${params.toString()}`)
+        const prodRes = await fetch(`/api/products?${params.toString()}`, { signal: controller.signal })
         if (!prodRes.ok) throw new Error('Products unavailable')
         const prodData = await prodRes.json()
         if (!Array.isArray(prodData)) throw new Error('Invalid catalog response')
         if (cancelled) return
         setTotalProducts(Number(prodRes.headers.get('X-Total-Count') || prodData.length))
-        setProducts((prev) => {
-          if (isFirstPage) return prodData
-          const existingIds = new Set(prev.map((product) => product.id))
-          return [...prev, ...prodData.filter((product: Product) => !existingIds.has(product.id))]
-        })
+        setProducts(prodData)
 
       } catch (error) {
+        if (controller.signal.aborted) return
         console.error('Error loading category page:', error)
         if (!cancelled) setFetchError(true)
       } finally {
@@ -267,6 +271,7 @@ export function CategoryDetailView({
     load()
     return () => {
       cancelled = true
+      controller.abort()
     }
   }, [slug, sortBy, currentPage, initialPage, pageSize, filters])
 
@@ -310,7 +315,6 @@ export function CategoryDetailView({
   const collectionCount = category._count?.products ?? initialTotalProducts
   const hasFilters = JSON.stringify(filters) !== JSON.stringify(emptyCatalogFilters)
   const hasFilterControls = collectionCount > 1 && (facets.groups.length > 0 || facets.maxPrice > facets.minPrice)
-  const canLoadMore = currentPage * pageSize < totalProducts
   const totalPages = Math.max(1, Math.ceil(productCount / pageSize))
   const currentPageForLinks = Math.min(Math.max(1, currentPage), totalPages)
   const categoryUrl = buildCategoryUrl(ancestorChain)
@@ -320,13 +324,14 @@ export function CategoryDetailView({
     if (page > 1) params.set('page', String(page))
     return `${categoryUrl}${params.size ? `?${params}` : ''}`
   }
-  const changePage = (event: MouseEvent, page: number, append = false) => {
+  const changePage = (event: MouseEvent, page: number) => {
     event.preventDefault()
-    if (!append && page === currentPage) return
-    if (!append) { setLoading(true); setProducts([]) }
+    if (page === currentPage) return
+    setLoading(true)
+    setProducts([])
     setCurrentPage(page)
     window.history.pushState(null, '', pageHref(page))
-    if (!append) document.getElementById('category-products')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    document.getElementById('category-products')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
   const paginationPages = Array.from({ length: totalPages }, (_, index) => index + 1)
   const rootCategorySlug = ancestorChain[0]?.slug || category.slug
@@ -339,9 +344,9 @@ export function CategoryDetailView({
     'fleece-hoodies': { href: '/custom-hoodies', label: 'custom hoodies' },
   }
   const customLanding = customLandingByCategory[rootCategorySlug]
-  const designerByRoot: Record<string, string> = { 'varsity-jackets': '/design/varsity', 'bomber-jackets': '/design/bomber', 'puffer-jackets': '/design/puffer', 'coach-jackets': '/design/coach', 'fleece-hoodies': '/design/hoodie' }
-  const designerHref = designerByRoot[rootCategorySlug] || '/design'
-  const visibleFaqs = insights?.faqs.slice(0, 5) ?? []
+  const heroImage = category.designImages?.[0] || category.image || initialProducts[0]?.images[0]?.url || subcategories.find(item => item.image)?.image
+  const heroImages = [...new Set([...(category.designImages || []), ...(category.image ? [category.image] : []), ...(heroImage ? [heroImage] : [])])]
+  const heroDescription = getCategoryHeroDescription(categoryUrl, category.name, category.description || category.introShort)
 
   const breadcrumbItems = [
     ...ancestorChain.slice(0, -1).map((ancestor, index) => ({
@@ -358,10 +363,18 @@ export function CategoryDetailView({
       <main className="flex-1">
       <div className="section-shell py-6! md:py-8!">
         <Breadcrumbs items={breadcrumbItems} className="mb-5" />
-        <div className="flex flex-wrap items-end justify-between gap-5">
-          <div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-widest text-primary">Jacketee collection / {collectionCount} {collectionCount === 1 ? 'style' : 'styles'}</p><h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight md:text-4xl">{category.heading || category.name}</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{category.description || CATEGORY_OVERVIEW[rootCategorySlug]}</p></div>
-          {customLanding && <Link href={customLanding.href} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline underline-offset-4">Want to make it your own? <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>}
-        </div>
+        <section aria-labelledby="category-hero-heading" className="relative isolate grid overflow-hidden rounded-2xl bg-[#242623] text-white sm:grid-cols-[1.2fr_0.8fr]">
+          <div className="relative flex flex-col justify-center px-6 py-8 sm:min-h-76 sm:px-10 lg:min-h-80 lg:px-12">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/75">{category.parentId ? ancestorChain.at(-2)?.name : 'Jacketee collection'} <span aria-hidden="true" className="mx-2">/</span> {collectionCount} {collectionCount === 1 ? 'style' : 'styles'}</p>
+            <h1 id="category-hero-heading" className="mt-3 max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">{category.heading || category.name}</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-white/85">{heroDescription}</p>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <a href="#category-products" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Shop collection <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+              {customLanding && <Link href={customLanding.href} className="inline-flex min-h-11 items-center text-sm font-semibold text-white underline underline-offset-4 hover:text-white/80">Make it your own</Link>}
+            </div>
+          </div>
+          {heroImage && <div className="relative min-h-64 bg-white sm:min-h-76 lg:min-h-80"><CollectionDesignImage key={`${category.slug}-${heroImages.join('|')}`} urls={heroImages} alt={`${category.name} collection`} priority sizes="(max-width: 639px) 100vw, (max-width: 1280px) 40vw, 512px" className="object-contain p-5 sm:p-6" /></div>}
+        </section>
         {(subcategories.length > 0 || category.parentId) && <nav className="mt-6" aria-label={subcategories.length ? 'Shop subcategories' : 'Related materials and styles'}>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><h2 className="text-sm font-semibold">{subcategories.length ? 'Find your style or material' : 'Explore the collection'}</h2>{!category.parentId && <a href="#category-products" className="inline-flex min-h-11 items-center text-xs font-semibold underline">Shop all {collectionCount} styles</a>}{category.parentId && <Link href={buildCategoryUrl(ancestorChain.slice(0, -1))} className="inline-flex min-h-11 items-center text-xs font-semibold underline">View all {ancestorChain.at(-2)?.name}</Link>}</div>
           <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin]">
@@ -379,14 +392,20 @@ export function CategoryDetailView({
         <div className="sticky top-[78px] z-30 -mx-1 mb-5 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-1 py-3 lg:static">
           <div><h2 id="category-products-heading" className="text-xl font-semibold">Shop {category.name}</h2><p className="mt-1 text-xs text-muted-foreground" role="status" aria-live="polite">{loading ? 'Finding your styles...' : `${products.length} of ${productCount} ${productCount === 1 ? 'style' : 'styles'}`}</p></div>
           <div className="flex w-full items-center gap-2 sm:w-auto">
-            {hasFilterControls && <div className="flex-1 lg:hidden"><CategoryFilters mode="mobile" value={filters} onApply={applyFilters} facets={facets} /></div>}
-            {collectionCount > 1 && <Select value={sortBy} onValueChange={handleSortChange}><SelectTrigger aria-label="Sort products" className="min-h-11 w-auto min-w-40 flex-1 sm:flex-none"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="featured">Featured</SelectItem><SelectItem value="newest">Newest</SelectItem><SelectItem value="price-asc">Price: Low to High</SelectItem><SelectItem value="price-desc">Price: High to Low</SelectItem><SelectItem value="name">Name A-Z</SelectItem></SelectContent></Select>}
+            {hasFilterControls && <div className="flex-1 lg:hidden"><CategoryFilters key={`mobile-${JSON.stringify(filters)}`} mode="mobile" value={filters} onApply={applyFilters} facets={facets} /></div>}
+            {collectionCount > 1 && <CatalogSort value={sortBy} onChange={handleSortChange} />}
             <Link href="/size-guide" className="hidden min-h-11 items-center gap-2 px-2 text-xs underline sm:inline-flex"><Ruler aria-hidden="true" className="h-4 w-4" />Size guide</Link>
           </div>
         </div>
+        <form role="search" aria-label="Search this collection" className="mb-4 flex flex-wrap gap-2" onSubmit={event => { event.preventDefault(); applyFilters({ ...filters, search: searchDraft.trim().slice(0, 200) }) }}>
+          <label htmlFor="collection-search" className="sr-only">Search {category.name}</label>
+          <input id="collection-search" type="search" value={searchDraft} onChange={event => setSearchDraft(event.target.value)} placeholder={`Search ${category.name.toLowerCase()}...`} className="min-h-11 min-w-0 flex-1 rounded-lg border bg-card px-3 text-sm" />
+          <Button type="submit" className="min-h-11">Search</Button>
+          {filters.search && <Button type="button" variant="outline" className="min-h-11" onClick={() => applyFilters({ ...filters, search: '' })}>Reset search</Button>}
+        </form>
         <AppliedCategoryFilters value={filters} onChange={applyFilters} />
         <div className={hasFilterControls ? 'grid items-start gap-6 lg:grid-cols-[220px_minmax(0,1fr)]' : ''}>
-          {hasFilterControls && <CategoryFilters mode="desktop" value={filters} onApply={applyFilters} facets={facets} />}
+          {hasFilterControls && <CategoryFilters key={`desktop-${JSON.stringify(filters)}`} mode="desktop" value={filters} onApply={applyFilters} facets={facets} />}
           <div className="min-w-0" aria-busy={loading || loadingMore}>
           {fetchError && <p role="alert" className="mb-4 rounded-lg border p-4 text-sm">We could not load these products. <button className="font-semibold underline" onClick={() => applyFilters({ ...filters })}>Try again</button></p>}
         {loading && products.length === 0 ? (
@@ -400,21 +419,6 @@ export function CategoryDetailView({
                 <ProductCard key={product.id} product={product} listingPosition={index + 1} collection />
               ))}
             </div>
-
-            {canLoadMore && (
-              <div className="mt-10 flex justify-center">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  asChild
-                  disabled={loadingMore}
-                >
-                  <Link href={pageHref(currentPage + 1)} onClick={event => { if (loadingMore) event.preventDefault(); else changePage(event, currentPage + 1, true) }}>
-                    {loadingMore ? 'Loading...' : 'Load more products'}
-                  </Link>
-                </Button>
-              </div>
-            )}
 
             {totalPages > 1 && (
               <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label={`${category.name} pagination`}>
@@ -459,9 +463,9 @@ export function CategoryDetailView({
           </div>
         </section>
 
-        <section className="store-section store-section--contrast">
-          <div className="section-shell flex flex-col gap-5 py-8! sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs uppercase tracking-widest text-white/60">Made by you</p><h2 className="mt-2 text-2xl font-semibold">Your colors. Your details.</h2><p className="mt-2 text-sm leading-6 text-white/75">Personalize your jacket with names, lettering, and artwork.</p></div><Button asChild size="lg" className="min-h-12 bg-white text-zinc-950 hover:bg-zinc-100"><Link href={designerHref}>Design your {rootCategorySlug === 'fleece-hoodies' ? 'hoodie' : 'jacket'} <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" /></Link></Button></div>
-        </section>
+        <div className="section-shell py-6!"><RecentlyViewed limit={4} /></div>
+
+        <CustomDesignCollection categorySlugs={ancestorChain.map(item => item.slug)} categoryName={category.name} categoryImages={category.designImages} categoryImage={category.image || heroImage} images={customDesignImages} />
 
         <section className="store-section store-section--plain store-section--accent" aria-labelledby="collection-overview-heading">
           <div className="section-shell grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(290px,0.9fr)] lg:gap-12">
@@ -506,50 +510,7 @@ export function CategoryDetailView({
 
         {category.introLong && <section className="store-section store-section--plain"><div className="section-shell py-6!"><details className="group rounded-xl border bg-card p-5"><summary className="cursor-pointer text-lg font-semibold">Materials, fit &amp; care: the {category.name} guide</summary><div className="mt-6"><CategoryLongContent content={category.introLong} /></div></details></div></section>}
 
-      {Boolean(insights?.reviews.length) && <section className="store-section store-section--plain" aria-labelledby="category-reviews-heading">
-        <div className="section-shell">
-          <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
-            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Customer feedback</p><h2 id="category-reviews-heading" className="mt-2 text-2xl font-semibold">Reviews of {category.name} products</h2></div>
-            {insights && insights.reviewCount > 0 && <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><strong>{insights.averageRating.toFixed(1)} / 5</strong><span className="text-muted-foreground">from {insights.reviewCount} approved reviews</span></div>}
-          </div>
-          {insights?.reviews.length ? (
-            <div className="grid gap-8 pt-6 md:grid-cols-2">
-              {insights.reviews.map((review) => (
-                <blockquote key={review.id} className="border-l-2 border-foreground/30 pl-5">
-                  <div className="flex items-center gap-1" aria-label={`${review.rating} out of 5 stars`}>{Array.from({ length: 5 }, (_, index) => <Star key={index} className={`h-4 w-4 ${index < review.rating ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground/35'}`} />)}</div>
-                  {review.title && <p className="mt-3 font-semibold">{review.title}</p>}
-                  <p className="mt-2 line-clamp-4 text-sm leading-6 text-muted-foreground">{review.comment}</p>
-                  <footer className="mt-3 text-sm"><span className="font-medium">{review.userName}</span><span className="mx-2 text-muted-foreground">on</span><Link href={review.productHref} className="underline underline-offset-4">{review.productName}</Link></footer>
-                </blockquote>
-              ))}
-            </div>
-          ) : <p className="pt-6 text-sm text-muted-foreground">{insights ? 'There are no approved reviews for products in this collection yet.' : 'Loading customer feedback...'}</p>}
-        </div>
-      </section>}
-
-      {Boolean(visibleFaqs.length) && <section className="store-section store-section--soft store-section--accent" aria-labelledby="category-faq-heading">
-        <div className="section-shell">
-          <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
-            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Collection questions</p><h2 id="category-faq-heading" className="mt-2 text-2xl font-semibold">Questions about {category.name}</h2></div>
-            <Link href="/faq" className="text-sm font-semibold underline underline-offset-4">View all FAQs</Link>
-          </div>
-          {insights?.faqs.length ? (
-            <Accordion type="single" collapsible className="max-w-4xl">
-              {visibleFaqs.map((faq) => (
-                <AccordionItem key={faq.id} value={faq.id}>
-                  <AccordionTrigger className="text-left font-medium">{faq.question}</AccordionTrigger>
-                  <AccordionContent className="space-y-2 text-sm leading-6 text-muted-foreground">
-                    {faq.answer.map((answer, index) => <p key={index}><FaqText text={answer} /></p>)}
-                    {faq.bullets.length > 0 && <ul className="list-disc pl-5">{faq.bullets.map((bullet, index) => <li key={index}>{bullet}</li>)}</ul>}
-                    {faq.ordered.length > 0 && <ol className="list-decimal pl-5">{faq.ordered.map((step, index) => <li key={index}>{step}</li>)}</ol>}
-                    {faq.href && <Link href={faq.href} className="inline-flex items-center gap-1 font-semibold text-foreground underline underline-offset-4">Read more <ArrowRight className="h-3.5 w-3.5" /></Link>}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          ) : <p className="pt-6 text-sm text-muted-foreground">{insights ? 'No collection questions are available right now.' : 'Loading collection questions...'}</p>}
-        </div>
-      </section>}
+      <CollectionSupport key={category.slug} slug={category.slug} name={category.name} initialData={insights || undefined} />
       </main>
 
       <Footer />

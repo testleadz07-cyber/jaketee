@@ -1,0 +1,186 @@
+[
+  {
+    "key": "hero",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695580/jacketee/materials-colors/studio-2026-10-22/hero.webp",
+    "alt": "Illustrative arrangement of jacket fabrics, leather swatches, snaps and zipper on an ivory background",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/hero",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "melton-wool-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695584/jacketee/materials-colors/studio-2026-10-22/melton-wool-main.webp",
+    "alt": "Illustrative melton wool sample, three-quarter folded view",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/melton-wool-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "melton-wool-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695588/jacketee/materials-colors/studio-2026-10-22/melton-wool-detail.webp",
+    "alt": "Illustrative melton wool sample, alternate macro texture view",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/melton-wool-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "cowhide-leather-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695593/jacketee/materials-colors/studio-2026-10-22/cowhide-leather-main.webp",
+    "alt": "Illustrative cowhide leather sample, three-quarter folded view",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/cowhide-leather-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "cowhide-leather-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695599/jacketee/materials-colors/studio-2026-10-22/cowhide-leather-detail.webp",
+    "alt": "Illustrative cowhide leather sample, alternate macro texture view",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/cowhide-leather-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "sheep-leather-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695605/jacketee/materials-colors/studio-2026-10-22/sheep-leather-main.webp",
+    "alt": "Illustrative sheep leather, soft folded three-quarter view",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/sheep-leather-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "sheep-leather-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695612/jacketee/materials-colors/studio-2026-10-22/sheep-leather-detail.webp",
+    "alt": "Illustrative sheep leather, fine-grain alternate macro view",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/sheep-leather-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "faux-leather-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695617/jacketee/materials-colors/studio-2026-10-22/faux-leather-main.webp",
+    "alt": "Illustrative faux leather, folded sample with backing edge",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/faux-leather-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "faux-leather-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695622/jacketee/materials-colors/studio-2026-10-22/faux-leather-detail.webp",
+    "alt": "Illustrative faux leather, alternate fine-grain close-up",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/faux-leather-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "polyester-satin-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695628/jacketee/materials-colors/studio-2026-10-22/polyester-satin-main.webp",
+    "alt": "Illustrative forest green polyester satin, three-quarter draped sample",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/polyester-satin-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "polyester-satin-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695633/jacketee/materials-colors/studio-2026-10-22/polyester-satin-detail.webp",
+    "alt": "Illustrative forest green polyester satin, low-angle view of sheen and flowing folds",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/polyester-satin-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "cotton-fleece-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695640/jacketee/materials-colors/studio-2026-10-22/cotton-fleece-main.webp",
+    "alt": "Illustrative charcoal cotton fleece, folded knit face and brushed reverse",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/cotton-fleece-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "cotton-fleece-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695644/jacketee/materials-colors/studio-2026-10-22/cotton-fleece-detail.webp",
+    "alt": "Illustrative charcoal cotton fleece, oblique close-up of knit and brushed fibers",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/cotton-fleece-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "cotton-twill-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695650/jacketee/materials-colors/studio-2026-10-22/cotton-twill-main.webp",
+    "alt": "Illustrative olive cotton twill, structured folded sample",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/cotton-twill-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "cotton-twill-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695655/jacketee/materials-colors/studio-2026-10-22/cotton-twill-detail.webp",
+    "alt": "Illustrative olive cotton twill, grazing-angle close-up of diagonal weave",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/cotton-twill-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "soft-shell-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695662/jacketee/materials-colors/studio-2026-10-22/soft-shell-main.webp",
+    "alt": "Illustrative charcoal soft-shell fabric, folded shell and lining view",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/soft-shell-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "soft-shell-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695668/jacketee/materials-colors/studio-2026-10-22/soft-shell-detail.webp",
+    "alt": "Illustrative charcoal soft-shell fabric, side-angle macro of bonded construction",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/soft-shell-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "nylon-twill-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695677/jacketee/materials-colors/studio-2026-10-22/nylon-twill-main.webp",
+    "alt": "Illustrative navy nylon twill, three-quarter lightweight folded sample",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/nylon-twill-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "nylon-twill-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695686/jacketee/materials-colors/studio-2026-10-22/nylon-twill-detail.webp",
+    "alt": "Illustrative navy nylon twill, overhead macro of fine technical weave",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/nylon-twill-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "suede-leather-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695693/jacketee/materials-colors/studio-2026-10-22/suede-leather-main.webp",
+    "alt": "Illustrative camel suede leather, three-quarter folded sample",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/suede-leather-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "suede-leather-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695698/jacketee/materials-colors/studio-2026-10-22/suede-leather-detail.webp",
+    "alt": "Illustrative camel suede leather, low-angle macro of directional suede nap",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/suede-leather-detail",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "snaps-zips-main",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695703/jacketee/materials-colors/studio-2026-10-22/snaps-zips-main.webp",
+    "alt": "Illustrative jacket snaps and zipper, overhead hardware arrangement",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/snaps-zips-main",
+    "width": 1448,
+    "height": 1086
+  },
+  {
+    "key": "snaps-zips-detail",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792695709/jacketee/materials-colors/studio-2026-10-22/snaps-zips-detail.webp",
+    "alt": "Illustrative jacket snaps and zipper, low oblique angle showing metal hardware finishes",
+    "publicId": "jacketee/materials-colors/studio-2026-10-22/snaps-zips-detail",
+    "width": 1448,
+    "height": 1086
+  }
+]

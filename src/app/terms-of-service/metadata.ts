@@ -6,7 +6,7 @@ const PAGE_URL = `${SITE_URL}/terms-of-service`
 
 export const metadata: Metadata = withSocialMetadata({
   title: 'Terms of Service — Jacketee',
-  description: 'Read Jacketee\'s terms of service governing use of our website, purchasing products, and our warranties.',
+  description: 'Read Jacketee’s terms for orders, custom design approval, customer artwork, delivery, cancellations and consumer rights.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Terms of Service — Jacketee',

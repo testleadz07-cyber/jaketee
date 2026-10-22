@@ -1,6 +1,6 @@
 import { customLandingMetadata } from '@/components/custom-jacket-landing-page'
 import type { Metadata } from 'next'
-import { CustomJacketLandingPage } from '@/components/custom-jacket-landing-page'
+import { BulkProgramPage } from '@/components/bulk-program-page'
 import { getCustomLandingConfig } from '@/data/custom-jacket-landings'
 
 const config = getCustomLandingConfig('sorority-fraternity-jackets')
@@ -10,5 +10,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function Page() {
-  return <CustomJacketLandingPage pageKey="sorority-fraternity-jackets" />
+  return <BulkProgramPage kind="sorority-fraternity" />
 }

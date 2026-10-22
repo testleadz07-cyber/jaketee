@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { createFunctionalStorage } from '@/lib/functional-storage'
 
 export interface RecentlyViewedItem {
   id: string
@@ -44,6 +45,7 @@ export const useRecentlyViewedStore = create<RecentlyViewedStore>()(
     }),
     {
       name: 'recently-viewed-storage',
+      storage: createFunctionalStorage<RecentlyViewedStore>(),
     }
   )
 )

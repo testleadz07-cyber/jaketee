@@ -16,7 +16,7 @@ async function get(params) {const r=await fetch(`${base}?${params}`,{signal:Abor
  const {data:all}=await get('category=varsity-jackets&limit=1000')
  const {data:facets}=await get('category=varsity-jackets&facets=true')
  assert.ok(facets.groups.some(g=>g.key==='size'))
- const requests=[['maxPrice=70',p=>p.price<=70],['size=S&size=M',p=>p.variants?.some(v=>v.name==='Size'&&['S','M'].includes(v.value)&&v.inStock!==false)],['size=S&color=Black',p=>p.variants?.some(v=>v.name==='Size'&&v.value==='S'&&v.inStock!==false)&&p.variants?.some(v=>v.name==='Color'&&v.value==='Black'&&v.inStock!==false)],['minPrice=99999',p=>p.price>=99999]]
+ const requests=[['maxPrice=70',p=>p.price<=70],['size=S&size=M',p=>p.variants?.some(v=>v.name==='Size'&&['S','M'].includes(v.value)&&v.inStock!==false)],['size=S&color=Black',p=>p.variants?.some(v=>v.name==='Size'&&v.value==='S'&&v.inStock!==false)&&p.variants?.some(v=>v.name==='Color'&&v.value==='Black'&&v.inStock!==false)],['minPrice=99999',p=>p.price>=99999],['search=black&maxPrice=100',p=>p.price<=100&&[p.name,p.slug,p.description].some(v=>/black/i.test(v||''))]]
  for(const [query,match] of requests){const result=await get(`category=varsity-jackets&limit=1000&${query}`); const expected=all.filter(match); assert.equal(result.total,expected.length,query); assert.deepEqual(result.data.map(p=>p.id).sort(),expected.map(p=>p.id).sort(),query)}
  const page1=await get('category=varsity-jackets&maxPrice=100&sort=price&order=asc&limit=3&page=1')
  const page2=await get('category=varsity-jackets&maxPrice=100&sort=price&order=asc&limit=3&page=2')

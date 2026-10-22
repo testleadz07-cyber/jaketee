@@ -6,7 +6,7 @@ const PAGE_URL = `${SITE_URL}/contact`
 
 export const metadata: Metadata = withSocialMetadata({
   title: 'Contact Us — Jacketee',
-  description: 'Get in touch with the Jacketee team. We\'re available Mon–Fri 9am–6pm EST and typically respond within 24 hours.',
+  description: 'Contact Jacketee for custom jacket design help, order support, sizing and shipping questions. Reach us by email, phone, WhatsApp or our contact form.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Contact Us — Jacketee',
@@ -18,6 +18,6 @@ export const metadata: Metadata = withSocialMetadata({
   twitter: {
     card: 'summary',
     title: 'Contact Us — Jacketee',
-    description: 'Reach out to Jacketee support. We respond within 24 hours.',
+    description: 'Get custom jacket design help and order support by email, phone, WhatsApp or our contact form.',
   },
 })

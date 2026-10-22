@@ -14,27 +14,31 @@ export async function POST(request: NextRequest) {
   if (Number(request.headers.get('content-length')) > 6 * 1024 * 1024) return NextResponse.json({ error: 'Your request is too large.' }, { status: 413 })
   try {
     const form = await request.formData()
-    const fields = ['name', 'email', 'organization', 'quantity', 'jacketType', 'deadline', 'country'] as const
+    const fields = ['name', 'email', 'organization', 'quantity', 'jacketType', 'deadline', 'country', 'program', 'notes'] as const
     const data = Object.fromEntries(fields.map(key => [key, String(form.get(key) || '').trim()]))
-    if (fields.some(key => !data[key] || data[key].length > 200) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      return NextResponse.json({ error: 'Please complete all fields with a valid email address.' }, { status: 400 })
+    const fieldErrors: Record<string, string> = {}
+    for (const key of ['name', 'email', 'organization', 'quantity', 'jacketType', 'country'] as const) {
+      if (!data[key] || data[key].length > 200) fieldErrors[key] = 'Enter a value of up to 200 characters.'
     }
-    if (!Number.isSafeInteger(Number(data.quantity)) || Number(data.quantity) < 10 || !/^\d{4}-\d{2}-\d{2}$/.test(data.deadline) || Number.isNaN(Date.parse(data.deadline))) {
-      return NextResponse.json({ error: 'Enter a quantity of at least 10 and a valid deadline.' }, { status: 400 })
-    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) fieldErrors.email = 'Enter a valid email address.'
+    if (!Number.isSafeInteger(Number(data.quantity)) || Number(data.quantity) < 10) fieldErrors.quantity = 'Enter a whole number of at least 10.'
+    if (data.deadline && (!/^\d{4}-\d{2}-\d{2}$/.test(data.deadline) || Number.isNaN(Date.parse(data.deadline)) || new Date(data.deadline).toISOString().slice(0, 10) !== data.deadline)) fieldErrors.deadline = 'Enter a valid date or leave it blank.'
+    if (data.program.length > 200) fieldErrors.program = 'Choose a shorter program name.'
+    if (data.notes.length > 4000) fieldErrors.notes = 'Use 4,000 characters or fewer.'
     const countryError = shippingCountryError(data.country)
-    if (countryError) return NextResponse.json({ error: countryError }, { status: 400 })
+    if (countryError) fieldErrors.country = countryError
+    if (Object.keys(fieldErrors).length) return NextResponse.json({ error: 'Please check the highlighted fields.', fieldErrors }, { status: 400 })
     const logo = form.get('logo')
-    const attachments = []
+    const attachments: { filename: string; content: Buffer; contentType: string }[] = []
     if (logo instanceof File && logo.size > 0) {
       if (!['image/png', 'image/jpeg', 'image/webp'].includes(logo.type) || logo.size > 5 * 1024 * 1024) {
-        return NextResponse.json({ error: 'Choose a PNG, JPG, or WebP logo up to 5 MB.' }, { status: 400 })
+        return NextResponse.json({ error: 'Choose a PNG, JPG, or WebP logo up to 5 MB.', fieldErrors: { logo: 'Choose a PNG, JPG, or WebP logo up to 5 MB.' } }, { status: 400 })
       }
       attachments.push({ filename: logo.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100), content: Buffer.from(await logo.arrayBuffer()), contentType: logo.type })
     }
     const subject = 'Bulk jacket quote request'
     const message = [
-      ...fields.map(key => `${key}: ${data[key]}`),
+      ...fields.map(key => `${key}: ${data[key] || (key === 'deadline' ? 'Not sure yet' : 'Not provided')}`),
       ...(attachments.length ? [`Logo attachment: ${attachments[0].filename} (included in the notification email)`] : []),
     ].join('\n')
     const db = await connectDB()

@@ -1,6 +1,7 @@
-import { internationalShippingAnswer, returnPolicyText, faultReportFaqAnswer } from '@/config/fulfillment'
+import { internationalShippingAnswer, returnPolicyText, faultReportFaqAnswer, fulfillmentConfig } from '@/config/fulfillment'
 
 export interface FaqItem {
+  aliases?: string[]
   question: string
   answer: string | string[]
   bullets?: string[]
@@ -65,7 +66,7 @@ const faqCategories: FaqCategory[] = [
       {
         question: 'How much is shipping?',
         answer:
-          'Shipping is $45 USD for the first jacket, plus $20 USD for each additional jacket in the same order.',
+          fulfillmentConfig.multipleJacketShipping,
       },
     ],
   },
@@ -144,9 +145,36 @@ const faqCategories: FaqCategory[] = [
       },
     ],
   },
+  {
+    title: 'Design & Customization',
+    items: [
+      { question: 'How do I start a custom jacket design?', answer: 'Open the [jacket designer](/design/varsity), choose a starting style and add your colors, lettering or artwork. Visit [how to customize](/how-to-customize) for guidance, or [contact the team](/contact) if you need help with your design.' },
+      { question: 'Can I review my design before production?', answer: 'Review your design proof, artwork placement, colors, spelling and order details before approving production. Ask the team to confirm any changes before the order moves forward.' },
+      { question: 'Where can I compare fabrics and decoration methods?', answer: 'Use the [materials and colors guide](/materials-colors) and [patches and embroidery guide](/patches-embroidery). Actual suitability and color availability are confirmed for your chosen jacket.' },
+    ],
+  },
+  {
+    title: 'Jacket Sizing',
+    items: [
+      { question: 'How do I choose my jacket size?', answer: 'Use the [size guide](/size-guide) to measure your body or a garment you already own. Reference charts are a starting point; confirm the measurements and fit of the exact style before ordering, including room for layers.' },
+    ],
+  },
+  {
+    title: 'Production & Delivery',
+    items: [
+      { question: 'How long do production and delivery take?', answer: [fulfillmentConfig.individualProduction, fulfillmentConfig.individualDelivery, 'Confirm the schedule for your design and destination before ordering. Customs and artwork changes can add time. See [shipping information](/shipping) for details.'] },
+      { question: 'How long does a bulk jacket order take?', answer: [fulfillmentConfig.bulkProductionDelivery, 'Samples, artwork revisions, materials and customs can extend the schedule. Share your required arrival date when [requesting a bulk quote](/bulk-orders#bulk-quote).'] },
+    ],
+  },
+  {
+    title: 'Bulk & Team Orders',
+    items: [
+      { question: 'How do I request a quote for my school, team or brand?', answer: 'Use the [bulk quote form](/bulk-orders#bulk-quote) for 10 or more jackets. Start with your estimated quantity, preferred style, destination and target date. You can add project notes and upload artwork if available. For fewer than 10, [contact the team](/contact).' },
+    ],
+  },
 ]
 
-export const FAQ_SECTION_ORDER = ['Orders', 'Shipping', 'Returns & Exchanges', 'Payments', 'Account', 'Privacy & Security', 'Design & Customization', 'Jacket Sizing', 'Production & Delivery', 'Bulk & Team Orders', 'Varsity Jackets', 'Leather Jackets', 'Puffer Jackets', 'Bomber Jackets', 'Denim Jackets', 'Coach Jackets', 'Fleece Hoodies', 'Patches & Embroidery', 'General']
+export const FAQ_SECTION_ORDER = ['Orders', 'Design & Customization', 'Jacket Sizing', 'Production & Delivery', 'Shipping', 'Returns & Exchanges', 'Bulk & Team Orders', 'Payments', 'Account', 'Varsity Jackets', 'Leather Jackets', 'Puffer Jackets', 'Bomber Jackets', 'Denim Jackets', 'Coach Jackets', 'Fleece Hoodies', 'Patches & Embroidery', 'Privacy & Security', 'General']
 const CATEGORY_TITLES: Record<string, string> = {
   'how-to-design': 'Design & Customization', 'single-jacket-orders': 'Orders',
   'bulk-team-orders': 'Bulk & Team Orders', 'jacket-sizing': 'Jacket Sizing',
@@ -178,7 +206,7 @@ export function buildFaqCategories(dbFaqs: DbFaqItem[]): FaqCategory[] {
       categories.push(category)
       byTitle.set(title, category)
     }
-    category.items.push({ question: faq.question, answer: faultReportFaqAnswer(faq.question, faq.answer), bullets: faq.bullets, ordered: faq.ordered })
+    category.items.push({ question: faq.question, answer: faultReportFaqAnswer(faq.question, faq.answer), bullets: faq.bullets, ordered: faq.ordered, aliases: faq.mergedQuestions || [] })
   }
   return categories.filter(category => category.items.length > 0).sort((a, b) => FAQ_SECTION_ORDER.indexOf(a.title) - FAQ_SECTION_ORDER.indexOf(b.title))
 }

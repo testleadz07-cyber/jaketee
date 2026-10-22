@@ -1,6 +1,7 @@
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { HomeHero, homeHeroImage } from '@/components/home-hero'
+import { getHomeHeroImages } from '@/lib/home-hero-images'
 import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
 import CategoryModel from '@/models/Category'
@@ -12,7 +13,7 @@ import Home, { type Category, type Product } from './home-client'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = withSocialMetadata({
+const defaultMetadata: Metadata = withSocialMetadata({
   title: 'Custom Varsity Jackets & Letterman Jackets | Jacketee',
   description: 'Design custom varsity jackets and letterman jackets with chenille patches, embroidery and your team colors. Bulk pricing for schools, teams and brands.',
   alternates: { canonical: 'https://www.jacketee.com/' },
@@ -31,6 +32,15 @@ export const metadata: Metadata = withSocialMetadata({
     images: ['https://www.jacketee.com/opengraph-image'],
   },
 })
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { desktop } = await getHomeHeroImages()
+  return withSocialMetadata({
+    ...defaultMetadata,
+    openGraph: { ...defaultMetadata.openGraph, images: [{ url: desktop.url, width: desktop.width || 1774, height: desktop.height || 887, alt: desktop.alt }] },
+    twitter: { ...defaultMetadata.twitter, images: [desktop.url] },
+  })
+}
 
 export default async function Page() {
   if (!(await connectDB())) throw new Error('Catalog is temporarily unavailable')

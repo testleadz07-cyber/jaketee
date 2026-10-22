@@ -313,10 +313,10 @@ export function Header({ home = false }: { home?: boolean }) {
 
             <nav className="hidden items-center gap-1 xl:flex" aria-label="Main navigation">
               {renderDesktopMenu('Varsity Jackets', varsitySubcategoryLinks, { href: '/varsity-jackets', label: 'All Varsity Jackets', description: '' })}
-              {renderDesktopMenu(home ? 'Design Your Own' : 'Build Your Jacket', customJacketLinks)}
-              {renderDesktopMenu(home ? 'Shop Jackets' : 'Bombers & More', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
-              {renderDesktopMenu(home ? 'Bulk Orders' : 'Bulk & Teams', bulkOrderLinks, { href: '/bulk-orders', label: 'Bulk & Teams', description: '' })}
-              {renderDesktopMenu(home ? 'Help' : 'Support', supportLinks)}
+              {renderDesktopMenu('Build Your Jacket', customJacketLinks)}
+              {renderDesktopMenu('Bombers & More', otherStyleLinks, { href: '/shop', label: 'Shop All', description: '' })}
+              {renderDesktopMenu('Bulk & Teams', bulkOrderLinks, { href: '/bulk-orders', label: 'Bulk & Teams', description: '' })}
+              {renderDesktopMenu('Support', supportLinks)}
             </nav>
           </div>
 
@@ -562,10 +562,10 @@ export function Header({ home = false }: { home?: boolean }) {
                   { href: '/varsity-jackets', label: 'All Varsity Jackets', description: 'Classic custom letterman styles' },
                   ...varsitySubcategoryLinks,
                 ])}
-                {renderMobileSection(home ? 'Design Your Own' : 'Build Your Jacket', customJacketLinks)}
-                {renderMobileSection(home ? 'Shop Jackets' : 'Bombers & More', otherStyleLinks)}
-                {renderMobileSection(home ? 'Bulk Orders' : 'Bulk & Teams', bulkOrderLinks)}
-                {renderMobileSection(home ? 'Help' : 'Support', supportLinks)}
+                {renderMobileSection('Build Your Jacket', customJacketLinks)}
+                {renderMobileSection('Bombers & More', otherStyleLinks)}
+                {renderMobileSection('Bulk & Teams', bulkOrderLinks)}
+                {renderMobileSection('Support', supportLinks)}
                 </Accordion>
               </nav>
 

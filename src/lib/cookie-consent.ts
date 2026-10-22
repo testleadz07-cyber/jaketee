@@ -29,9 +29,9 @@ export function getStoredConsent(): CookieConsent | null {
     if (typeof parsed !== 'object' || parsed === null) return null
     return {
       necessary: true,
-      functional: !!parsed.functional,
-      analytics: !!parsed.analytics,
-      marketing: !!parsed.marketing,
+      functional: parsed.functional === true,
+      analytics: parsed.analytics === true,
+      marketing: parsed.marketing === true,
       updatedAt: parsed.updatedAt || new Date().toISOString(),
     }
   } catch {
@@ -48,7 +48,13 @@ export function saveConsent(consent: Omit<CookieConsent, 'necessary' | 'updatedA
     marketing: consent.marketing,
     updatedAt: new Date().toISOString(),
   }
-  window.localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(full))
+  try {
+    window.localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(full))
+    if (!full.functional) {
+      window.localStorage.removeItem('wishlist-storage')
+      window.localStorage.removeItem('recently-viewed-storage')
+    }
+  } catch { /* Apply the choice for this page even if browser storage is blocked. */ }
   if (!full.analytics) void resetGuestActivityIdentity()
   window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_UPDATED_EVENT, { detail: full }))
 }

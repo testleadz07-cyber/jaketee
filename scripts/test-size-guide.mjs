@@ -92,8 +92,22 @@ assert.match(popup, />Vests</)
 assert.match(popup, /How to Measure/)
 assert.doesNotMatch(popup, /Tops|Bottoms|Shoes|Foot Length|Inseam/)
 assert.ok(popup.includes(vest))
-const fullPage = fs.readFileSync('src/components/jacket-size-reference.tsx', 'utf8')
-assert.match(fullPage, /GarmentSizeChart kind="vest" unit=\{unit\}/)
-assert.match(fullPage, /@\/lib\/jacket-sizing/)
-assert.match(fullPage, /InternationalSizeChart unit=\{unit\}/)
-console.log('PASS: verified US/UK/EU source rows, male/female switching, shared popup/full-page references, jacket/vest measurements, inch/cm conversion, estimator and measurement instructions.')
+const { JacketSizeReference } = load('src/components/jacket-size-reference.tsx', {
+  'next/link': ({ children, ...props }) => React.createElement('a', props, children),
+  '@/components/optimized-image': ({ fill, sizes, ...props }) => React.createElement('img', props),
+  '@/components/ui/input': { Input: props => React.createElement('input', props) },
+  '@/components/ui/label': { Label: props => React.createElement('label', props) },
+  '@/components/ui/tabs': Object.fromEntries(['Tabs', 'TabsList', 'TabsTrigger', 'TabsContent'].map(name => [name, element('div')])),
+  '@/lib/jacket-sizing': sizing,
+  '@/components/international-size-chart': { InternationalSizeChart },
+})
+const pageHtml = renderToStaticMarkup(React.createElement(JacketSizeReference))
+assert.match(pageHtml, /Choose your size reference/)
+assert.match(pageHtml, /Chest, around/)
+assert.match(pageHtml, /Reset measurements/)
+assert.match(pageHtml, /not a guaranteed product fit/)
+assert.ok(pageHtml.indexOf('id="size-charts"') < pageHtml.indexOf('id="how-to-measure"'))
+assert.ok(pageHtml.indexOf('id="how-to-measure"') < pageHtml.indexOf('id="fit-advice"'))
+assert.ok(pageHtml.indexOf('id="fit-advice"') < pageHtml.indexOf('id="international-size-chart"'))
+assert.equal((pageHtml.match(/aria-label="Body size chart"/g) || []).length, 1)
+console.log('PASS: reference values, jacket/vest popup compatibility, unit conversion, estimator, and redesigned full-page chart order.')

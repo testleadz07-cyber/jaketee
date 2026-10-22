@@ -25,7 +25,7 @@ export function HomeGroupOrders() {
               <ul className="mt-6 space-y-3 text-sm text-white/85">{['Coordinated colors and logo artwork', 'Individual names, numbers, and sizes', 'A digital proof to review before production'].map(item => <li key={item} className="flex gap-3"><Check aria-hidden="true" className="h-5 w-5 shrink-0 text-[#e6b8ad]" />{item}</li>)}</ul>
             </div>
             <div className="mt-8 border-t border-white/15 pt-6">
-              <Button asChild size="lg" className="min-h-12 w-full bg-white text-zinc-950 hover:bg-zinc-100 sm:w-auto"><Link href="/bulk-orders#bulk-quote">Request a Free Bulk Quote <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" /></Link></Button>
+              <Button asChild size="lg" className="min-h-12 w-full bg-white text-zinc-950 hover:bg-zinc-100 sm:w-auto"><Link href="/bulk-orders">Explore Bulk &amp; Teams <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" /></Link></Button>
               <p className="mt-3 text-xs leading-5 text-white/65">Share your quantity, artwork, and required date.</p>
             </div>
           </div>

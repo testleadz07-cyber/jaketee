@@ -34,11 +34,12 @@ export function calculateShipping(quantity: number, freeShipping = false): numbe
   return freeShipping ? 0 : STANDARD_SHIPPING_USD + (quantity - 1) * deliverySettings.additionalJacketShipping
 }
 export const returnPolicyText = {
+  statutoryRights: 'These store change-of-mind terms do not restrict mandatory consumer rights. Where applicable law provides a longer cancellation period, prohibits a restocking charge, or requires a refund or other remedy, that law takes precedence. Personalized items remain covered by applicable rights for faulty, damaged, incorrect or misdescribed goods.',
   eligibility: `Eligible, non-customized stock jackets can be returned within ${deliverySettings.returnDays} days of delivery.`,
   fee: 'A restocking fee of 15% of the jacket price, with a minimum of $35, is deducted from approved change-of-mind returns.',
   personalized: 'Personalized or custom items',
   customExchange: 'Custom jackets are not exchangeable for a change of mind',
-  faulty: 'Report faulty, damaged or incorrect items within 48 hours of delivery, with your order number and photos. We will review the issue and arrange an appropriate remedy. The change-of-mind restocking fee does not apply to these cases.',
+  faulty: 'Please report faulty, damaged or incorrect items promptly, ideally within 48 hours of delivery, with your order number and photos. This requested reporting window does not limit statutory rights or remedies. We will review the issue and arrange an appropriate remedy. The change-of-mind restocking fee does not apply to these cases.',
 } as const
 
 // Keep database-backed FAQs aligned with the current policy, including older imports.

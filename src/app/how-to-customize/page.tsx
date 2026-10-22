@@ -1,482 +1,138 @@
-import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
-import Image from '@/components/optimized-image'
 import Link from 'next/link'
-import {
-  ArrowRight,
-  BadgeCheck,
-  CheckCircle2,
-  FileCheck,
-  HelpCircle,
-  Layers,
-  Palette,
-  Ruler,
-  Scissors,
-  Sliders,
-  Sparkles,
-  ShieldCheck,
-  Upload,
-  Wand2,
-} from 'lucide-react'
+import Image from '@/components/optimized-image'
+import { ArrowRight, Check, ChevronDown, Palette, Ruler, Scissors, ShieldCheck } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { getCustomDesignImages } from '@/components/custom-design-section'
+import { fulfillmentConfig } from '@/config/fulfillment'
+import { withSocialMetadata } from '@/lib/seo-metadata'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
-const PAGE_URL = `${SITE_URL}/how-to-customize`
-
+const PAGE_URL = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'}/how-to-customize`
+const description = 'Learn how to customize a jacket: choose your style, materials and colors, add patches or embroidery, check sizing, and review your design before ordering.'
 export const metadata: Metadata = withSocialMetadata({
   title: 'How to Customize a Jacket | Step-by-Step Customization Guide | Jacketee',
-  description:
-    'Learn how to design and customize your selected jacket on Jacketee. Follow our easy 6-step guide to pick materials, colors, chenille patches, embroidery, custom sizing, and artwork.',
+  description,
   alternates: { canonical: PAGE_URL },
-  openGraph: {
-    title: 'How to Customize Your Jacket | Jacketee Customization Guide',
-    description:
-      'Step-by-step guide to creating your personalized varsity, bomber, denim, or leather jacket. Choose materials, artwork placement, custom patches, and exact measurements.',
-    url: PAGE_URL,
-    siteName: 'Jacketee',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'How to Customize Your Jacket | Step-by-Step Guide | Jacketee',
-    description:
-      'Learn how to customize any jacket on Jacketee with our simple 6-step builder guide.',
-  },
+  openGraph: { title: 'How to Customize Your Jacket | Jacketee Customization Guide', description, url: PAGE_URL, siteName: 'Jacketee', type: 'website' },
+  twitter: { card: 'summary_large_image', title: 'How to Customize Your Jacket | Step-by-Step Guide | Jacketee', description },
 })
 
-const customizationSteps = [
-  {
-    number: '01',
-    title: 'Select Your Base Jacket Style',
-    icon: Wand2,
-    tagline: 'Choose from varsity, bomber, denim, puffer, or leather bases',
-    description:
-      'Browse our catalog or select any customizable jacket. Each jacket design serves as your canvas, offering premium construction, tailored cuts, and built-in customization options.',
-    details: [
-      'Pick your foundational category (Varsity Letterman, Vintage Bomber, Heavyweight Denim, Quilted Puffer, etc.).',
-      'Click the "Customize This Jacket" button on the product detail page to launch the interactive customizer.',
-      'You can also start from scratch or pick a pre-designed template to adjust colors and patches.',
-    ],
-    tip: 'Pro Tip: Select a base style that matches your climate and event needs (e.g., Melton Wool & Genuine Leather for classic varsity, Cotton Satin for lightweight team jackets).',
-  },
-  {
-    number: '02',
-    title: 'Choose Materials, Colors & Hardware',
-    icon: Palette,
-    tagline: 'Personalize body fabric, sleeves, lining, and metal trims',
-    description:
-      'Fine-tune every visual component of your jacket. Select primary and secondary colorways, inner linings, and hardware finishes to reflect your personal style or team identity.',
-    details: [
-      'Body & Sleeve Fabrics: Combine wool body with leather sleeves, or select 100% all-wool, satin, or twill.',
-      'Color Palette: Pick contrast colors for body, sleeves, collar, cuffs, and waist ribbing.',
-      'Lining & Hardware: Choose quilted thermal lining, sleek satin, or lightweight mesh, plus brass or silver snap closures.',
-    ],
-    tip: 'Matching Tip: Ribbing stripes can combine up to 3 colors to align perfectly with school, brand, or club palettes.',
-  },
-  {
-    number: '03',
-    title: 'Add Patches, Embroidery & Text',
-    icon: Scissors,
-    tagline: 'Place chenille letters, felt patches, and embroidered artwork',
-    description:
-      'Make your jacket unique with multi-layer chenille letters, high-density embroidery, tackle twill graphics, or custom printed patches across key placement zones.',
-    details: [
-      'Chest Details: Add left chest varsity letters, graduation year digits, or custom script name embroidery.',
-      'Sleeve Artwork: Place jersey numbers, state flags, award patches, or team emblems on left and right sleeves.',
-      'Back Statement: Feature large multi-tier chenille lettering, mascot patches, or full-width embroidered crests.',
-      'Custom Uploads: Upload your high-res logo or artwork file (PNG, SVG, AI, PDF) directly in the builder.',
-    ],
-    tip: 'Design Tip: Traditional letterman jackets feature 3D fluffy chenille patches, while corporate or streetwear lines look sharp with flat direct-to-garment embroidery.',
-  },
-  {
-    number: '04',
-    title: 'Specify Size & Custom Measurements',
-    icon: Ruler,
-    tagline: 'Standard US/EU sizing or made-to-measure custom dimensions',
-    description:
-      'Ensure a flawless fit. Choose standard sizing from XS to 6XL, or submit custom measurements for a tailor-made jacket tailored specifically to your body profile.',
-    details: [
-      'Standard Sizing: Pick your normal size using our comprehensive Size Guide with chest, shoulder, and sleeve charts.',
-      'Custom Tailored Fit: Enter exact body measurements (chest width, shoulder width, sleeve length, jacket length).',
-      'Fit Preference: Choose between standard fit, relaxed athletic fit, or modern oversized streetwear silhouette.',
-    ],
-    tip: 'Fit Tip: If planning to wear heavy hoodies or sweaters under your jacket, we recommend selecting one size up or measuring with outerwear layers on.',
-  },
-  {
-    number: '05',
-    title: 'Review Mockup & Instant Price Summary',
-    icon: Sliders,
-    tagline: 'Transparent pricing with live design preview',
-    description:
-      'Inspect every detail of your build before placing your order. Our interactive customizer updates total cost in real-time with zero hidden customization fees.',
-    details: [
-      'Review placement summary: Check chest text, sleeve patches, back artwork, and selected sizes.',
-      'Add Special Instructions: Include design notes, thread color preferences, or specific patch dimensions.',
-      'Transparent Price Breakdown: See base price plus any added patch or specialty material costs.',
-    ],
-    tip: 'Ordering Tip: No minimum order quantity is required! Order 1 piece for yourself or batch orders for entire groups.',
-  },
-  {
-    number: '06',
-    title: 'Free Digital Proof & Crafting',
-    icon: ShieldCheck,
-    tagline: 'Approved by you before production begins',
-    description:
-      'Once you place your order, our professional design team crafts a detailed 3D digital mockup for your final review and sign-off within 24 hours.',
-    details: [
-      'Free Mockup Approval: We send a high-resolution mockup to your email before cutting any fabric.',
-      'Unlimited Revisions: Request minor adjustments to placement, sizing, or colors until it is 100% right.',
-      'Master Craftsmanship & Shipping: Once approved, master tailors craft your jacket with premium materials and ship it direct to your door.',
-    ],
-    tip: 'Peace of Mind: Production only begins after you give 100% explicit approval on your digital proof.',
-  },
+const styles = [
+  { name: 'Varsity', href: '/design/varsity', detail: 'Classic letters & contrast sleeves' },
+  { name: 'Bomber', href: '/design/bomber', detail: 'A clean canvas for your identity' },
+  { name: 'Coach', href: '/design/coach', detail: 'Lightweight team style' },
+  { name: 'Puffer', href: '/design/puffer', detail: 'Personalized cold-weather layers' },
+  { name: 'Fleece hoodie', href: '/design/hoodie', detail: 'Everyday comfort, made yours' },
 ]
-
-const placementZones = [
-  {
-    zone: 'Left & Right Chest',
-    description: 'Ideal for school letters, individual names, graduation year, or small brand logos.',
-  },
-  {
-    zone: 'Left & Right Sleeves',
-    description: 'Perfect for jersey numbers, position titles, squad badges, or state/national flags.',
-  },
-  {
-    zone: 'Upper & Lower Back',
-    description: 'Designed for bold team titles, arched organization names, or large central mascots.',
-  },
-  {
-    zone: 'Inner Pocket / Lining',
-    description: 'Discreet space for custom woven tags, interior name patches, or commemorative dates.',
-  },
+const steps = [
+  { id: 'choose-style', short: 'Choose a style', title: 'Start with the right base', text: 'Choose a jacket or hoodie below to open its designer. Available materials, finishing options and sizes depend on the style you select.', actions: ['Think about your climate, occasion and how you want to layer.', 'For denim or a special construction, discuss your requirements with our team.'], link: '/custom-denim-jackets', label: 'Explore custom denim', tip: 'Not every style has the same options. Use the controls in your chosen designer as your guide.' },
+  { id: 'materials-colors', short: 'Materials & colors', title: 'Build your color palette', text: 'Choose from the material and color controls available for your style. Start with the body and sleeves, then coordinate the trim and finishing details.', actions: ['Keep your main colors consistent with your school, team or brand.', 'Review the front and back preview after changing colors.'], link: '/materials-colors', label: 'Compare materials & colors', tip: 'Screen colors are a guide. Ask our team about a specific shade before ordering if an exact match matters.' },
+  { id: 'add-artwork', short: 'Text & artwork', title: 'Add the details that tell your story', text: 'Personalize the available views with names, numbers, lettering or uploaded artwork. Check placement and scale as you go.', actions: ['Use your clearest original logo or artwork, rather than a screenshot.', 'Check spelling, graduation years, numbers and artwork on each view.'], link: '/patches-embroidery', label: 'Compare patches & embroidery', tip: 'Keep small text simple and legible. Ask for help with artwork that has fine detail, gradients or a background you want removed.' },
+  { id: 'check-size', short: 'Check your size', title: 'Measure before choosing your fit', text: 'Compare the size guide with a jacket that already fits you well. Consider the layers you plan to wear underneath.', actions: ['Check chest, shoulder, sleeve and jacket length using the guide.', 'Contact us before ordering if you are between sizes or need custom measurements.'], link: '/size-guide', label: 'Open the size guide', tip: 'Avoid guessing or automatically sizing up. Use measurements and the style’s available size options to decide.' },
+  { id: 'review-order', short: 'Review & order', title: 'Give every detail a final check', text: 'Review the jacket preview, selected options, size and price summary before continuing to your cart or checkout.', actions: ['Check all views, colors, text and uploaded artwork.', 'Review the shipping charge, delivery address and contact details at checkout.'], link: '/shipping', label: 'Read shipping information', tip: 'The designer shows the price for your selected options. Shipping is calculated at checkout; request a quote for group orders.' },
+  { id: 'approval-delivery', short: 'Approval & delivery', title: 'Approve your design before production', text: 'Review the design proof and confirm any adjustments with our team before your jacket is made. Keep your order details handy for follow-up questions.', actions: [fulfillmentConfig.individualProduction, fulfillmentConfig.individualDelivery], link: '/track-order', label: 'Track an existing order', tip: `${fulfillmentConfig.bulkProductionDelivery} Tell us your required event date before ordering.` },
 ]
-
 const faqs = [
-  {
-    question: 'How do I start customizing a jacket on Jacketee?',
-    answer:
-      'Simply browse our site, find any jacket style you like, and click the "Customize This Jacket" button. This launches our step-by-step customization builder where you can choose fabrics, colors, patches, text, and sizing.',
-  },
-  {
-    question: 'Can I upload my own custom logo or design?',
-    answer:
-      'Yes! In Step 3 (Design & Artwork), you can upload your vector file or high-resolution image (PNG, SVG, PDF, or AI). Our design team will digitize your logo into patch embroidery or chenille artwork.',
-  },
-  {
-    question: 'Will I see a proof before my jacket is produced?',
-    answer:
-      'Absolutely. Every custom jacket order includes a free high-resolution digital mockup proof created by our design team within 24 hours. Production only starts after you approve the final proof.',
-  },
-  {
-    question: 'What if I am between sizes or need custom dimensions?',
-    answer:
-      'We offer custom made-to-measure sizing! In Step 4 (Sizing), choose "Custom Measurements" and input your chest circumference, shoulder width, sleeve length, and jacket length for a tailored fit.',
-  },
-  {
-    question: 'Is there a minimum order quantity (MOQ)?',
-    answer:
-      'No! We have no minimum order requirement. You can order a single custom 1-of-1 jacket or bulk orders for teams, schools, and organizations with volume discounts.',
-  },
-  {
-    question: 'How long does custom jacket production and shipping take?',
-    answer:
-      'Once your mockup is approved, production typically takes 2 to 3 weeks. Express shipping usually delivers within 5 to 7 business days worldwide.',
-  },
+  { question: 'Which styles can I customize online?', answer: 'You can open an online designer for varsity, bomber, coach and puffer jackets, plus fleece hoodies. For denim or a special request, contact our team to discuss your design.' },
+  { question: 'Do I need finished artwork to get started?', answer: 'No. You can start by choosing your style and colors and adding text. If your logo needs preparation or you only have an idea, contact us before ordering so we can discuss the best way to reproduce it.' },
+  { question: 'Can I choose any fabric, lining or hardware?', answer: 'Options vary by style. Choose from the controls shown in your selected designer. For a material, closure, lining or other detail that is not listed, ask our team before placing your order.' },
+  { question: 'Can I request custom measurements?', answer: 'Use the size guide first, then contact our team before ordering if the listed sizes do not suit you. Confirm custom measurements and availability for your chosen style with us.' },
+  { question: 'Will I see my design before production?', answer: 'You can review your design in the online preview while you customize. Review the proof with our team and confirm your design before production begins.' },
+  { question: 'How long does a custom jacket take?', answer: `${fulfillmentConfig.individualProduction} ${fulfillmentConfig.individualDelivery} ${fulfillmentConfig.bulkProductionDelivery}` },
+  { question: 'How do I order for a team or school?', answer: 'Use the Bulk & Teams quote form for group orders. Prepare your approximate quantity, style, artwork, size requirements and event date so our team can provide a relevant quote.' },
+]
+const resources = [
+  { title: 'Materials & colors', text: 'Compare fabrics, leather and color ranges.', href: '/materials-colors', icon: Palette },
+  { title: 'Patches & embroidery', text: 'Choose the finish that suits your artwork.', href: '/patches-embroidery', icon: Scissors },
+  { title: 'Size guide', text: 'Measure a jacket you already love wearing.', href: '/size-guide', icon: Ruler },
 ]
 
-export default function HowToCustomizePage() {
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    name: 'How to Customize a Jacket on Jacketee',
-    description:
-      'A step-by-step guide explaining how to design, customize, size, and order a custom jacket on Jacketee.',
-    step: customizationSteps.map((step, idx) => ({
-      '@type': 'HowToStep',
-      position: idx + 1,
-      name: step.title,
-      text: step.description,
-    })),
-  }
-
+export default async function HowToCustomizePage() {
+  const images = await getCustomDesignImages()
+  const hero = images.varsity
+  const schema = [
+    { '@context': 'https://schema.org', '@type': 'HowTo', name: 'How to Customize a Jacket on Jacketee', description, step: steps.map((step, index) => ({ '@type': 'HowToStep', position: index + 1, name: step.title, text: step.text, url: `${PAGE_URL}#${step.id}` })) },
+    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map(faq => ({ '@type': 'Question', name: faq.question, acceptedAnswer: { '@type': 'Answer', text: faq.answer } })) },
+  ]
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
       <Header />
-
       <main>
-        {/* Breadcrumb Bar */}
-        <div className="border-b bg-muted/40 py-3">
-          <div className="container mx-auto px-4">
-            <Breadcrumbs
-              items={[
-                { label: 'Support', href: '/faq' },
-                { label: 'How to Customize a Jacket' },
-              ]}
-            />
-          </div>
-        </div>
-
-        {/* Hero Section */}
-        <section className="relative overflow-hidden border-b bg-gradient-to-b from-primary/5 via-background to-background py-14 md:py-20">
-          <div className="container mx-auto px-4 text-center">
-            <Badge variant="outline" className="mb-4 inline-flex items-center gap-1.5 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-              <Sparkles className="h-3.5 w-3.5" /> Step-by-Step Customization Guide
-            </Badge>
-
-            <h1 className="mx-auto max-w-4xl text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-              How to Customize Your Selected Jacket on Jacketee
-            </h1>
-
-            <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
-              Follow our simple 6-step process to design your dream custom letterman, bomber, denim, or puffer jacket. Personalize materials, patches, embroidery, and exact sizing with ease.
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <Button asChild size="lg" className="rounded-full px-8 font-semibold shadow-lg transition-transform hover:scale-105">
-                <Link href="/design/varsity">
-                  Design a Custom Jacket Now <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-
-              <Button asChild variant="outline" size="lg" className="rounded-full px-7 font-medium">
-                <Link href="/materials-colors">Explore Fabrics & Colors</Link>
-              </Button>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />
+        <div className="container mx-auto px-4 py-5"><Breadcrumbs items={[{ label: 'Support', href: '/faq' }, { label: 'How to Customize a Jacket' }]} /></div>
+        <section className="container mx-auto px-4 pb-10 md:pb-16" aria-labelledby="customize-title">
+          <div className="grid overflow-hidden rounded-2xl border bg-muted/25 lg:grid-cols-2">
+            <div className="p-6 sm:p-10 lg:self-center lg:p-12">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Your idea. Your jacket.</p>
+              <h1 id="customize-title" className="mt-4 max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">How to customize<br className="hidden sm:block" /> your jacket</h1>
+              <p className="mt-5 max-w-xl leading-7 text-muted-foreground">From your first color choice to the final design approval. Follow six simple steps to create a custom jacket with your colors, lettering, patches and embroidery.</p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Button asChild size="lg"><a href="#choose-your-style">Choose your style <ArrowRight className="ml-2 h-4 w-4" /></a></Button>
+                <Button asChild size="lg" variant="outline"><a href="#customization-steps">See the 6 steps</a></Button>
+              </div>
+              <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-primary" /> Review your design before production</p>
             </div>
-
-            {/* Quick Stats / Highlights */}
-            <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 max-w-4xl mx-auto">
-              <div className="rounded-xl border bg-card/60 p-4 text-center backdrop-blur-sm">
-                <div className="text-2xl font-bold text-primary">100%</div>
-                <div className="text-xs text-muted-foreground mt-1">Customizable Options</div>
-              </div>
-              <div className="rounded-xl border bg-card/60 p-4 text-center backdrop-blur-sm">
-                <div className="text-2xl font-bold text-primary">No MOQ</div>
-                <div className="text-xs text-muted-foreground mt-1">Order 1 or 1,000+</div>
-              </div>
-              <div className="rounded-xl border bg-card/60 p-4 text-center backdrop-blur-sm">
-                <div className="text-2xl font-bold text-primary">Free Proof</div>
-                <div className="text-xs text-muted-foreground mt-1">Digital 3D Mockup</div>
-              </div>
-              <div className="rounded-xl border bg-card/60 p-4 text-center backdrop-blur-sm">
-                <div className="text-2xl font-bold text-primary">XS – 6XL</div>
-                <div className="text-xs text-muted-foreground mt-1">Or Tailored Measurements</div>
-              </div>
+            <div className="relative min-h-72 bg-muted/40 sm:min-h-96 lg:min-h-[480px]">
+              {hero && <Image src={hero.url} alt={hero.alt} fill priority sizes="(max-width: 1023px) 100vw, 50vw" className="object-contain p-6 sm:p-10" />}
             </div>
           </div>
         </section>
 
-        {/* Detailed 6 Steps Section */}
-        <section className="py-14 md:py-20">
-          <div className="container mx-auto px-4 max-w-5xl">
-            <div className="mb-12 text-center">
-              <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
-                The 6 Steps to Create Your Custom Jacket
-              </h2>
-              <p className="mt-3 text-muted-foreground">
-                Our intuitive jacket customizer makes it effortless to bring your vision to life.
-              </p>
-            </div>
+        <section id="choose-your-style" aria-labelledby="style-title" className="container mx-auto scroll-mt-28 px-4 pb-12 md:pb-16">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Start here</p>
+          <h2 id="style-title" className="mt-2 text-2xl font-bold sm:text-3xl">Pick your canvas</h2>
+          <p className="mt-3 text-muted-foreground">Open a designer to explore the options available for your style.</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {styles.map(style => <Link key={style.href} href={style.href} className="group flex items-center justify-between gap-3 rounded-xl border bg-card p-5 transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"><div><h3 className="font-semibold">{style.name}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{style.detail}</p><span className="mt-3 inline-block text-sm font-medium text-primary">Open designer</span></div><ArrowRight className="h-4 w-4 shrink-0 text-primary" /></Link>)}
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground">Planning for a group? <Link href="/bulk-orders" className="font-medium text-foreground underline underline-offset-4">Request a Bulk & Teams quote</Link>.</p>
+        </section>
 
-            <div className="space-y-10 md:space-y-14">
-              {customizationSteps.map((step, index) => {
-                const IconComponent = step.icon
-                return (
-                  <div
-                    key={step.number}
-                    className="relative overflow-hidden rounded-2xl border bg-card p-6 md:p-8 shadow-sm transition-all hover:shadow-md"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-start md:gap-8">
-                      {/* Step Number & Icon badge */}
-                      <div className="mb-4 flex items-center gap-4 md:mb-0 md:flex-col md:items-center">
-                        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-extrabold shadow">
-                          {step.number}
-                        </span>
-                        <div className="rounded-xl bg-primary/10 p-3 text-primary hidden md:block">
-                          <IconComponent className="h-6 w-6" />
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="secondary" className="text-xs font-semibold">
-                            Step {index + 1} of 6
-                          </Badge>
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {step.tagline}
-                          </span>
-                        </div>
-
-                        <h3 className="text-xl font-bold md:text-2xl text-foreground">
-                          {step.title}
-                        </h3>
-
-                        <p className="mt-3 leading-relaxed text-muted-foreground">
-                          {step.description}
-                        </p>
-
-                        <div className="mt-4 rounded-lg bg-muted/50 p-4">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">
-                            Key Actions & Options
-                          </h4>
-                          <ul className="space-y-2 text-sm text-muted-foreground">
-                            {step.details.map((detail, idx) => (
-                              <li key={idx} className="flex items-start gap-2.5">
-                                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary mt-0.5" />
-                                <span>{detail}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* Pro Tip Box */}
-                        <div className="mt-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs md:text-sm text-foreground">
-                          <Sparkles className="h-4 w-4 shrink-0 text-primary mt-0.5" />
-                          <div>
-                            <span className="font-semibold text-primary">Pro Tip: </span>
-                            {step.tip.replace('Pro Tip: ', '').replace('Matching Tip: ', '').replace('Design Tip: ', '').replace('Fit Tip: ', '').replace('Ordering Tip: ', '').replace('Peace of Mind: ', '')}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+        <section id="customization-steps" className="border-y bg-muted/20" aria-labelledby="steps-title">
+          <div className="container mx-auto px-4 py-12 md:py-16">
+            <h2 id="steps-title" className="text-2xl font-bold sm:text-3xl">Your design, step by step</h2>
+            <p className="mt-3 max-w-2xl text-muted-foreground">Use this guide alongside the designer. Jump to the part you need help with.</p>
+            <div className="mt-8 grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
+              <nav aria-label="Customization steps" className="rounded-xl border bg-background p-3 lg:sticky lg:top-28">
+                <ol className="grid gap-1 sm:grid-cols-2 lg:grid-cols-1">{steps.map((step, index) => <li key={step.id}><a href={`#${step.id}`} className="flex min-h-12 items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{index + 1}</span>{step.short}</a></li>)}</ol>
+              </nav>
+              <ol className="min-w-0 space-y-5">
+                {steps.map((step, index) => <li id={step.id} key={step.id} className="scroll-mt-28 rounded-xl border bg-card p-5 sm:p-7">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Step {index + 1} of 6</p>
+                  <h3 className="mt-2 text-xl font-semibold sm:text-2xl">{step.title}</h3>
+                  <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">{step.text}</p>
+                  <ul className="mt-4 space-y-3">{step.actions.map(action => <li key={action} className="flex gap-3 text-sm leading-6"><Check className="mt-1 h-4 w-4 shrink-0 text-primary" /><span>{action}</span></li>)}</ul>
+                  <Link href={step.link} className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline">{step.label}<ArrowRight className="h-4 w-4" /></Link>
+                  <Collapsible className="group mt-3 border-t">
+                    <CollapsibleTrigger className="flex min-h-12 w-full items-center justify-between gap-3 text-left text-sm font-medium">Helpful tip: {step.short.toLowerCase()}<ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" /></CollapsibleTrigger>
+                    <CollapsibleContent forceMount className="pb-3 text-sm leading-6 text-muted-foreground data-[state=closed]:hidden">{step.tip}</CollapsibleContent>
+                  </Collapsible>
+                </li>)}
+              </ol>
             </div>
           </div>
         </section>
 
-        {/* Patch & Artwork Placement Guide */}
-        <section className="border-t bg-muted/30 py-14 md:py-20">
-          <div className="container mx-auto px-4 max-w-5xl">
-            <div className="mb-12 text-center">
-              <Badge variant="outline" className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">
-                Placement Overview
-              </Badge>
-              <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
-                Where Can You Place Custom Details?
-              </h2>
-              <p className="mt-3 text-muted-foreground">
-                Our customization engine allows precision placement across all standard zones of your jacket.
-              </p>
+        <section className="container mx-auto px-4 py-12 md:py-16" aria-labelledby="prepare-title">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+            <div><h2 id="prepare-title" className="text-2xl font-bold sm:text-3xl">A little preparation goes a long way</h2><p className="mt-3 leading-7 text-muted-foreground">You can explore the designer straight away. Have these details ready when you’re ready to order or request design help.</p>
+              <ul className="mt-5 space-y-3">{['Your preferred style and main colors', 'Names, numbers and artwork with checked spelling', 'Your size or the measurements you want to discuss', 'Quantity and any important event date'].map(item => <li key={item} className="flex gap-3 text-sm leading-6"><Check className="mt-1 h-4 w-4 shrink-0 text-primary" />{item}</li>)}</ul>
             </div>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              {placementZones.map((zone, idx) => (
-                <Card key={idx} className="border bg-card">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                      <Scissors className="h-5 w-5 text-primary" /> {zone.zone}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {zone.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="mt-10 rounded-2xl border bg-card p-6 md:p-8 text-center shadow-sm">
-              <h3 className="text-xl font-bold">Have Special Design Requirements?</h3>
-              <p className="mt-2 text-sm text-muted-foreground max-w-2xl mx-auto">
-                Need extra patch positions, unique sleeve striping, custom interior woven tags, or specific Pantone thread matching? Contact our support or design team anytime.
-              </p>
-              <div className="mt-5 flex justify-center gap-4">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/patches-embroidery">View Patch Types & Embroidery</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/contact">Contact Support</Link>
-                </Button>
-              </div>
-            </div>
+            <div className="rounded-xl border bg-muted/25 p-6"><h3 className="text-lg font-semibold">Plan where your artwork will go</h3><dl className="mt-4 space-y-4">{[['Chest', 'Names, small logos and varsity letters.'], ['Sleeves', 'Numbers, badges and smaller accents.'], ['Back', 'Team names, mascots and larger statements.']].map(([zone, text]) => <div key={zone} className="border-b pb-4 last:border-0 last:pb-0"><dt className="text-sm font-semibold">{zone}</dt><dd className="mt-1 text-sm leading-6 text-muted-foreground">{text}</dd></div>)}</dl><p className="mt-5 text-xs leading-5 text-muted-foreground">Available placement areas vary by style and construction. Confirm special positions or interior labels with our team.</p></div>
           </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">{resources.map(({ title, text, href, icon: Icon }) => <Link key={href} href={href} className="rounded-xl border p-5 transition-colors hover:bg-muted/40"><Icon className="h-5 w-5 text-primary" /><h3 className="mt-4 flex items-center justify-between gap-3 font-semibold">{title}<ArrowRight className="h-4 w-4" /></h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p></Link>)}</div>
         </section>
 
-        {/* Frequently Asked Questions */}
-        <section className="border-t py-14 md:py-20">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <div className="mb-12 text-center">
-              <Badge variant="outline" className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">
-                Customization FAQ
-              </Badge>
-              <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
-                Frequently Asked Questions
-              </h2>
-              <p className="mt-3 text-muted-foreground">
-                Common questions about designing and ordering custom jackets on Jacketee.
-              </p>
-            </div>
-
-            <Accordion type="single" collapsible className="w-full space-y-4">
-              {faqs.map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`faq-${index}`}
-                  className="rounded-xl border bg-card px-6 py-2 shadow-sm"
-                >
-                  <AccordionTrigger className="text-left font-semibold text-base hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed text-sm pt-2">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
+        <section className="border-t bg-muted/20 px-4 py-12 md:py-16" aria-labelledby="faq-title">
+          <div className="mx-auto max-w-3xl"><h2 id="faq-title" className="text-2xl font-bold sm:text-3xl">Before you start</h2><p className="mt-3 text-muted-foreground">Answers to common customization questions.</p><Accordion type="multiple" className="mt-6">{faqs.map((faq, index) => <AccordionItem key={faq.question} value={`customize-faq-${index}`}><AccordionTrigger className="min-h-14 text-left text-base">{faq.question}</AccordionTrigger><AccordionContent className="text-sm leading-7 text-muted-foreground">{faq.answer}</AccordionContent></AccordionItem>)}</Accordion><Link href="/faq" className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary">Visit the help center<ArrowRight className="h-4 w-4" /></Link></div>
         </section>
-
-        {/* Bottom CTA Banner */}
-        <section className="border-t bg-primary text-primary-foreground py-14 md:py-16">
-          <div className="container mx-auto px-4 text-center max-w-3xl">
-            <h2 className="text-2xl font-extrabold sm:text-3xl md:text-4xl">
-              Ready to Customize Your Jacket?
-            </h2>
-            <p className="mt-4 text-primary-foreground/90 text-base md:text-lg">
-              Start building your custom jacket right now with our interactive design tool. Get free mockups, custom sizing, and premium quality craftsmanship.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Button
-                asChild
-                size="lg"
-                variant="secondary"
-                className="rounded-full px-8 font-bold shadow-md hover:bg-background hover:text-foreground"
-              >
-                <Link href="/design/varsity">
-                  Start Customizing Now <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="rounded-full px-7 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-              >
-                <Link href="/size-guide">View Size Guide</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
+        <section className="container mx-auto px-4 py-12 md:py-16" aria-labelledby="ready-title"><div className="flex flex-col justify-between gap-6 rounded-2xl bg-primary/5 p-6 sm:p-10 lg:flex-row lg:items-center"><div><h2 id="ready-title" className="text-2xl font-bold sm:text-3xl">Ready to make it yours?</h2><p className="mt-3 text-muted-foreground">Start with your favorite style, or talk through your idea with us.</p></div><div className="flex shrink-0 flex-col gap-3 sm:flex-row"><Button asChild size="lg"><a href="#choose-your-style">Build your jacket<ArrowRight className="ml-2 h-4 w-4" /></a></Button><Button asChild variant="outline" size="lg"><Link href="/contact">Get design help</Link></Button></div></div></section>
       </main>
-
       <Footer />
     </div>
   )

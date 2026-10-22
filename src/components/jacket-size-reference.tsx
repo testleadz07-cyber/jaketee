@@ -1,179 +1,70 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from '@/components/optimized-image'
 import { ArrowRight, Info, Ruler } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { bodyRows, jacketRows, measurementGuides, format, formatRange, convertEntry, estimateSize, type Unit } from '@/lib/jacket-sizing'
-import { GarmentSizeChart } from '@/components/garment-size-chart'
 import { InternationalSizeChart } from '@/components/international-size-chart'
 
 function UnitToggle({ unit, onChange, label }: { unit: Unit; onChange: (unit: Unit) => void; label: string }) {
-  return (
-    <div className="inline-flex w-fit shrink-0 border p-1" role="group" aria-label={label}>
-      <button type="button" onClick={() => onChange('in')} aria-pressed={unit === 'in'} className={`min-h-9 px-3 text-sm font-medium ${unit === 'in' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'}`}>Inches</button>
-      <button type="button" onClick={() => onChange('cm')} aria-pressed={unit === 'cm'} className={`min-h-9 px-3 text-sm font-medium ${unit === 'cm' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'}`}>Centimeters</button>
-    </div>
-  )
+  return <div className="inline-flex shrink-0 rounded-xl border bg-card p-1" role="group" aria-label={label}>{(['in', 'cm'] as const).map(value => <button key={value} type="button" aria-pressed={unit === value} onClick={() => onChange(value)} className={`min-h-11 rounded-lg px-4 text-sm font-medium ${unit === value ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}>{value === 'in' ? 'Inches' : 'Centimeters'}</button>)}</div>
 }
-
-function MeasurementIllustration({ image, alt, compact = false }: { image: string; alt: string; compact?: boolean }) {
-  return (
-    <div className={`relative mx-auto aspect-square w-full overflow-hidden rounded-lg bg-white ${compact ? 'max-w-32' : 'max-w-80'}`}>
-      <Image src={`/images/size-guide/${image}.webp`} alt={alt} fill
-        sizes={compact ? '128px' : '(max-width: 639px) min(80vw, 320px), 224px'} className="object-contain p-3" />
-    </div>
-  )
+function Illustration({ image, alt, compact = false }: { image: string; alt: string; compact?: boolean }) {
+  return <div className={`relative mx-auto aspect-square w-full overflow-hidden rounded-xl bg-white ${compact ? 'max-w-44' : 'max-w-64'}`}><Image src={`/images/size-guide/${image}.webp`} alt={alt} fill sizes={compact ? '176px' : '(max-width: 639px) 80vw, 256px'} className="object-contain p-3" /></div>
 }
-
 export function JacketSizeReference() {
   const [unit, setUnit] = useState<Unit>('in')
+  const [garment, setGarment] = useState('jacket')
+  const [basis, setBasis] = useState('body')
   const [chest, setChest] = useState('')
   const [waist, setWaist] = useState('')
-  const changeUnit = (nextUnit: Unit) => {
-    if (nextUnit === unit) return
-    setChest((value) => convertEntry(value, unit, nextUnit))
-    setWaist((value) => convertEntry(value, unit, nextUnit))
-    setUnit(nextUnit)
-  }
-  const chestIn = Number(chest) / (unit === 'cm' ? 2.54 : 1)
-  const waistIn = Number(waist) / (unit === 'cm' ? 2.54 : 1)
-  const hasMeasurements = Number.isFinite(chestIn) && Number.isFinite(waistIn) && chestIn > 0 && waistIn > 0
-  const suggested = hasMeasurements ? estimateSize(chestIn, waistIn) : null
-
-  return (
-    <>
-      <section id="find-your-fit" className="scroll-mt-20 border-b py-9 md:py-14" aria-labelledby="size-estimate-heading">
-        <div className="container mx-auto grid gap-8 px-4 lg:grid-cols-[minmax(0,1fr)_minmax(270px,0.8fr)] lg:gap-14">
-          <div>
-            <p className="text-xs font-semibold uppercase text-muted-foreground">Start with your measurements</p>
-            <h2 id="size-estimate-heading" className="mt-2 text-2xl font-semibold">Estimate a reference size</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Enter your body chest and waist measurements for a starting point from the existing planning chart. This estimator does not use the male/female regional references below; compare those separately before confirming your product's fit.</p>
-            <div className="mt-6"><UnitToggle unit={unit} onChange={changeUnit} label="Estimate measurement units" /></div>
-            <div className="mt-5 grid max-w-lg gap-4 sm:grid-cols-2">
-              <div><Label htmlFor="body-chest">Chest ({unit})</Label><Input id="body-chest" type="number" min="1" step="any" inputMode="decimal" value={chest} onChange={(event) => setChest(event.target.value)} placeholder={unit === 'in' ? 'e.g. 38' : 'e.g. 97'} className="mt-2" /></div>
-              <div><Label htmlFor="body-waist">Waist ({unit})</Label><Input id="body-waist" type="number" min="1" step="any" inputMode="decimal" value={waist} onChange={(event) => setWaist(event.target.value)} placeholder={unit === 'in' ? 'e.g. 32' : 'e.g. 81'} className="mt-2" /></div>
+  useEffect(() => {
+    const syncHash = () => {
+      const hash = window.location.hash
+      if (hash === '#vest-size-chart') { setGarment('vest'); setBasis('body') }
+      if (hash === '#jacket-size-chart') { setGarment('jacket'); setBasis('garment') }
+      if (hash === '#body-size-chart' || hash === '#find-your-fit') setBasis('body')
+    }
+    syncHash()
+    window.addEventListener('hashchange', syncHash)
+    return () => window.removeEventListener('hashchange', syncHash)
+  }, [])
+  const changeUnit = (next: Unit) => { if (next !== unit) { setChest(value => convertEntry(value, unit, next)); setWaist(value => convertEntry(value, unit, next)); setUnit(next) } }
+  const invalid = [chest, waist].some(value => value !== '' && (!Number.isFinite(Number(value)) || Number(value) <= 0))
+  const complete = chest !== '' && waist !== '' && !invalid
+  const suggested = complete ? estimateSize(Number(chest) / (unit === 'cm' ? 2.54 : 1), Number(waist) / (unit === 'cm' ? 2.54 : 1)) : null
+  const isBody = basis === 'body'
+  const unavailable = !isBody && garment === 'vest'
+  const headClass = 'whitespace-nowrap border-b bg-muted px-3 py-3 font-semibold'
+  const cellClass = 'whitespace-nowrap px-3 py-3'
+  return <>
+    <section id="size-charts" className="store-section store-section--soft scroll-mt-24" aria-labelledby="size-chart-heading"><div className="section-shell py-7! md:py-10!">
+      <span id="body-size-chart" className="block scroll-mt-24" /><span id="jacket-size-chart" className="block scroll-mt-24" /><span id="vest-size-chart" className="block scroll-mt-24" />
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-widest text-primary">Start here</p><h2 id="size-chart-heading" className="mt-2 text-2xl font-semibold">Choose your size reference</h2><p className="mt-2 text-sm text-muted-foreground">Choose a garment and measurement method. All measurements shown are planning references.</p></div><UnitToggle unit={unit} onChange={changeUnit} label="Size guide measurement units" /></div>
+      <Tabs value={garment} onValueChange={setGarment}><TabsList aria-label="Garment type" className="h-auto w-full justify-start gap-1 bg-muted p-1 sm:w-fit"><TabsTrigger value="jacket" onClick={() => setGarment('jacket')} className="min-h-11 px-5">Jackets</TabsTrigger><TabsTrigger value="vest" onClick={() => setGarment('vest')} className="min-h-11 px-5">Vests</TabsTrigger></TabsList><TabsContent value={garment} className="mt-3">
+        <Tabs value={basis} onValueChange={setBasis}><TabsList aria-label="Measurement method" className="h-auto w-full gap-1 bg-muted p-1 sm:w-fit"><TabsTrigger value="body" onClick={() => setBasis('body')} className="min-h-11 px-3 sm:px-5">Your body</TabsTrigger><TabsTrigger value="garment" onClick={() => setBasis('garment')} className="min-h-11 px-3 sm:px-5">Finished garment</TabsTrigger></TabsList><TabsContent value={basis} className="mt-5">
+          <div className="mb-5 flex gap-3 rounded-xl border bg-card p-4 text-sm leading-6"><Info aria-hidden="true" className="mt-1 h-4 w-4 shrink-0 text-primary" /><p><strong>{isBody ? 'Measure around your body.' : 'Measure a garment laid flat.'}</strong> {isBody ? 'Chest and waist are full circumferences. Do not enter the flat width of a jacket.' : 'Jacket chest is armpit-to-armpit width, not body circumference. Double it only when comparing garment circumference.'} The selected product’s specifications take priority over these reference charts.</p></div>
+          <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="min-w-0 rounded-2xl border bg-card p-4 sm:p-6">
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-2"><h3 className="text-lg font-semibold">{isBody ? `${garment === 'vest' ? 'Vest' : 'Jacket'} body reference` : 'Finished garment reference'}</h3><span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">{unit === 'in' ? 'Inches (in)' : 'Centimeters (cm)'}</span></div>
+              {unavailable ? <div className="rounded-xl border border-dashed p-5 text-sm leading-6"><p>A verified finished-vest chart is not available here. Ask for the chest width and back length of your selected vest.</p><button onClick={() => setBasis('body')} className="mt-3 inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-4">View the vest body reference</button></div> : <><p className="mb-3 text-xs text-muted-foreground sm:hidden">Swipe sideways to see all columns. The size column stays visible.</p><div role="region" aria-label={isBody ? 'Body size chart' : 'Jacket size chart'} tabIndex={0} className="max-w-full overflow-x-auto rounded-lg border"><table className={`w-full text-left text-sm ${isBody ? 'min-w-[360px]' : 'min-w-[580px]'}`}><caption className="sr-only">{isBody ? 'Reference body circumferences' : 'Reference finished jacket measurements'} in {unit === 'in' ? 'inches' : 'centimeters'}</caption><thead><tr><th scope="col" className={`${headClass} sticky left-0 z-10 border-r`}>Size</th>{(isBody ? ['Chest, around', 'Waist, around'] : ['Chest, flat', 'Sleeve', 'Across shoulder', 'Back length']).map(label => <th key={label} scope="col" className={headClass}>{label}</th>)}</tr></thead><tbody>{isBody ? bodyRows.filter(row => !row.size.includes('Tall')).map(row => <tr key={row.size} className={suggested?.size === row.size ? 'bg-red-50 text-zinc-900' : 'even:bg-muted/35'}><th scope="row" className={`sticky left-0 z-10 border-r ${suggested?.size === row.size ? 'bg-red-50' : 'bg-card'} ${cellClass}`}>{row.size}{suggested?.size === row.size && <span className="sr-only"> — estimated reference</span>}</th><td className={cellClass}>{formatRange(row.chest, unit)}</td><td className={cellClass}>{formatRange(row.waist, unit)}</td></tr>) : jacketRows.map(row => <tr key={row.size} className="even:bg-muted/35"><th scope="row" className={`sticky left-0 z-10 border-r bg-card ${cellClass}`}>{row.size}</th>{[row.chestFlat, row.sleeve, row.shoulder, row.back].map((value, index) => <td key={index} className={cellClass}>{format(value, unit)}</td>)}</tr>)}</tbody></table></div></>}
+              {!isBody && !unavailable && <details className="mt-4 rounded-lg border p-3 text-sm"><summary className="min-h-7 cursor-pointer font-medium">Additional reference: half shoulder</summary><p className="mt-3 leading-6 text-muted-foreground">This is a separately supplied reference measurement, not half of the across-shoulder value. Ask our team to confirm its measuring points before using it.</p><ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{jacketRows.map(row => <li key={row.size}>{row.size}: {format(row.halfShoulder, unit)} {unit}</li>)}</ul></details>}
+              <Link href="/contact" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary underline underline-offset-4">Ask about your product’s size<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
             </div>
-            <div className="mt-5 grid max-w-lg grid-cols-2 gap-4">
-              {measurementGuides.slice(0, 2).map((guide) => (
-                <Link key={guide.id} href={`#${guide.id}`} className="rounded-lg border p-3 text-center text-sm font-medium hover:border-primary focus-visible:outline-2 focus-visible:outline-ring">
-                  <MeasurementIllustration image={guide.image} alt={guide.alt} compact />
-                  <span className="mt-2 block underline underline-offset-4">How to measure {guide.image === 'body-chest' ? 'chest' : 'waist'}</span>
-                </Link>
-              ))}
-            </div>
+            <aside className="min-w-0 space-y-5" aria-label="Measurement help">
+              <div className="rounded-2xl border bg-card p-5"><Illustration image={isBody ? 'body-chest' : 'jacket-overview'} alt={isBody ? measurementGuides[0].alt : 'A flat jacket showing chest width, shoulder, sleeve and back length measuring points.'} compact /><h3 className="mt-4 font-semibold">{isBody ? 'A soft tape, kept level' : 'Compare a jacket you like'}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{isBody ? 'Measure chest around its fullest part, then waist at its natural narrow point. Keep the tape snug without squeezing.' : 'Close the garment, lay it flat and smooth it without stretching. Measure chest width, then length. Vests have no sleeve measurement.'}</p><a href="#how-to-measure" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4">See illustrated steps</a></div>
+              {isBody && <div id="find-your-fit" className="scroll-mt-24 rounded-2xl border bg-card p-5"><Ruler aria-hidden="true" className="h-5 w-5 text-primary" /><h3 className="mt-2 text-lg font-semibold">Estimate a reference size</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Uses the body chart shown here, not regional brand charts or finished-garment widths.</p><div className="mt-4 grid grid-cols-2 gap-3"><div><Label htmlFor="body-chest">Chest ({unit})</Label><Input id="body-chest" type="number" min="0.1" step="any" inputMode="decimal" value={chest} onChange={event => setChest(event.target.value)} placeholder={unit === 'in' ? 'e.g. 38' : 'e.g. 97'} aria-invalid={chest !== '' && Number(chest) <= 0} className="mt-2 min-h-11 bg-background text-base!" /></div><div><Label htmlFor="body-waist">Waist ({unit})</Label><Input id="body-waist" type="number" min="0.1" step="any" inputMode="decimal" value={waist} onChange={event => setWaist(event.target.value)} placeholder={unit === 'in' ? 'e.g. 32' : 'e.g. 81'} aria-invalid={waist !== '' && Number(waist) <= 0} className="mt-2 min-h-11 bg-background text-base!" /></div></div>{invalid && <p role="alert" className="mt-3 text-sm text-red-700">Enter a positive measurement for both fields.</p>}<div role="status" aria-live="polite" className="mt-4 rounded-xl bg-muted p-4"><p className="text-xs font-medium text-muted-foreground">Your starting point</p><p className="mt-1 text-2xl font-bold">{!complete ? 'Enter both measurements' : suggested ? `Reference ${suggested.size}` : 'Ask us to check'}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{complete && !suggested ? 'These measurements are outside the reference range. Contact our team for help.' : 'A planning estimate, not a guaranteed product fit. Confirm your selected style before ordering.'}</p></div><button type="button" onClick={() => { setChest(''); setWaist('') }} className="mt-2 inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4">Reset measurements</button></div>}
+            </aside>
           </div>
-          <div className="border-t pt-6 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0" aria-live="polite">
-            <Ruler className="h-6 w-6" />
-            <h3 className="mt-3 text-lg font-semibold">Your starting point</h3>
-            <p className="mt-3 text-3xl font-bold">{!hasMeasurements ? 'Measure first' : suggested?.size || 'Ask us to check'}</p>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{!hasMeasurements ? 'Enter your chest and waist to see a reference size.' : suggested ? 'This is an estimate from the reference body chart below, not a guaranteed Jacketee fit.' : 'Your measurements are outside this reference chart. Contact us for help.'}</p>
-            <Link href="/contact" className="mt-5 inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">Confirm a product's fit <ArrowRight className="h-4 w-4" /></Link>
-          </div>
-        </div>
-      </section>
-
-      <section id="international-size-chart" className="scroll-mt-20 border-b py-10 md:py-14" aria-labelledby="international-chart-heading">
-        <div className="container mx-auto min-w-0 space-y-5 px-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h2 id="international-chart-heading" className="text-2xl font-semibold">US, UK and European size references</h2>
-            <UnitToggle unit={unit} onChange={changeUnit} label="International chart measurement units" />
-          </div>
-          <InternationalSizeChart unit={unit} />
-        </div>
-      </section>
-
-      <section id="body-size-chart" className="scroll-mt-20 border-b border-t-4 border-t-zinc-900 bg-muted/30 py-10 dark:border-t-zinc-100 md:py-14" aria-labelledby="body-chart-heading">
-        <div className="container mx-auto min-w-0 px-4">
-          <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
-            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Body measurements</p><h2 id="body-chart-heading" className="mt-2 text-2xl font-semibold">Reference body size chart</h2></div>
-            <UnitToggle unit={unit} onChange={changeUnit} label="Body chart measurement units" />
-          </div>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">Chest and waist are measured around your body. Sleeve and back length are separate reference lengths; ask our team to confirm their measuring points before using them. The supplied chart is a planning reference and has not been verified against every Jacketee product.</p>
-          <p className="mt-3 text-sm"><Link href="#measure-chest" className="font-medium underline underline-offset-4">See illustrated body measurement steps</Link></p>
-          <div className="mt-5 grid max-w-2xl grid-cols-2 gap-4">
-            {measurementGuides.slice(0, 2).map((guide) => (
-              <figure key={guide.id} className="min-w-0 rounded-lg border bg-background p-3">
-                <MeasurementIllustration image={guide.image} alt={guide.alt} compact />
-                <figcaption className="mt-2 text-center text-sm font-medium">{guide.title}</figcaption>
-              </figure>
-            ))}
-          </div>
-          <p className="mt-4 text-xs text-muted-foreground sm:hidden">Swipe the chart sideways to see every measurement.</p>
-          <div className="mt-5 max-w-full overflow-x-auto border-y" role="region" aria-label="Body size chart" tabIndex={0}>
-            <table className="w-full min-w-[580px] text-left text-sm">
-              <thead className="bg-background"><tr><th scope="col" className="sticky left-0 z-10 border-r bg-background px-3 py-3">Size</th><th scope="col" className="px-3 py-3">Chest</th><th scope="col" className="px-3 py-3">Waist</th><th scope="col" className="px-3 py-3">Sleeve</th><th scope="col" className="px-3 py-3">Back length</th></tr></thead>
-              <tbody className="divide-y">{bodyRows.map((row) => <tr key={row.size} className="odd:bg-background/60"><th scope="row" className="sticky left-0 z-10 border-r bg-background px-3 py-3 font-semibold">{row.size}</th><td className="px-3 py-3">{formatRange(row.chest, unit)}</td><td className="px-3 py-3">{formatRange(row.waist, unit)}</td><td className="px-3 py-3">{formatRange(row.sleeve, unit)}</td><td className="px-3 py-3">{format(row.back, unit)}</td></tr>)}</tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="jacket-size-chart" className="scroll-mt-20 border-b border-t-4 border-t-zinc-900 py-10 dark:border-t-zinc-100 md:py-14" aria-labelledby="jacket-chart-heading">
-        <div className="container mx-auto min-w-0 px-4">
-          <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
-            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Finished garment</p><h2 id="jacket-chart-heading" className="mt-2 text-2xl font-semibold">Reference jacket size chart</h2></div>
-            <UnitToggle unit={unit} onChange={changeUnit} label="Jacket chart measurement units" />
-          </div>
-          <div className="mt-5 grid min-w-0 items-center gap-5 sm:grid-cols-[minmax(0,224px)_minmax(0,1fr)]">
-            <MeasurementIllustration image="jacket-overview" alt="A jacket laid flat with arrows showing chest width, shoulder width, sleeve length, and collar-base-to-hem length." />
-            <div className="min-w-0">
-              <p className="max-w-3xl text-sm leading-6 text-muted-foreground">Close a jacket you already own and lay it flat without stretching. Chest is measured straight across from armpit to armpit; double this width for the garment's full circumference. These finished-garment values are reference measurements, not product-specific Jacketee specifications.</p>
-              <Link href="#measure-sleeve" className="mt-3 inline-flex text-sm font-medium underline underline-offset-4">See illustrated jacket measurement steps</Link>
-            </div>
-          </div>
-          <p className="mt-4 text-xs text-muted-foreground sm:hidden">Swipe the chart sideways to see every measurement.</p>
-          <div className="mt-5 max-w-full overflow-x-auto border-y" role="region" aria-label="Jacket size chart" tabIndex={0}>
-            <table className="w-full min-w-[690px] text-left text-sm">
-              <thead className="bg-muted/30"><tr><th scope="col" className="sticky left-0 z-10 border-r bg-background px-3 py-3">Size</th><th scope="col" className="px-3 py-3">Chest, flat</th><th scope="col" className="px-3 py-3">Sleeve</th><th scope="col" className="px-3 py-3">Across shoulder</th><th scope="col" className="px-3 py-3">Half shoulder</th><th scope="col" className="px-3 py-3">Back length</th></tr></thead>
-              <tbody className="divide-y">{jacketRows.map((row) => <tr key={row.size} className="odd:bg-muted/20"><th scope="row" className="sticky left-0 z-10 border-r bg-background px-3 py-3 font-semibold">{row.size}</th><td className="px-3 py-3">{format(row.chestFlat, unit)}</td><td className="px-3 py-3">{format(row.sleeve, unit)}</td><td className="px-3 py-3">{format(row.shoulder, unit)}</td><td className="px-3 py-3">{format(row.halfShoulder, unit)}</td><td className="px-3 py-3">{format(row.back, unit)}</td></tr>)}</tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section id="vest-size-chart" className="scroll-mt-20 border-b py-10 md:py-14" aria-labelledby="vest-chart-heading">
-        <div className="container mx-auto min-w-0 px-4">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-            <h2 id="vest-chart-heading" className="text-2xl font-semibold">Reference vest size chart</h2>
-            <UnitToggle unit={unit} onChange={changeUnit} label="Vest chart measurement units" />
-          </div>
-          <GarmentSizeChart kind="vest" unit={unit} />
-          <p className="mt-4 text-sm text-muted-foreground">To measure a vest, close it and lay it flat. Measure chest width from armpit to armpit and back length from the base of the collar to the hem. A vest has no sleeve measurement.</p>
-        </div>
-      </section>
-
-      <section id="how-to-measure" className="scroll-mt-20 border-b border-t-4 border-t-zinc-900 bg-zinc-100 py-10 dark:border-t-zinc-100 dark:bg-zinc-900 md:py-14" aria-labelledby="how-to-measure-heading">
-        <div className="container mx-auto min-w-0 px-4">
-          <p className="text-xs font-semibold uppercase text-muted-foreground">Fit checklist</p>
-          <h2 id="how-to-measure-heading" className="mt-2 text-2xl font-semibold">How to measure</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">For the female reference, measure bust around the fullest point with the tape level. For jackets and vests that cover the hips, measure around the fullest part of your hips without pulling the tape tight.</p>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Use a soft tape for your body and a jacket you like for garment measurements. Record every measurement in the same unit.</p>
-          <div className="mt-6 grid min-w-0 gap-5 xl:grid-cols-2">
-            {measurementGuides.map((guide, index) => (
-              <article key={guide.id} id={guide.id} aria-labelledby={`${guide.id}-heading`} className="grid min-w-0 scroll-mt-24 items-center gap-5 rounded-xl border bg-background p-4 sm:grid-cols-[minmax(0,200px)_minmax(0,1fr)] sm:p-5">
-                <MeasurementIllustration image={guide.image} alt={guide.alt} />
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">{index < 2 ? 'Body measurement' : 'Finished jacket'}</p>
-                  <h3 id={`${guide.id}-heading`} className="mt-2 text-lg font-semibold">{String(index + 1).padStart(2, '0')} · {guide.title}</h3>
-                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-muted-foreground">
-                    {guide.steps.map((step) => <li key={step} className="pl-1">{step}</li>)}
-                  </ol>
-                </div>
-              </article>
-            ))}
-          </div>
-          <div className="mt-6 flex items-start gap-3 rounded-lg border p-4 text-sm leading-6 text-muted-foreground">
-            <Info className="mt-1 h-4 w-4 shrink-0" />
-            <div className="min-w-0 space-y-2">
-              <p><strong className="text-foreground">Half shoulder:</strong> This is a separate reference measurement, not half of the across-shoulder value. <Link href="/contact" className="underline underline-offset-4">Ask our team</Link> for its measuring points for your chosen jacket.</p>
-              <p>Tall entries appear only where listed in the reference chart. Availability and actual dimensions vary by product.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
-  )
+        </TabsContent></Tabs>
+      </TabsContent></Tabs>
+    </div></section>
+    <section id="how-to-measure" className="store-section store-section--plain scroll-mt-24" aria-labelledby="how-to-measure-heading"><div className="section-shell"><p className="text-xs font-semibold uppercase tracking-widest text-primary">Measure with confidence</p><h2 id="how-to-measure-heading" className="mt-2 text-2xl font-semibold">How to measure</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Use a soft tape for body measurements and a well-fitting garment for flat measurements. For bust, measure around the fullest point; for longer jackets or vests, also check your hips. Keep every measurement in the same unit.</p><div className="mt-6 grid gap-4 md:grid-cols-2">{measurementGuides.map((guide, index) => <article id={guide.id} key={guide.id} className="grid min-w-0 scroll-mt-24 gap-4 rounded-2xl border bg-card p-5 sm:grid-cols-[140px_minmax(0,1fr)]"><Illustration image={guide.image} alt={guide.alt} compact /><div><p className="text-xs font-semibold text-primary">{index < 2 ? 'Body measurement' : 'Finished garment'}</p><h3 className="mt-2 text-lg font-semibold">{guide.title}</h3><ol className="mt-3 list-decimal space-y-2 pl-4 text-sm leading-6 text-muted-foreground">{guide.steps.map(step => <li key={step}>{step.replace(' Confirm the separate body-chart sleeve measuring points with our team.', '')}</li>)}</ol></div></article>)}</div></div></section>
+    <section id="fit-advice" className="store-section store-section--soft scroll-mt-24" aria-labelledby="fit-advice-heading"><div className="section-shell"><h2 id="fit-advice-heading" className="text-2xl font-semibold">Before you choose a size</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{[{ title: 'Between sizes?', text: 'Compare your measurements with the selected product’s dimensions. Check both chest and waist, and ask our team if they point to different sizes.' }, { title: 'Planning to layer?', text: 'Compare a jacket that fits over the layers you intend to wear. Do not assume the same size label fits identically across styles.' }, { title: 'Tall sizes or a group order?', text: 'Tall options are available only where specified on the product. For team orders, collect each person’s measurements using the same method.' }].map(item => <div key={item.title} className="rounded-xl border bg-card p-5"><h3 className="font-semibold">{item.title}</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">{item.text}</p></div>)}</div></div></section>
+    <section id="international-size-chart" className="store-section store-section--plain scroll-mt-24" aria-labelledby="international-chart-heading"><div className="section-shell"><details className="rounded-2xl border bg-card p-5 sm:p-6"><summary className="cursor-pointer text-lg font-semibold" id="international-chart-heading">Optional: US, UK &amp; European references</summary><div className="mt-5 space-y-5"><p className="max-w-2xl text-sm leading-6 text-muted-foreground">These other-brand references explain regional labels. They do not determine your Jacketee size or the estimator result.</p><UnitToggle unit={unit} onChange={changeUnit} label="International chart measurement units" /><InternationalSizeChart unit={unit} /></div></details></div></section>
+  </>
 }

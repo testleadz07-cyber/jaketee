@@ -18,7 +18,7 @@ import { getCustomLandingConfig } from '@/data/custom-jacket-landings'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
-const getProducts = cache(async (categorySlug: string) => {
+export const getCustomLandingProducts = cache(async (categorySlug: string) => {
   try {
     const db = await connectDB()
     if (db) {
@@ -59,7 +59,7 @@ const getProducts = cache(async (categorySlug: string) => {
 })
 
 export async function customLandingMetadata(config: ReturnType<typeof getCustomLandingConfig>) {
-  const products = await getProducts(config.categorySlug)
+  const products = await getCustomLandingProducts(config.categorySlug)
   return withSocialMetadata({
     title: config.title, description: config.description,
     alternates: { canonical: `${SITE_URL}${config.path}` },
@@ -74,7 +74,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
   const config = getCustomLandingConfig(pageKey)
   const designerRoutes: Record<string, string> = { 'varsity-jackets': '/design/varsity', 'bomber-jackets': '/design/bomber', 'coach-jackets': '/design/coach', 'puffer-jackets': '/design/puffer', 'fleece-hoodies': '/design/hoodie' }
   const designerHref = designerRoutes[config.categorySlug]
-  const products = await getProducts(config.categorySlug)
+  const products = await getCustomLandingProducts(config.categorySlug)
   const startingPrice = products.length ? Math.min(...products.map((product) => product.price)) : null
   const heroImage = products[0]?.images?.[0]?.url
   const canonical = `${SITE_URL}${config.path}`
