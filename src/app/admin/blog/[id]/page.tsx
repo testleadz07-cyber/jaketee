@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState  } from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, LogOut, Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -20,20 +20,7 @@ export default function EditBlogPost() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
-
-  useEffect(() => {
-    if (status === 'authenticated' && id) {
-      fetchPost()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, id])
-
-  const fetchPost = async () => {
+  async function fetchPost() {
     try {
       const res = await fetch(`/api/admin/blog/${id}`)
       if (!res.ok) {
@@ -80,6 +67,21 @@ export default function EditBlogPost() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    if (status === 'authenticated' && id) {
+      startTransition(() => { fetchPost() })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, id])
+
+
 
   if (status === 'loading' || loading) {
     return <AdminLoadingShell label="Loading blog post..." />

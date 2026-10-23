@@ -54,12 +54,12 @@ export function HomeDesignPreview({ images }: { images: Record<string, { url: st
             <p className="mb-3 text-sm font-semibold">Choose your starting style</p>
             <TabsList aria-label="Choose a jacket style" className="grid h-auto w-full grid-cols-3 gap-2 bg-transparent p-0 sm:gap-3">
               {styles.map(item => (
-                <TabsTrigger key={item.key} value={item.key} className="group relative flex h-auto min-w-0 flex-col gap-2 whitespace-normal rounded-xl border border-border bg-card px-2 py-3 text-foreground shadow-none data-[state=active]:border-red-800 data-[state=active]:ring-1 data-[state=active]:ring-red-800">
+                <TabsTrigger key={item.key} value={item.key} className="group relative flex h-auto min-w-0 flex-col gap-2 whitespace-normal rounded-xl border border-border bg-card px-2 py-3 text-foreground shadow-none data-[state=active]:border-primary data-[state=active]:ring-1 data-[state=active]:ring-primary">
                   <span className="relative block aspect-square w-full max-w-20 overflow-hidden rounded-lg bg-[#eeebe5]">
                     <Image src={images[item.key].url} alt="" fill sizes="80px" className="object-contain p-1" />
                   </span>
                   <span className="text-sm font-semibold">{item.name}</span>
-                  {style === item.key && <Check aria-hidden="true" className="absolute right-1.5 top-1.5 h-4 w-4 rounded-full bg-red-800 p-0.5 text-white" />}
+                  {style === item.key && <Check aria-hidden="true" className="absolute right-1.5 top-1.5 h-4 w-4 rounded-full bg-primary p-0.5 text-primary-foreground" />}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -70,7 +70,7 @@ export function HomeDesignPreview({ images }: { images: Record<string, { url: st
               <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">{selected.description}</p>
             </div>
 
-            <Button asChild size="lg" className="order-2 min-h-12 w-full lg:mt-4 bg-red-700 text-base text-white hover:bg-red-800"><Link href={`/design/${style}`}>Design your {selected.name.toLowerCase()} <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" /></Link></Button>
+            <Button asChild size="lg" className="order-2 min-h-12 w-full lg:mt-4 bg-primary text-base text-primary-foreground hover:bg-primary/90"><Link href={`/design/${style}`}>Design your {selected.name.toLowerCase()} <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" /></Link></Button>
             <Link href="/size-guide" className="order-3 inline-flex min-h-11 lg:mt-2 items-center justify-center gap-2 text-sm text-muted-foreground underline underline-offset-4"><Ruler aria-hidden="true" className="h-4 w-4" />Need help finding your size?</Link>
 
             <div className="order-4 border-t pt-5 lg:mt-5">

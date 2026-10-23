@@ -7,9 +7,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 const require=createRequire(import.meta.url)
 const load=(file)=>{
  const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText
- const module={exports:{}}
- new Function('require','module','exports',code)(require,module,module.exports)
- return module.exports
+ const loadedModule={exports:{}}
+ new Function('require','module','exports',code)(require,loadedModule,loadedModule.exports)
+ return loadedModule.exports
 }
 const {ProductCopy}=load('src/components/product-copy.tsx')
 const html=renderToStaticMarkup(React.createElement(ProductCopy,{description:'Specific wool jacket.\n\nDetails\n- Body: wool\n- Sleeves: leather\n\nCustomization options\nNames available.',specificationDetails:'Specifications\nSpecifications:\nBody: wool',careInstructions:'Care Instructions\nCare instructions:\nDo not soak. <script>alert(1)</script>'}))

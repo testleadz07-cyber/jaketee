@@ -46,7 +46,7 @@ export default function BlogCategoryPage({ category, posts, page, pages, total }
 }) {
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <section className="relative overflow-hidden border-b bg-foreground py-16 text-background md:py-20">

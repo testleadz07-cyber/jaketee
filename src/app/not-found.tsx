@@ -10,7 +10,7 @@ import { WhatsAppHelp } from '@/components/whatsapp-help'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       {/* Main Content */}

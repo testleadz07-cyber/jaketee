@@ -39,18 +39,18 @@ export async function POST(request: NextRequest) {
     const subject = 'Bulk jacket quote request'
     const message = [
       ...fields.map(key => `${key}: ${data[key] || (key === 'deadline' ? 'Not sure yet' : 'Not provided')}`),
-      ...(attachments.length ? [`Logo attachment: ${attachments[0].filename} (included in the notification email)`] : []),
+      ...(attachments.length ? [`Logo attachment: ${attachments[0].filename} (saved with the inquiry and included in the notification email)`] : []),
     ].join('\n')
     const db = await connectDB()
     if (!db) return NextResponse.json({ error: 'We could not save your quote request. Please try again or email info@jacketee.com.' }, { status: 503 })
-    await ContactMessage.create({ name: data.name, email: data.email, subject, message, read: false })
+    await ContactMessage.create({ name: data.name, email: data.email, subject, message, read: false, attachments })
     await createNotification({
       type: 'contact_form',
       title: 'New bulk quote request',
       message: `${data.name}: ${data.organization} — ${data.quantity} jackets`,
       link: '/admin/contact-messages',
       metadata: { name: data.name, email: data.email, subject },
-    })
+    }).catch(() => console.error('Bulk quote saved, but admin notification failed'))
     // The saved inquiry is the source of truth; email failure must not prompt duplicate submissions.
     try {
       if (process.env.SMTP_USER && process.env.SMTP_PASS) {

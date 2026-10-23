@@ -16,36 +16,31 @@ export async function POST(request: NextRequest) {
     const { name, email, subject, country } = values
     const message = country ? `Delivery country: ${country}\n\n${values.message}` : values.message
 
-    // Send email to store owner
-    const adminEmail = process.env.SMTP_USER || 'info@jacketee.com'
-    const ownerEmailHtml = contactFormTemplate({ name, email, subject, message })
-    
-    await sendEmail({
-      to: adminEmail,
-      subject: `New Contact Form Submission: ${subject}`,
-      html: ownerEmailHtml,
-    })
-
-    // Send auto-reply to customer
-    const customerReplyHtml = contactCustomerReplyTemplate({ name, subject })
-    
-    await sendEmail({
-      to: email,
-      subject: 'Jacketee - Inquiry Received',
-      html: customerReplyHtml,
-    })
-
+    // Accept the inquiry only after it has been durably saved.
     const db = await connectDB()
-    if (db) {
-      await ContactMessage.create({ name, email, subject, message })
-    }
+    if (!db) return NextResponse.json({ error: 'We could not save your message. Please try again.' }, { status: 503 })
+    await ContactMessage.create({ name, email, subject, message })
 
-    await createNotification({
-      type: 'contact_form',
-      title: 'New contact form submission',
-      message: `${name}: ${subject}`,
-      metadata: { name, email, subject, message },
-    })
+    // A notification failure must not turn a saved inquiry into a failed submission.
+    const deliveries = await Promise.allSettled([
+      Promise.resolve().then(() => createNotification({
+        type: 'contact_form', title: 'New contact form submission',
+        message: name + ': ' + subject, link: '/admin/contact-messages',
+        metadata: { name, email, subject, message },
+      })),
+      Promise.resolve().then(() => sendEmail({
+        to: process.env.SMTP_USER || 'info@jacketee.com',
+        subject: 'New Contact Form Submission: ' + subject,
+        html: contactFormTemplate({ name, email, subject, message }),
+      })),
+      Promise.resolve().then(() => sendEmail({
+        to: email, subject: 'Jacketee - Inquiry Received',
+        html: contactCustomerReplyTemplate({ name, subject }),
+      })),
+    ])
+    if (deliveries.some(result => result.status === 'rejected' || (result.value && result.value.success === false))) {
+      console.error('Contact message saved, but notification delivery failed')
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: unknown) {

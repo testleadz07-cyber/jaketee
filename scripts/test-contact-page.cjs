@@ -12,17 +12,19 @@ const sent = []
 const saved = []
 const notifications = []
 let emailFails = false
+let dbAvailable = true
+let saveFails = false
 const mocks = {
   'next/link': { __esModule: true, default: ({ href, children, ...props }) => React.createElement('a', { href, ...props }, children) },
   'next/server': { NextResponse: { json: (data, options = {}) => ({ data, status: options.status || 200 }) } },
   '@/components/header': { Header: () => null },
   '@/components/footer': { Footer: () => null },
   '@/lib/activity': { logUserActivity: async () => false },
-  '@/lib/mongodb': { connectDB: async () => true },
-  '@/models/ContactMessage': { __esModule: true, default: { create: async data => saved.push(data) } },
+  '@/lib/mongodb': { connectDB: async () => dbAvailable },
+  '@/models/ContactMessage': { __esModule: true, default: { create: async data => { if (saveFails) throw Error('Save failed'); saved.push(data) } } },
   '@/lib/notifications': { createNotification: async data => notifications.push(data) },
   '@/lib/email': {
-    sendEmail: async data => { if (emailFails) throw Error('Email unavailable'); sent.push(data) },
+    sendEmail: async data => { if (emailFails === 'throw') throw Error('Email unavailable'); if (emailFails) return { success: false }; sent.push(data); return { success: true } },
     contactFormTemplate: data => JSON.stringify(data), contactCustomerReplyTemplate: data => JSON.stringify(data),
   },
 }
@@ -64,7 +66,18 @@ async function main() {
   assert.equal(saved[0].message, 'Delivery country: GB\n\nHow should I measure?')
   assert.equal(notifications.length, 1)
   emailFails = true
+  assert.equal((await POST({ json: async () => valid })).status, 200, 'Email failure must not lose a saved inquiry')
+  emailFails = 'throw'
+  assert.equal((await POST({ json: async () => valid })).status, 200)
+  assert.equal(saved.length, 3)
+  const emailsBeforeFailure = sent.length
+  dbAvailable = false
+  assert.equal((await POST({ json: async () => valid })).status, 503)
+  dbAvailable = true
+  saveFails = true
   assert.equal((await POST({ json: async () => valid })).status, 500)
+  assert.equal(sent.length, emailsBeforeFailure, 'Unstored inquiries must not trigger confirmation emails')
+  assert.equal(saved.length, 3)
 
   const html = renderToString(React.createElement(load('src/app/contact/page.tsx').default))
   assert.equal((html.match(/<h1\b/g) || []).length, 1)

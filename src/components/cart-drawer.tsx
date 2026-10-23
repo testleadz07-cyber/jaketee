@@ -116,7 +116,7 @@ export function CartDrawer() {
         <Button
           variant="outline"
           size="icon"
-          className="relative"
+          className="relative h-11 w-11"
           aria-label={`Open shopping cart with ${visibleItemCount} items`}
           onClick={() => logUserActivity('cart_viewed', { itemCount: visibleItemCount, total, currency: 'USD' })}
         >

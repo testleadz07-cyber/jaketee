@@ -4,7 +4,7 @@ import { VideoMedia } from '@/components/video-media'
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { startTransition, useEffect, useState, useCallback  } from 'react'
 import Image from '@/components/optimized-image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -84,7 +84,7 @@ export default function AdminReviewsPage() {
   }, [searchInput])
 
   useEffect(() => {
-    setPage(1)
+    startTransition(() => { setPage(1) })
   }, [activeTab])
 
   const fetchReviews = useCallback(async () => {
@@ -111,7 +111,7 @@ export default function AdminReviewsPage() {
   }, [page, activeTab, searchQuery])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchReviews()
+    if (status === 'authenticated') startTransition(() => { fetchReviews() })
   }, [status, fetchReviews])
 
   const handleUpdateStatus = async (id: string, newStatus: 'approved' | 'rejected') => {

@@ -11,7 +11,7 @@ import { bodyRows, jacketRows, measurementGuides, format, formatRange, convertEn
 import { InternationalSizeChart } from '@/components/international-size-chart'
 
 function UnitToggle({ unit, onChange, label }: { unit: Unit; onChange: (unit: Unit) => void; label: string }) {
-  return <div className="inline-flex shrink-0 rounded-xl border bg-card p-1" role="group" aria-label={label}>{(['in', 'cm'] as const).map(value => <button key={value} type="button" aria-pressed={unit === value} onClick={() => onChange(value)} className={`min-h-11 rounded-lg px-4 text-sm font-medium ${unit === value ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}>{value === 'in' ? 'Inches' : 'Centimeters'}</button>)}</div>
+  return <div className="inline-flex shrink-0 rounded-xl border bg-card p-1" role="group" aria-label={label}>{(['in', 'cm'] as const).map(value => <button key={value} type="button" aria-pressed={unit === value} onClick={() => onChange(value)} className={`min-h-11 rounded-lg px-4 text-sm font-medium ${unit === value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{value === 'in' ? 'Inches' : 'Centimeters'}</button>)}</div>
 }
 function Illustration({ image, alt, compact = false }: { image: string; alt: string; compact?: boolean }) {
   return <div className={`relative mx-auto aspect-square w-full overflow-hidden rounded-xl bg-white ${compact ? 'max-w-44' : 'max-w-64'}`}><Image src={`/images/size-guide/${image}.webp`} alt={alt} fill sizes={compact ? '176px' : '(max-width: 639px) 80vw, 256px'} className="object-contain p-3" /></div>

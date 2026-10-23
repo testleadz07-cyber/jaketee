@@ -64,7 +64,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
     }
   }
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       {/* Main Content */}
@@ -196,7 +196,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
             <CardContent className="space-y-4">
               <div className="space-y-6">
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                     1
                   </div>
                   <div>
@@ -208,7 +208,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                     2
                   </div>
                   <div>
@@ -220,7 +220,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                     3
                   </div>
                   <div>
@@ -232,7 +232,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                     4
                   </div>
                   <div>

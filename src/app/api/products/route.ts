@@ -17,9 +17,15 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag')
     const sort = searchParams.get('sort') || 'name'
     const order = searchParams.get('order') || 'asc'
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '100')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '100', 10) || 100))
     const all = searchParams.get('all') === 'true'
+    if (all) {
+      const session = await getServerSession(authOptions)
+      if ((session?.user as { role?: string } | undefined)?.role !== 'admin') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
     const stock = searchParams.get('stock')
     const featured = searchParams.get('featured')
     const status = searchParams.get('status')
@@ -122,7 +128,7 @@ export async function GET(request: NextRequest) {
     const total = await Product.countDocuments(filter)
 
     return NextResponse.json(mapped, {
-      headers: { 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
+      headers: { 'Cache-Control': 'no-store', 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
     })
   } catch (error: any) {
     console.error('Error fetching products:', error)

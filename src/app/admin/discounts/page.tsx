@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { startTransition, useEffect, useState, useCallback  } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -124,7 +124,7 @@ export default function AdminDiscounts() {
   }, [searchInput])
 
   useEffect(() => {
-    setPage(1)
+    startTransition(() => { setPage(1) })
   }, [activeFilter])
 
   const fetchCoupons = useCallback(async () => {
@@ -156,7 +156,7 @@ export default function AdminDiscounts() {
   }, [page, searchQuery, activeFilter])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchCoupons()
+    if (status === 'authenticated') startTransition(() => { fetchCoupons() })
   }, [status, fetchCoupons])
 
   const handleCodeChangeAdd = (val: string) => {

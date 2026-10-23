@@ -3,7 +3,7 @@
 import { Footer } from '@/components/footer'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState  } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
@@ -119,34 +119,7 @@ export default function ProfilePage() {
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const addToCart = useCartStore((state) => state.addItem)
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
-
-  // Handle tab from URL parameters
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const tabParam = params.get('tab')
-      if (tabParam === 'wishlist' || tabParam === 'orders' || tabParam === 'profile' || tabParam === 'addresses') {
-        setActiveTab(tabParam)
-      }
-    }
-  }, [status])
-
-  // Fetch profile, orders, and wishlist if logged in
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      setName(session.user.name || '')
-      fetchProfile()
-      fetchOrders()
-      loadWishlist((session.user as any).id)
-    }
-  }, [status, session, loadWishlist])
-
-  const fetchProfile = async () => {
+  async function fetchProfile() {
     try {
       const res = await fetch('/api/users/profile')
       if (res.ok) {
@@ -159,6 +132,53 @@ export default function ProfilePage() {
       console.error('Error fetching profile:', error)
     }
   }
+
+  async function fetchOrders() {
+    setIsOrdersLoading(true)
+    try {
+      const userId = (session?.user as any)?.id
+      if (!userId) return
+
+      const res = await fetch(`/api/orders?userId=${userId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setOrders(data)
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setIsOrdersLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  // Handle tab from URL parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tabParam = params.get('tab')
+      if (tabParam === 'wishlist' || tabParam === 'orders' || tabParam === 'profile' || tabParam === 'addresses') {
+        startTransition(() => { setActiveTab(tabParam) })
+      }
+    }
+  }, [status])
+
+  // Fetch profile, orders, and wishlist if logged in
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      startTransition(() => { setName(session.user?.name || '') })
+      startTransition(() => { fetchProfile() })
+      startTransition(() => { fetchOrders() })
+      loadWishlist((session.user as any).id)
+    }
+  }, [status, session, loadWishlist])
+
+
 
   const persistAddresses = async (nextAddresses: Address[]) => {
     setIsSavingAddress(true)
@@ -257,23 +277,7 @@ export default function ProfilePage() {
     }
   }
 
-  const fetchOrders = async () => {
-    setIsOrdersLoading(true)
-    try {
-      const userId = (session?.user as any)?.id
-      if (!userId) return
 
-      const res = await fetch(`/api/orders?userId=${userId}`)
-      if (res.ok) {
-        const data = await res.json()
-        setOrders(data)
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-    } finally {
-      setIsOrdersLoading(false)
-    }
-  }
 
   const requestGuestOrders = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -448,7 +452,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-5xl">

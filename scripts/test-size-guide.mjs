@@ -10,12 +10,12 @@ const require = createRequire(import.meta.url)
 const sizing = loadTypeScript('src/lib/jacket-sizing.ts')
 const international = loadTypeScript('src/lib/international-sizing.ts')
 function load(file, mocks) {
-  const module = { exports: {} }
+  const loadedModule = { exports: {} }
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText
-  new Function('require', 'module', 'exports', source)(id => id in mocks ? mocks[id] : require(id), module, module.exports)
-  return module.exports
+  new Function('require', 'module', 'exports', source)(id => id in mocks ? mocks[id] : require(id), loadedModule, loadedModule.exports)
+  return loadedModule.exports
 }
 let selectedFit = 'male'
 const { InternationalSizeChart } = load('src/components/international-size-chart.tsx', {

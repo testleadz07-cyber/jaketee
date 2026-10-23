@@ -3,7 +3,7 @@
 import { Footer } from '@/components/footer'
 import { getJacketTextSummary } from '@/types/jacket-customization'
 
-import { useEffect, useState, Suspense } from 'react'
+import { startTransition, useEffect, useState, Suspense  } from 'react'
 import Image from '@/components/optimized-image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -88,13 +88,13 @@ function ConfirmationContent() {
       return
     }
     if (sessionId) {
-      verifyStripePayment()
+      startTransition(() => { verifyStripePayment() })
     } else {
-      fetchOrderDetails()
+      startTransition(() => { fetchOrderDetails() })
     }
   }, [orderId, sessionId, session?.user?.email])
 
-  const verifyStripePayment = async () => {
+  async function verifyStripePayment() {
     setVerifyingPayment(true)
     try {
       const res = await fetch('/api/payments/stripe/verify', {
@@ -117,7 +117,7 @@ function ConfirmationContent() {
     }
   }
 
-  const fetchOrderDetails = async (emailOverride?: string) => {
+  async function fetchOrderDetails(emailOverride?: string) {
     try {
       const email = emailOverride || session?.user?.email || sessionStorage.getItem('jacketee-checkout-email') || ''
       if (!email) return
@@ -438,7 +438,7 @@ function ShieldAlert({ className }: { className?: string }) {
 
 export default function OrderConfirmationPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
         <Suspense fallback={

@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-4">
         <Breadcrumbs items={[{ label: 'Sign In', href: '/login' }, { label: 'Forgot Password' }]} className="flex justify-center" />
         <Card className="w-full max-w-md border-2">

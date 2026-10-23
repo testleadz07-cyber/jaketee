@@ -6,7 +6,7 @@ import { STANDARD_SHIPPING_USD, shippingCountryOptions, normalizeShippingCountry
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { startTransition, useEffect, useState, useCallback, useRef  } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -238,7 +238,7 @@ export default function AdminOrders() {
   }, [searchInput])
 
   useEffect(() => {
-    setPage(1)
+    startTransition(() => { setPage(1) })
   }, [activeTab])
 
   const fetchOrders = useCallback(async () => {
@@ -271,7 +271,7 @@ export default function AdminOrders() {
   }, [page, activeTab, searchQuery, archiveFilter])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchOrders()
+    if (status === 'authenticated') startTransition(() => { fetchOrders() })
   }, [status, fetchOrders])
 
   const toggleExpand = (orderId: string) => {
@@ -527,11 +527,11 @@ export default function AdminOrders() {
   useEffect(() => {
     if (productSearchTimeout.current) clearTimeout(productSearchTimeout.current)
     if (!productSearch.trim()) {
-      setProductResults([])
-      setSearchingProducts(false)
+      startTransition(() => { setProductResults([]) })
+      startTransition(() => { setSearchingProducts(false) })
       return
     }
-    setSearchingProducts(true)
+    startTransition(() => { setSearchingProducts(true) })
     productSearchTimeout.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/products?search=${encodeURIComponent(productSearch.trim())}&limit=8&all=true`)
@@ -557,18 +557,18 @@ export default function AdminOrders() {
     if (customerSearchTimeout.current) clearTimeout(customerSearchTimeout.current)
 
     if (selectedCustomerId) {
-      setCustomerResults([])
-      setSearchingCustomers(false)
+      startTransition(() => { setCustomerResults([]) })
+      startTransition(() => { setSearchingCustomers(false) })
       return
     }
 
     if (!customerSearch.trim()) {
-      setCustomerResults([])
-      setSearchingCustomers(false)
+      startTransition(() => { setCustomerResults([]) })
+      startTransition(() => { setSearchingCustomers(false) })
       return
     }
 
-    setSearchingCustomers(true)
+    startTransition(() => { setSearchingCustomers(true) })
     customerSearchTimeout.current = setTimeout(async () => {
       try {
         const params = new URLSearchParams({

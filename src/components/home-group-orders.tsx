@@ -10,7 +10,7 @@ const programs = [
 
 export function HomeGroupOrders() {
   return (
-    <section className="store-section bg-[#eee8df]" aria-labelledby="bulk-orders-heading">
+    <section className="store-section bg-muted/70" aria-labelledby="bulk-orders-heading">
       <div className="section-shell">
         <div className="mb-8 max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Made for your group</p>
@@ -30,10 +30,10 @@ export function HomeGroupOrders() {
             </div>
           </div>
           <nav aria-label="Bulk jacket programs" className="grid gap-3">
-            {programs.map(({ icon: Icon, ...item }) => <Link key={item.href} href={item.href} className="group flex min-h-28 items-center gap-4 rounded-xl border border-black/10 bg-white p-5 transition-colors hover:border-red-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f5f0ea]"><Icon aria-hidden="true" className="h-6 w-6 text-[#6e3430]" /></span><span className="min-w-0 flex-1"><span className="block text-base font-semibold">{item.title}</span><span className="mt-1 block text-sm leading-6 text-muted-foreground">{item.description}</span></span><ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" /></Link>)}
+            {programs.map(({ icon: Icon, ...item }) => <Link key={item.href} href={item.href} className="group flex min-h-28 items-center gap-4 rounded-xl border border-border bg-card text-card-foreground p-5 transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f5f0ea]"><Icon aria-hidden="true" className="h-6 w-6 text-[#6e3430]" /></span><span className="min-w-0 flex-1"><span className="block text-base font-semibold">{item.title}</span><span className="mt-1 block text-sm leading-6 text-muted-foreground">{item.description}</span></span><ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" /></Link>)}
           </nav>
         </div>
-        <div className="mt-7 flex flex-col gap-4 border-t border-black/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-7 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
           <ol className="flex flex-wrap gap-x-5 gap-y-3 text-sm">{['Share your brief', 'Review your quote', 'Approve your proof'].map((step, i) => <li key={step}><span className="mr-2 font-semibold text-primary">0{i + 1}</span>{step}</li>)}</ol>
           <Link href="/bulk-orders" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline underline-offset-4">How group orders work <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
         </div>

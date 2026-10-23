@@ -213,7 +213,7 @@ export default function TrackOrderPage() {
   const trackingUrl = order?.trackingNumber ? carrierTrackingUrl(order.carrier, order.trackingNumber) : null
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">

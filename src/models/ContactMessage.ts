@@ -5,6 +5,7 @@ export interface IContactMessage extends Document {
   email: string
   subject: string
   message: string
+  attachments?: { filename: string; contentType: string; content: Buffer }[]
   read: boolean
   createdAt: Date
   updatedAt: Date
@@ -16,6 +17,7 @@ const ContactMessageSchema = new Schema<IContactMessage>(
     email: { type: String, required: true },
     subject: { type: String, required: true },
     message: { type: String, required: true },
+    attachments: [{ filename: String, contentType: String, content: Buffer }],
     read: { type: Boolean, default: false },
   },
   { timestamps: true }

@@ -1,4 +1,20 @@
-export const PRODUCTS = [
+interface StaticProduct {
+  _id: string
+  id: string
+  name: string
+  slug: string
+  description: string
+  price: number
+  compareAtPrice: number
+  compareAtPriceVerified: boolean
+  categoryId: string
+  images: { url: string; alt?: string; order?: number }[]
+  variants: { name: string; value: string; priceAdjust: number; inStock: boolean }[]
+  isFeatured: boolean
+  inStock: boolean
+}
+
+export const PRODUCTS: StaticProduct[] = [
   {
     _id: '6a6a288b734c0444f66e35ea',
     id: '6a6a288b734c0444f66e35ea',

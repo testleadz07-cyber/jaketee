@@ -49,6 +49,7 @@ async function mount({ storage = new Map(), user = null, profile, suggestion = {
     '@/config/fulfillment': fulfillment,
     '@/lib/checkout-address-draft': drafts,
     '@/hooks/use-toast': { useToast: () => ({ toast: () => {} }) },
+    '@/hooks/use-has-mounted': { useHasMounted: () => true },
     '@/store/cart': { useCartStore: () => ({ items: [{ id: 'line', productId: 'product', name: 'Jacket', image: '/test.png', quantity: 2, price: 100, variants: [] }], clearCart: () => {}, clearDirectOrderItem: () => {}, clearAppliedPromo: () => {} }) },
     '@/types/jacket-customization': { getCustomizedViews: () => [] },
     '@/lib/activity': { logUserActivity: () => {} },

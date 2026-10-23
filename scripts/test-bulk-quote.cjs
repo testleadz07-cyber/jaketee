@@ -36,6 +36,8 @@ async function scenario({ database = true, saveFails = false, emailFails = false
   for (const detail of ['Test team', '25', 'Varsity jacket', '2027-01-01', 'US', 'team.png']) assert.ok(success.saved[0].message.includes(detail), detail)
   assert.deepEqual(success.events, ['save', 'email'])
   assert.equal(success.emails[0].attachments.length, 1)
+  assert.equal(success.saved[0].attachments[0].filename, 'team.png')
+  assert.equal(success.saved[0].attachments[0].content.toString(), 'logo')
   assert.equal(success.notifications[0].link, '/admin/contact-messages')
   const flexible = await scenario({ values: { deadline: '', program: 'Schools & Teams', notes: 'Names on sleeves; sample requested.', jacketType: 'Not sure / need advice' } })
   assert.equal(flexible.response.status, 200)

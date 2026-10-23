@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { startTransition, useEffect, useState, useCallback  } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -103,11 +103,11 @@ export default function AdminNotificationsPage() {
   }, [page, typeFilter, statusFilter])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchNotifications()
+    if (status === 'authenticated') startTransition(() => { fetchNotifications() })
   }, [status, fetchNotifications])
 
   useEffect(() => {
-    setPage(1)
+    startTransition(() => { setPage(1) })
   }, [typeFilter, statusFilter])
 
   const handleSelect = (notification: NotificationRow) => {

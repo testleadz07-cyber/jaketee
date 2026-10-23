@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
       ContactMessage.countDocuments(query),
       ContactMessage.countDocuments({ read: false }),
       ContactMessage.find(query)
+        .select('-attachments.content')
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)

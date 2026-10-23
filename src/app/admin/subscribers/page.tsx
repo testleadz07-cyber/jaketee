@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { startTransition, useEffect, useState, useCallback  } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -80,11 +80,11 @@ export default function AdminSubscribersPage() {
   }, [page, search])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchSubscribers()
+    if (status === 'authenticated') startTransition(() => { fetchSubscribers() })
   }, [status, fetchSubscribers])
 
   useEffect(() => {
-    setPage(1)
+    startTransition(() => { setPage(1) })
   }, [search])
 
   const handleDelete = async (subscriber: SubscriberRow) => {
