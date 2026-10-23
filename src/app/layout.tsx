@@ -81,6 +81,7 @@ const organizationJsonLd = {
   sameAs: [
     "https://www.facebook.com/jacketeeofficial",
     "https://www.instagram.com/jacketeeofficial/",
+    "https://www.threads.com/@jacketeeofficial",
     "https://www.pinterest.com/ShopJacketee/",
     "https://x.com/ShopJacketee",
     "https://www.linkedin.com/in/info-jacketee-552187445/?isSelfProfile=true",

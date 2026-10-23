@@ -314,11 +314,11 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen min-w-0 flex flex-col bg-background [overflow-wrap:anywhere]">
       <Header />
 
       {/* Product Detail */}
-      <main className="flex-1 pb-20 lg:pb-0">
+      <main className="min-w-0 w-full flex-1 pb-24 lg:pb-0">
         <div className="container mx-auto px-4 py-6 lg:py-8">
           <Breadcrumbs
             items={[
@@ -442,7 +442,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
               <Separator />
 
               <div className="space-y-2">
-                <div className="flex items-baseline gap-3">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
                   <span className="text-4xl font-bold text-primary">
                     ${getPrice().toFixed(2)}
                   </span>
@@ -472,7 +472,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                         tabIndex={variantName.trim().toLowerCase() === 'size' ? -1 : undefined}
                         aria-describedby={variantName.trim().toLowerCase() === 'size' && sizeError && !hasSelectedSize ? 'product-size-error' : undefined}
                         className={variantName.trim().toLowerCase() === 'size' && sizeError && !hasSelectedSize ? 'rounded-lg border-2 border-red-600 bg-red-50 p-3 dark:bg-red-950/20' : undefined}>
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                           <label className="text-sm font-medium block">
                             {variantName}
                           </label>
@@ -515,7 +515,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                                   }
                                 }}
                                 disabled={!isAvailable}
-                                className={`min-h-11 min-w-11 px-4 py-2 rounded-lg border-2 font-medium transition-all ${
+                                className={`min-h-11 min-w-11 max-w-full whitespace-normal px-4 py-2 rounded-lg border-2 font-medium transition-all ${
                                   isSelected
                                     ? 'border-primary bg-primary text-primary-foreground'
                                     : isAvailable
@@ -542,7 +542,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
               {isJacket && (
                 <div className="space-y-4">
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                       <span className="text-sm font-medium">Quantity:</span>
                       <div className="flex items-center gap-2">
                         <Button
@@ -560,10 +560,10 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                       </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="grid grid-cols-[minmax(0,1fr)_3.5rem] gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.5rem]">
                       <Button
                         size="lg"
-                        className="flex-1 h-14 text-lg"
+                        className="col-span-2 min-h-14 min-w-0 h-auto whitespace-normal px-3 py-3 text-base sm:col-span-1 lg:text-lg"
                         onClick={() => handleAddToCart()}
                         disabled={!product.inStock}
                       >
@@ -574,7 +574,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.8 }}
-                              className="flex items-center gap-2"
+                              className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                             >
                               <Check className="h-5 w-5" />
                               Added to Cart!
@@ -585,7 +585,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.8 }}
-                              className="flex items-center gap-2"
+                              className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                             >
                               <ShoppingCart className="h-5 w-5" />
                               Add to Cart -
@@ -596,7 +596,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                       </Button>
                       <Button
                         size="lg"
-                        className="flex-1 h-14 bg-red-700 text-lg font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800"
+                        className="min-h-14 min-w-0 h-auto whitespace-normal bg-red-700 px-3 py-3 text-base font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800 lg:text-lg"
                         onClick={() => handleBuyNow()}
                         disabled={!product.inStock}
                       >
@@ -635,7 +635,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
               {/* Quantity and Add to Cart */}
               {!isJacket && (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <span className="text-sm font-medium">Quantity:</span>
                     <div className="flex items-center gap-2">
                       <Button
@@ -661,10 +661,10 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-[minmax(0,1fr)_3.5rem] gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.5rem]">
                     <Button
                       size="lg"
-                      className="flex-1 h-14 text-lg"
+                      className="col-span-2 min-h-14 min-w-0 h-auto whitespace-normal px-3 py-3 text-base sm:col-span-1 lg:text-lg"
                       onClick={() => handleAddToCart()}
                       disabled={!product.inStock}
                     >
@@ -675,7 +675,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            className="flex items-center gap-2"
+                            className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                           >
                             <Check className="h-5 w-5" />
                             Added to Cart!
@@ -686,7 +686,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            className="flex items-center gap-2"
+                            className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                           >
                             <ShoppingCart className="h-5 w-5" />
                             Add to Cart -
@@ -697,7 +697,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                     </Button>
                     <Button
                       size="lg"
-                      className="flex-1 h-14 bg-red-700 text-lg font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800"
+                      className="min-h-14 min-w-0 h-auto whitespace-normal bg-red-700 px-3 py-3 text-base font-bold text-white shadow-md ring-1 ring-red-900/10 hover:bg-red-800 lg:text-lg"
                       onClick={() => handleBuyNow()}
                       disabled={!product.inStock}
                     >
@@ -724,10 +724,10 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                   <CopySection title="Available sizes & fit" accent="border-l-amber-400">
                 <dl className="divide-y text-sm">
                   {Object.entries(groupedVariants).map(([name, variants]) => (
-                    <div key={name} className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">{name}</dt><dd className="text-muted-foreground">{variants.map((variant) => variant.value).join(', ')}</dd></div>
+                    <div key={name} className="grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)] gap-3 py-2.5"><dt className="font-medium">{name}</dt><dd className="text-muted-foreground">{variants.map((variant) => variant.value).join(', ')}</dd></div>
                   ))}
-                  {!!product.measurementFields?.length && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Fit</dt><dd className="text-muted-foreground">Made-to-measure available</dd></div>}
-                  {product.embroidery?.available && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Details</dt><dd className="text-muted-foreground">Optional monogram or embroidery</dd></div>}
+                  {!!product.measurementFields?.length && <div className="grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)] gap-3 py-2.5"><dt className="font-medium">Fit</dt><dd className="text-muted-foreground">Made-to-measure available</dd></div>}
+                  {product.embroidery?.available && <div className="grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)] gap-3 py-2.5"><dt className="font-medium">Details</dt><dd className="text-muted-foreground">Optional monogram or embroidery</dd></div>}
                 </dl>
                   </CopySection>
                 </div>
@@ -776,7 +776,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
         <RecentlyViewed excludeProductId={product.id} sectionClassName="bg-background" />
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-4 border-t bg-background/95 px-4 py-3 shadow-lg backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 flex min-w-0 items-center gap-3 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur lg:hidden">
         <span className="min-w-0 flex-1 truncate text-lg font-semibold">${getPrice().toFixed(2)}</span>
         <Button onClick={() => {
           if (!hasSelectedSize) requestSizeSelection()
