@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, Factory, LockKeyhole, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaPinterestP, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6'
+import { FaFacebookF, FaInstagram, FaLinkedinIn, FaPinterestP, FaThreads, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6'
 import dynamic from 'next/dynamic'
 const NewsletterForm = dynamic(() => import('@/components/newsletter-form').then((mod) => mod.NewsletterForm))
 import { buildCategoryUrl } from '@/lib/categories'
@@ -88,6 +88,11 @@ const socialLinks = [
     href: 'https://www.instagram.com/jacketeeofficial/',
     label: 'Follow Jacketee on Instagram',
     icon: FaInstagram,
+  },
+  {
+    href: 'https://www.threads.com/@jacketeeofficial',
+    label: 'Follow Jacketee on Threads',
+    icon: FaThreads,
   },
   {
     href: 'https://www.pinterest.com/ShopJacketee/',
@@ -188,7 +193,7 @@ export function Footer() {
             <p className="text-sm leading-relaxed text-muted-foreground">
               Custom jackets, patches, embroidery, and team apparel made for standout everyday wear.
             </p>
-            <div className="grid max-w-72 grid-cols-7 gap-1" aria-label="Social media links">
+            <div className="grid w-fit max-w-full grid-cols-4 gap-1.5" aria-label="Social media links">
               {socialLinks.map(({ href, label, icon: Icon }) => (
                 <a
                   key={href}
@@ -196,7 +201,7 @@ export function Footer() {
                   aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-11 min-w-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-white/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:h-9"
+                  className="inline-flex h-11 w-11 min-w-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-white/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:h-9 md:w-9"
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
                 </a>

@@ -249,7 +249,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
   }))
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5 [overflow-wrap:anywhere]">
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className="text-2xl font-semibold">Customer reviews</h2>
@@ -313,7 +313,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
         {loading ? (
           <div className="min-h-20" aria-busy="true" aria-label="Loading customer reviews" />
         ) : reviews.length === 0 ? (
-          <div className="flex items-center justify-between gap-4 border-y py-5">
+          <div className="flex flex-col items-start justify-between gap-4 border-y py-5 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 shrink-0 text-muted-foreground" />
             <h3 className="text-sm font-medium">
@@ -328,7 +328,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
               <div key={review.id} className="space-y-2 py-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="font-semibold text-sm">{review.userName}</span>
                       {review.isVerified && <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700"><ShieldCheck className="h-3.5 w-3.5" />Verified purchase</span>}
                       <span className="text-xs text-muted-foreground">
@@ -470,7 +470,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
                   )}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-1">
                 <ImageIcon className="h-3 w-3" /> Images up to 5MB &middot; <VideoIcon className="h-3 w-3" /> Videos up to 25MB
               </p>
               <input

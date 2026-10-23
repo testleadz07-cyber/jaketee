@@ -5,18 +5,17 @@ import { getJacketTextSummary } from '@/types/jacket-customization'
 import { useState, useEffect, useSyncExternalStore } from 'react'
 import { useCartStore } from '@/store/cart'
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@/components/ui/drawer'
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
 import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, Tag, X, Loader2 } from 'lucide-react'
@@ -111,35 +110,35 @@ export function CartDrawer() {
   const discountAmount = visiblePromo ? subtotal - total : 0
 
   return (
-    <Drawer>
-      <DrawerTrigger asChild>
+    <Sheet>
+      <SheetTrigger asChild>
         <Button
           variant="outline"
           size="icon"
-          className="relative h-11 w-11"
+          className="relative h-11 w-11 shrink-0"
           aria-label={`Open shopping cart with ${visibleItemCount} items`}
           onClick={() => logUserActivity('cart_viewed', { itemCount: visibleItemCount, total, currency: 'USD' })}
         >
           <ShoppingBag className="h-5 w-5" />
           {visibleItems.length > 0 && (
-            <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {visibleItemCount}
+            <span className="absolute right-0 top-0 flex h-5 min-w-5 -translate-y-1/4 translate-x-1/4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+              {visibleItemCount > 99 ? '99+' : visibleItemCount}
             </span>
           )}
         </Button>
-      </DrawerTrigger>
-      <DrawerContent className="max-h-[90vh] flex flex-col">
-        <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2">
+      </SheetTrigger>
+      <SheetContent side="bottom" className="h-[90dvh] max-h-[90dvh] min-w-0 w-full max-w-full gap-0 overflow-hidden rounded-t-xl [overflow-wrap:anywhere] [&>button:last-child]:flex [&>button:last-child]:h-11 [&>button:last-child]:w-11 [&>button:last-child]:items-center [&>button:last-child]:justify-center">
+        <SheetHeader className="shrink-0 pr-16">
+          <SheetTitle className="flex min-w-0 flex-wrap items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
             Shopping Cart ({visibleItemCount} items)
-          </DrawerTitle>
-          <DrawerDescription>
+          </SheetTitle>
+          <SheetDescription>
             Review your items before checkout
-          </DrawerDescription>
-        </DrawerHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <ScrollArea className="flex-1 min-h-0 px-4">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4">
           {visibleItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
@@ -153,9 +152,9 @@ export function CartDrawer() {
               {visibleItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex gap-4 rounded-lg border p-4 bg-card"
+                  className="grid min-w-0 grid-cols-[4rem_minmax(0,1fr)] gap-3 rounded-lg border bg-card p-3 sm:grid-cols-[5rem_minmax(0,1fr)] sm:p-4"
                 >
-                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                  <div className="relative h-16 w-16 overflow-hidden rounded-md bg-muted sm:h-20 sm:w-20">
                     <Image
                       src={item.image}
                       alt={item.name}
@@ -165,8 +164,8 @@ export function CartDrawer() {
                     />
                   </div>
 
-                  <div className="flex flex-1 flex-col gap-1">
-                    <h3 className="font-semibold line-clamp-1">{item.name}</h3>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <h3 className="line-clamp-2 font-semibold">{item.name}</h3>
                     <p className="text-sm text-muted-foreground text-xs">
                       {item.variants.map(v => `${v.name}: ${v.value}`).join(', ')}
                     </p>
@@ -184,12 +183,13 @@ export function CartDrawer() {
                       ${item.price.toFixed(2)}
                     </p>
 
-                    <div className="mt-auto flex items-center justify-between">
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-11 w-11"
+                          aria-label={`Decrease quantity of ${item.name}`}
                           onClick={() =>
                             updateQuantity(item.id, Math.max(1, item.quantity - 1))
                           }
@@ -202,7 +202,8 @@ export function CartDrawer() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-11 w-11"
+                          aria-label={`Increase quantity of ${item.name}`}
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
@@ -214,7 +215,8 @@ export function CartDrawer() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        className="h-11 w-11 text-destructive hover:text-destructive"
+                        aria-label={`Remove ${item.name} from cart`}
                         onClick={() => {
                           logUserActivity('cart_item_removed', { productId: item.productId, quantity: item.quantity })
                           removeItem(item.id)
@@ -228,11 +230,11 @@ export function CartDrawer() {
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         <Separator />
 
-        <DrawerFooter className="flex-col gap-4 shrink-0 max-h-[45vh] overflow-y-auto">
+        <SheetFooter className="max-h-[45dvh] min-w-0 shrink-0 gap-4 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
           {visibleItems.length > 0 && (
             <>
               {/* Promo input or display */}
@@ -249,9 +251,9 @@ export function CartDrawer() {
                         placeholder="Promo code (e.g. WELCOME15)"
                         value={promoCodeInput}
                         onChange={(e) => setPromoCodeInput(e.target.value)}
-                        className="flex-1 h-9 text-xs focus-visible:ring-primary uppercase"
+                        className="min-w-0 flex-1 h-11 text-base focus-visible:ring-primary uppercase"
                       />
-                      <Button type="submit" size="sm" className="h-9" disabled={isValidating}>
+                      <Button type="submit" size="sm" className="h-11" disabled={isValidating}>
                         {isValidating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Tag className="h-3 w-3 mr-1" />}
                         Apply
                       </Button>
@@ -275,7 +277,8 @@ export function CartDrawer() {
                       variant="ghost"
                       size="icon"
                       onClick={handleRemovePromo}
-                      className="h-6 w-6 text-emerald-800 hover:bg-emerald-500/20 hover:text-emerald-950 shrink-0"
+                      aria-label="Remove promo code"
+                      className="h-11 w-11 text-emerald-800 hover:bg-emerald-500/20 hover:text-emerald-950 shrink-0"
                     >
                       <X className="h-3.5 w-3.5" />
                     </Button>
@@ -308,20 +311,20 @@ export function CartDrawer() {
                 </div>
               </div>
 
-              <Link href="/checkout" className="w-full" onClick={() => void logUserActivity('begin_checkout', { source: 'cart', itemCount: visibleItemCount, total, currency: 'USD' })}>
-                <Button className="w-full" size="lg">
-                  Proceed to Checkout
+              <SheetClose asChild>
+                <Button asChild className="min-h-11 w-full" size="lg">
+                  <Link href="/checkout" onClick={() => void logUserActivity('begin_checkout', { source: 'cart', itemCount: visibleItemCount, total, currency: 'USD' })}>Proceed to Checkout</Link>
                 </Button>
-              </Link>
+              </SheetClose>
             </>
           )}
-          <DrawerClose asChild>
-            <Button variant="outline" className="w-full">
+          <SheetClose asChild>
+            <Button variant="outline" className="min-h-11 w-full">
               Continue Shopping
             </Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+          </SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

@@ -66,7 +66,7 @@ export function ProductDeliveryPolicies({ quantity, product }: { quantity: numbe
           {dates ? <>Order today to get by <strong>{formatDeliveryDate(dates.min)} – {formatDeliveryDate(dates.max)}</strong></> : <span role="status" aria-label="Calculating delivery dates" className="block h-5 w-52 max-w-full animate-pulse rounded bg-white/20" />}
         </button></PopoverTrigger><PopoverContent className="max-w-[calc(100vw-2rem)] text-sm leading-6">{deliveryTooltip}</PopoverContent></Popover>
       </div></div>
-      <div className="flex items-start gap-3"><PackageCheck className={iconClass} /><div className="flex flex-1 flex-wrap items-center gap-x-1 py-1">
+      <div className="flex items-start gap-3"><PackageCheck className={iconClass} /><div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 py-1">
         <p><Link href="/returns" className="inline-flex min-h-11 items-center underline underline-offset-4">{getProductReturnLabel(product)}</Link></p>
         <PolicyTip label="Return eligibility and personalized item policy"><p>{returnPolicyText.eligibility}</p><p>{returnPolicyText.fee}</p><p>Non-returnable Items: {returnPolicyText.personalized}</p><p>{returnPolicyText.customExchange}</p><p>{returnPolicyText.faulty}</p></PolicyTip>
       </div></div>
@@ -74,7 +74,7 @@ export function ProductDeliveryPolicies({ quantity, product }: { quantity: numbe
         <p>Shipping: ${calculateShipping(quantity)} USD</p>
       </div></div>
       <div className="flex items-start gap-3"><MapPin className={iconClass} /><div className="min-w-0 flex-1">
-        <Popover open={selectorOpen} onOpenChange={value => { setSelectorOpen(value); if (!value) setSearch('') }}><PopoverTrigger asChild><button type="button" className="flex min-h-11 items-center gap-2 text-left" aria-label="Change delivery country">Deliver to <strong>{country?.name || 'Select country'}</strong><Pencil className="size-4 text-[#d5b56b]" /></button></PopoverTrigger>
+        <Popover open={selectorOpen} onOpenChange={value => { setSelectorOpen(value); if (!value) setSearch('') }}><PopoverTrigger asChild><button type="button" className="flex min-h-11 max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-left" aria-label="Change delivery country">Deliver to <strong className="min-w-0 [overflow-wrap:anywhere]">{country?.name || 'Select country'}</strong><Pencil className="size-4 shrink-0 text-[#d5b56b]" /></button></PopoverTrigger>
           <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-2">
             <label htmlFor={`${id}-search`} className="px-2 text-sm font-medium">Search countries</label>
             <input id={`${id}-search`} value={search} onChange={event => setSearch(event.target.value)} placeholder="Country name or code" className="mt-1 min-h-11 w-full rounded border px-3 text-sm" />

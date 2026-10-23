@@ -29,14 +29,14 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
         </BreadcrumbItem>
         
         {items.filter(item => item.label?.trim()).map((item, index) => (
-            <BreadcrumbItem key={index}>
-              <ChevronRight aria-hidden="true" className="size-3.5 mr-1 sm:mr-1.5" />
+            <BreadcrumbItem key={index} className="min-w-0 max-w-full">
+              <ChevronRight aria-hidden="true" className="size-3.5 shrink-0 mr-1 sm:mr-1.5" />
               {item.href ? (
-                <BreadcrumbLink asChild>
+                <BreadcrumbLink asChild className="min-w-0 [overflow-wrap:anywhere]">
                   <Link href={item.href}>{item.label}</Link>
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                <BreadcrumbPage className="min-w-0 [overflow-wrap:anywhere]">{item.label}</BreadcrumbPage>
               )}
             </BreadcrumbItem>
         ))}

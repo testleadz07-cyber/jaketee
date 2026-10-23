@@ -18,7 +18,7 @@ export function SizeGuide({ categorySlug, sizeValues = [], trigger, productId }:
   const oversized = (categorySlug || '').split(/\s+/).includes('oversized-black-cream-varsity-jacket-women')
   return <Dialog onOpenChange={open => { if (open) logUserActivity('size_guide_opened', { productId: productId || null }) }}>
     <DialogTrigger asChild>{trigger || <Button type="button" variant="link" className="min-h-11 px-0 text-sm font-semibold"><Ruler className="mr-1.5 size-4" />Size Guide</Button>}</DialogTrigger>
-    <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+    <DialogContent className="max-h-[85dvh] min-w-0 overflow-y-auto sm:max-w-3xl [&>*]:min-w-0">
       <DialogHeader><DialogTitle className="flex items-center gap-2"><Ruler className="size-5" />Jacket &amp; Vest Size Guide</DialogTitle>
         <DialogDescription>Compare male and female US, UK and European references, plus body and garment measurements from our full size-guide page.</DialogDescription>
       </DialogHeader>
@@ -31,7 +31,7 @@ export function SizeGuide({ categorySlug, sizeValues = [], trigger, productId }:
         <p>Dropped shoulders and a longer body create a relaxed fit. Contact our team for the finished chest, shoulder, sleeve and body-length measurements for your size before ordering.</p>
         <p className="text-muted-foreground">Factory measurements for this pattern are pending. The standard jacket chart below does not describe this oversized garment.</p>
       </section>}
-      <Tabs defaultValue={defaultTab}>
+      <Tabs defaultValue={defaultTab} className="min-w-0">
         <TabsList className="grid h-auto w-full grid-cols-3"><TabsTrigger value="jacket" className="min-h-11">Jackets</TabsTrigger><TabsTrigger value="vest" className="min-h-11">Vests</TabsTrigger><TabsTrigger value="measure" className="min-h-11 whitespace-normal text-center">How to Measure</TabsTrigger></TabsList>
         <TabsContent value="jacket" className="mt-4"><GarmentSizeChart kind="jacket" unit={unit} /></TabsContent>
         <TabsContent value="vest" className="mt-4"><GarmentSizeChart kind="vest" unit={unit} /></TabsContent>

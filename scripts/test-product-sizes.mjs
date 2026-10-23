@@ -66,9 +66,11 @@ const component = load('src/components/product-detail-view.tsx', {
   'next/navigation': { useRouter: () => ({ push: value => { destination = value } }) },
   '@/components/ui/button': { Button },
   '@/store/cart': { useCartStore: selector => selector({ addItem: item => { cartItem = item }, setDirectOrderItem: item => { directItem = item } }) },
-  '@/store/wishlist': { useWishlistStore: selector => selector({ isInWishlist: () => false, addItem: noop, removeItem: noop }) },
+  '@/store/wishlist': { useWishlistStore: selector => selector({ items: [], isInWishlist: () => false, addItem: noop, removeItem: noop }) },
   '@/store/recently-viewed': { useRecentlyViewedStore: selector => selector({ addItem: noop }) },
   '@/lib/categories': loadTypeScript('src/lib/categories.ts'), '@/lib/activity': { logUserActivity: noop },
+  '@/hooks/use-activity-view': { useActivityView: noop },
+  '@/lib/image-alt': { productImageAlt: name => name },
   '@/lib/pricing': { getDisplayCompareAtPrice: () => null }, '@/lib/product-faqs': { buildProductFaqs: () => [] },
   '@/lib/product-variants': helpers,
 }).ProductDetailView
@@ -84,7 +86,7 @@ function text(element) {
 }
 function render(fixture) { cursor = 0; return flatten(component({ slug: fixture.slug, initialProduct: fixture })) }
 const noMedium = { ...product, variants: [{ name: 'Size', value: 'L', priceAdjust: 0, inStock: true }, { name: 'Size', value: 'XL', priceAdjust: 0, inStock: true }] }
-for (const fixture of [noMedium, { ...noMedium, category: { name: 'Leather Vests', slug: 'leather-vests' } }]) {
+for (const fixture of [noMedium, { ...noMedium, category: { name: 'Leather Vests', slug: 'leather-vests' } }, { ...noMedium, category: { name: 'Patches & Embroidery', slug: 'patches-embroidery' } }]) {
   state = []; cartItem = directItem = destination = undefined
   let elements = render(fixture)
   let add = elements.find(element => element.type === Button && text(element).includes('Add to Cart'))
@@ -155,11 +157,12 @@ const CustomizeProductView = load('src/components/customize-product-view.tsx', {
   'next-auth/react': { useSession: () => ({ data: null }) },
   'next/navigation': { useRouter: () => ({ push: value => { destination = value } }) },
   '@/store/cart': { useCartStore: selector => selector({ addItem: item => { cartItem = item }, setDirectOrderItem: item => { directItem = item } }) },
-  '@/store/wishlist': { useWishlistStore: selector => selector({ isInWishlist: () => false, addItem: noop, removeItem: noop }) },
+  '@/store/wishlist': { useWishlistStore: selector => selector({ items: [], isInWishlist: () => false, addItem: noop, removeItem: noop }) },
   '@/lib/categories': loadTypeScript('src/lib/categories.ts'),
   '@/lib/activity': { logUserActivity: noop },
   '@/lib/product-variants': helpers,
   '@/hooks/use-customization-insights': { useCustomizationInsights: () => new Proxy({}, { get: () => noop }) },
+  '@/hooks/use-activity-view': { useActivityView: noop },
 }).CustomizeProductView
 state = []; cursor = 0; cartItem = directItem = destination = undefined
 const customElements = flatten(CustomizeProductView({ product }))
