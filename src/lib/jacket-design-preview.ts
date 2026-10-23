@@ -2,7 +2,7 @@
 
 import { getCatalogArtworkDataUrl, getJacketFontFamily } from '@/components/jacket-artwork-catalog'
 import { drawJacketTextLayout } from '@/lib/jacket-text-layout'
-import { getCustomizedViews, type JacketCustomization, type JacketSideCustomization, type JacketView } from '@/types/jacket-customization'
+import { getCustomizedViews, getJacketTexts, type JacketCustomization, type JacketSideCustomization, type JacketView } from '@/types/jacket-customization'
 
 export const CANVAS_SIZE = 720
 const CHEST_WIDTHS: Record<string, number> = {
@@ -14,7 +14,7 @@ export function getJacketChestWidth(selectedSize?: string) {
   return CHEST_WIDTHS[(selectedSize || 'M').toUpperCase()] || CHEST_WIDTHS.M
 }
 
-export function drawJacketDesign(canvas: HTMLCanvasElement, background: HTMLImageElement | null, side: JacketSideCustomization, artworkImages: Map<string, HTMLImageElement>, chestWidth: number, selectedArtworkId: string | null = null) {
+export function drawJacketDesign(canvas: HTMLCanvasElement, background: HTMLImageElement | null, side: JacketSideCustomization, artworkImages: Map<string, HTMLImageElement>, chestWidth: number, selectedArtworkId: string | null = null, selectedTextId: string | null = null) {
   const context = canvas.getContext('2d')
   if (!context) throw new Error('Your browser could not create the design preview.')
   context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
@@ -59,17 +59,26 @@ export function drawJacketDesign(canvas: HTMLCanvasElement, background: HTMLImag
       context.restore()
     }
   }
-  if (side.text?.value) {
+  for (const text of getJacketTexts(side).filter(text => text.value.trim())) {
     const sizeFactor = 42 / chestWidth
-    const fontSize = side.text.size * sizeFactor
+    const fontSize = text.size * sizeFactor
     context.save()
-    context.font = `600 ${fontSize}px ${getJacketFontFamily(side.text.fontStyle)}`
+    context.font = `600 ${fontSize}px ${getJacketFontFamily(text.fontStyle)}`
     context.textAlign = 'center'
     context.textBaseline = 'middle'
     context.lineWidth = Math.max(2, fontSize / 18)
-    context.strokeStyle = side.text.color === '#ffffff' ? '#111111' : '#ffffff'
-    context.fillStyle = side.text.color
-    drawJacketTextLayout(context, side.text.value, side.text.layout, fontSize, side.text.x * CANVAS_SIZE, side.text.y * CANVAS_SIZE)
+    context.strokeStyle = text.color === '#ffffff' ? '#111111' : '#ffffff'
+    context.fillStyle = text.color
+    drawJacketTextLayout(context, text.value, text.layout, fontSize, text.x * CANVAS_SIZE, text.y * CANVAS_SIZE)
+    if (text.id === selectedTextId) {
+      const vertical = text.layout === 'vertical'
+      const curved = text.layout === 'curve-up' || text.layout === 'curve-down'
+      const measured = context.measureText(text.value).width
+      const width = vertical ? fontSize : Math.min(420, measured + (curved ? fontSize : 0))
+      const height = vertical ? Math.min(350, Array.from(text.value).length * fontSize * 1.15) : fontSize + (curved ? Math.min(80, measured * .2) : 0)
+      context.strokeStyle = '#2563eb'; context.lineWidth = 2; context.setLineDash([6, 5])
+      context.strokeRect(text.x * CANVAS_SIZE - width / 2 - 6, text.y * CANVAS_SIZE - height / 2 - 6, width + 12, height + 12)
+    }
     context.restore()
   }
 }

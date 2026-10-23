@@ -31,6 +31,33 @@ interface RichTextEditorProps {
   placeholder?: string
 }
 
+const ToolbarButton = ({
+  onClick,
+  active,
+  disabled,
+  label,
+  children,
+}: {
+  onClick: () => void
+  active?: boolean
+  disabled?: boolean
+  label: string
+  children: React.ReactNode
+}) => (
+  <Button
+    type="button"
+    variant={active ? 'secondary' : 'ghost'}
+    size="icon"
+    className="h-8 w-8"
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={label}
+    title={label}
+  >
+    {children}
+  </Button>
+)
+
 export function RichTextEditor({ content, onChange, placeholder = 'Write your post...' }: RichTextEditorProps) {
   const isInternalUpdate = useRef(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -145,32 +172,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your po
     if (imageInputRef.current) imageInputRef.current.value = ''
   }
 
-  const ToolbarButton = ({
-    onClick,
-    active,
-    disabled,
-    label,
-    children,
-  }: {
-    onClick: () => void
-    active?: boolean
-    disabled?: boolean
-    label: string
-    children: React.ReactNode
-  }) => (
-    <Button
-      type="button"
-      variant={active ? 'secondary' : 'ghost'}
-      size="icon"
-      className="h-8 w-8"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-    >
-      {children}
-    </Button>
-  )
+
 
   return (
     <div className="border rounded-md overflow-hidden bg-background">

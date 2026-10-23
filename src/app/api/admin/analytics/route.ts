@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
 
     // ── Top countries ─────────────────────────────────────────────────────────
     const topCountries = await LoginSession.aggregate([
-      { $match: { country: { $exists: true, $ne: 'Unknown', $ne: 'Localhost', $ne: 'Unknown (Login Event)' } } },
+        { $match: { country: { $exists: true, $nin: ['Unknown', 'Localhost', 'Unknown (Login Event)'] } } },
       { $group: { _id: '$country', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 },

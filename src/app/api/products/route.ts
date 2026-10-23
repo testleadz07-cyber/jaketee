@@ -1,3 +1,4 @@
+import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters } from '@/lib/catalog-filters'
 import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
@@ -13,11 +14,18 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const categorySlug = searchParams.get('category')
     const search = searchParams.get('search')
+    const tag = searchParams.get('tag')
     const sort = searchParams.get('sort') || 'name'
     const order = searchParams.get('order') || 'asc'
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '100')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '100', 10) || 100))
     const all = searchParams.get('all') === 'true'
+    if (all) {
+      const session = await getServerSession(authOptions)
+      if ((session?.user as { role?: string } | undefined)?.role !== 'admin') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
     const stock = searchParams.get('stock')
     const featured = searchParams.get('featured')
     const status = searchParams.get('status')
@@ -30,6 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const filter: any = {}
+    if (tag) filter.tags = tag
     if (!all) {
       filter.inStock = true
       filter.isDraft = { $ne: true }
@@ -68,6 +77,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    if (searchParams.get('facets') === 'true' && !all) {
+      const facetProducts = await Product.find(filter).select('price variants -_id').lean()
+      return NextResponse.json(getCatalogFacetData(facetProducts as any))
+    }
+    Object.assign(filter, catalogFilterQuery(readCatalogFilters(searchParams)))
+
     if (search) {
       const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       filter.$or = [
@@ -88,7 +103,7 @@ export async function GET(request: NextRequest) {
     else sortObj = { createdAt: -1 }
 
     const products = await Product.find(filter)
-      .sort(sortObj)
+      .sort({ ...sortObj, _id: 1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .populate('categoryId', 'name slug')
@@ -113,7 +128,7 @@ export async function GET(request: NextRequest) {
     const total = await Product.countDocuments(filter)
 
     return NextResponse.json(mapped, {
-      headers: { 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
+      headers: { 'Cache-Control': 'no-store', 'X-Total-Count': String(total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(total / limit))) },
     })
   } catch (error: any) {
     console.error('Error fetching products:', error)
@@ -148,6 +163,7 @@ export async function POST(request: NextRequest) {
 
     const product = await Product.create({
       name,
+      tags: Array.isArray(body.tags) ? [...new Set(body.tags.filter((tag: unknown): tag is string => typeof tag === 'string').map((tag: string) => tag.trim()).filter(Boolean))] : [],
       slug,
       description: description || '',
       seoTitle: seoTitle || '',

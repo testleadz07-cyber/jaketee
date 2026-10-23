@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, LogOut, Save, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { ProductTagsEditor } from '@/components/admin/product-tags-editor'
 import { VideoLinksEditor } from '@/components/video-links-editor'
 import { ImageUpload } from '@/components/image-upload'
 import { useToast } from '@/hooks/use-toast'
@@ -110,6 +111,7 @@ export default function NewProduct() {
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
+    tags: [] as string[],
     name: '',
     description: '',
     seoTitle: '',
@@ -175,6 +177,7 @@ export default function NewProduct() {
 
     const payload = {
       name: formData.name,
+      tags: formData.tags,
       slug,
       description: formData.description,
       seoTitle: formData.seoTitle,
@@ -290,6 +293,7 @@ export default function NewProduct() {
                   />
                 </div>
 
+                <ProductTagsEditor value={formData.tags} onChange={tags => setFormData({ ...formData, tags })} disabled={submitting} />
                 <div className="space-y-2">
                   <Label htmlFor="description">Description *</Label>
                   <Textarea

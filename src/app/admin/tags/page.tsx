@@ -17,6 +17,7 @@ export default function TagsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [tags, setTags] = useState<string[]>([])
+  const [counts, setCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [newTag, setNewTag] = useState('')
   const [editingTag, setEditingTag] = useState<string | null>(null)
@@ -51,6 +52,7 @@ export default function TagsPage() {
         if (!res.ok) throw new Error('Failed to fetch tags')
         const data = await res.json()
         setTags(data.tags)
+        setCounts(Object.fromEntries((data.usage || []).map((item: { name: string; productCount: number }) => [item.name, item.productCount])))
       } catch (error) {
         console.error(error)
         toast({
@@ -74,13 +76,13 @@ export default function TagsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tag: newTag.trim() }),
       })
-      if (!res.ok) throw new Error('Failed to add tag')
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to add tag')
       setTags(prev => [...prev, newTag.trim()])
       setNewTag('')
       toast({ title: 'Tag added', description: `${newTag.trim()} added successfully.` })
     } catch (error) {
       console.error(error)
-      toast({ title: 'Error', description: 'Could not add tag.', variant: 'destructive' })
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Could not add tag.', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
@@ -109,12 +111,13 @@ export default function TagsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldTag: editingTag, newTag: editValue.trim() }),
       })
-      if (!res.ok) throw new Error('Failed to rename')
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to rename')
       setTags(prev => prev.map(t => (t === editingTag ? editValue.trim() : t)))
+      setCounts(prev => ({ ...prev, [editValue.trim()]: prev[editingTag] || 0 }))
       toast({ title: 'Tag renamed', description: `${editingTag} → ${editValue.trim()}` })
     } catch (error) {
       console.error(error)
-      toast({ title: 'Error', description: 'Could not rename tag.', variant: 'destructive' })
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Could not rename tag.', variant: 'destructive' })
     } finally {
       setSaving(false)
       cancelEdit()
@@ -122,7 +125,7 @@ export default function TagsPage() {
   }
 
   const handleDelete = async (tag: string) => {
-    if (!confirm(`Delete tag "${tag}"?`)) return
+    if (!confirm(`Delete tag "${tag}" and remove it from ${counts[tag] || 0} products?`)) return
     setSaving(true)
     try {
       const res = await fetch('/api/admin/tags', {
@@ -226,7 +229,7 @@ export default function TagsPage() {
         </div>
 
         {/* Tag list */}
-        <ul className="space-y-2 max-w-lg">
+        <ul className="space-y-2 max-w-3xl">
           {tags.length === 0 && (
             <li className="text-muted-foreground text-sm py-4">No tags yet. Add your first tag above.</li>
           )}
@@ -234,7 +237,7 @@ export default function TagsPage() {
             <li className="text-muted-foreground text-sm py-4">No tags match your search and filters.</li>
           )}
           {visibleTags.map(tag => (
-            <li key={tag} className="flex items-center gap-2 p-3 rounded-xl border bg-card hover:bg-muted/20 transition-colors">
+            <li key={tag} className="flex flex-wrap items-center gap-2 p-3 rounded-xl border bg-card hover:bg-muted/20 transition-colors">
               {editingTag === tag ? (
                 <>
                   <Input value={editValue} onChange={e => setEditValue(e.target.value)} disabled={saving} className="h-8" />
@@ -243,7 +246,9 @@ export default function TagsPage() {
                 </>
               ) : (
                 <>
-                  <span className="flex-1 font-medium text-sm">{tag}</span>
+                  <span className="flex-1 font-medium text-sm break-words min-w-0">{tag}</span>
+                  <span className="text-xs text-muted-foreground">{counts[tag] || 0} products</span>
+                  <Button variant="outline" size="sm" asChild><Link href={`/admin/products?${new URLSearchParams({ tag }).toString()}`}>View products</Link></Button>
                   <Button variant="ghost" size="sm" onClick={() => startEdit(tag)} disabled={saving}><Edit size={16} /></Button>
                   <Button variant="destructive" size="sm" onClick={() => handleDelete(tag)} disabled={saving}><Trash2 size={16} /></Button>
                 </>

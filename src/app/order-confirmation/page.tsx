@@ -1,6 +1,9 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { Footer } from '@/components/footer'
+import { getJacketTextSummary } from '@/types/jacket-customization'
+
+import { startTransition, useEffect, useState, Suspense  } from 'react'
 import Image from '@/components/optimized-image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -85,13 +88,13 @@ function ConfirmationContent() {
       return
     }
     if (sessionId) {
-      verifyStripePayment()
+      startTransition(() => { verifyStripePayment() })
     } else {
-      fetchOrderDetails()
+      startTransition(() => { fetchOrderDetails() })
     }
   }, [orderId, sessionId, session?.user?.email])
 
-  const verifyStripePayment = async () => {
+  async function verifyStripePayment() {
     setVerifyingPayment(true)
     try {
       const res = await fetch('/api/payments/stripe/verify', {
@@ -114,7 +117,7 @@ function ConfirmationContent() {
     }
   }
 
-  const fetchOrderDetails = async (emailOverride?: string) => {
+  async function fetchOrderDetails(emailOverride?: string) {
     try {
       const email = emailOverride || session?.user?.email || sessionStorage.getItem('jacketee-checkout-email') || ''
       if (!email) return
@@ -263,9 +266,9 @@ function ConfirmationContent() {
                       </p>
                       {getCustomizedViews(item.customization).map((view) => (
                         <p key={view} className="text-xs text-muted-foreground">
-                          {getJacketViewLabel(view)}: {item.customization?.[view]?.text?.value || ''}
+                          {getJacketViewLabel(view)}: {getJacketTextSummary(item.customization?.[view])}
                           {item.customization?.[view]?.artworks?.length
-                            ? `${item.customization?.[view]?.text?.value ? ' + ' : ''}${item.customization[view]?.artworks?.map((artwork) => artwork.name).join(', ')}`
+                            ? `${getJacketTextSummary(item.customization?.[view]) ? ' + ' : ''}${item.customization[view]?.artworks?.map((artwork) => artwork.name).join(', ')}`
                             : ''}
                         </p>
                       ))}
@@ -435,7 +438,7 @@ function ShieldAlert({ className }: { className?: string }) {
 
 export default function OrderConfirmationPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
         <Suspense fallback={
@@ -447,11 +450,7 @@ export default function OrderConfirmationPage() {
           <ConfirmationContent />
         </Suspense>
       </main>
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -31,11 +31,11 @@ export async function POST(request: NextRequest) {
 
       await Subscriber.create({ email: trimmedEmail })
 
-      await createNotification({
+      await Promise.allSettled([Promise.resolve().then(() => createNotification({
         type: 'newsletter_signup',
         title: 'New newsletter subscriber',
         message: trimmedEmail,
-      })
+      })), Promise.resolve().then(async () => {
 
       const emailResult = await sendEmail({
         to: trimmedEmail,
@@ -49,30 +49,12 @@ export async function POST(request: NextRequest) {
       if (!emailResult.success) {
         console.error('Newsletter confirmation email failed:', emailResult.message)
       }
+      })])
 
       return NextResponse.json({ message: 'Successfully subscribed. Please check your email for your welcome code.' }, { status: 201 })
     }
 
-    // Static/Mock mode success simulation
-    console.log('Database not connected. Simulating success response for email subscription:', trimmedEmail)
-    if (trimmedEmail === 'test-duplicate@example.com') {
-      return NextResponse.json({ error: 'You are already subscribed to our newsletter! (Demo Mode)' }, { status: 409 })
-    }
-
-    const emailResult = await sendEmail({
-      to: trimmedEmail,
-      subject: 'Welcome to Jacketee - You are subscribed',
-      html: newsletterSubscriptionTemplate({
-        shopUrl: APP_URL,
-        discountCode: NEWSLETTER_DISCOUNT_CODE,
-      }),
-    })
-
-    if (!emailResult.success) {
-      console.error('Newsletter confirmation email failed:', emailResult.message)
-    }
-
-    return NextResponse.json({ message: 'Successfully subscribed. Please check your email for your welcome code. (Demo Mode)' }, { status: 201 })
+    return NextResponse.json({ error: 'We could not save your subscription. Please try again later.' }, { status: 503 })
   } catch (error: any) {
     console.error('Newsletter subscription error:', error)
     return NextResponse.json({ error: 'Failed to subscribe. Please try again later.' }, { status: 500 })

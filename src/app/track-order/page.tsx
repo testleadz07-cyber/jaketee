@@ -1,5 +1,6 @@
 'use client'
 
+import { Footer } from '@/components/footer'
 import { useState } from 'react'
 import Image from '@/components/optimized-image'
 import { motion } from 'framer-motion'
@@ -212,7 +213,7 @@ export default function TrackOrderPage() {
   const trackingUrl = order?.trackingNumber ? carrierTrackingUrl(order.carrier, order.trackingNumber) : null
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
@@ -490,11 +491,7 @@ export default function TrackOrderPage() {
         </motion.div>
       </main>
 
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

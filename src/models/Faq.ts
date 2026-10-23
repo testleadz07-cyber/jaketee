@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IFaq extends Document {
+  sourceBatch?: string
   status: 'published' | 'draft'
   mergedQuestions: string[]
   mergedInto?: mongoose.Types.ObjectId
@@ -18,6 +19,7 @@ export interface IFaq extends Document {
 
 const FaqSchema = new Schema<IFaq>(
   {
+    sourceBatch: { type: String, trim: true, index: true },
     status: { type: String, enum: ['published', 'draft'], default: 'published' },
     mergedQuestions: { type: [String], default: [] },
     mergedInto: { type: Schema.Types.ObjectId, ref: 'Faq' },

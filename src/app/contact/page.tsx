@@ -1,300 +1,132 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useRef, useState, type FormEvent } from 'react'
+import Link from 'next/link'
+import { ArrowRight, CheckCircle2, Loader2, Mail, MapPin, MessageCircle, Package, Phone, Ruler, Send, Users } from 'lucide-react'
+import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
+import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Clock,
-  Send,
-  ShoppingBag,
-  ChevronLeft,
-  Loader2,
-} from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
-import { useToast } from '@/hooks/use-toast'
-import { Breadcrumbs } from '@/components/breadcrumbs'
 import { getWhatsAppUrl } from '@/lib/whatsapp'
 import { logUserActivity } from '@/lib/activity'
 import { shippingCountryOptions } from '@/config/fulfillment'
+import { contactLimits, validateContact, type ContactErrors, type ContactValues } from '@/lib/contact-validation'
 
-const whatsappUrl = getWhatsAppUrl("Hi! I have a question about my order.")
+const emptyForm: ContactValues = { name: '', email: '', subject: '', message: '', country: '' }
+const whatsappUrl = getWhatsAppUrl('Hi! I would like some help from the Jacketee team.')
+const quickLinks = [
+  { title: 'Track an order', text: 'Check the status of an existing order.', href: '/track-order', icon: Package },
+  { title: 'Bulk & Teams', text: 'Request a quote for your school, team or brand.', href: '/bulk-orders', icon: Users },
+  { title: 'Find your size', text: 'Get measurements and help choosing your fit.', href: '/size-guide', icon: Ruler },
+]
 
 export default function ContactPage() {
-  const { toast } = useToast()
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-    country: '',
-  })
+  const [formData, setFormData] = useState<ContactValues>(emptyForm)
+  const [errors, setErrors] = useState<ContactErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [sentTo, setSentTo] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
+  const submissionLock = useRef(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  function update(field: keyof ContactValues, value: string) {
+    setFormData(current => ({ ...current, [field]: value }))
+    setErrors(current => ({ ...current, [field]: undefined }))
+    setSubmitError('')
+  }
+  function focusError(fieldErrors: ContactErrors) {
+    const field = Object.keys(fieldErrors)[0]
+    requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>(`[name="${field}"]`)?.focus())
+  }
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (submissionLock.current) return
+    const result = validateContact(formData)
+    setErrors(result.errors)
+    setSubmitError('')
+    if (Object.keys(result.errors).length) { focusError(result.errors); return }
+    submissionLock.current = true
     setIsSubmitting(true)
-
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      if (res.ok) {
-        toast({
-          title: 'Message sent successfully!',
-          description: "We'll get back to you soon.",
-        })
-        setFormData({ name: '', email: '', subject: '', message: '', country: '' })
-      } else {
-        const data = await res.json()
-        toast({
-          title: 'Failed to send message',
-          description: data.error || 'Please try again.',
-          variant: 'destructive',
-        })
+      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.values) })
+      const data = await response.json().catch(() => null)
+      if (!response.ok || data?.success !== true) {
+        const fieldErrors: ContactErrors = {}
+        for (const field of Object.keys(emptyForm) as (keyof ContactValues)[]) {
+          if (typeof data?.errors?.[field] === 'string') fieldErrors[field] = data.errors[field]
+        }
+        setErrors(fieldErrors)
+        focusError(fieldErrors)
+        setSubmitError(typeof data?.error === 'string' ? data.error : 'Your message could not be sent. Please try again or contact us by email or WhatsApp.')
+        return
       }
-    } catch (error) {
-      toast({
-        title: 'Error sending message',
-        description: 'Failed to send message. Please check your connection and try again.',
-        variant: 'destructive',
-      })
+      setSentTo(result.values.email)
+      setFormData(emptyForm)
+    } catch {
+      setSubmitError('We could not confirm that your message was sent. Your details are still here. Check your connection, try again, or email info@jacketee.com.')
     } finally {
+      submissionLock.current = false
       setIsSubmitting(false)
     }
   }
+  const errorProps = (field: keyof ContactValues) => ({ 'aria-invalid': !!errors[field], 'aria-describedby': errors[field] ? `contact-${field}-error` : undefined })
+  const fieldError = (field: keyof ContactValues) => errors[field] ? <p id={`contact-${field}-error`} className="mt-2 text-sm text-destructive">{errors[field]}</p> : null
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <Header />
-
-      {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-12">
-        <Breadcrumbs items={[{ label: 'Contact Us' }]} className="mb-6 max-w-6xl mx-auto" />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-6xl mx-auto"
-        >
-          {/* Page Title */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-            </p>
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-5"><Breadcrumbs items={[{ label: 'Contact Us' }]} /></div>
+        <section aria-labelledby="contact-title" className="container mx-auto px-4 pb-10 md:pb-12">
+          <div className="rounded-2xl border bg-muted/25 p-6 sm:p-10 lg:p-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Let’s talk jackets</p>
+            <h1 id="contact-title" className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Contact the Jacketee team</h1>
+            <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">Need help with an order, a custom design or the right fit? Send us a message or choose the contact method that works best for you.</p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap"><Button asChild size="lg"><a href="#send-message">Send a message<ArrowRight className="ml-2 h-4 w-4" /></a></Button>{whatsappUrl && <Button asChild size="lg" variant="outline"><a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={() => logUserActivity('contact_button_clicked', { channel: 'whatsapp' })}><MessageCircle className="mr-2 h-4 w-4" />Chat on WhatsApp</a></Button>}</div>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Contact Form */}
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle className="text-2xl">Send us a message</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form id="contact-form"
-                  onSubmit={handleSubmit}
-                  className="space-y-4"
-                  data-mcp-action="contact"
-                  data-mcp-description="Send Jacketee a support, custom jacket, or bulk order inquiry"
-                >
-                  <div>
-                    <label htmlFor="contact-name" className="text-sm font-medium mb-2 block">Name</label>
-                    <Input
-                      id="contact-name"
-                      name="name"
-                      autoComplete="name"
-                      placeholder="Your name"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
+        <section className="container mx-auto px-4 pb-12 md:pb-16" aria-labelledby="contact-options-title">
+          <h2 id="contact-options-title" className="sr-only">Ways to contact us</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <a href="mailto:info@jacketee.com" onClick={() => logUserActivity('contact_button_clicked', { channel: 'email' })} className="rounded-xl border p-5 transition-colors hover:bg-muted/30"><Mail className="h-5 w-5 text-primary" /><h3 className="mt-4 font-semibold">Email us</h3><p className="mt-2 break-all text-sm font-medium">info@jacketee.com</p><p className="mt-2 text-sm leading-6 text-muted-foreground">For order questions, artwork and design enquiries.</p></a>
+            <a href="tel:+923187328027" onClick={() => logUserActivity('contact_button_clicked', { channel: 'phone' })} className="rounded-xl border p-5 transition-colors hover:bg-muted/30"><Phone className="h-5 w-5 text-primary" /><h3 className="mt-4 font-semibold">Call us</h3><p className="mt-2 text-sm font-medium">+92 318 7328027</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Prefer to talk? Reach our team by phone.</p></a>
+            <div className="rounded-xl border p-5"><MapPin className="h-5 w-5 text-primary" /><h3 className="mt-4 font-semibold">Our location</h3><p className="mt-2 text-sm font-medium">Adalatghar, Sialkot</p><p className="mt-2 text-sm leading-6 text-muted-foreground">You can send a message at any time. Our team will reply as soon as possible.</p></div>
+          </div>
+        </section>
 
-                  <div>
-                    <label htmlFor="contact-email" className="text-sm font-medium mb-2 block">Email</label>
-                    <Input
-                      id="contact-email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="your@email.com"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="quote-country" className="text-sm font-medium mb-2 block">Delivery country (for shipping quotes)</label>
-                    <select id="quote-country" name="country" value={formData.country} onChange={event => setFormData({ ...formData, country: event.target.value })} className="mb-4 min-h-11 w-full rounded-md border bg-background px-3 text-sm">
-                      <option value="">Select a country for your quote</option>
-                      {shippingCountryOptions.map(country => <option key={country.code} value={country.code}>{country.name}</option>)}
-                    </select>
-                    <label htmlFor="contact-subject" className="text-sm font-medium mb-2 block">Subject</label>
-                    <Input
-                      id="contact-subject"
-                      name="subject"
-                      placeholder="How can we help?"
-                      value={formData.subject}
-                      onChange={(e) =>
-                        setFormData({ ...formData, subject: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="contact-message" className="text-sm font-medium mb-2 block">Message</label>
-                    <Textarea
-                      id="contact-message"
-                      name="message"
-                      placeholder="Tell us more about your inquiry..."
-                      rows={5}
-                      value={formData.message}
-                      onChange={(e) =>
-                        setFormData({ ...formData, message: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* Contact Info */}
-            <div className="space-y-6">
-              <Card className="border-2">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Get in touch</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Mail className="h-6 w-6 text-primary" />
+        <section className="border-y bg-muted/20" aria-labelledby="message-title">
+          <div className="container mx-auto grid items-start gap-8 px-4 py-12 md:py-16 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-12">
+            <div id="send-message" className="scroll-mt-28 rounded-2xl border bg-card p-5 sm:p-8">
+              <h2 id="message-title" className="text-2xl font-bold">Send us a message</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">Tell us what you need and we’ll reply by email. All fields are required except delivery country.</p>
+              {sentTo ? <div role="status" className="mt-6 rounded-xl border bg-primary/5 p-6"><CheckCircle2 className="h-8 w-8 text-primary" /><h3 className="mt-4 text-lg font-semibold">Thanks. Your message has been sent.</h3><p className="mt-2 break-words text-sm leading-6 text-muted-foreground">We’ll reply to <strong className="font-medium text-foreground">{sentTo}</strong>. Check your inbox and spam folder for our response.</p><Button variant="outline" className="mt-5 min-h-11" onClick={() => setSentTo('')}>Send another message</Button></div> :
+                <form ref={formRef} id="contact-form" onSubmit={handleSubmit} noValidate aria-busy={isSubmitting} className="mt-6 space-y-5" data-mcp-action="contact" data-mcp-description="Send Jacketee a support, custom jacket, or bulk order inquiry">
+                  <fieldset disabled={isSubmitting} className="space-y-5 disabled:opacity-70"><legend className="sr-only">Your contact details and enquiry</legend>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div><label htmlFor="contact-name" className="mb-2 block text-sm font-medium">Name</label><Input id="contact-name" name="name" autoComplete="name" required maxLength={contactLimits.name} value={formData.name} onChange={event => update('name', event.target.value)} className="min-h-11" {...errorProps('name')} />{fieldError('name')}</div>
+                      <div><label htmlFor="contact-email" className="mb-2 block text-sm font-medium">Email</label><Input id="contact-email" name="email" type="email" autoComplete="email" required maxLength={contactLimits.email} value={formData.email} onChange={event => update('email', event.target.value)} className="min-h-11" {...errorProps('email')} />{fieldError('email')}</div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Email</h3>
-                      <a href="mailto:info@jacketee.com" onClick={() => logUserActivity('contact_button_clicked', { channel: 'email' })} className="text-muted-foreground transition-colors hover:text-primary">
-                        info@jacketee.com
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Phone className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Phone</h3>
-                      <a href="tel:+923187328027" onClick={() => logUserActivity('contact_button_clicked', { channel: 'phone' })} className="text-muted-foreground transition-colors hover:text-primary">
-                        +923187328027
-                      </a>
-                    </div>
-                  </div>
-
-                  {whatsappUrl && (
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-[#25D366]/10 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" className="h-6 w-6 fill-[#25D366]" aria-hidden="true">
-                          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.07c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.1.11-1.78-.11-.41-.13-.94-.3-1.62-.6-2.84-1.23-4.7-4.12-4.84-4.31-.14-.19-1.16-1.54-1.16-2.93 0-1.4.73-2.08 1-2.37.24-.28.55-.35.73-.35h.53c.17 0 .4-.03.62.47.24.55.8 1.94.87 2.08.07.14.11.3.02.49-.09.19-.14.3-.28.46-.14.16-.29.36-.42.48-.14.14-.28.29-.12.57.16.28.72 1.19 1.55 1.93 1.06.95 1.96 1.24 2.24 1.38.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.28.36-.23.6-.14.24.09 1.53.72 1.79.85.26.13.44.19.5.3.06.11.06.63-.18 1.31z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold mb-1">WhatsApp</h3>
-                        <a
-                          href={whatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => logUserActivity('contact_button_clicked', { channel: 'whatsapp' })}
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          Message us directly
-                        </a>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <MapPin className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Address</h3>
-                      <p className="text-muted-foreground">
-                        Adalatghar, Sialkot
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Clock className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Business Hours</h3>
-                      <p className="text-muted-foreground">Always open</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 bg-gradient-to-br from-primary/5 to-primary/10">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-lg mb-2">
-                    Need immediate help?
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Check our FAQ section or browse our Shipping Info and Returns
-                    pages for quick answers to common questions.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Link href="/shipping">
-                      <Button variant="outline" size="sm">
-                        Shipping Info
-                      </Button>
-                    </Link>
-                    <Link href="/returns">
-                      <Button variant="outline" size="sm">
-                        Returns
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                    <div><label htmlFor="contact-subject" className="mb-2 block text-sm font-medium">Subject</label><Input id="contact-subject" name="subject" placeholder="For example: sizing help or a question about my order" required maxLength={contactLimits.subject} value={formData.subject} onChange={event => update('subject', event.target.value)} className="min-h-11" {...errorProps('subject')} />{fieldError('subject')}</div>
+                    <div><label htmlFor="contact-country" className="mb-2 block text-sm font-medium">Delivery country <span className="font-normal text-muted-foreground">(optional)</span></label><select id="contact-country" name="country" autoComplete="country" value={formData.country} onChange={event => update('country', event.target.value)} className="min-h-11 w-full rounded-md border bg-background px-3 text-base sm:text-sm" aria-invalid={!!errors.country} aria-describedby={errors.country ? 'contact-country-hint contact-country-error' : 'contact-country-hint'}><option value="">Select if your question is about shipping</option>{shippingCountryOptions.map(country => <option key={country.code} value={country.code}>{country.name}</option>)}</select><p id="contact-country-hint" className="mt-2 text-xs leading-5 text-muted-foreground">Helps us answer questions about delivery to your destination.</p>{fieldError('country')}</div>
+                    <div><label htmlFor="contact-message" className="mb-2 block text-sm font-medium">Message</label><Textarea id="contact-message" name="message" required rows={6} maxLength={contactLimits.message} value={formData.message} onChange={event => update('message', event.target.value)} placeholder="Tell us about your question, design idea or order." className="min-h-40 text-base sm:text-sm" aria-invalid={!!errors.message} aria-describedby={errors.message ? 'contact-message-hint contact-message-error' : 'contact-message-hint'} /><div id="contact-message-hint" className="mt-2 flex flex-wrap justify-between gap-2 text-xs leading-5 text-muted-foreground"><span>For order help, include your order number if you have it.</span><span>{formData.message.length}/{contactLimits.message}</span></div>{fieldError('message')}</div>
+                  </fieldset>
+                  {submitError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm leading-6 text-destructive">{submitError}</p>}
+                  <p className="text-xs leading-5 text-muted-foreground">We use your details to respond to your enquiry. Read our <Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>.</p>
+                  <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isSubmitting}>{isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending…</> : <><Send className="mr-2 h-4 w-4" />Send message</>}</Button>
+                </form>}
             </div>
+            <aside className="space-y-6" aria-labelledby="quick-help-title">
+              <div><p className="text-xs font-semibold uppercase tracking-wider text-primary">A useful shortcut</p><h2 id="quick-help-title" className="mt-2 text-2xl font-bold">Looking for something specific?</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">These pages may help while you wait. You can always send us a message.</p></div>
+              <div className="divide-y rounded-xl border bg-background px-5">{quickLinks.map(({ title, text, href, icon: Icon }) => <Link key={href} href={href} className="flex items-start gap-3 py-5 hover:text-primary"><Icon className="mt-1 h-5 w-5 shrink-0 text-primary" /><div className="min-w-0 flex-1"><h3 className="font-semibold">{title}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{text}</p></div><ArrowRight className="mt-1 h-4 w-4 shrink-0" /></Link>)}</div>
+              <div className="rounded-xl border bg-background p-5"><h3 className="font-semibold">Designing your first jacket?</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Explore materials, artwork placement and the steps from idea to approval.</p><Link href="/how-to-customize" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary">Read the customization guide<ArrowRight className="h-4 w-4" /></Link></div>
+              <div><h3 className="text-sm font-semibold">More answers</h3><div className="mt-3 flex flex-wrap gap-2">{[['Help center', '/faq'], ['Shipping', '/shipping'], ['Returns', '/returns']].map(([label, href]) => <Link key={href} href={href} className="inline-flex min-h-11 items-center rounded-lg border bg-background px-4 text-sm hover:bg-muted">{label}</Link>)}</div></div>
+            </aside>
           </div>
-        </motion.div>
+        </section>
       </main>
-
       <Footer />
     </div>
   )

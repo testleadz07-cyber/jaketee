@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
+import { startTransition, useEffect, useState, useRef  } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
@@ -69,21 +69,7 @@ export default function AdminDashboard() {
   const [isSettingsSaving, setIsSettingsSaving] = useState(false)
   const fetchGuard = useRef(false);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
-
-  useEffect(() => {
-    if (status === 'authenticated' && !fetchGuard.current) {
-      fetchGuard.current = true
-      fetchStats()
-      fetchGatewaySettings()
-    }
-  }, [status])
-
-  const fetchGatewaySettings = async () => {
+  async function fetchGatewaySettings() {
     try {
       const res = await fetch('/api/admin/settings')
       if (res.ok) {
@@ -96,6 +82,36 @@ export default function AdminDashboard() {
       console.error('Error fetching settings:', error)
     }
   }
+
+  async function fetchStats() {
+    try {
+      const res = await fetch('/api/admin/stats')
+      if (res.ok) {
+        const data = await res.json()
+        setStats(data)
+      }
+    } catch (error) {
+      console.error('Error fetching admin stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    if (status === 'authenticated' && !fetchGuard.current) {
+      fetchGuard.current = true
+      startTransition(() => { fetchStats() })
+      startTransition(() => { fetchGatewaySettings() })
+    }
+  }, [status])
+
+
 
   const handleUpdateGateway = async (gatewayValue: string) => {
     setIsSettingsSaving(true)
@@ -129,19 +145,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/admin/stats')
-      if (res.ok) {
-        const data = await res.json()
-        setStats(data)
-      }
-    } catch (error) {
-      console.error('Error fetching admin stats:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   if (status === 'loading' || loading) {
     return <AdminLoadingShell label="Loading admin analytics..." />

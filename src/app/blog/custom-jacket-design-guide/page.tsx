@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Header } from '@/components/header'
@@ -6,7 +7,7 @@ import { Footer } from '@/components/footer'
 const url = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'}/blog/custom-jacket-design-guide`
 const title = 'Design a Bomber, Coach, or Puffer Jacket | Jacketee'
 const description = 'Compare bomber, coach, and puffer jacket designs, choose materials and colors, and plan your custom text and artwork.'
-export const metadata: Metadata = { title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'article' } }
+export const metadata: Metadata = withSocialMetadata({ title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'article' } })
 export default function CustomJacketGuide() {
   const schema = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, description, mainEntityOfPage: url, author: { '@type': 'Organization', name: 'Jacketee Team' } }
   return <div className="flex min-h-screen flex-col"><Header /><main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">

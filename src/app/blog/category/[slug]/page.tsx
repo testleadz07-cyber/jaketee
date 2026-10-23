@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { blogPageNumber, blogArchivePath } from '@/lib/blog-archive'
 import { notFound } from 'next/navigation'
@@ -13,13 +14,13 @@ const PAGE_SIZE = 9
 
 export async function generateMetadata({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> }): Promise<Metadata> {
   const [{ slug }, { page }] = await Promise.all([params, searchParams])
-  if (!(await connectDB())) return {}
+  if (!(await connectDB())) return withSocialMetadata({})
   const category = await BlogCategory.findOne({ slug }).lean()
-  if (!category) return { robots: { index: false, follow: false } }
+  if (!category) return withSocialMetadata({ robots: { index: false, follow: false } })
   const url = `https://www.jacketee.com${blogArchivePath(blogPageNumber(page), undefined, `/blog/category/${slug}`)}`
   const title = `${category.name} | Jacketee Journal`
   const description = category.description || `Browse ${category.name} articles from the Jacketee Journal.`
-  return { title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'website' } }
+  return withSocialMetadata({ title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'website' } })
 }
 
 export default async function Page({ params, searchParams }: {

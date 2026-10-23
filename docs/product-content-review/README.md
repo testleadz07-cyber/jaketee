@@ -1,0 +1,11 @@
+# Product description review workflow
+
+Run `node scripts/audit-product-content.mjs` for a read-only MongoDB report. It scans all string fields for the specified phrases and origin wording, and groups repeated sentences across description, intro, materials, specifications and care. Full affected-product lists are in dry-run.json.
+
+Batch 01 contains ten products published under the store owner?s approval in this conversation. See batch-01-published.json for database verification. The owner confirmed sizes XXS?6XL, customization and origin; unrecorded construction details were omitted. Review batch-01-review.md alongside batch-01-source.json and current factory records. Do not infer sizes, hood attachment, collar construction, patch availability or care from generic catalog boilerplate. Unknown values are omitted from customer-facing claims and recorded in unresolved. Verify all source claims, particularly shared specifications and decoration fields. Care follows the recorded material combinations, as authorized by the owner.
+
+Edit batch-01-drafts.json with corrections. Resolve each unresolved item after obtaining evidence, update the evidence notes, and remove the resolved entries. A named person must set review.status to approved, fill review.reviewer and review.reviewedAt (ISO date) only after reviewing the final text. Validate with `node scripts/review-product-content.mjs`.
+
+Only after that review, explicitly publish with `node scripts/review-product-content.mjs --apply`. The command refuses unapproved, unresolved or stale batches and saves a backup before changes. It replaces the obsolete origin wording in every string field of those ten products, including nested specifications. It does not rename catalog product names or URLs; seoTitle controls the branded search title. Database writes are per product; if a concurrent change stops the run, inspect the backup and current records before continuing.
+
+Do not create batch 02 until a person has reviewed batch 01. Continue with ten products per review batch. The remaining catalog origin changes remain pending their respective reviewed batches. Batch 01 has been applied and verified. Remaining products have not been changed. The original dry-run report and source snapshots describe the pre-change state.

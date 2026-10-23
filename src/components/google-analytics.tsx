@@ -5,6 +5,7 @@ import Script from 'next/script'
 import { usePathname } from 'next/navigation'
 import {
   COOKIE_CONSENT_UPDATED_EVENT,
+  COOKIE_CONSENT_KEY,
   getStoredConsent,
   type CookieConsent,
 } from '@/lib/cookie-consent'
@@ -16,13 +17,19 @@ declare global {
     dataLayer?: IArguments[]
     gtag?: (...args: unknown[]) => void
     [key: `ga-configured-${string}`]: boolean | undefined
+    [key: `ga-disable-${string}`]: boolean | undefined
   }
 }
 
 function configureGoogleAnalytics(analyticsAllowed: boolean) {
   if (!measurementId) return
+  window[`ga-disable-${measurementId}`] = !analyticsAllowed
+  // Basic consent mode: do not initialize or load Google before opt-in.
+  if (!analyticsAllowed && !window[`ga-configured-${measurementId}`]) return
   window.dataLayer = window.dataLayer || []
   window.gtag = window.gtag || function gtag() {
+    // Preserve the command format used by Google's gtag bootstrap.
+    // eslint-disable-next-line prefer-rest-params
     window.dataLayer?.push(arguments)
   }
   const alreadyConfigured = window[`ga-configured-${measurementId}`]
@@ -67,21 +74,28 @@ export function GoogleAnalytics() {
     const handleConsentUpdate = (event: Event) => {
       applyConsent((event as CustomEvent<CookieConsent>).detail)
     }
+    const handleStorageUpdate = (event: StorageEvent) => {
+      if (event.key === COOKIE_CONSENT_KEY || event.key === null) applyConsent(getStoredConsent())
+    }
     window.addEventListener(COOKIE_CONSENT_UPDATED_EVENT, handleConsentUpdate)
-    return () => window.removeEventListener(COOKIE_CONSENT_UPDATED_EVENT, handleConsentUpdate)
+    window.addEventListener('storage', handleStorageUpdate)
+    return () => {
+      window.removeEventListener(COOKIE_CONSENT_UPDATED_EVENT, handleConsentUpdate)
+      window.removeEventListener('storage', handleStorageUpdate)
+    }
   }, [])
 
   useEffect(() => {
-    if (!measurementId || !initialized || !window.gtag) return
+    if (!measurementId || !initialized || !analyticsAllowed || !getStoredConsent()?.analytics || !window.gtag) return
 
     window.gtag('event', 'page_view', {
       page_title: document.title,
-      page_location: window.location.href,
+      page_location: `${window.location.origin}${pathname}`,
       page_path: pathname,
     })
   }, [initialized, pathname, analyticsAllowed])
 
-  if (!measurementId || !initialized) return null
+  if (!measurementId || !initialized || !analyticsAllowed) return null
 
   return (
     <Script

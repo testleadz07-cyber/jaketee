@@ -1,4 +1,4 @@
-import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
+import { JACKET_VIEWS, getJacketTexts, type JacketCustomization } from '@/types/jacket-customization'
 
 const PKR_PER_USD = 277.1
 const TEXT_EMBROIDERY_FEE_PKR = 5000
@@ -81,7 +81,7 @@ export function getCustomizationFee(customization: JacketCustomization): number 
   for (const view of JACKET_VIEWS) {
     const side = customization[view]
     if (!side) continue
-    if (side.text?.value.trim()) feePkr += TEXT_EMBROIDERY_FEE_PKR
+    feePkr += getJacketTexts(side).filter(text => text.value.trim()).length * TEXT_EMBROIDERY_FEE_PKR
     for (const artwork of side.artworks || []) {
       if (artwork.source === 'upload') {
         feePkr += UPLOADED_ARTWORK_FEE_PKR

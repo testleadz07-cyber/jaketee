@@ -1,8 +1,11 @@
 'use client'
 
+import { Footer } from '@/components/footer'
+import { getJacketTextSummary } from '@/types/jacket-customization'
+
 import { calculateShipping, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
-import { Suspense, useState, useEffect, useRef } from 'react'
+import { startTransition, Suspense, useState, useEffect, useRef  } from 'react'
 import Image from '@/components/optimized-image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -22,6 +25,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
 import { logUserActivity } from '@/lib/activity'
 import { checkoutAddressKey, EMPTY_CHECKOUT_ADDRESS, readCheckoutAddressDraft, suggestCheckoutLocation, type CheckoutAddressDraft, type AddressConfirmation } from '@/lib/checkout-address-draft'
+import { useHasMounted } from '@/hooks/use-has-mounted'
 
 interface SavedAddress {
   label: string
@@ -46,7 +50,7 @@ function getCustomizationSummary(customization?: JacketCustomization) {
   return getCustomizedViews(customization).map((view) => {
     const side = customization[view]
     const details: string[] = []
-    if (side?.text?.value?.trim()) details.push(`Text: ${side.text.value.trim()}`)
+    if (getJacketTextSummary(side)) details.push(`Text: ${getJacketTextSummary(side)}`)
     if (side?.artworks?.length) {
       const names = side.artworks.map((artwork) => artwork.name).filter(Boolean)
       details.push(`${side.artworks.length} artwork piece${side.artworks.length === 1 ? '' : 's'}${names.length ? `: ${names.join(', ')}` : ''}`)
@@ -70,10 +74,7 @@ function CheckoutContent() {
   const jacketCount = checkoutItems.reduce((count, item) => count + item.quantity, 0)
   const shippingAmount = jacketCount > 0 ? calculateShipping(jacketCount, Boolean(appliedPromo?.freeShipping)) : 0
 
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useHasMounted()
 
   // Checkout Steps: 1 = Shipping, 2 = Review, 3 = Payment
   const [step, setStep] = useState(1)
@@ -135,6 +136,145 @@ function CheckoutContent() {
   const countryRef = useRef<HTMLSelectElement>(null)
 
   // Redirect if cart is empty
+  async function fetchPaypalConfig() {
+    try {
+      const res = await fetch('/api/payments/config')
+      if (res.ok) {
+        const data = await res.json()
+        setPaypalClientId(data.clientId)
+        const gateway = data.activeGateway || 'both'
+        setActiveGateway(gateway)
+        const paypalAvailable = Boolean(data.clientId && data.clientId !== 'your_paypal_client_id')
+        const stripeAvailable = Boolean(data.stripePublishableKey && data.stripePublishableKey !== 'your_stripe_publishable_key')
+        if (gateway === 'stripe' || (!paypalAvailable && stripeAvailable)) {
+          setPaymentMethod('stripe')
+        } else {
+          setPaymentMethod('paypal')
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching PayPal config:', error)
+    } finally {
+      setIsPaypalLoading(false)
+    }
+  }
+
+  function renderPaypalButtons() {
+    if (paypalButtonRendered.current) return
+
+    if (window.paypal && document.getElementById('paypal-button-container')) {
+      window.paypal.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal',
+        },
+        createOrder: async () => {
+          try {
+            // Create the pending order in our DB up front (not just the
+            // PayPal order) so payment confirmation doesn't rely solely on
+            // this browser tab completing the flow - see /api/webhooks/paypal.
+            const res = await fetch('/api/payments/create-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: shippingEmail,
+                addressConfirmationToken: addressConfirmation?.token,
+                promoCode: appliedPromo?.code,
+                items: checkoutItems.map(item => ({
+                  productId: item.productId,
+                  name: item.name,
+                  image: item.image,
+                  price: item.price,
+                  quantity: item.quantity,
+                  variants: item.variants,
+                  customization: item.customization
+                })),
+                shippingAddress: {
+                  name: shippingName,
+                  street: shippingStreet,
+                  city: shippingCity,
+                  state: shippingState,
+                  zip: shippingZip,
+                  country: shippingCountry,
+                  phone: shippingPhone
+                },
+              }),
+            })
+            const data = await res.json()
+            if (!res.ok || !data.id || !data.orderId) {
+              if (res.status === 409 && /confirm your delivery address/.test(data.error || '')) {
+                setAddressConfirmation(null); setStep(2); paypalButtonRendered.current = false
+              }
+              throw new Error(data.error || 'Could not start PayPal checkout')
+            }
+            paypalDbOrderIdRef.current = data.orderId
+            return data.id
+          } catch (error) {
+            console.error('Error creating PayPal order:', error)
+            logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_create_order_failed' })
+            toast({ title: 'Checkout unavailable', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' })
+            throw error
+          }
+        },
+        onApprove: async (data: any) => {
+          setIsSubmittingOrder(true)
+          try {
+            const res = await fetch('/api/payments/capture', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ orderId: data.orderID, dbOrderId: paypalDbOrderIdRef.current }),
+            })
+
+            const captureData = await res.json()
+
+            if (res.ok && captureData.status === 'COMPLETED' && captureData.id === data.orderID) {
+              if (paypalDbOrderIdRef.current) {
+                // The order was already created (and marked paid) by
+                // /api/payments/create-order + /api/payments/capture above,
+                // so just clear the cart and go to the confirmation page.
+                if (isDirectOrder) {
+                  clearDirectOrderItem()
+                } else {
+                  clearCart()
+                }
+                router.push(`/order-confirmation?id=${paypalDbOrderIdRef.current}`)
+                setIsSubmittingOrder(false)
+              } else {
+                throw new Error('Order reference is missing. Contact support with your PayPal receipt.')
+              }
+            } else {
+              logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_capture_failed' })
+              toast({
+                title: 'Payment Failed',
+                description: 'Failed to capture PayPal payment. Please try again.',
+                variant: 'destructive',
+              })
+              setIsSubmittingOrder(false)
+            }
+          } catch (error) {
+            console.error('Error capturing PayPal payment:', error)
+            logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_capture_exception' })
+            toast({ title: 'Order needs attention', description: error instanceof Error ? error.message : 'Contact support with your PayPal receipt.', variant: 'destructive' })
+            setIsSubmittingOrder(false)
+          }
+        },
+        onError: (err: any) => {
+          console.error('PayPal Button Error:', err)
+          logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_button_error' })
+          toast({
+            title: 'Payment Error',
+            description: 'An error occurred during the transaction. Please try again.',
+            variant: 'destructive',
+          })
+        }
+      }).render('#paypal-button-container')
+
+      paypalButtonRendered.current = true
+    }
+  }
+
   useEffect(() => {
     if (mounted && checkoutItems.length === 0) {
       router.push('/')
@@ -148,13 +288,13 @@ function CheckoutContent() {
     const controller = new AbortController()
     addressRevision.current++
     const timeout = window.setTimeout(() => controller.abort(), 5000)
-    setAddressReady(false)
-    setReadyOwner(null)
-    setAddressConfirmation(null)
-    setAddressSuggested(false)
-    setStep(1)
-    setSavedAddresses([])
-    setSelectedAddressIndex('new')
+    startTransition(() => { setAddressReady(false) })
+    startTransition(() => { setReadyOwner(null) })
+    startTransition(() => { setAddressConfirmation(null) })
+    startTransition(() => { setAddressSuggested(false) })
+    startTransition(() => { setStep(1) })
+    startTransition(() => { setSavedAddresses([]) })
+    startTransition(() => { setSelectedAddressIndex('new') })
     paypalButtonRendered.current = false
     const initialize = async () => {
       let restored: ReturnType<typeof readCheckoutAddressDraft> = null
@@ -209,7 +349,7 @@ function CheckoutContent() {
       setAddressReady(true)
     }
     void initialize()
-    void fetchPaypalConfig()
+    startTransition(() => { void fetchPaypalConfig() })
     return () => { cancelled = true; clearTimeout(timeout); controller.abort() }
   }, [status, draftOwner])
 
@@ -339,28 +479,7 @@ function CheckoutContent() {
     }
   }
 
-  const fetchPaypalConfig = async () => {
-    try {
-      const res = await fetch('/api/payments/config')
-      if (res.ok) {
-        const data = await res.json()
-        setPaypalClientId(data.clientId)
-        const gateway = data.activeGateway || 'both'
-        setActiveGateway(gateway)
-        const paypalAvailable = Boolean(data.clientId && data.clientId !== 'your_paypal_client_id')
-        const stripeAvailable = Boolean(data.stripePublishableKey && data.stripePublishableKey !== 'your_stripe_publishable_key')
-        if (gateway === 'stripe' || (!paypalAvailable && stripeAvailable)) {
-          setPaymentMethod('stripe')
-        } else {
-          setPaymentMethod('paypal')
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching PayPal config:', error)
-    } finally {
-      setIsPaypalLoading(false)
-    }
-  }
+
 
   // Load PayPal SDK Script dynamically on Step 3
   useEffect(() => {
@@ -382,126 +501,12 @@ function CheckoutContent() {
       }
       document.body.appendChild(script)
     } else if (step === 3 && paymentMethod === 'paypal' && window.paypal) {
-      setIsPaypalLoading(false)
-      renderPaypalButtons()
+      startTransition(() => { setIsPaypalLoading(false) })
+      startTransition(() => { renderPaypalButtons() })
     }
   }, [step, paypalClientId, paymentMethod, isSubmittingOrder])
 
-  const renderPaypalButtons = () => {
-    if (paypalButtonRendered.current) return
-    
-    if (window.paypal && document.getElementById('paypal-button-container')) {
-      window.paypal.Buttons({
-        style: {
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'rect',
-          label: 'paypal',
-        },
-        createOrder: async () => {
-          try {
-            // Create the pending order in our DB up front (not just the
-            // PayPal order) so payment confirmation doesn't rely solely on
-            // this browser tab completing the flow - see /api/webhooks/paypal.
-            const res = await fetch('/api/payments/create-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: shippingEmail,
-                addressConfirmationToken: addressConfirmation?.token,
-                promoCode: appliedPromo?.code,
-                items: checkoutItems.map(item => ({
-                  productId: item.productId,
-                  name: item.name,
-                  image: item.image,
-                  price: item.price,
-                  quantity: item.quantity,
-                  variants: item.variants,
-                  customization: item.customization
-                })),
-                shippingAddress: {
-                  name: shippingName,
-                  street: shippingStreet,
-                  city: shippingCity,
-                  state: shippingState,
-                  zip: shippingZip,
-                  country: shippingCountry,
-                  phone: shippingPhone
-                },
-              }),
-            })
-            const data = await res.json()
-            if (!res.ok || !data.id || !data.orderId) {
-              if (res.status === 409 && /confirm your delivery address/.test(data.error || '')) {
-                setAddressConfirmation(null); setStep(2); paypalButtonRendered.current = false
-              }
-              throw new Error(data.error || 'Could not start PayPal checkout')
-            }
-            paypalDbOrderIdRef.current = data.orderId
-            return data.id
-          } catch (error) {
-            console.error('Error creating PayPal order:', error)
-            logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_create_order_failed' })
-            toast({ title: 'Checkout unavailable', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' })
-            throw error
-          }
-        },
-        onApprove: async (data: any) => {
-          setIsSubmittingOrder(true)
-          try {
-            const res = await fetch('/api/payments/capture', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ orderId: data.orderID, dbOrderId: paypalDbOrderIdRef.current }),
-            })
 
-            const captureData = await res.json()
-
-            if (res.ok && captureData.status === 'COMPLETED' && captureData.id === data.orderID) {
-              if (paypalDbOrderIdRef.current) {
-                // The order was already created (and marked paid) by
-                // /api/payments/create-order + /api/payments/capture above,
-                // so just clear the cart and go to the confirmation page.
-                if (isDirectOrder) {
-                  clearDirectOrderItem()
-                } else {
-                  clearCart()
-                }
-                router.push(`/order-confirmation?id=${paypalDbOrderIdRef.current}`)
-                setIsSubmittingOrder(false)
-              } else {
-                throw new Error('Order reference is missing. Contact support with your PayPal receipt.')
-              }
-            } else {
-              logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_capture_failed' })
-              toast({
-                title: 'Payment Failed',
-                description: 'Failed to capture PayPal payment. Please try again.',
-                variant: 'destructive',
-              })
-              setIsSubmittingOrder(false)
-            }
-          } catch (error) {
-            console.error('Error capturing PayPal payment:', error)
-            logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_capture_exception' })
-            toast({ title: 'Order needs attention', description: error instanceof Error ? error.message : 'Contact support with your PayPal receipt.', variant: 'destructive' })
-            setIsSubmittingOrder(false)
-          }
-        },
-        onError: (err: any) => {
-          console.error('PayPal Button Error:', err)
-          logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'paypal_button_error' })
-          toast({
-            title: 'Payment Error',
-            description: 'An error occurred during the transaction. Please try again.',
-            variant: 'destructive',
-          })
-        }
-      }).render('#paypal-button-container')
-      
-      paypalButtonRendered.current = true
-    }
-  }
 
   const handleStripeCheckout = async () => {
     setIsSubmittingOrder(true)
@@ -680,7 +685,7 @@ function CheckoutContent() {
   const isPaypalPlaceholder = !paypalClientId || paypalClientId === 'your_paypal_client_id'
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
@@ -1280,11 +1285,7 @@ function CheckoutContent() {
         </motion.div>
       </main>
 
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
@@ -1292,7 +1293,7 @@ function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+      <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
           <Card className="border-2">

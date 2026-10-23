@@ -1,10 +1,12 @@
 'use client'
 
+import { getJacketTexts } from '@/types/jacket-customization'
+
 import { STANDARD_SHIPPING_USD, shippingCountryOptions, normalizeShippingCountry } from '@/config/fulfillment'
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { startTransition, useEffect, useState, useCallback, useRef  } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -236,7 +238,7 @@ export default function AdminOrders() {
   }, [searchInput])
 
   useEffect(() => {
-    setPage(1)
+    startTransition(() => { setPage(1) })
   }, [activeTab])
 
   const fetchOrders = useCallback(async () => {
@@ -269,7 +271,7 @@ export default function AdminOrders() {
   }, [page, activeTab, searchQuery, archiveFilter])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchOrders()
+    if (status === 'authenticated') startTransition(() => { fetchOrders() })
   }, [status, fetchOrders])
 
   const toggleExpand = (orderId: string) => {
@@ -525,11 +527,11 @@ export default function AdminOrders() {
   useEffect(() => {
     if (productSearchTimeout.current) clearTimeout(productSearchTimeout.current)
     if (!productSearch.trim()) {
-      setProductResults([])
-      setSearchingProducts(false)
+      startTransition(() => { setProductResults([]) })
+      startTransition(() => { setSearchingProducts(false) })
       return
     }
-    setSearchingProducts(true)
+    startTransition(() => { setSearchingProducts(true) })
     productSearchTimeout.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/products?search=${encodeURIComponent(productSearch.trim())}&limit=8&all=true`)
@@ -555,18 +557,18 @@ export default function AdminOrders() {
     if (customerSearchTimeout.current) clearTimeout(customerSearchTimeout.current)
 
     if (selectedCustomerId) {
-      setCustomerResults([])
-      setSearchingCustomers(false)
+      startTransition(() => { setCustomerResults([]) })
+      startTransition(() => { setSearchingCustomers(false) })
       return
     }
 
     if (!customerSearch.trim()) {
-      setCustomerResults([])
-      setSearchingCustomers(false)
+      startTransition(() => { setCustomerResults([]) })
+      startTransition(() => { setSearchingCustomers(false) })
       return
     }
 
-    setSearchingCustomers(true)
+    startTransition(() => { setSearchingCustomers(true) })
     customerSearchTimeout.current = setTimeout(async () => {
       try {
         const params = new URLSearchParams({
@@ -1045,7 +1047,7 @@ export default function AdminOrders() {
                                         <div key={view} className="mt-3 space-y-2 rounded-lg border p-3 text-xs">
                                           <p className="font-semibold">{getJacketViewLabel(view)} design</p>
                                           {item.customization?.snapshots?.[view] && <a href={item.customization.snapshots[view]} target="_blank" rel="noopener noreferrer" className="block text-primary hover:underline"><img src={item.customization.snapshots[view]} alt={`${item.name} customized ${getJacketViewLabel(view)} preview`} className="h-56 w-full max-w-sm rounded border object-contain bg-muted" />Open {getJacketViewLabel(view).toLowerCase()} preview</a>}
-                                          {side.text?.value && <div className="space-y-1"><p className="whitespace-pre-wrap break-words">Text: {side.text.value}</p><p>Font: {side.text.fontStyle} · Color: {side.text.color} · Size: {side.text.size}</p><p>Position: {side.text.x}, {side.text.y}</p></div>}
+                                          {getJacketTexts(side).filter(text => text.value.trim()).map(text => <div key={text.id} className="space-y-1"><p className="whitespace-pre-wrap break-words">Text: {text.value}</p><p>Font: {text.fontStyle} / Color: {text.color} / Size: {text.size} / Layout: {text.layout || 'straight'}</p><p>Position: {text.x}, {text.y}</p></div>)}
                                           {side.artworks?.map((artwork) => <div key={artwork.id} className="space-y-1 border-t pt-2"><p className="font-medium">{artwork.name} ({artwork.source === 'upload' ? 'Uploaded artwork' : 'Catalog artwork'})</p>{artwork.catalogId && <p>Catalog ID: {artwork.catalogId}</p>}<p>Width: {artwork.widthInches} inches · Position: {artwork.x}, {artwork.y}</p>{artwork.color && <p>Color: {artwork.color}</p>}{artwork.fontStyle && <p>Font: {artwork.fontStyle}</p>}{artwork.url && <a href={artwork.url} target="_blank" rel="noopener noreferrer" className="inline-block text-primary underline"><img src={artwork.url} alt={artwork.name} className="h-24 w-24 object-contain rounded border" />Open original artwork</a>}</div>)}
                                         </div>
                                       )

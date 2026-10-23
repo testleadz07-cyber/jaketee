@@ -1,26 +1,26 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { FaqText } from '@/components/faq-text'
+import type { MouseEvent } from 'react'
+import { CategoryFilters, AppliedCategoryFilters, type CategoryFacetData } from '@/components/category-filters'
+import { appendCatalogFilters, readCatalogFilters, emptyCatalogFilters, type CatalogFilters } from '@/lib/catalog-filters'
+import { CollectionSupport } from '@/components/collection-support'
+import { getCategoryHeroDescription } from '@/data/category-hero-copy'
+import { CollectionDesignImage } from '@/components/collection-design-image'
+import { CustomDesignCollection, type CustomDesignImages } from '@/components/custom-design-collection'
+import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { WhatsAppHelp } from '@/components/whatsapp-help'
 import Image from '@/components/optimized-image'
-import { ArrowRight, BadgeCheck, MessageCircle, PackageSearch, Palette, RefreshCw, Ruler, ShoppingBag, Star, Truck, Users } from 'lucide-react'
+import { ArrowRight, BadgeCheck, MessageCircle, PackageSearch, Palette, RefreshCw, Ruler, Truck, Users } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
-import { Badge } from '@/components/ui/badge'
+import { productGridClassName } from '@/lib/product-grid'
 import { Button } from '@/components/ui/button'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { CatalogSort } from '@/components/catalog-sort'
 import { resolveAncestorChain, buildCategoryUrl } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
 import { useActivityView } from '@/hooks/use-activity-view'
@@ -34,6 +34,7 @@ interface Category {
   introShort?: string
   introLong?: string
   image?: string
+  designImages?: string[]
   parentId?: string | null
   _count?: { products: number }
 }
@@ -60,6 +61,10 @@ interface CategoryDetailViewProps {
   initialTotalProducts?: number
   initialPage?: number
   pageSize?: number
+  initialFilters?: CatalogFilters
+  initialSort?: string
+  customDesignImages?: CustomDesignImages
+  initialFacets?: CategoryFacetData
   initialInsights?: CategoryInsights
 }
 
@@ -80,23 +85,8 @@ const CATEGORY_OVERVIEW: Record<string, string> = {
   'puffer-jackets': 'Compare insulated outerwear by construction, fit, and product-specific material details before choosing a puffer jacket.',
 }
 
-const CATEGORY_HERO_IMAGES: Record<string, string> = {
-  'varsity-jackets': 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1779379760/jacketee/products/Black-and-Yellow-Leather-Varsity-Jacket_large.png',
-  'bomber-jackets': 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1781527499/jacketee/products/0c44dd44-92ef-48a1-b625-b455ed8df144.png',
-  'coach-jackets': 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1781020878/jacketee/products/Gemini_Generated_Image_aare9aare9aare9a.png',
-  'denim-jackets': 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1781020878/jacketee/products/Gemini_Generated_Image_aare9aare9aare9a.png',
-  'fleece-hoodies': 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1780835508/jacketee/products/06306bd3-b080-46d4-8b6a-a2cdcea932a0.png',
-  'leather-jackets': 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1784635421/jacketee/products/ChatGPT%20Image%20Jul%2021%2C%202026%2C%2005_02_29%20PM.png',
-  'puffer-jackets': 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1781028621/jacketee/products/navy-blue-puffer-jacket/2c818510-6f3d-4c24-9d0c-c9f295f03443.jpg',
-}
-
-const DEFAULT_CATEGORY_HERO_IMAGE = CATEGORY_HERO_IMAGES['varsity-jackets']
 const DEFAULT_PRODUCTS_PER_PAGE = 24
 const EMPTY_INSIGHTS: CategoryInsights = { reviewCount: 0, averageRating: 0, reviews: [], faqs: [] }
-
-function isUsableHeroImage(image?: string | null) {
-  return Boolean(image && image !== '/placeholder.png')
-}
 
 function renderInlineLinks(text: string) {
   const parts = text.split(/(\[[^\]]+\]\([^\)]+\))/g)
@@ -134,20 +124,63 @@ export function CategoryDetailView({
   initialPage = 1,
   pageSize = DEFAULT_PRODUCTS_PER_PAGE,
   initialInsights,
+  initialFacets,
+  customDesignImages,
+  initialFilters = emptyCatalogFilters,
+  initialSort = 'featured',
 }: CategoryDetailViewProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [loading, setLoading] = useState(initialProducts.length === 0)
   const [loadingMore, setLoadingMore] = useState(false)
   const [isMissing, setIsMissing] = useState(false)
-  const [sortBy, setSortBy] = useState('featured')
+  const [filters, setFilters] = useState<CatalogFilters>(initialFilters)
+  const [facets, setFacets] = useState<CategoryFacetData>(initialFacets || { groups: [], minPrice: 0, maxPrice: 0 })
+  const [fetchError, setFetchError] = useState(false)
+  const [sortBy, setSortBy] = useState(initialSort)
   const [currentPage, setCurrentPage] = useState(initialPage)
   const [totalProducts, setTotalProducts] = useState(initialTotalProducts)
-  const [categoryHeroImage, setCategoryHeroImage] = useState<{ slug: string; image: string | null } | null>(null)
   const [insights, setInsights] = useState<CategoryInsights | null>(initialInsights || null)
-  const skipInitialProductFetch = useRef(initialProducts.length > 0)
+  const skipInitialProductFetch = useRef(initialCategories.length > 0)
+  const [searchDraft, setSearchDraft] = useState(initialFilters.search)
   const trackedCategory = categories.find(category => category.slug === slug)
   useActivityView('view_category', { categoryId: trackedCategory?.id, slug }, Boolean(trackedCategory))
+
+  useEffect(() => {
+    const restore = (force = false) => {
+      const params = new URLSearchParams(window.location.search)
+      setSearchDraft(readCatalogFilters(params).search)
+      setFilters(previous => { const next = readCatalogFilters(params); return !force && JSON.stringify(next) === JSON.stringify(previous) ? previous : next })
+      setSortBy(['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(params.get('sort') || '') ? params.get('sort')! : 'featured')
+      if (force) { setLoading(true); setProducts([]) }
+      setCurrentPage(Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1))
+    }
+    restore()
+    const onPopState = () => restore(true)
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [slug])
+
+  useEffect(() => {
+    if (initialFacets) return
+    let active = true
+    fetch(`/api/products?category=${encodeURIComponent(slug)}&facets=true`).then(response => {
+      if (!response.ok) throw new Error('Facets unavailable')
+      return response.json()
+    }).then(data => { if (active) setFacets(data) }).catch(() => { if (active) setFacets({ groups: [], minPrice: 0, maxPrice: 0 }) })
+    return () => { active = false }
+  }, [slug, initialFacets])
+
+  const applyFilters = (next: CatalogFilters) => {
+    setLoading(true)
+    setSearchDraft(next.search)
+    setFilters({ ...next })
+    const urlParams = appendCatalogFilters(new URLSearchParams(), next)
+    if (sortBy !== 'featured') urlParams.set('sort', sortBy)
+    window.history.replaceState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
+    setCurrentPage(1)
+    setProducts([])
+  }
 
   useEffect(() => {
     if (initialInsights) return
@@ -161,48 +194,23 @@ export function CategoryDetailView({
 
   const handleSortChange = (value: string) => {
     logUserActivity('sort_changed', { sortOption: value, category: slug })
+    setLoading(true)
     setSortBy(value)
+    const urlParams = appendCatalogFilters(new URLSearchParams(), filters)
+    if (value !== 'featured') urlParams.set('sort', value)
+    window.history.replaceState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
     setCurrentPage(1)
     setProducts([])
-    setTotalProducts(0)
   }
 
   useEffect(() => {
-    if (initialProducts.some((product) => isUsableHeroImage(product.images?.[0]?.url))) return
-    let cancelled = false
-
-    const loadHeroImage = async () => {
-      try {
-        const params = new URLSearchParams({
-          category: slug,
-          sort: 'featured',
-          limit: '1',
-        })
-        const res = await fetch(`/api/products?${params.toString()}`)
-        const data: Product[] = await res.json()
-        if (cancelled) return
-
-        const image = data.find((product) => isUsableHeroImage(product.images?.[0]?.url))?.images[0]?.url || null
-        setCategoryHeroImage({ slug, image })
-      } catch (error) {
-        if (!cancelled) setCategoryHeroImage({ slug, image: null })
-      }
-    }
-
-    loadHeroImage()
-
-    return () => {
-      cancelled = true
-    }
-  }, [slug, initialProducts])
-
-  useEffect(() => {
-    if (skipInitialProductFetch.current && currentPage === initialPage && sortBy === 'featured') {
+    if (skipInitialProductFetch.current) {
       skipInitialProductFetch.current = false
       setLoading(false)
       return
     }
     let cancelled = false
+    const controller = new AbortController()
 
     const load = async () => {
       const isFirstPage = currentPage === 1
@@ -212,11 +220,11 @@ export function CategoryDetailView({
         setLoadingMore(true)
       }
       setIsMissing(false)
+      setFetchError(false)
       try {
-        const catRes = await fetch('/api/categories')
-        const catData: Category[] = await catRes.json()
+        const catData: Category[] = categories.length ? categories : await fetch('/api/categories', { signal: controller.signal }).then(response => { if (!response.ok) throw new Error('Categories unavailable'); return response.json() })
         if (cancelled) return
-        setCategories(catData)
+        setCategories(previous => catData.map(item => ({ ...item, image: item.image || previous.find(existing => existing.id === item.id)?.image, designImages: previous.find(existing => existing.id === item.id)?.designImages })))
 
         const current = catData.find((c) => c.slug === slug)
         if (!current) {
@@ -224,7 +232,7 @@ export function CategoryDetailView({
           return
         }
 
-        const params = new URLSearchParams({ category: slug })
+        const params = appendCatalogFilters(new URLSearchParams({ category: slug }), filters)
         params.set('page', String(currentPage))
         params.set('limit', String(pageSize))
         if (sortBy === 'price-asc') {
@@ -240,18 +248,18 @@ export function CategoryDetailView({
           params.set('sort', sortBy)
         }
 
-        const prodRes = await fetch(`/api/products?${params.toString()}`)
+        const prodRes = await fetch(`/api/products?${params.toString()}`, { signal: controller.signal })
+        if (!prodRes.ok) throw new Error('Products unavailable')
         const prodData = await prodRes.json()
+        if (!Array.isArray(prodData)) throw new Error('Invalid catalog response')
         if (cancelled) return
         setTotalProducts(Number(prodRes.headers.get('X-Total-Count') || prodData.length))
-        setProducts((prev) => {
-          if (isFirstPage) return prodData
-          const existingIds = new Set(prev.map((product) => product.id))
-          return [...prev, ...prodData.filter((product: Product) => !existingIds.has(product.id))]
-        })
+        setProducts(prodData)
 
       } catch (error) {
+        if (controller.signal.aborted) return
         console.error('Error loading category page:', error)
+        if (!cancelled) setFetchError(true)
       } finally {
         if (!cancelled) {
           setLoading(false)
@@ -263,13 +271,14 @@ export function CategoryDetailView({
     load()
     return () => {
       cancelled = true
+      controller.abort()
     }
-  }, [slug, sortBy, currentPage, initialPage, pageSize])
+  }, [slug, sortBy, currentPage, initialPage, pageSize, filters])
 
   if (loading && categories.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
+      <div className="category-page min-h-screen flex flex-col bg-background">
+        <Header home />
         <main className="container mx-auto flex-1 px-4 py-8">
           <div className="mb-6 h-5 w-56 animate-pulse rounded bg-muted" />
           <div className="mb-10 grid gap-6 rounded-lg border bg-card p-5 md:grid-cols-[1fr_320px] md:p-8">
@@ -281,7 +290,7 @@ export function CategoryDetailView({
             </div>
             <div className="hidden aspect-[4/3] animate-pulse rounded-md bg-muted md:block" />
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className={productGridClassName}>
             {[...Array(8)].map((_, index) => (
               <div key={index} className="aspect-[3/4] animate-pulse rounded-lg bg-muted" />
             ))}
@@ -302,12 +311,28 @@ export function CategoryDetailView({
   const chainInput = categories.map((c) => ({ ...c, _id: c.id }))
   const ancestorChain = resolveAncestorChain(chainInput, category.id)
   const subcategories = categories.filter((c) => c.parentId === category.id)
-  const productCount = totalProducts || category._count?.products || products.length
-  const canLoadMore = products.length < totalProducts
+  const productCount = totalProducts
+  const collectionCount = category._count?.products ?? initialTotalProducts
+  const hasFilters = JSON.stringify(filters) !== JSON.stringify(emptyCatalogFilters)
+  const hasFilterControls = collectionCount > 1 && (facets.groups.length > 0 || facets.maxPrice > facets.minPrice)
   const totalPages = Math.max(1, Math.ceil(productCount / pageSize))
   const currentPageForLinks = Math.min(Math.max(1, currentPage), totalPages)
   const categoryUrl = buildCategoryUrl(ancestorChain)
-  const pageHref = (page: number) => (page <= 1 ? categoryUrl : `${categoryUrl}?page=${page}`)
+  const pageHref = (page: number) => {
+    const params = appendCatalogFilters(new URLSearchParams(), filters)
+    if (sortBy !== 'featured') params.set('sort', sortBy)
+    if (page > 1) params.set('page', String(page))
+    return `${categoryUrl}${params.size ? `?${params}` : ''}`
+  }
+  const changePage = (event: MouseEvent, page: number) => {
+    event.preventDefault()
+    if (page === currentPage) return
+    setLoading(true)
+    setProducts([])
+    setCurrentPage(page)
+    window.history.pushState(null, '', pageHref(page))
+    document.getElementById('category-products')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }
   const paginationPages = Array.from({ length: totalPages }, (_, index) => index + 1)
   const rootCategorySlug = ancestorChain[0]?.slug || category.slug
   const customLandingByCategory: Record<string, { href: string; label: string }> = {
@@ -319,20 +344,9 @@ export function CategoryDetailView({
     'fleece-hoodies': { href: '/custom-hoodies', label: 'custom hoodies' },
   }
   const customLanding = customLandingByCategory[rootCategorySlug]
-  const productHeroImage = products.find((product) => isUsableHeroImage(product.images?.[0]?.url))?.images[0]?.url
-  const heroImage =
-    (categoryHeroImage?.slug === slug ? categoryHeroImage.image : null) ||
-    productHeroImage ||
-    (isUsableHeroImage(category.image) ? category.image : null) ||
-    CATEGORY_HERO_IMAGES[category.slug] ||
-    CATEGORY_HERO_IMAGES[rootCategorySlug] ||
-    DEFAULT_CATEGORY_HERO_IMAGE
-  const heroFeatures = [
-    { label: 'Custom colors', icon: Palette },
-    { label: 'Patch ready', icon: BadgeCheck },
-    { label: 'Size guidance', icon: Ruler },
-  ]
-  const visibleFaqs = insights?.faqs.slice(0, 10) ?? []
+  const heroImage = category.designImages?.[0] || category.image || initialProducts[0]?.images[0]?.url || subcategories.find(item => item.image)?.image
+  const heroImages = [...new Set([...(category.designImages || []), ...(category.image ? [category.image] : []), ...(heroImage ? [heroImage] : [])])]
+  const heroDescription = getCategoryHeroDescription(categoryUrl, category.name, category.description || category.introShort)
 
   const breadcrumbItems = [
     ...ancestorChain.slice(0, -1).map((ancestor, index) => ({
@@ -343,121 +357,115 @@ export function CategoryDetailView({
   ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+    <div className="category-page min-h-screen flex flex-col bg-background">
+      <Header home />
 
       <main className="flex-1">
-      <div className="container mx-auto px-4 py-8">
-        <Breadcrumbs items={breadcrumbItems} className="mb-6" />
-
-        <div className="overflow-hidden rounded-lg border bg-[#111315] text-white shadow-sm">
-          <div className="grid min-h-[420px] gap-0 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="relative flex flex-col justify-center p-6 md:p-10 lg:p-12">
-              <div className="absolute left-0 top-8 h-24 w-1 rounded-r-full bg-white/70" />
-              <Badge className="mb-5 w-fit border-white/15 bg-white/10 text-white hover:bg-white/10">
-                {productCount} {productCount === 1 ? 'product' : 'products'}
-              </Badge>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/60">
-                Jacketee Collection
-              </p>
-              <h1 className="max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
-                {category.heading || category.name}
-              </h1>
-              {category.description && (
-                <p className="mt-5 max-w-2xl text-base leading-7 text-white/72 md:text-lg">
-                  {category.description}
-                </p>
-              )}
-              {customLanding && (
-                <Link href={customLanding.href} className="mt-4 w-fit text-sm font-semibold text-white underline underline-offset-4">
-                  Plan {customLanding.label}
-                </Link>
-              )}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild className="bg-white text-black hover:bg-white/90">
-                  <a href="#category-products">
-                    Shop Products
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
-                <Button
-                  variant="outline"
-                  asChild
-                  className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-                >
-                  <Link href="/materials-colors">Compare Materials</Link>
-                </Button>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-2">
-                {heroFeatures.map((feature) => (
-                  <span
-                    key={feature.label}
-                    className="inline-flex items-center gap-2 rounded-md border border-white/[0.12] bg-white/[0.07] px-3 py-2 text-sm text-white/80"
-                  >
-                    <feature.icon className="h-4 w-4 text-white" />
-                    {feature.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative min-h-[320px] overflow-hidden bg-[#f3f0ec] lg:min-h-full">
-              {heroImage ? (
-                <Image
-                  src={heroImage}
-                  alt={`${category.name} collection featured jacket`}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  quality={70}
-                  className="object-contain p-6 md:p-10"
-                  priority
-                />
-              ) : (
-                <div className="flex h-full min-h-[260px] items-center justify-center">
-                  <ShoppingBag className="h-16 w-16 text-muted-foreground" />
-                </div>
-              )}
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/20 to-transparent" />
-              <div className="absolute bottom-4 left-4 rounded-md border border-white/35 bg-black/45 px-3 py-2 text-xs font-medium text-white backdrop-blur">
-                Built for custom jackets and team-ready orders
-              </div>
+      <div className="section-shell py-6! md:py-8!">
+        <Breadcrumbs items={breadcrumbItems} className="mb-5" />
+        <section aria-labelledby="category-hero-heading" className="relative isolate grid overflow-hidden rounded-2xl bg-[#242623] text-white sm:grid-cols-[1.2fr_0.8fr]">
+          <div className="relative flex flex-col justify-center px-6 py-8 sm:min-h-76 sm:px-10 lg:min-h-80 lg:px-12">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/75">{category.parentId ? ancestorChain.at(-2)?.name : 'Jacketee collection'} <span aria-hidden="true" className="mx-2">/</span> {collectionCount} {collectionCount === 1 ? 'style' : 'styles'}</p>
+            <h1 id="category-hero-heading" className="mt-3 max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">{category.heading || category.name}</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-white/85">{heroDescription}</p>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <a href="#category-products" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Shop collection <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
+              {customLanding && <Link href={customLanding.href} className="inline-flex min-h-11 items-center text-sm font-semibold text-white underline underline-offset-4 hover:text-white/80">Make it your own</Link>}
             </div>
           </div>
-        </div>
+          {heroImage && <div className="relative min-h-64 bg-white sm:min-h-76 lg:min-h-80"><CollectionDesignImage key={`${category.slug}-${heroImages.join('|')}`} urls={heroImages} alt={`${category.name} collection`} priority sizes="(max-width: 639px) 100vw, (max-width: 1280px) 40vw, 512px" className="object-contain p-5 sm:p-6" /></div>}
+        </section>
+        {(subcategories.length > 0 || category.parentId) && <nav className="mt-6" aria-label={subcategories.length ? 'Shop subcategories' : 'Related materials and styles'}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><h2 className="text-sm font-semibold">{subcategories.length ? 'Find your style or material' : 'Explore the collection'}</h2>{!category.parentId && <a href="#category-products" className="inline-flex min-h-11 items-center text-xs font-semibold underline">Shop all {collectionCount} styles</a>}{category.parentId && <Link href={buildCategoryUrl(ancestorChain.slice(0, -1))} className="inline-flex min-h-11 items-center text-xs font-semibold underline">View all {ancestorChain.at(-2)?.name}</Link>}</div>
+          <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin]">
+            {(subcategories.length ? subcategories : categories.filter(item => item.parentId === category.parentId).sort((a, b) => Number(b.id === category.id) - Number(a.id === category.id))).filter(item => (item._count?.products || 0) > 0).map(sub => (
+              <Link key={sub.id} href={buildCategoryUrl(subcategories.length ? [...ancestorChain, sub] : [...ancestorChain.slice(0, -1), sub])} aria-current={sub.id === category.id ? 'page' : undefined} className={`group flex w-36 shrink-0 items-center gap-3 rounded-xl border bg-card p-3 focus-visible:outline-2 focus-visible:outline-primary sm:w-44 ${sub.id === category.id ? 'border-red-800 ring-1 ring-red-800' : 'hover:border-primary/50'}`}>
+                {sub.image && <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#efede8]"><Image src={sub.image} alt="" fill sizes="48px" className="object-contain" /></span>}<span className="min-w-0"><span className="block text-xs font-semibold leading-5 sm:text-sm">{sub.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{sub._count?.products || 0} {(sub._count?.products || 0) === 1 ? 'style' : 'styles'}</span></span>
+              </Link>
+            ))}
+          </div>
+        </nav>}
       </div>
 
-        {subcategories.length > 0 && (
-          <section className="store-section store-section--soft">
-            <div className="section-shell">
-            <div className="mb-5 flex items-end justify-between gap-4 border-b pb-4">
-              <div>
-                <p className="text-sm font-semibold uppercase text-primary">Browse deeper</p>
-                <h2 className="mt-1 text-2xl font-bold">Shop by style or material</h2>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {subcategories.map((sub) => (
-                <Link
-                  key={sub.id}
-                  href={buildCategoryUrl([...ancestorChain, sub])}
-                  className="interactive-lift group rounded-lg border bg-card p-4 hover:border-primary/50 hover:bg-accent"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold">{sub.name}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {sub._count?.products || 0} {(sub._count?.products || 0) === 1 ? 'product' : 'products'}
-                      </p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-                  </div>
-                </Link>
+        <section id="category-products" className="store-section store-section--soft scroll-mt-20" aria-labelledby="category-products-heading">
+          <div className="section-shell py-5! md:py-6!">
+        <div className="sticky top-[78px] z-30 -mx-1 mb-5 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-1 py-3 lg:static">
+          <div><h2 id="category-products-heading" className="text-xl font-semibold">Shop {category.name}</h2><p className="mt-1 text-xs text-muted-foreground" role="status" aria-live="polite">{loading ? 'Finding your styles...' : `${products.length} of ${productCount} ${productCount === 1 ? 'style' : 'styles'}`}</p></div>
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            {hasFilterControls && <div className="flex-1 lg:hidden"><CategoryFilters key={`mobile-${JSON.stringify(filters)}`} mode="mobile" value={filters} onApply={applyFilters} facets={facets} /></div>}
+            {collectionCount > 1 && <CatalogSort value={sortBy} onChange={handleSortChange} />}
+            <Link href="/size-guide" className="hidden min-h-11 items-center gap-2 px-2 text-xs underline sm:inline-flex"><Ruler aria-hidden="true" className="h-4 w-4" />Size guide</Link>
+          </div>
+        </div>
+        <form role="search" aria-label="Search this collection" className="mb-4 flex flex-wrap gap-2" onSubmit={event => { event.preventDefault(); applyFilters({ ...filters, search: searchDraft.trim().slice(0, 200) }) }}>
+          <label htmlFor="collection-search" className="sr-only">Search {category.name}</label>
+          <input id="collection-search" type="search" value={searchDraft} onChange={event => setSearchDraft(event.target.value)} placeholder={`Search ${category.name.toLowerCase()}...`} className="min-h-11 min-w-0 flex-1 rounded-lg border bg-card px-3 text-sm" />
+          <Button type="submit" className="min-h-11">Search</Button>
+          {filters.search && <Button type="button" variant="outline" className="min-h-11" onClick={() => applyFilters({ ...filters, search: '' })}>Reset search</Button>}
+        </form>
+        <AppliedCategoryFilters value={filters} onChange={applyFilters} />
+        <div className={hasFilterControls ? 'grid items-start gap-6 lg:grid-cols-[220px_minmax(0,1fr)]' : ''}>
+          {hasFilterControls && <CategoryFilters key={`desktop-${JSON.stringify(filters)}`} mode="desktop" value={filters} onApply={applyFilters} facets={facets} />}
+          <div className="min-w-0" aria-busy={loading || loadingMore}>
+          {fetchError && <p role="alert" className="mb-4 rounded-lg border p-4 text-sm">We could not load these products. <button className="font-semibold underline" onClick={() => applyFilters({ ...filters })}>Try again</button></p>}
+        {loading && products.length === 0 ? (
+          <div className={productGridClassName} aria-label="Loading products">
+            {Array.from({ length: 8 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-md bg-muted" />)}
+          </div>
+        ) : products.length > 0 ? (
+          <>
+            <div className={collectionCount === 1 ? "mx-auto grid w-full max-w-sm" : hasFilterControls ? "grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3" : productGridClassName}>
+              {products.map((product, index) => (
+                <ProductCard key={product.id} product={product} listingPosition={index + 1} collection />
               ))}
             </div>
-            </div>
-          </section>
+
+            {totalPages > 1 && (
+              <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label={`${category.name} pagination`}>
+                {currentPageForLinks > 1 && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={pageHref(currentPageForLinks - 1)} onClick={event => changePage(event, currentPageForLinks - 1)}>Previous</Link>
+                  </Button>
+                )}
+                {paginationPages.map((page) => (
+                  <Button
+                    key={page}
+                    asChild
+                    variant={page === currentPageForLinks ? 'default' : 'outline'}
+                    size="sm"
+                    aria-current={page === currentPageForLinks ? 'page' : undefined}
+                  >
+                    <Link href={pageHref(page)} onClick={event => changePage(event, page)}>{page}</Link>
+                  </Button>
+                ))}
+                {currentPageForLinks < totalPages && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={pageHref(currentPageForLinks + 1)} onClick={event => changePage(event, currentPageForLinks + 1)}>Next</Link>
+                  </Button>
+                )}
+              </nav>
+            )}
+          </>
+        ) : (
+          <div className="rounded-lg border border-dashed py-16 text-center">
+            <PackageSearch className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <h3 className="text-xl font-semibold">No products found</h3>
+            <p className="mt-2 text-muted-foreground">{hasFilters ? "Try removing a filter or choosing a wider price range." : "More styles are on their way. Explore another material below."}</p>
+            {hasFilters && <Button variant="outline" className="mt-4" onClick={() => applyFilters(emptyCatalogFilters)}>Clear filters</Button>}
+            <WhatsAppHelp message={`I couldn't find any products in ${category.name}. Can you help me find a suitable product?`} />
+            <Button asChild variant="outline" className="mt-6">
+              <Link href="/shop">Browse all products</Link>
+            </Button>
+          </div>
         )}
+          </div>
+          </div>
+          </div>
+        </section>
+
+        <div className="section-shell py-6!"><RecentlyViewed limit={4} /></div>
+
+        <CustomDesignCollection categorySlugs={ancestorChain.map(item => item.slug)} categoryName={category.name} categoryImages={category.designImages} categoryImage={category.image || heroImage} images={customDesignImages} />
 
         <section className="store-section store-section--plain store-section--accent" aria-labelledby="collection-overview-heading">
           <div className="section-shell grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(290px,0.9fr)] lg:gap-12">
@@ -498,156 +506,11 @@ export function CategoryDetailView({
           </div>
         </section>
 
-        <section id="category-products" className="store-section store-section--soft scroll-mt-20" aria-labelledby="category-products-heading">
-          <div className="section-shell">
-        <div className="mb-6 flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 id="category-products-heading" className="text-2xl font-semibold">Shop {category.name}</h2>
-            <p className="text-sm text-muted-foreground">
-              Showing {products.length} of {productCount} {productCount === 1 ? 'item' : 'items'} in {category.name}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Sort by</span>
-            <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="featured">Featured</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                <SelectItem value="name">Name A-Z</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
-        {loading && products.length === 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4" aria-label="Loading products">
-            {Array.from({ length: 8 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-md bg-muted" />)}
-          </div>
-        ) : products.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product, index) => (
-                <ProductCard key={product.id} product={product} listingPosition={index + 1} />
-              ))}
-            </div>
 
-            {canLoadMore && (
-              <div className="mt-10 flex justify-center">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  asChild
-                  onClick={() => setCurrentPage((page) => page + 1)}
-                  disabled={loadingMore}
-                >
-                  <Link href={pageHref(currentPage + 1)}>
-                    {loadingMore ? 'Loading...' : 'Load more products'}
-                  </Link>
-                </Button>
-              </div>
-            )}
+        {category.introLong && <section className="store-section store-section--plain"><div className="section-shell py-6!"><details className="group rounded-xl border bg-card p-5"><summary className="cursor-pointer text-lg font-semibold">Materials, fit &amp; care: the {category.name} guide</summary><div className="mt-6"><CategoryLongContent content={category.introLong} /></div></details></div></section>}
 
-            {totalPages > 1 && (
-              <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label={`${category.name} pagination`}>
-                {currentPageForLinks > 1 && (
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={pageHref(currentPageForLinks - 1)}>Previous</Link>
-                  </Button>
-                )}
-                {paginationPages.map((page) => (
-                  <Button
-                    key={page}
-                    asChild
-                    variant={page === currentPageForLinks ? 'default' : 'outline'}
-                    size="sm"
-                    aria-current={page === currentPageForLinks ? 'page' : undefined}
-                  >
-                    <Link href={pageHref(page)}>{page}</Link>
-                  </Button>
-                ))}
-                {currentPageForLinks < totalPages && (
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={pageHref(currentPageForLinks + 1)}>Next</Link>
-                  </Button>
-                )}
-              </nav>
-            )}
-          </>
-        ) : (
-          <div className="rounded-lg border border-dashed py-16 text-center">
-            <PackageSearch className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="text-xl font-semibold">No products found</h3>
-            <p className="mt-2 text-muted-foreground">This category does not have products yet.</p>
-            <WhatsAppHelp message={`I couldn't find any products in ${category.name}. Can you help me find a suitable product?`} />
-            <Button asChild variant="outline" className="mt-6">
-              <Link href="/shop">Browse all products</Link>
-            </Button>
-          </div>
-        )}
-          </div>
-        </section>
-
-        {category.introLong && (
-          <section className="store-section store-section--plain" aria-labelledby="category-long-guide-heading">
-            <div className="section-shell">
-              <div className="mb-8 max-w-3xl border-b pb-5">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Category guide</p>
-                <h2 id="category-long-guide-heading" className="mt-2 text-2xl font-semibold">About {category.heading || category.name}</h2>
-              </div>
-              <CategoryLongContent content={category.introLong} />
-            </div>
-          </section>
-        )}
-
-      <section className="store-section store-section--plain" aria-labelledby="category-reviews-heading">
-        <div className="section-shell">
-          <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
-            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Customer feedback</p><h2 id="category-reviews-heading" className="mt-2 text-2xl font-semibold">Reviews of {category.name} products</h2></div>
-            {insights && insights.reviewCount > 0 && <div className="flex items-center gap-2 text-sm"><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><strong>{insights.averageRating.toFixed(1)} / 5</strong><span className="text-muted-foreground">from {insights.reviewCount} approved reviews</span></div>}
-          </div>
-          {insights?.reviews.length ? (
-            <div className="grid gap-8 pt-6 md:grid-cols-2">
-              {insights.reviews.map((review) => (
-                <blockquote key={review.id} className="border-l-2 border-foreground/30 pl-5">
-                  <div className="flex items-center gap-1" aria-label={`${review.rating} out of 5 stars`}>{Array.from({ length: 5 }, (_, index) => <Star key={index} className={`h-4 w-4 ${index < review.rating ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground/35'}`} />)}</div>
-                  {review.title && <p className="mt-3 font-semibold">{review.title}</p>}
-                  <p className="mt-2 line-clamp-4 text-sm leading-6 text-muted-foreground">{review.comment}</p>
-                  <footer className="mt-3 text-sm"><span className="font-medium">{review.userName}</span><span className="mx-2 text-muted-foreground">on</span><Link href={review.productHref} className="underline underline-offset-4">{review.productName}</Link></footer>
-                </blockquote>
-              ))}
-            </div>
-          ) : <p className="pt-6 text-sm text-muted-foreground">{insights ? 'There are no approved reviews for products in this collection yet.' : 'Loading customer feedback...'}</p>}
-        </div>
-      </section>
-
-      <section className="store-section store-section--soft store-section--accent" aria-labelledby="category-faq-heading">
-        <div className="section-shell">
-          <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-5">
-            <div><p className="text-xs font-semibold uppercase text-muted-foreground">Collection questions</p><h2 id="category-faq-heading" className="mt-2 text-2xl font-semibold">Top 10 questions about {category.name}</h2></div>
-            <Link href="/faq" className="text-sm font-semibold underline underline-offset-4">View all FAQs</Link>
-          </div>
-          {insights?.faqs.length ? (
-            <Accordion type="single" collapsible className="max-w-4xl">
-              {visibleFaqs.map((faq) => (
-                <AccordionItem key={faq.id} value={faq.id}>
-                  <AccordionTrigger className="text-left font-medium">{faq.question}</AccordionTrigger>
-                  <AccordionContent className="space-y-2 text-sm leading-6 text-muted-foreground">
-                    {faq.answer.map((answer, index) => <p key={index}><FaqText text={answer} /></p>)}
-                    {faq.bullets.length > 0 && <ul className="list-disc pl-5">{faq.bullets.map((bullet, index) => <li key={index}>{bullet}</li>)}</ul>}
-                    {faq.ordered.length > 0 && <ol className="list-decimal pl-5">{faq.ordered.map((step, index) => <li key={index}>{step}</li>)}</ol>}
-                    {faq.href && <Link href={faq.href} className="inline-flex items-center gap-1 font-semibold text-foreground underline underline-offset-4">Read more <ArrowRight className="h-3.5 w-3.5" /></Link>}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          ) : <p className="pt-6 text-sm text-muted-foreground">{insights ? 'No collection questions are available right now.' : 'Loading collection questions...'}</p>}
-        </div>
-      </section>
+      <CollectionSupport key={category.slug} slug={category.slug} name={category.name} initialData={insights || undefined} />
       </main>
 
       <Footer />

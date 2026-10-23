@@ -1,5 +1,6 @@
 'use client'
 
+import { BlogCard } from '@/components/blog-card'
 import { motion } from 'framer-motion'
 import Image from '@/components/optimized-image'
 import Link from 'next/link'
@@ -228,35 +229,7 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
               <div className="p-5 md:p-7">
               <h2 className="text-2xl font-bold mb-6">Related Posts</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {post.relatedPosts.map((related) => (
-                  <div key={related.id}>
-                    <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
-                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group pt-0 shadow-sm">
-                        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-                          <Image
-                            src={related.featuredImage || '/placeholder.png'}
-                            alt=""
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="media-zoom object-cover"
-                          />
-                        </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                            <Link href={`/blog/${related.slug}`} className="hover:underline">{related.title}</Link>
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                            {related.excerpt}
-                          </p>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {formatDate(related.publishedAt)}
-                          </span>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </div>
-                ))}
+                {post.relatedPosts.map(related => <BlogCard key={related.id} article={related} />)}
               </div>
               </div>
             </section>

@@ -7,8 +7,12 @@ import { productFaqAnswerText } from '@/lib/product-faqs'
 export const dynamic = 'force-dynamic'
 
 export default async function Page() {
-  if (!(await connectDB())) throw new Error('FAQs are temporarily unavailable')
-  const rawFaqs = await Faq.find().sort({ category: 1, order: 1 }).lean()
+  let rawFaqs: any[] = []
+  try {
+    if (await connectDB()) rawFaqs = await Faq.find().sort({ category: 1, order: 1, _id: 1 }).lean()
+  } catch (error) {
+    console.error('Unable to load FAQs; using the published fallback answers', error)
+  }
   const dbFaqs: DbFaqItem[] = rawFaqs.map((faq) => ({
     id: String(faq._id),
     status: faq.status,

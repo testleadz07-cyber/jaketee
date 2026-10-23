@@ -1,0 +1,107 @@
+{
+  "_id": {
+    "$oid": "6ad9273c0d8f98908ab0b00e"
+  },
+  "slug": "vintage-navy-and-gold-letterman-jacket",
+  "averageRating": 0,
+  "careInstructions": "Spot clean the wool body with a damp cloth and mild cleaner. Condition genuine leather sleeves with a suitable leather conditioner, testing a hidden area first. Do not machine wash, soak or tumble dry. Use a cleaner experienced with mixed wool and leather garments when needed.",
+  "categoryId": {
+    "$oid": "6a9efc08f67a6c3a3788c399"
+  },
+  "createdAt": {
+    "$date": "2026-10-21T20:57:32.528Z"
+  },
+  "currency": "USD",
+  "description": "A vintage letterman jacket brings a retro-inspired look to everyday outfits. This navy and gold version suits wearers who prefer a leather shirt collar, with matching cuffs and waistband completing the classic color combination.\n\nDetails\n- Body: navy 24 oz melton wool\n- Sleeves: gold genuine cowhide leather\n- Collar: leather shirt collar; navy and gold knit cuffs and waistband\n- Lining: quilted lining\n- Closure: snap-button front\n- Pockets: two welt pockets\n- Fit: True-to-size fit; compare your measurements with the size guide\n- Sizes: XXS through 6XL\n\nCustomization options\n- Chenille letter and name embroidery\n- Number, patches and back lettering\n- Free digital design proof before production.\n\nExplore vintage varsity jacket styling or letterman jacket with collar styling or retro letterman jacket with your own personal details. Choose your layout through our [custom letterman jacket](/custom-letterman-jackets) options and review the placement before production.\n\nProduction and delivery\nMade in our Sialkot factory. Made in 6–7 business days after design approval. Delivery in 5–7 business days.",
+  "images": [],
+  "inStock": true,
+  "isDraft": true,
+  "isFeatured": false,
+  "landingPages": [],
+  "name": "Vintage Navy and Gold Letterman Jacket",
+  "price": 60,
+  "primaryKeyword": "vintage letterman jacket",
+  "reviewCount": 0,
+  "secondaryKeywords": [
+    "vintage varsity jacket",
+    "letterman jacket with collar",
+    "retro letterman jacket"
+  ],
+  "seoDescription": "Vintage letterman jacket in navy wool with gold leather sleeves and a retro shirt collar. Add chenille letters, names and patches. Free design proof.",
+  "seoTitle": "Vintage Navy and Gold Letterman Jacket | Jacketee",
+  "sourceBatch": "jacketee-batch-1",
+  "specificationDetails": "Body: navy 24 oz melton wool\nSleeves: gold genuine cowhide leather\nCollar: leather shirt collar; navy and gold knit cuffs and waistband\nLining: quilted lining\nClosure: snap-button front\nPockets: two welt pockets\nFit: True-to-size fit; compare your measurements with the size guide\nSizes: XXS through 6XL",
+  "status": "inactive",
+  "tags": [],
+  "updatedAt": {
+    "$date": "2026-10-21T20:57:32.528Z"
+  },
+  "variants": [
+    {
+      "name": "Size",
+      "value": "XXS",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "XS",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "S",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "M",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "L",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "2XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "3XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "4XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "5XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "6XL",
+      "priceAdjust": 0,
+      "inStock": true
+    }
+  ]
+}

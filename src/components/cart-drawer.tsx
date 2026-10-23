@@ -1,5 +1,7 @@
 'use client'
 
+import { getJacketTextSummary } from '@/types/jacket-customization'
+
 import { useState, useEffect, useSyncExternalStore } from 'react'
 import { useCartStore } from '@/store/cart'
 import {
@@ -114,7 +116,7 @@ export function CartDrawer() {
         <Button
           variant="outline"
           size="icon"
-          className="relative"
+          className="relative h-11 w-11"
           aria-label={`Open shopping cart with ${visibleItemCount} items`}
           onClick={() => logUserActivity('cart_viewed', { itemCount: visibleItemCount, total, currency: 'USD' })}
         >
@@ -172,8 +174,8 @@ export function CartDrawer() {
                       <div className="text-xs font-medium text-primary">
                         {getCustomizedViews(item.customization).map((view) => (
                           <p key={view}>
-                            {getJacketViewLabel(view)}: {item.customization?.[view]?.text?.value || ''}
-                            {item.customization?.[view]?.artworks?.length ? `${item.customization?.[view]?.text?.value ? ' + ' : ''}${item.customization[view]?.artworks?.length} artwork piece${item.customization[view]!.artworks!.length === 1 ? '' : 's'}` : ''}
+                            {getJacketViewLabel(view)}: {getJacketTextSummary(item.customization?.[view])}
+                            {item.customization?.[view]?.artworks?.length ? `${getJacketTextSummary(item.customization?.[view]) ? ' + ' : ''}${item.customization[view]?.artworks?.length} artwork piece${item.customization[view]!.artworks!.length === 1 ? '' : 's'}` : ''}
                           </p>
                         ))}
                       </div>

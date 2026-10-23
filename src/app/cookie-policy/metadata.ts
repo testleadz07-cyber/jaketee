@@ -1,9 +1,10 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/cookie-policy`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Cookie Policy — Jacketee',
   description: 'Learn how Jacketee uses cookies and similar technologies, and how you can manage your preferences.',
   alternates: { canonical: PAGE_URL },
@@ -14,4 +15,4 @@ export const metadata: Metadata = {
     siteName: 'Jacketee',
     type: 'website',
   },
-}
+})

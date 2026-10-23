@@ -9,7 +9,7 @@ import { createNotification } from '@/lib/notifications'
 // Ensure DB connection helper
 async function ensureDB() {
   if ((await import('mongoose')).default.connection.readyState === 0) {
-    await connectDB()
+    if (!await connectDB()) throw new Error('Database unavailable')
   }
 }
 
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       title: 'New refund/return request',
       message: `Order ${refund.orderId}${refund.userName ? ` from ${refund.userName}` : ''}`,
       link: '/admin/refunds',
-    })
+    }).catch(() => console.error('Return request saved, but admin notification failed'))
 
     return NextResponse.json({ success: true, id: refund._id }, { status: 201 })
   } catch (error) {

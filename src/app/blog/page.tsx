@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { metadata as archiveMetadata } from './metadata'
@@ -15,7 +16,7 @@ const PAGE_SIZE = 9
 export async function generateMetadata({ searchParams }: { searchParams: Promise<{ page?: string; category?: string; tag?: string }> }): Promise<Metadata> {
   const { page, category, tag } = await searchParams
   const url = `https://www.jacketee.com${blogArchivePath(blogPageNumber(page), category, '/blog', tag)}`
-  return { ...archiveMetadata, alternates: { canonical: url }, openGraph: { ...archiveMetadata.openGraph, url } }
+  return withSocialMetadata({ ...archiveMetadata, alternates: { canonical: url }, openGraph: { ...archiveMetadata.openGraph, url } })
 }
 
 export default async function Page({ searchParams }: {

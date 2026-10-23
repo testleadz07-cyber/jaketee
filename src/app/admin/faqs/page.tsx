@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
+import { faqBatchLabel } from '@/lib/faq-batches'
 import {
   ChevronLeft,
   Edit,
@@ -57,6 +58,7 @@ import {
 } from 'lucide-react'
 
 interface AdminFaqRow {
+  sourceBatch?: string
   status: 'published' | 'draft'
   id: string
   question: string
@@ -144,6 +146,9 @@ export default function AdminFaqsPage() {
   const [faqs, setFaqs] = useState<AdminFaqRow[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [displayPages, setDisplayPages] = useState<string[]>([])
+  const [sourceBatches, setSourceBatches] = useState<string[]>([])
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [batchFilter, setBatchFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
@@ -170,6 +175,8 @@ export default function AdminFaqsPage() {
       if (search.trim()) params.set('search', search.trim())
       if (categoryFilter !== 'all') params.set('category', categoryFilter)
       if (displayPageFilter !== 'all') params.set('displayPage', displayPageFilter)
+      if (statusFilter !== 'all') params.set('status', statusFilter)
+      if (batchFilter !== 'all') params.set('sourceBatch', batchFilter)
 
       const res = await fetch(`/api/admin/faqs?${params.toString()}`)
       if (res.ok) {
@@ -177,6 +184,7 @@ export default function AdminFaqsPage() {
         setFaqs(data.faqs || [])
         setCategories(data.categories || [])
         setDisplayPages(data.displayPages || [])
+        setSourceBatches(data.sourceBatches || [])
         setTotal(data.total || 0)
         setPages(data.pages || 1)
       } else {
@@ -188,7 +196,7 @@ export default function AdminFaqsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, search, categoryFilter, displayPageFilter, toast])
+  }, [page, search, categoryFilter, displayPageFilter, statusFilter, batchFilter, toast])
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -264,6 +272,8 @@ export default function AdminFaqsPage() {
     setSearch('')
     setCategoryFilter('all')
     setDisplayPageFilter('all')
+    setStatusFilter('all')
+    setBatchFilter('all')
     setPage(1)
   }
 
@@ -310,7 +320,7 @@ export default function AdminFaqsPage() {
             <CardTitle className="text-lg">Filters</CardTitle>
             <CardDescription>Search and narrow FAQs before editing.</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-[minmax(240px,1fr)_220px_220px_auto] gap-3 items-end">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-end">
             <div className="space-y-1.5">
               <Label htmlFor="faq-search">Search</Label>
               <div className="relative">
@@ -371,16 +381,39 @@ export default function AdminFaqsPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="faq-publication-filter">Publication</Label>
+              <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(1) }}>
+                <SelectTrigger id="faq-publication-filter"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="faq-batch-filter">Product batch</Label>
+              <Select value={batchFilter} onValueChange={(value) => { setBatchFilter(value); setPage(1) }}>
+                <SelectTrigger id="faq-batch-filter"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All batches</SelectItem>
+                  {sourceBatches.map(batch => <SelectItem key={batch} value={batch}>{faqBatchLabel(batch)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <Button
               variant="outline"
               onClick={clearFilters}
-              disabled={!search && categoryFilter === 'all' && displayPageFilter === 'all'}
+              disabled={!search && categoryFilter === 'all' && displayPageFilter === 'all' && statusFilter === 'all' && batchFilter === 'all'}
             >
               <X className="h-4 w-4 mr-2" />
               Clear
             </Button>
           </CardContent>
         </Card>
+
+        <p className="text-sm text-muted-foreground" aria-live="polite">{loading ? 'Loading results…' : `${total} FAQs match your filters`}</p>
 
         {loading ? (
           <div className="flex justify-center items-center py-12">
@@ -411,6 +444,10 @@ export default function AdminFaqsPage() {
                   <TableRow key={faq.id}>
                     <TableCell className="max-w-lg">
                       <p className="font-medium line-clamp-2">{faq.question}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <Badge variant={faq.status === 'draft' ? 'secondary' : 'outline'}>{faq.status === 'draft' ? 'Draft' : 'Published'}</Badge>
+                        {faq.sourceBatch && <Badge variant="outline">{faqBatchLabel(faq.sourceBatch)}</Badge>}
+                      </div>
                       <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
                         {faq.answer?.[0] || 'No answer'}
                       </p>

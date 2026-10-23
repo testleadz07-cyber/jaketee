@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { MongoClient } from 'mongodb'
+import { MongoClient, type Document } from 'mongodb'
 
 const SOURCE_DB = 'clothoo_next_store'
 const TARGET_DB = 'test'
@@ -24,7 +24,7 @@ function uniqueStrings(values: unknown[]): string[] {
 async function restoreProducts(source: any, target: any) {
   const sourceProducts = await source.collection('products').find({}).toArray()
   const targetProducts = await target.collection('products').find({}).toArray()
-  const byKey = new Map(sourceProducts.map((product: any) => [normalize(product.slug || product.name), product]))
+  const byKey = new Map<string, Document>(sourceProducts.map((product: any) => [normalize(product.slug || product.name), product]))
   let matched = 0
   let updated = 0
   let skipped = 0
@@ -58,7 +58,7 @@ async function restoreProducts(source: any, target: any) {
 async function restoreFaqs(source: any, target: any) {
   const sourceFaqs = await source.collection('faqs').find({}).toArray()
   const targetFaqs = await target.collection('faqs').find({}).toArray()
-  const byQuestion = new Map(sourceFaqs.map((faq: any) => [normalize(faq.question), faq]))
+  const byQuestion = new Map<string, Document>(sourceFaqs.map((faq: any) => [normalize(faq.question), faq]))
   let matched = 0
   let updated = 0
   let skipped = 0
@@ -85,7 +85,7 @@ async function restoreFaqs(source: any, target: any) {
 async function restoreCategories(source: any, target: any) {
   const sourceCategories = await source.collection('categories').find({}).toArray()
   const targetCategories = await target.collection('categories').find({}).toArray()
-  const byKey = new Map(sourceCategories.map((category: any) => [normalize(category.slug || category.name), category]))
+  const byKey = new Map<string, Document>(sourceCategories.map((category: any) => [normalize(category.slug || category.name), category]))
   let matched = 0
   let updated = 0
   let skipped = 0
@@ -112,7 +112,7 @@ async function restoreCategories(source: any, target: any) {
 async function restoreBlogs(source: any, target: any) {
   const sourceBlogs = await source.collection('blogs').find({}).toArray()
   const targetPosts = await target.collection('blogposts').find({}).toArray()
-  const byKey = new Map(sourceBlogs.map((blog: any) => [normalize(blog.slug || blog.title), blog]))
+  const byKey = new Map<string, Document>(sourceBlogs.map((blog: any) => [normalize(blog.slug || blog.title), blog]))
   let matched = 0
   let updated = 0
   let skipped = 0
@@ -138,7 +138,7 @@ async function restoreBlogs(source: any, target: any) {
 }
 
 async function main() {
-  const client = new MongoClient(MONGODB_URI)
+  const client = new MongoClient(MONGODB_URI!)
   await client.connect()
 
   try {

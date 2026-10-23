@@ -1,0 +1,5 @@
+[
+  { "source": "/custom-design/varsity-jackets", "destination": "/design/varsity" },
+  { "source": "/wholesale-jackets", "destination": "/bulk-orders" },
+  { "source": "/varsity-jackets/wool-and-leather", "destination": "/varsity-jackets/wool-leather" }
+]

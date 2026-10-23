@@ -33,7 +33,7 @@ export function getStaticProducts() {
   return PRODUCTS.map((p) => ({
     ...p,
     id: p._id,
-    category: p.category || CATEGORIES.find((c) => c._id === p.categoryId),
+    category: CATEGORIES.find((c) => c._id === p.categoryId),
     categoryPath: categoryPathFor(p.categoryId),
   }))
 }
@@ -46,7 +46,7 @@ export function findStaticProduct(idOrSlug: string) {
   return {
     ...product,
     id: product._id,
-    category: product.category || CATEGORIES.find((c) => c._id === product.categoryId),
+    category: CATEGORIES.find((c) => c._id === product.categoryId),
     categoryPath: categoryPathFor(product.categoryId),
     averageRating: 0,
     reviewCount: 0,

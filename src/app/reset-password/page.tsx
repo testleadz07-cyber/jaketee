@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { startTransition, useState, useEffect, Suspense  } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,8 +29,8 @@ function ResetPasswordContent() {
 
   useEffect(() => {
     if (!token) {
-      setTokenStatus('invalid')
-      setTokenError('This password reset link is missing a token. Please request a new one.')
+      startTransition(() => { setTokenStatus('invalid') })
+      startTransition(() => { setTokenError('This password reset link is missing a token. Please request a new one.') })
       return
     }
 
@@ -200,7 +200,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-4">
         <Breadcrumbs items={[{ label: 'Sign In', href: '/login' }, { label: 'Reset Password' }]} className="flex justify-center" />
         <Suspense fallback={<div>Loading...</div>}>

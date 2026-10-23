@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { startTransition, useState, useEffect  } from 'react'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -22,6 +22,26 @@ interface FrequentlyBoughtTogetherProps {
   currentProduct: Product
 }
 
+const getDefaultVariants = (variants: any[]) => {
+  const defaults: Record<string, string> = {}
+  const grouped: Record<string, any[]> = {}
+
+  variants.forEach(v => {
+    if (!grouped[v.name]) grouped[v.name] = []
+    grouped[v.name].push(v)
+  })
+
+  Object.keys(grouped).forEach(name => {
+    const available = grouped[name].filter(v => v.inStock)
+    if (available.length > 0) {
+      defaults[name] = available[0].value
+    } else if (grouped[name].length > 0) {
+      defaults[name] = grouped[name][0].value
+    }
+  })
+  return defaults
+}
+
 export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTogetherProps) {
   const [bundleProducts, setBundleProducts] = useState<Product[]>([])
   const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({})
@@ -34,11 +54,7 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
 
   const currentProductId = currentProduct.id || currentProduct._id || ''
 
-  useEffect(() => {
-    fetchRecommendations()
-  }, [currentProductId])
-
-  const fetchRecommendations = async () => {
+  async function fetchRecommendations() {
     try {
       const res = await fetch(`/api/products/${currentProductId}/recommendations`)
       if (res.ok) {
@@ -76,25 +92,13 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
     }
   }
 
-  const getDefaultVariants = (variants: any[]) => {
-    const defaults: Record<string, string> = {}
-    const grouped: Record<string, any[]> = {}
-    
-    variants.forEach(v => {
-      if (!grouped[v.name]) grouped[v.name] = []
-      grouped[v.name].push(v)
-    })
+  useEffect(() => {
+    startTransition(() => { fetchRecommendations() })
+  }, [currentProductId])
 
-    Object.keys(grouped).forEach(name => {
-      const available = grouped[name].filter(v => v.inStock)
-      if (available.length > 0) {
-        defaults[name] = available[0].value
-      } else if (grouped[name].length > 0) {
-        defaults[name] = grouped[name][0].value
-      }
-    })
-    return defaults
-  }
+
+
+
 
   if (loading || bundleProducts.length === 0) return null
 

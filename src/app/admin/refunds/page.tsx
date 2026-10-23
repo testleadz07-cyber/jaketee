@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { startTransition, useEffect, useState, useCallback  } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -72,7 +72,7 @@ export default function AdminRefundsPage() {
   }, [searchInput])
 
   useEffect(() => {
-    setPage(1)
+    startTransition(() => { setPage(1) })
   }, [activeTab])
 
   const fetchRequests = useCallback(async () => {
@@ -103,7 +103,7 @@ export default function AdminRefundsPage() {
   }, [page, activeTab, searchQuery])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchRequests()
+    if (status === 'authenticated') startTransition(() => { fetchRequests() })
   }, [status, fetchRequests])
 
   async function handleAction(id: string, action: 'approved' | 'rejected') {

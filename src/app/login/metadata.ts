@@ -1,9 +1,10 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/login`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Sign In — Jacketee',
   description: 'Sign in to your Jacketee account to manage orders, wishlists, and personal details.',
   alternates: { canonical: PAGE_URL },
@@ -15,4 +16,4 @@ export const metadata: Metadata = {
     siteName: 'Jacketee',
     type: 'website',
   },
-}
+})

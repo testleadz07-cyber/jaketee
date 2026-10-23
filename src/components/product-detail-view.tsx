@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { CopySection, ProductCopy } from '@/components/product-copy'
 import { FaqText } from '@/components/faq-text'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -115,7 +116,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
     focusTarget?.focus({ preventScroll: true })
   }
 
-  const isInWishlist = useWishlistStore((state) => state.isInWishlist(product?.id || ''))
+  const isInWishlist = useWishlistStore((state) => state.items.some((item) => item.productId === (product?.id || '')))
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const addItem = useCartStore((state) => state.addItem)
@@ -163,6 +164,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
         alt: img.alt || '',
       })),
       category: product.category,
+      categoryPath: product.categoryPath,
       isFeatured: product.isFeatured,
     })
   }, [product?.id])
@@ -254,14 +256,14 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       image: product.images?.[0]?.url || '/placeholder.png',
       variants,
       customization,
-      quantity: 1,
+      quantity,
     })
 
     logUserActivity('begin_checkout', {
       source: 'buy_now',
       productId: product.id,
       price,
-      quantity: 1,
+      quantity,
     })
 
     router.push('/checkout?mode=buy-now')
@@ -328,9 +330,9 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
             ]}
             className="mb-6"
           />
-          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-10">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-10 lg:gap-y-6">
             {/* Image Gallery */}
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4 lg:col-start-1 lg:row-start-1">
               <motion.div
                 initial={false}
                 animate={{ opacity: 1, scale: 1 }}
@@ -404,7 +406,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
               id="purchase-options"
-              className="space-y-6 scroll-mt-24 lg:sticky lg:top-24 lg:border-l lg:pl-10"
+              className="min-w-0 space-y-6 scroll-mt-24 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24 lg:border-l lg:pl-10"
             >
               <div>
                 <Link
@@ -709,28 +711,32 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
 
               {!isJacket && <ProductDeliveryPolicies quantity={quantity} product={product} />}
 
-              <section className="rounded-md border bg-muted/35 px-4 py-5 sm:px-5" aria-labelledby="product-details-heading">
-                <h2 id="product-details-heading" className="text-lg font-semibold">Product details</h2>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">Explore {product.name}, including its materials, available options, sizing, and customization details.</p>
-                <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{product.description}</p>
-                {product.specificationDetails && <details className="mt-4 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Specifications</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.specificationDetails}</p></details>}
-                {product.careInstructions && <details className="mt-3 border-t pt-3 text-sm"><summary className="cursor-pointer font-semibold">Care instructions</summary><p className="mt-3 whitespace-pre-line leading-6 text-muted-foreground">{product.careInstructions}</p></details>}
-                {(Object.keys(groupedVariants).length > 0 || product.measurementFields?.length || product.embroidery?.available) && (
-                  <dl className="mt-4 divide-y border-t text-sm">
-                    {Object.entries(groupedVariants).map(([name, variants]) => (
-                      <div key={name} className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">{name}</dt><dd className="text-muted-foreground">{variants.map((variant) => variant.value).join(', ')}</dd></div>
-                    ))}
-                    {!!product.measurementFields?.length && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Fit</dt><dd className="text-muted-foreground">Made-to-measure available</dd></div>}
-                    {product.embroidery?.available && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Details</dt><dd className="text-muted-foreground">Optional monogram or embroidery</dd></div>}
-                  </dl>
-                )}
-                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-                  <Link href="/materials-colors" className="font-medium underline underline-offset-4">Materials & colors</Link>
-                  <Link href="/patches-embroidery" className="font-medium underline underline-offset-4">Patches & embroidery</Link>
-                </div>
-              </section>
+
 
             </motion.div>
+
+            <section className="min-w-0 rounded-xl border bg-muted/25 px-4 py-5 sm:px-5 lg:col-start-1 lg:row-start-2" aria-labelledby="product-details-heading">
+              <h2 id="product-details-heading" className="text-lg font-semibold">Product details</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">Explore {product.name}, including its materials, available options, sizing, and customization details.</p>
+              <ProductCopy description={product.description} specificationDetails={product.specificationDetails} careInstructions={product.careInstructions} />
+              {(Object.keys(groupedVariants).length > 0 || product.measurementFields?.length || product.embroidery?.available) && (
+                <div className="mt-3">
+                  <CopySection title="Available sizes & fit" accent="border-l-amber-400">
+                <dl className="divide-y text-sm">
+                  {Object.entries(groupedVariants).map(([name, variants]) => (
+                    <div key={name} className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">{name}</dt><dd className="text-muted-foreground">{variants.map((variant) => variant.value).join(', ')}</dd></div>
+                  ))}
+                  {!!product.measurementFields?.length && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Fit</dt><dd className="text-muted-foreground">Made-to-measure available</dd></div>}
+                  {product.embroidery?.available && <div className="grid grid-cols-[5.5rem_1fr] gap-3 py-2.5"><dt className="font-medium">Details</dt><dd className="text-muted-foreground">Optional monogram or embroidery</dd></div>}
+                </dl>
+                  </CopySection>
+                </div>
+              )}
+              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                <Link href="/materials-colors" className="font-medium underline underline-offset-4">Materials & colors</Link>
+                <Link href="/patches-embroidery" className="font-medium underline underline-offset-4">Patches & embroidery</Link>
+              </div>
+            </section>
           </div>
 
         </div>

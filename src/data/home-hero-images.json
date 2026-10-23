@@ -1,0 +1,18 @@
+[
+  {
+    "key": "desktop",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792696230/jacketee/home/hero/varsity-editorial-2026-10-23/desktop.webp",
+    "publicId": "jacketee/home/hero/varsity-editorial-2026-10-23/desktop",
+    "alt": "Two adults wearing navy and burgundy varsity jackets with cream sleeves and geometric chest patches",
+    "width": 1774,
+    "height": 887
+  },
+  {
+    "key": "mobile",
+    "url": "https://res.cloudinary.com/wp4tzirg/image/upload/v1792696234/jacketee/home/hero/varsity-editorial-2026-10-23/mobile.webp",
+    "publicId": "jacketee/home/hero/varsity-editorial-2026-10-23/mobile",
+    "alt": "Navy and burgundy varsity jackets with cream sleeves, photographed together above a clear dark background",
+    "width": 1024,
+    "height": 1536
+  }
+]

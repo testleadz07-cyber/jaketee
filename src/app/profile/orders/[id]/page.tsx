@@ -1,8 +1,9 @@
 'use client'
 
+import { Footer } from '@/components/footer'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState  } from 'react'
 import Image from '@/components/optimized-image'
 import { motion } from 'framer-motion'
 import { Header } from '@/components/header'
@@ -142,19 +143,7 @@ export default function OrderTrackingPage() {
   const [error, setError] = useState('')
   const [downloadingInvoice, setDownloadingInvoice] = useState(false)
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
-  }, [status, router])
-
-  useEffect(() => {
-    if (status === 'authenticated' && orderId) {
-      fetchOrder()
-    }
-  }, [status, orderId])
-
-  const fetchOrder = async () => {
+  async function fetchOrder() {
     setLoading(true)
     try {
       const res = await fetch(`/api/orders/${orderId}`)
@@ -171,6 +160,20 @@ export default function OrderTrackingPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    if (status === 'authenticated' && orderId) {
+      startTransition(() => { fetchOrder() })
+    }
+  }, [status, orderId])
+
+
 
   const handleDownloadInvoice = async () => {
     if (!order || downloadingInvoice) return
@@ -230,7 +233,7 @@ export default function OrderTrackingPage() {
   const trackingUrl = order.trackingNumber ? carrierTrackingUrl(order.carrier, order.trackingNumber) : null
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
@@ -535,11 +538,7 @@ export default function OrderTrackingPage() {
         </motion.div>
       </main>
 
-      <footer className="border-t bg-background mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2024 Jacketee. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

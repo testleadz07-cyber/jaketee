@@ -1,3 +1,4 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
@@ -10,7 +11,7 @@ import { SizeGuideResources } from '@/components/size-guide-resources'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Jacket & Vest Size Guide | Jacketee',
   description: 'Measure your chest, waist, sleeve, and jacket length. Compare reference body and garment measurements, then confirm the fit for your Jacketee style.',
   alternates: { canonical: `${SITE_URL}/size-guide` },
@@ -21,54 +22,20 @@ export const metadata: Metadata = {
     siteName: 'Jacketee',
     type: 'website',
   },
-}
+})
 
 export default function SizeGuidePage() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="category-page min-h-screen bg-background">
+      <Header home />
       <main>
-        <section className="border-b bg-zinc-950 text-white">
-          <div className="container mx-auto px-4 py-10 md:py-14">
-            <Breadcrumbs items={[{ label: 'Size Guide' }]} className="mb-6 text-white/70" />
-            <h1 className="text-3xl font-bold md:text-5xl">Jacket &amp; Vest Size Guide</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-white/75">
-              Measure your body, compare a jacket you already own, and check the exact fit of the style you plan to order.
-            </p>
-          </div>
+        <section className="section-shell py-6! md:py-8!">
+          <Breadcrumbs items={[{ label: 'Size Guide' }]} className="mb-5" />
+          <div className="rounded-2xl bg-[#242623] px-6 py-7 text-white sm:px-9"><p className="text-xs font-semibold uppercase tracking-widest text-white/65">A little measuring. A better starting point.</p><h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Jacket &amp; Vest Size Guide</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">Measure your body or compare a garment you already own. Use the reference charts below, then confirm the dimensions of the exact style you plan to order.</p><div className="mt-5 flex flex-wrap gap-x-5 gap-y-2"><a href="#size-charts" className="inline-flex min-h-11 items-center rounded-lg bg-white px-4 text-sm font-semibold text-zinc-950">View size charts</a><a href="#how-to-measure" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4">How to measure</a></div></div>
         </section>
-
-        <nav aria-label="Size guide sections" className="border-b bg-background">
-          <div className="container mx-auto grid grid-cols-2 px-4 text-sm font-medium sm:flex sm:flex-wrap sm:gap-8">
-            {[
-              { href: '#find-your-fit', label: 'Find your fit' },
-              { href: '#international-size-chart', label: 'US / UK / Europe' },
-              { href: '#body-size-chart', label: 'Body chart' },
-              { href: '#jacket-size-chart', label: 'Jacket chart' },
-              { href: '#vest-size-chart', label: 'Vest chart' },
-              { href: '#how-to-measure', label: 'How to measure' },
-            ].map((item) => (
-              <Link key={item.href} href={item.href} className="border-b px-1 py-4 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:border-b-0 sm:px-0">
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
+        <nav aria-label="Size guide sections" className="border-y bg-background"><div className="section-shell flex gap-5 overflow-x-auto py-0! text-sm font-medium sm:gap-8">{[{ href: '#size-charts', label: 'Size charts' }, { href: '#how-to-measure', label: 'Measuring' }, { href: '#fit-advice', label: 'Fit advice' }, { href: '#size-guide-faq-heading', label: 'FAQs' }].map(item => <a key={item.href} href={item.href} className="inline-flex min-h-12 shrink-0 items-center hover:text-primary focus-visible:outline-2 focus-visible:outline-primary">{item.label}</a>)}</div></nav>
 
         <JacketSizeReference />
-
-        <section className="border-t" aria-labelledby="explore-jacket-styles">
-          <div className="container mx-auto px-4 py-10">
-            <h2 id="explore-jacket-styles" className="text-2xl font-semibold">Find your jacket style</h2>
-            <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-              Use your measurements to compare our{' '}
-              <Link href="/varsity-jackets" className="font-medium text-foreground underline underline-offset-4 hover:text-primary">custom varsity jackets</Link>{' '}
-              and{' '}
-              <Link href="/puffer-jackets" className="font-medium text-foreground underline underline-offset-4 hover:text-primary">puffer jackets</Link>.
-              {' '}Check the selected style&apos;s fit and allow room for the layers you plan to wear underneath.
-            </p>
-          </div>
-        </section>
 
         <SizeGuideResources />
 

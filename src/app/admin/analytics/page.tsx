@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { startTransition, useEffect, useState, useCallback  } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -262,7 +262,7 @@ export default function AdminAnalyticsPage() {
   }, [])
 
   useEffect(() => {
-    if (status === 'authenticated') fetchData()
+    if (status === 'authenticated') startTransition(() => { fetchData() })
   }, [status, fetchData])
 
   if (status === 'loading') {

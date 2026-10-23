@@ -15,7 +15,7 @@ import { useCartStore } from '@/store/cart'
 import { captureJacketDesignPreviews, getJacketChestWidth } from '@/lib/jacket-design-preview'
 import { getCustomizationFee } from '@/lib/customization-pricing'
 import { DEFAULT_VARSITY_OPTIONS, VARSITY_COLORS, VARSITY_OPTIONS, VARSITY_TEMPLATE_ID, getVarsityImages, getVarsitySvg, getVarsityPrice, validateVarsityOptions } from '@/lib/varsity-template'
-import { JACKET_VIEWS } from '@/types/jacket-customization'
+import { JACKET_VIEWS, MAX_JACKET_TEXTS } from '@/types/jacket-customization'
 import { VARSITY_PART_COLORS } from '@/lib/varsity-svg'
 
 const DRAFT_KEY = 'jacketee-varsity-design-v1'
@@ -55,7 +55,7 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
       if (!saved.design || typeof saved.design !== 'object' || Array.isArray(saved.design)) return
       for (const view of JACKET_VIEWS) {
         const side = saved.design[view]
-        if (side && (typeof side !== 'object' || (side.artworks && !Array.isArray(side.artworks)) || (side.text && typeof side.text.value !== 'string'))) return
+        if (side && (typeof side !== 'object' || (side.artworks && !Array.isArray(side.artworks)) || (side.texts && (!Array.isArray(side.texts) || side.texts.length > MAX_JACKET_TEXTS || side.texts.some((text: { id?: unknown; value?: unknown }) => !text || typeof text.id !== 'string' || typeof text.value !== 'string'))) || (side.text && typeof side.text.value !== 'string'))) return
       }
       queueMicrotask(() => {
         restore(restored, saved.design)

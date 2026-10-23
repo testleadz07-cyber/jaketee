@@ -39,8 +39,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     getBlogImageCandidates(),
     BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }, { timestamps: false }),
   ])
-  const categoriesById = new Map(categories.map((category: any) => [String(category._id), category]))
-  const productsById = new Map(taggedProducts.map((product: any) => [String(product._id), product]))
+  const categoriesById = new Map(categories.map((category: any) => [String(category._id), category] as const))
+  const productsById = new Map(taggedProducts.map((product: any) => [String(product._id), product] as const))
   const productCategoryNodes = productCategories.map((category: any) => ({
     _id: String(category._id),
     name: category.name,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState  } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -112,10 +112,10 @@ export function BlogPostForm({
 
   useEffect(() => {
     if (!productQuery.trim()) {
-      setProductResults([])
+      startTransition(() => { setProductResults([]) })
       return
     }
-    setSearchingProducts(true)
+    startTransition(() => { setSearchingProducts(true) })
     const timeout = setTimeout(() => {
       fetch(`/api/products?search=${encodeURIComponent(productQuery)}&all=true&limit=10`)
         .then((r) => r.json())

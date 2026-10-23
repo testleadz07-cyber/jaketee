@@ -86,6 +86,7 @@ export async function PUT(
     }
     const product = await Product.findByIdAndUpdate(id, {
       name: body.name,
+      ...(Array.isArray(body.tags) ? { tags: [...new Set(body.tags.filter((tag: unknown): tag is string => typeof tag === 'string').map((tag: string) => tag.trim()).filter(Boolean))] } : {}),
       description: body.description,
       seoTitle: body.seoTitle || '',
       seoDescription: body.seoDescription || '',

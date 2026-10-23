@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { startTransition, useEffect, useRef, useState  } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Bell, Loader2 } from 'lucide-react'
@@ -55,7 +55,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (!isAdmin) return
-    fetchNotifications()
+    startTransition(() => { fetchNotifications() })
     const interval = setInterval(fetchNotifications, POLL_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [isAdmin])

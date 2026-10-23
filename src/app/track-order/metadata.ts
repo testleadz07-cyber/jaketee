@@ -1,9 +1,10 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/track-order`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Track Your Order — Jacketee',
   description: 'Enter your order number and email to get real-time shipping status and estimated delivery for your Jacketee order.',
   alternates: { canonical: PAGE_URL },
@@ -19,4 +20,4 @@ export const metadata: Metadata = {
     title: 'Track Your Order — Jacketee',
     description: 'Real-time order tracking for Jacketee purchases.',
   },
-}
+})

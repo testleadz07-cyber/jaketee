@@ -1,10 +1,14 @@
+import { BlogCard } from '@/components/blog-card'
 import Image from '@/components/optimized-image'
+import { cache } from 'react'
+import { withSocialMetadata, socialImageUrl } from '@/lib/seo-metadata'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, FileCheck2, Palette, PencilRuler, Users } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
+import { productGridClassName } from '@/lib/product-grid'
 import { connectDB } from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
@@ -14,7 +18,7 @@ import { getCustomLandingConfig } from '@/data/custom-jacket-landings'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
-async function getProducts(categorySlug: string) {
+export const getCustomLandingProducts = cache(async (categorySlug: string) => {
   try {
     const db = await connectDB()
     if (db) {
@@ -52,13 +56,25 @@ async function getProducts(categorySlug: string) {
   if (!category) return []
   const ids = new Set(resolveDescendantIds(categories.map((item) => ({ _id: item.id, parentId: item.parentId })), category.id))
   return getStaticProducts().filter((product) => ids.has(product.categoryId) && product.inStock).slice(0, 8)
+})
+
+export async function customLandingMetadata(config: ReturnType<typeof getCustomLandingConfig>) {
+  const products = await getCustomLandingProducts(config.categorySlug)
+  return withSocialMetadata({
+    title: config.title, description: config.description,
+    alternates: { canonical: `${SITE_URL}${config.path}` },
+    openGraph: {
+      url: `${SITE_URL}${config.path}`, type: 'website',
+      images: [{ url: socialImageUrl(products[0]?.images?.[0]?.url), width: 1200, height: 630, alt: config.keyword }],
+    },
+  })
 }
 
 export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) {
   const config = getCustomLandingConfig(pageKey)
-  const designerRoutes: Record<string, string> = { 'varsity-jackets': '/design/varsity', 'bomber-jackets': '/design/bomber', 'coach-jackets': '/design/coach', 'puffer-jackets': '/design/puffer' }
+  const designerRoutes: Record<string, string> = { 'varsity-jackets': '/design/varsity', 'bomber-jackets': '/design/bomber', 'coach-jackets': '/design/coach', 'puffer-jackets': '/design/puffer', 'fleece-hoodies': '/design/hoodie' }
   const designerHref = designerRoutes[config.categorySlug]
-  const products = await getProducts(config.categorySlug)
+  const products = await getCustomLandingProducts(config.categorySlug)
   const startingPrice = products.length ? Math.min(...products.map((product) => product.price)) : null
   const heroImage = products[0]?.images?.[0]?.url
   const canonical = `${SITE_URL}${config.path}`
@@ -89,7 +105,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
               <h1 className="text-4xl font-bold md:text-6xl">{config.keyword}</h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/90 md:text-lg">{config.intro}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href={designerHref ? '/design/varsity' : config.categoryHref} className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">{designerHref ? 'Start Your Design' : 'Choose a Jacket'} <ArrowRight className="h-4 w-4" /></Link>
+                <Link href={config.categorySlug === 'fleece-hoodies' ? '/design/hoodie' : designerHref ? '/design/varsity' : config.categoryHref} className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">{config.categorySlug === 'fleece-hoodies' ? 'Design Your Hoodie' : designerHref ? 'Start Your Design' : 'Choose a Jacket'} <ArrowRight className="h-4 w-4" /></Link>
                 <Link href="/bulk-orders" className="inline-flex h-11 items-center border border-white/60 px-5 text-sm font-semibold text-white hover:bg-white hover:text-zinc-950">Get a Bulk Quote</Link>
               </div>
             </div>
@@ -102,7 +118,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
               <div><p className="text-sm font-semibold uppercase text-muted-foreground">Choose a starting style</p><h2 id={`${pageKey}-products`} className="mt-2 text-2xl font-bold md:text-3xl">Current {config.keyword.toLowerCase()}</h2></div>
               <Link href={config.categoryHref} className="inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">View the full collection <ArrowRight className="h-4 w-4" /></Link>
             </div>
-            {products.length > 0 ? <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="mt-8 text-muted-foreground">Contact Jacketee to discuss the current styles available for this project.</p>}
+            {products.length > 0 ? <div className={`${productGridClassName} mt-8`}>{products.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="mt-8 text-muted-foreground">Contact Jacketee to discuss the current styles available for this project.</p>}
           </div>
         </section>
 
@@ -149,7 +165,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
         </section>
 
         <section className="border-b py-12 md:py-16">
-          <div className="container mx-auto px-4"><h2 className="text-2xl font-bold md:text-3xl">Related design guides</h2><div className="mt-7 grid gap-6 border-t pt-7 md:grid-cols-3">{config.guides.map((guide) => <Link key={guide.slug} href={`/blog/${guide.slug}`} className="group border-b pb-5"><span className="text-lg font-semibold group-hover:underline">{guide.title}</span><span className="mt-4 flex items-center gap-1 text-sm font-semibold">Read guide <ArrowRight className="h-4 w-4" /></span></Link>)}</div></div>
+          <div className="container mx-auto px-4"><h2 className="text-2xl font-bold md:text-3xl">Related design guides</h2><div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{config.guides.map(guide => <BlogCard key={guide.slug} article={{ ...guide, excerpt: "" }} />)}</div></div>
         </section>
 
         <section className="bg-red-800 py-12 text-white md:py-16"><div className="container mx-auto flex flex-col gap-6 px-4 md:flex-row md:items-end md:justify-between"><div><CheckCircle2 className="h-7 w-7" /><h2 className="mt-4 text-2xl font-bold md:text-3xl">Ready to plan your {config.keyword.toLowerCase()}?</h2><p className="mt-3 max-w-2xl text-white/80">Choose a starting jacket or send the team your artwork, quantity, sizes, and destination for a project-specific quote and free mockup.</p></div><Link href="/contact" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 bg-white px-5 text-sm font-semibold text-red-900 hover:bg-white/90">Start your project <ArrowRight className="h-4 w-4" /></Link></div></section>

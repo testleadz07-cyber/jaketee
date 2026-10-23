@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { ProductTagsSummary } from '@/components/admin/product-tags-summary'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
@@ -84,6 +85,8 @@ export default function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
+  const [tagFilter, setTagFilter] = useState('')
+  const [availableTags, setAvailableTags] = useState<string[]>([])
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [stockFilter, setStockFilter] = useState('all')
   const [featuredFilter, setFeaturedFilter] = useState('all')
@@ -117,11 +120,28 @@ export default function AdminProducts() {
     return () => clearTimeout(t)
   }, [searchInput])
 
+  useEffect(() => {
+    const readTag = () => { setTagFilter(new URLSearchParams(window.location.search).get('tag') || ''); setPage(1) }
+    readTag()
+    window.addEventListener('popstate', readTag)
+    return () => window.removeEventListener('popstate', readTag)
+  }, [])
+
+  const changeTag = (tag: string) => {
+    setTagFilter(tag)
+    setPage(1)
+    const url = new URL(window.location.href)
+    if (tag) url.searchParams.set('tag', tag)
+    else url.searchParams.delete('tag')
+    window.history.replaceState(null, '', url)
+  }
+
   const fetchProducts = useCallback(async (signal?: AbortSignal) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
       params.set('all', 'true')
+      if (tagFilter) params.set('tag', tagFilter)
       params.set('page', String(page))
       params.set('limit', String(limit))
       if (searchQuery.trim()) params.set('search', searchQuery.trim())
@@ -165,7 +185,7 @@ export default function AdminProducts() {
         setHasLoaded(true)
       }
     }
-  }, [page, searchQuery, categoryFilter, stockFilter, featuredFilter, statusFilter, dateFrom, dateTo, sortBy])
+  }, [page, tagFilter, searchQuery, categoryFilter, stockFilter, featuredFilter, statusFilter, dateFrom, dateTo, sortBy])
 
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -178,6 +198,7 @@ export default function AdminProducts() {
 
   useEffect(() => {
     if (status === 'authenticated') {
+      fetch('/api/admin/tags', { cache: 'no-store' }).then(res => { if (!res.ok) throw new Error('Could not load tags'); return res.json() }).then(data => setAvailableTags(data.tags || [])).catch(() => toast({ title: 'Could not load tag filters', variant: 'destructive' }))
       fetch('/api/categories')
         .then((res) => res.json())
         .then((data) => setCategories(Array.isArray(data) ? data : []))
@@ -315,8 +336,9 @@ export default function AdminProducts() {
 
   const allFilteredSelected = filteredProducts.length > 0 && 
     filteredProducts.every(p => selectedIds.includes(p.id || p._id || ''))
-  const hasFilters = Boolean(searchInput || categoryFilter !== 'all' || stockFilter !== 'all' || featuredFilter !== 'all' || statusFilter !== 'all' || dateFrom || dateTo || sortBy !== 'newest')
+  const hasFilters = Boolean(tagFilter || searchInput || categoryFilter !== 'all' || stockFilter !== 'all' || featuredFilter !== 'all' || statusFilter !== 'all' || dateFrom || dateTo || sortBy !== 'newest')
   const clearFilters = () => {
+    changeTag('')
     setSearchInput('')
     setSearchQuery('')
     setCategoryFilter('all')
@@ -413,6 +435,12 @@ export default function AdminProducts() {
             </Select>
           </div>
           <div className="flex flex-wrap items-end gap-3">
+            <label className="text-xs font-medium text-muted-foreground">Tag
+              <select aria-label="Filter by tag" className="mt-1 flex h-10 w-[200px] rounded-md border bg-background px-3 text-sm text-foreground" value={tagFilter} onChange={event => changeTag(event.target.value)}>
+                <option value="">All tags</option>
+                {[...new Set([...availableTags, ...(tagFilter ? [tagFilter] : [])])].map(tag => <option key={tag} value={tag}>{tag}</option>)}
+              </select>
+            </label>
             <label className="text-xs font-medium text-muted-foreground">Added from
               <Input type="date" value={dateFrom} max={dateTo || undefined} onChange={(event) => { setDateFrom(event.target.value); setPage(1) }} className="mt-1 w-[170px] text-foreground" />
             </label>
@@ -481,6 +509,9 @@ export default function AdminProducts() {
                             <span>{product.category?.name || 'Uncategorized'}</span>
                             <span>•</span>
                             <span className="font-mono truncate max-w-[180px]" title={product.slug}>{product.slug}</span>
+                          </div>
+                          <div className="mt-2">
+                            <ProductTagsSummary tags={product.tags || []} productName={product.name} onSelect={changeTag} />
                           </div>
                           <div className="flex gap-1.5 mt-2 flex-wrap">
                             {product.isFeatured && (

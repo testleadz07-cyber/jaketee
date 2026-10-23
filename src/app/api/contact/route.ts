@@ -3,58 +3,47 @@ import { sendEmail, contactCustomerReplyTemplate, contactFormTemplate } from '@/
 import { createNotification } from '@/lib/notifications'
 import { connectDB } from '@/lib/mongodb'
 import ContactMessage from '@/models/ContactMessage'
-import { normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
+import { validateContact } from '@/lib/contact-validation'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, email, subject, country } = body
-    if (country && shippingCountryError(country)) {
-      return NextResponse.json({ error: shippingCountryError(country) }, { status: 400 })
+    let body: unknown
+    try { body = await request.json() } catch {
+      return NextResponse.json({ error: 'Please send a valid message.' }, { status: 400 })
     }
-    const message = country ? `Delivery country: ${normalizeShippingCountry(country)}\n\n${body.message || ''}` : body.message
+    const { values, errors } = validateContact(body)
+    if (Object.keys(errors).length) return NextResponse.json({ error: 'Please check the highlighted fields.', errors }, { status: 400 })
+    const { name, email, subject, country } = values
+    const message = country ? `Delivery country: ${country}\n\n${values.message}` : values.message
 
-    if (!name || !email || !subject || !body.message) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
-    }
-
-    // Send email to store owner
-    const adminEmail = process.env.SMTP_USER || 'info@jacketee.com'
-    const ownerEmailHtml = contactFormTemplate({ name, email, subject, message })
-    
-    await sendEmail({
-      to: adminEmail,
-      subject: `New Contact Form Submission: ${subject}`,
-      html: ownerEmailHtml,
-    })
-
-    // Send auto-reply to customer
-    const customerReplyHtml = contactCustomerReplyTemplate({ name, subject })
-    
-    await sendEmail({
-      to: email,
-      subject: 'Jacketee - Inquiry Received',
-      html: customerReplyHtml,
-    })
-
+    // Accept the inquiry only after it has been durably saved.
     const db = await connectDB()
-    if (db) {
-      await ContactMessage.create({ name, email, subject, message })
-    }
+    if (!db) return NextResponse.json({ error: 'We could not save your message. Please try again.' }, { status: 503 })
+    await ContactMessage.create({ name, email, subject, message })
 
-    await createNotification({
-      type: 'contact_form',
-      title: 'New contact form submission',
-      message: `${name}: ${subject}`,
-      metadata: { name, email, subject, message },
-    })
+    // A notification failure must not turn a saved inquiry into a failed submission.
+    const deliveries = await Promise.allSettled([
+      Promise.resolve().then(() => createNotification({
+        type: 'contact_form', title: 'New contact form submission',
+        message: name + ': ' + subject, link: '/admin/contact-messages',
+        metadata: { name, email, subject, message },
+      })),
+      Promise.resolve().then(() => sendEmail({
+        to: process.env.SMTP_USER || 'info@jacketee.com',
+        subject: 'New Contact Form Submission: ' + subject,
+        html: contactFormTemplate({ name, email, subject, message }),
+      })),
+      Promise.resolve().then(() => sendEmail({
+        to: email, subject: 'Jacketee - Inquiry Received',
+        html: contactCustomerReplyTemplate({ name, subject }),
+      })),
+    ])
+    if (deliveries.some(result => result.status === 'rejected' || (result.value && result.value.success === false))) {
+      console.error('Contact message saved, but notification delivery failed')
+    }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Contact form API error:', error)
     return NextResponse.json({ error: 'Failed to process your message' }, { status: 500 })
   }

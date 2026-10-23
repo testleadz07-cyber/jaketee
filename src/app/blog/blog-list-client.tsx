@@ -1,12 +1,10 @@
 'use client'
 
+import { BlogCard } from '@/components/blog-card'
 import { blogArchivePath } from '@/lib/blog-archive'
-import { motion } from 'framer-motion'
-import Image from '@/components/optimized-image'
 import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   Pagination,
@@ -16,7 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { Newspaper, Filter, Calendar, User } from 'lucide-react'
+import { Newspaper, Filter } from 'lucide-react'
 
 export interface BlogPostSummary {
   id: string
@@ -37,17 +35,6 @@ export interface BlogCategory {
   slug: string
 }
 
-function formatDate(dateString: string) {
-  try {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  } catch {
-    return dateString
-  }
-}
 
 export default function BlogListPage({ posts, categories, page, pages, total, categorySlug, tag }: {
   posts: BlogPostSummary[]
@@ -80,6 +67,7 @@ export default function BlogListPage({ posts, categories, page, pages, total, ca
       </section>
 
       <aside className="container mx-auto px-4 py-6" aria-label="Customization guide">
+        <Link href="/blog/custom-fleece-hoodie-design-guide" className="mb-3 block rounded-lg border bg-muted/30 p-5 font-semibold hover:underline">Design your fleece hoodie: pullover, full-zip, fit, and artwork</Link>
         <Link href="/blog/custom-jacket-design-guide" className="mb-3 block rounded-lg border bg-muted/30 p-5 font-semibold hover:underline">Design a bomber, coach, or puffer jacket: materials, construction, and artwork</Link>
         <Link href="/blog/custom-varsity-jacket-design-guide" className="block rounded-lg border bg-muted/30 p-5 font-semibold hover:underline">How to design your own varsity jacket: colors, materials, and artwork</Link>
       </aside>
@@ -112,50 +100,7 @@ export default function BlogListPage({ posts, categories, page, pages, total, ca
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((post) => (
-                <motion.div
-                  key={post.id}
-                >
-                  <Link href={`/blog/${post.slug}`}>
-                    <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }} className="h-full">
-                      <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer pt-0 shadow-sm">
-                        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-                          <Image
-                            src={post.featuredImage || '/placeholder.png'}
-                            alt={post.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="media-zoom object-cover"
-                          />
-                          {post.categories?.[0] && (
-                            <span className="absolute top-3 left-3 z-10">
-                              <Badge variant="secondary">{post.categories[0].name}</Badge>
-                            </span>
-                          )}
-                        </div>
-                        <CardContent className="p-5">
-                          <h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                            {post.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                            {post.excerpt}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <User className="h-3.5 w-3.5" />
-                              {'Jacketee Team'}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              {post.publishedAt ? formatDate(post.publishedAt) : 'Jacketee guide'}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </Link>
-                </motion.div>
-              ))}
+              {posts.map(post => <BlogCard key={post.id} article={post} />)}
             </div>
 
             {pages > 1 && (

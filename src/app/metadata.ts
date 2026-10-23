@@ -1,8 +1,9 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Custom Varsity & Bomber Jackets | Jacketee',
   description:
     'Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.',
@@ -21,4 +22,4 @@ export const metadata: Metadata = {
     description:
       'Shop varsity, bomber, leather, puffer, and other jackets at Jacketee. Explore custom colors, patches, embroidery, and bulk order options.',
   },
-}
+})

@@ -29,12 +29,15 @@ interface ProductCardProps {
     categoryPath?: Array<{ name: string; slug: string }>
     isFeatured: boolean
   }
+  categoryLabel?: string
+  collection?: boolean
+  home?: boolean
   listingPosition?: number
 }
 
-export function ProductCard({ product, listingPosition }: ProductCardProps) {
+export function ProductCard({ product, listingPosition, home = false, collection = false, categoryLabel }: ProductCardProps) {
   const { data: session } = useSession()
-  const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id))
+  const isInWishlist = useWishlistStore((state) => state.items.some((item) => item.productId === product.id))
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const imageUrl = product.images[0]?.url || '/placeholder.png'
@@ -57,20 +60,21 @@ export function ProductCard({ product, listingPosition }: ProductCardProps) {
   }
 
   return (
-    <Link href={buildProductUrl(product)} onClick={logListingClick}>
+    <Link href={buildProductUrl(product)} onClick={logListingClick} className="block h-full min-w-0">
       <div className="interactive-lift h-full">
-        <Card className="h-full overflow-hidden border hover:border-primary/60 transition-colors group cursor-pointer shadow-sm">
+        <Card className="h-full gap-0 overflow-hidden border py-0 hover:border-primary/60 transition-colors group cursor-pointer shadow-sm">
           <div className="relative aspect-square overflow-hidden bg-muted">
             <Image
               src={imageUrl}
               alt={product.images[0]?.alt || product.name}
               fill
-              sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw"
+              sizes="(max-width: 1023px) 50vw, (max-width: 1279px) 25vw, 320px"
               quality={70}
-              className="media-zoom object-cover"
+              priority={collection && listingPosition === 1}
+              className={(home || collection) ? "media-zoom object-contain bg-white p-2" : "media-zoom object-cover"}
               onError={(event) => { event.currentTarget.src = '/placeholder.png' }}
             />
-            
+
             <Button
               size="icon"
               variant="secondary"
@@ -102,12 +106,12 @@ export function ProductCard({ product, listingPosition }: ProductCardProps) {
             </Button>
 
             {discount > 0 && (
-              <Badge className="absolute top-3 left-3 border-red-800 bg-red-800 text-white">
-                -{discount}%
+              <Badge className="absolute top-3 left-3 z-10 border-red-800 bg-red-800 text-white">
+                {discount}% OFF
               </Badge>
             )}
-            {product.isFeatured && (
-              <Badge className="absolute top-3 right-13 z-10" variant="secondary">
+            {product.isFeatured && !home && !collection && (
+              <Badge className="absolute bottom-3 left-3 z-10" variant="secondary">
                 <Star className="h-3 w-3 mr-1 fill-yellow-500 text-yellow-500" />
                 Featured
               </Badge>
@@ -115,22 +119,19 @@ export function ProductCard({ product, listingPosition }: ProductCardProps) {
             <div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
           </div>
 
-          <CardContent className="p-4">
-            <Badge variant="outline" className="mb-2 text-xs">
+          <CardContent className="flex flex-1 flex-col p-3 sm:p-4">
+            {categoryLabel && <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{categoryLabel}</p>}
+            {!home && <Badge variant="outline" className="mb-2 max-w-full self-start truncate text-xs">
               {product.category?.name || 'Uncategorized'}
-            </Badge>
+            </Badge>}
 
-            <h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+            <h3 className="mb-3 min-h-10 text-sm font-semibold leading-5 line-clamp-2 group-hover:text-primary transition-colors sm:min-h-12 sm:text-base sm:leading-6">
               {product.name}
             </h3>
 
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-              {product.description}
-            </p>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-primary">
+            <div className="mt-auto flex items-center justify-between">
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="text-lg font-bold text-primary sm:text-xl">
                   ${product.price.toFixed(2)}
                 </span>
                 {displayCompareAtPrice && (

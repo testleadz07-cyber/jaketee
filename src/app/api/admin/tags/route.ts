@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
+import Tag from '@/models/Tag'
 
 // Ensure DB connection
 async function ensureDB() {
@@ -20,8 +21,17 @@ export async function GET() {
   }
   try {
     await ensureDB()
-    const tags = await Product.distinct('tags') as string[]
-    return NextResponse.json({ tags })
+    const [registered, usage] = await Promise.all([
+      Tag.find().lean(),
+      Product.aggregate([
+        { $project: { tags: { $setUnion: [{ $ifNull: ['$tags', []] }, []] } } },
+        { $unwind: '$tags' },
+        { $group: { _id: '$tags', count: { $sum: 1 } } },
+      ]),
+    ])
+    const counts = new Map<string, number>(usage.map(item => [item._id, item.count]))
+    const tags = [...new Set<string>([...registered.map(item => item.name), ...counts.keys()])].sort((a, b) => a.localeCompare(b))
+    return NextResponse.json({ tags, usage: tags.map(name => ({ name, productCount: counts.get(name) || 0 })) }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     console.error('GET /api/admin/tags error:', error)
     return NextResponse.json({ error: 'Failed to fetch tags' }, { status: 500 })
@@ -36,17 +46,19 @@ export async function POST(request: Request) {
   }
   try {
     await ensureDB()
-    const { tag } = await request.json()
+    const body = await request.json()
+    const tag = typeof body.tag === 'string' ? body.tag.trim() : ''
     if (!tag || typeof tag !== 'string') {
       return NextResponse.json({ error: 'Tag is required' }, { status: 400 })
     }
-    const existing = await Product.findOne({ tags: tag })
+    const existing = await Tag.findOne({ name: tag }) || await Product.findOne({ tags: tag })
     if (existing) {
       return NextResponse.json({ error: 'Tag already exists' }, { status: 409 })
     }
-    // No product directly uses the tag yet, but we can create a dummy product? Instead, just return success.
+    await Tag.create({ name: tag })
     return NextResponse.json({ tag })
   } catch (error) {
+    if ((error as { code?: number }).code === 11000) return NextResponse.json({ error: 'Tag already exists' }, { status: 409 })
     console.error('POST /api/admin/tags error:', error)
     return NextResponse.json({ error: 'Failed to add tag' }, { status: 500 })
   }
@@ -60,12 +72,21 @@ export async function PUT(request: Request) {
   }
   try {
     await ensureDB()
-    const { oldTag, newTag } = await request.json()
+    const body = await request.json()
+    const oldTag = typeof body.oldTag === 'string' ? body.oldTag.trim() : ''
+    const newTag = typeof body.newTag === 'string' ? body.newTag.trim() : ''
     if (!oldTag || !newTag) {
       return NextResponse.json({ error: 'oldTag and newTag are required' }, { status: 400 })
     }
-    // Update all products containing oldTag
-    await Product.updateMany({ tags: oldTag }, { $addToSet: { tags: newTag }, $pull: { tags: oldTag } })
+    if (oldTag === newTag) return NextResponse.json({ oldTag, newTag })
+    const exists = await Tag.exists({ name: oldTag }) || await Product.exists({ tags: oldTag })
+    if (!exists) return NextResponse.json({ error: 'Tag not found' }, { status: 404 })
+    if (await Tag.exists({ name: newTag }) || await Product.exists({ tags: newTag })) {
+      return NextResponse.json({ error: 'Tag already exists' }, { status: 409 })
+    }
+    await Tag.updateOne({ name: newTag }, { $setOnInsert: { name: newTag } }, { upsert: true })
+    await Product.updateMany({ tags: oldTag }, [{ $set: { tags: { $setUnion: [{ $filter: { input: '$tags', as: 'tag', cond: { $ne: ['$$tag', { $literal: oldTag }] } } }, { $literal: [newTag] }] } } }])
+    await Tag.deleteOne({ name: oldTag })
     return NextResponse.json({ oldTag, newTag })
   } catch (error) {
     console.error('PUT /api/admin/tags error:', error)
@@ -81,11 +102,13 @@ export async function DELETE(request: Request) {
   }
   try {
     await ensureDB()
-    const { tag } = await request.json()
+    const body = await request.json()
+    const tag = typeof body.tag === 'string' ? body.tag.trim() : ''
     if (!tag) {
       return NextResponse.json({ error: 'Tag is required' }, { status: 400 })
     }
     await Product.updateMany({ tags: tag }, { $pull: { tags: tag } })
+    await Tag.deleteOne({ name: tag })
     return NextResponse.json({ deletedTag: tag })
   } catch (error) {
     console.error('DELETE /api/admin/tags error:', error)

@@ -1,0 +1,111 @@
+{
+  "_id": {
+    "$oid": "6ad9273b0d8f98908ab0b00a"
+  },
+  "slug": "oversized-black-cream-varsity-jacket-women",
+  "averageRating": 0,
+  "careInstructions": "Spot clean the wool body with a damp cloth and mild cleaner. Condition genuine leather sleeves with a suitable leather conditioner, testing a hidden area first. Do not machine wash, soak or tumble dry. Use a cleaner experienced with mixed wool and leather garments when needed.",
+  "categoryId": {
+    "$oid": "6a9efc07f67a6c3a3788c394"
+  },
+  "createdAt": {
+    "$date": "2026-10-21T20:57:31.953Z"
+  },
+  "currency": "USD",
+  "description": "For shoppers searching for oversized varsity jacket women styles, this black and cream option offers relaxed proportions for everyday wear. Dropped shoulders and a longer body define the silhouette, and our factory has confirmed the oversized pattern.\n\nDetails\n- Body: black 24 oz melton wool\n- Sleeves: cream genuine cowhide leather\n- Trim: black and cream striped knit collar, cuffs and waistband\n- Lining: quilted lining\n- Closure: snap-button front\n- Pockets: two welt pockets\n- Fit: Oversized fit with dropped shoulders and a longer body\n- Sizes: XXS through 6XL\n\nCustomization options\n- Chenille letter and name embroidery\n- Number, patches and back lettering\n- Free digital design proof before production.\n\nExplore oversized varsity jacket styling or oversized letterman jacket women with your own personal details. Choose your layout through our [custom letterman jacket](/custom-letterman-jackets) options and review the placement before production.\n\nProduction and delivery\nMade in our Sialkot factory. Made in 6–7 business days after design approval. Delivery in 5–7 business days.",
+  "images": [],
+  "inStock": true,
+  "isDraft": true,
+  "isFeatured": false,
+  "landingPages": [],
+  "name": "Oversized Black and Cream Varsity Jacket for Women",
+  "price": 60,
+  "primaryKeyword": "oversized varsity jacket women",
+  "reviewCount": 0,
+  "secondaryKeywords": [
+    "oversized varsity jacket",
+    "oversized letterman jacket women"
+  ],
+  "seoDescription": "Oversized varsity jacket for women with a black wool body and cream leather sleeves. A relaxed, dropped-shoulder fit you can personalize with patches.",
+  "seoTitle": "Oversized Black and Cream Varsity Jacket for Women",
+  "sizeChart": {
+    "name": "Oversized",
+    "patternConfirmed": true,
+    "measurementStatus": "Factory garment measurements pending"
+  },
+  "sourceBatch": "jacketee-batch-1",
+  "specificationDetails": "Body: black 24 oz melton wool\nSleeves: cream genuine cowhide leather\nTrim: black and cream striped knit collar, cuffs and waistband\nLining: quilted lining\nClosure: snap-button front\nPockets: two welt pockets\nFit: Oversized fit with dropped shoulders and a longer body\nSizes: XXS through 6XL",
+  "status": "inactive",
+  "tags": [],
+  "updatedAt": {
+    "$date": "2026-10-21T20:57:31.953Z"
+  },
+  "variants": [
+    {
+      "name": "Size",
+      "value": "XXS",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "XS",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "S",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "M",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "L",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "2XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "3XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "4XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "5XL",
+      "priceAdjust": 0,
+      "inStock": true
+    },
+    {
+      "name": "Size",
+      "value": "6XL",
+      "priceAdjust": 0,
+      "inStock": true
+    }
+  ]
+}

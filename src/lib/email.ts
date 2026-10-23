@@ -1,3 +1,4 @@
+import { JACKET_VIEWS, getJacketViewLabel, getJacketTextSummary } from '@/types/jacket-customization'
 import nodemailer from 'nodemailer'
 import type { JacketCustomization } from '@/types/jacket-customization'
 
@@ -21,10 +22,12 @@ export async function sendEmail({
   to,
   subject,
   html,
+  attachments,
 }: {
   to: string
   subject: string
   html: string
+  attachments?: { filename: string; content: Buffer; contentType: string }[]
 }) {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.log('Email not configured. Would send to:', to, 'Subject:', subject)
@@ -38,6 +41,7 @@ export async function sendEmail({
       to,
       subject,
       html,
+      attachments,
     })
     console.log('Email sent:', { to, subject, messageId: info.messageId })
     return { success: true, message: 'Email sent', messageId: info.messageId }
@@ -155,14 +159,14 @@ export function orderConfirmationTemplate(order: {
   const itemsHtml = order.items
     .map(
       (item) => {
-        const customization = (['front', 'back'] as const)
+        const customization = JACKET_VIEWS
           .map((view) => {
             const side = item.customization?.[view]
             const details = [
-              side?.text?.value ? `Text: ${side.text.value}` : '',
+              getJacketTextSummary(side) ? `Text: ${getJacketTextSummary(side)}` : '',
               ...(side?.artworks || []).map((artwork) => `Artwork: ${artwork.name}`),
             ].filter(Boolean)
-            return details.length ? `${view[0].toUpperCase()}${view.slice(1)} - ${details.join(', ')}` : ''
+            return details.length ? `${getJacketViewLabel(view)} - ${details.join(', ')}` : ''
           })
           .filter(Boolean)
         return `

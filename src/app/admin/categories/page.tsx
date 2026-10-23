@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState  } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -123,7 +123,7 @@ export default function AdminCategories() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchCategories()
+      startTransition(() => { fetchCategories() })
     }
   }, [status])
 
@@ -144,7 +144,7 @@ export default function AdminCategories() {
     setEditForm(prev => ({ ...prev, name: val, slug }))
   }
 
-  const fetchCategories = async () => {
+  async function fetchCategories() {
     try {
       const res = await fetch('/api/categories')
       if (res.ok) {

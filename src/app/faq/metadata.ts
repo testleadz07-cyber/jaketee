@@ -1,15 +1,16 @@
+import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/faq`
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSocialMetadata({
   title: 'Frequently Asked Questions — Jacketee',
-  description: 'Find answers to common questions about shipping, returns, payments, order tracking, and more at Jacketee.',
+  description: 'Search Jacketee FAQs about custom jacket design, sizing, production, shipping, returns, payments and bulk team orders. Browse answers by topic or contact the team.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'FAQ — Jacketee',
-    description: 'Answers to the most common questions about orders, shipping, returns, and payments at Jacketee.',
+    description: 'Find help with jacket customization, sizing, order tracking, production, shipping, returns and bulk team orders.',
     url: PAGE_URL,
     siteName: 'Jacketee',
     type: 'website',
@@ -17,6 +18,6 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: 'FAQ — Jacketee',
-    description: 'Common questions about shipping, returns, payments, and orders at Jacketee.',
+    description: 'Search answers about custom jackets, sizing, shipping, returns and bulk orders.',
   },
-}
+})
