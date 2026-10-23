@@ -1,6 +1,8 @@
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
-import Image from '@/components/optimized-image'
+import { getImageProps } from 'next/image'
+import imageLoader from '@/lib/image-loader'
+import { getHomeHeroImages, homeHeroImage, homeHeroAlt } from '@/lib/home-hero-images'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Factory, Mail, MapPin, Phone } from 'lucide-react'
 import { Header } from '@/components/header'
@@ -8,7 +10,6 @@ import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
-const heroImage = 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1788899943/clothaa/exports/patches-embroidery/hero__varsity-jacket-patches-embroidery-hero.jpg'
 
 export const metadata: Metadata = withSocialMetadata({
   title: 'About Jacketee | Custom Jacket Factory & Team',
@@ -20,7 +21,7 @@ export const metadata: Metadata = withSocialMetadata({
     url: `${siteUrl}/about`,
     siteName: 'Jacketee',
     type: 'website',
-    images: [{ url: heroImage, alt: 'Custom varsity jacket with patches and embroidery' }],
+    images: [{ url: homeHeroImage, alt: homeHeroAlt }],
   },
 })
 
@@ -37,13 +38,22 @@ const audiences = [
   { title: 'Private labels', text: 'Jacket programs planned around your branding, labels, samples, and repeat orders.', href: '/bulk-orders/private-label' },
 ]
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const images = await getHomeHeroImages()
+  const { props } = getImageProps({
+    src: images.desktop.url, alt: images.desktop.alt, fill: true, priority: true,
+    sizes: '100vw', loader: imageLoader, className: 'object-cover object-top',
+  })
+  const mobileSrcSet = [320, 480, 640, 750, 828, 1080].map(width => `${imageLoader({ src: images.mobile.url, width })} ${width}w`).join(', ')
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
         <section className="relative flex min-h-[430px] items-center overflow-hidden bg-zinc-950 text-white md:min-h-[520px]">
-          <Image src={heroImage} alt="Custom varsity jacket with patches and embroidery" fill priority sizes="100vw" className="object-cover object-center" />
+          <picture>
+            <source media="(max-width: 767px)" srcSet={mobileSrcSet} sizes="100vw" />
+            <img {...props} alt={props.alt} />
+          </picture>
           <div className="absolute inset-0 bg-black/55" />
           <div className="container relative mx-auto px-4 py-14">
             <Breadcrumbs items={[{ label: 'About' }]} className="mb-8 text-white/80" />

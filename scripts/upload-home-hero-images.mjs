@@ -25,7 +25,7 @@ try {
     if (!response.ok || !response.headers.get('content-type')?.startsWith('image/')) throw new Error(`Cloudinary verification failed: ${image.key}`)
     const existing = await collection.findOne({ section: manifest.section, key: image.key })
     if (existing?.url !== image.url) await collection.updateOne({ section: manifest.section, key: image.key, url: existing?.url ?? { $exists: false } }, {
-      $set: { url: image.url, publicId: image.publicId, originalUrl: existing?.originalUrl || existing?.url || 'https://res.cloudinary.com/dhdfbl8pc/image/upload/v1788899943/clothaa/exports/patches-embroidery/hero__varsity-jacket-patches-embroidery-hero.jpg', alt: image.alt, width: image.width, height: image.height, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() },
+      $set: { url: image.url, publicId: image.publicId, originalUrl: existing?.originalUrl || existing?.url || image.url, alt: image.alt, width: image.width, height: image.height, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() },
     }, { upsert: !existing })
     if ((await collection.findOne({ section: manifest.section, key: image.key }))?.url !== image.url) throw new Error(`Database verification failed: ${image.key}`)
     console.log(JSON.stringify({ key: image.key, uploaded: true, databaseSaved: true }))
