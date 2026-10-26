@@ -1,5 +1,7 @@
 'use client'
 
+import { SectionLoadingSkeleton } from '@/components/page-content-skeleton'
+
 import { startTransition, useState, useEffect, Suspense  } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -203,7 +205,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-4">
         <Breadcrumbs items={[{ label: 'Sign In', href: '/login' }, { label: 'Reset Password' }]} className="flex justify-center" />
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<SectionLoadingSkeleton layout="form" label="Loading password form" />}>
           <ResetPasswordContent />
         </Suspense>
       </div>

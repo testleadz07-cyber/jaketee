@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -23,11 +26,11 @@ export default function TagsPage() {
   const [editingTag, setEditingTag] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
-  const [search, setSearch] = useState('')
-  const [letter, setLetter] = useState('all')
-  const [sortOrder, setSortOrder] = useState('asc')
-  const [pageSize, setPageSize] = useState(10)
-  const [page, setPage] = useState(1)
+  const [search, setSearch] = useUrlFilter<string>('search', '')
+  const [letter, setLetter] = useUrlFilter<string>('letter', 'all')
+  const [sortOrder, setSortOrder] = useUrlFilter<string>('sort', 'asc')
+  const [pageSize, setPageSize] = useUrlFilter<number>('limit', 10)
+  const [page, setPage] = useUrlFilter<number>('page', 1)
 
   const filteredTags = tags
     .filter(tag => tag.toLowerCase().includes(search.trim().toLowerCase()))
@@ -165,6 +168,7 @@ export default function TagsPage() {
 
       {/* Main */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'search', label: 'Search', defaultValue: '' }, { key: 'letter', label: 'Letter', defaultValue: 'all' }, { key: 'sort', label: 'Sort', defaultValue: 'asc' }]} />
         <div className="flex items-center gap-2 mb-2">
           <TagsIcon className="h-6 w-6 text-primary" />
           <h2 className="text-2xl font-bold">Tag Management</h2>

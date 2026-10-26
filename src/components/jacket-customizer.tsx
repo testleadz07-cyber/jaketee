@@ -11,6 +11,8 @@ import { Separator } from '@/components/ui/separator'
 import { Check, Loader2, Minus, Plus, ShoppingBag, ShoppingCart } from 'lucide-react'
 import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import { JacketDesignCanvas } from '@/components/jacket-design-canvas'
+import { designOptionVisible } from '@/lib/design-view-controls'
+import type { JacketView } from '@/types/jacket-customization'
 import { captureJacketDesignPreviews, getJacketChestWidth } from '@/lib/jacket-design-preview'
 import { JACKET_VIEWS, getCustomizedViews, getJacketViewLabel, hasJacketCustomization, type JacketCustomization } from '@/types/jacket-customization'
 
@@ -71,6 +73,7 @@ export function JacketCustomizer({
 }: JacketCustomizerProps) {
 
   const [customization, setCustomization] = useState<JacketCustomization>({})
+  const [activeView, setActiveView] = useState<JacketView>('front')
   const [sizingMode, setSizingMode] = useState<'standard' | 'measure'>('standard')
   const [measurements, setMeasurements] = useState<Record<string, string>>({})
   const [isProcessing, setIsProcessing] = useState(false)
@@ -242,7 +245,7 @@ export function JacketCustomizer({
     </div>
   )
 
-  const optionBlocks = optionSteps.map((name) => (
+  const optionBlocks = optionSteps.filter(name => !/Pocket|Closure|Sleeve|Cuff|Lining|Body|Hood/i.test(name) || designOptionVisible(name, activeView)).map((name) => (
     <div key={name} data-customization-step={name} className="rounded-lg border bg-muted/10 p-4">
       <Label className="text-sm font-medium block mb-2">{name}</Label>
       <div className="flex flex-wrap gap-2">
@@ -399,6 +402,7 @@ export function JacketCustomizer({
       onPointerDownCapture={event => trackSection(event.target)}
       onFocusCapture={event => trackSection(event.target)}>
       <JacketDesignCanvas
+        activeView={activeView} onViewChange={setActiveView}
         images={images}
         maxTextLength={product.embroidery?.maxChars || 24}
         selectedSize={selectedVariants.Size}

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Loader2, MailCheck } from 'lucide-react'
 import { Header } from '@/components/header'
+import { PageLoading } from '@/components/page-loading'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 
@@ -71,5 +72,5 @@ function ClaimOrdersContent() {
 }
 
 export default function ClaimOrdersPage() {
-  return <Suspense fallback={null}><ClaimOrdersContent /></Suspense>
+  return <Suspense fallback={<PageLoading label="Preparing order linking…" />}><ClaimOrdersContent /></Suspense>
 }

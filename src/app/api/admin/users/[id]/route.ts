@@ -82,6 +82,8 @@ export async function GET(
         ip: act.ip || null,
         userAgent: act.userAgent || null,
         country: act.country || 'Unknown',
+        region: act.region || null,
+        city: act.city || null,
         createdAt: act.createdAt,
       })),
       country: resolvedCountry,

@@ -78,7 +78,9 @@ try {
   const returns = await page('/returns')
   const policies = returns.schemas.filter(schema => schema['@type'] === 'Organization' && schema.hasMerchantReturnPolicy)
   check('one returns policy graph', policies.length === 1)
-  check('returns policy facts', policies[0].hasMerchantReturnPolicy.merchantReturnDays === 10 && policies[0].hasMerchantReturnPolicy.description.includes('15%') && policies[0].hasMerchantReturnPolicy.description.includes('$35'))
+  const countryPolicies = Array.isArray(policies[0].hasMerchantReturnPolicy) ? policies[0].hasMerchantReturnPolicy : [policies[0].hasMerchantReturnPolicy]
+  check('returns policy facts', countryPolicies.every(policy => policy.merchantReturnDays === 10 && policy.description.includes('15%') && policy.description.includes('$35')))
+  check('returns country limit and coverage', countryPolicies.every(policy => policy.applicableCountry.length <= 50) && JSON.stringify(countryPolicies.flatMap(policy => policy.applicableCountry)) === JSON.stringify(shippingCountries))
   const blog = await page('/blog')
   check('blog title', blog.html.includes('<title>Jacketee Journal: Custom Jacket Guides and Style Tips | Jacketee</title>'))
   check('blog canonical', canonical(blog.html) === 'https://www.jacketee.com/blog')

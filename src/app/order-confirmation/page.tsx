@@ -1,6 +1,7 @@
 'use client'
 
 import { Footer } from '@/components/footer'
+import { SectionLoadingSkeleton } from '@/components/page-content-skeleton'
 import { getJacketTextSummary } from '@/types/jacket-customization'
 
 import { startTransition, useEffect, useState, Suspense  } from 'react'
@@ -192,12 +193,7 @@ function ConfirmationContent() {
   }
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 bg-card border rounded-2xl">
-        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground font-semibold">Loading confirmation details...</p>
-      </div>
-    )
+    return <SectionLoadingSkeleton layout="order" label="Loading order confirmation" />
   }
 
   if (!order) {
@@ -441,12 +437,7 @@ export default function OrderConfirmationPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
-        <Suspense fallback={
-          <div className="flex flex-col items-center justify-center py-24 bg-card border rounded-2xl">
-            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground font-semibold">Loading confirmation details...</p>
-          </div>
-        }>
+        <Suspense fallback={<SectionLoadingSkeleton layout="order" label="Loading order confirmation" />}>
           <ConfirmationContent />
         </Suspense>
       </main>

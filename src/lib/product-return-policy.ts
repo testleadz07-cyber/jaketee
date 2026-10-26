@@ -5,6 +5,16 @@ type CustomizableProduct = {
   measurementFields?: string[] | null
 }
 
+// Google accepts at most 50 applicable countries per MerchantReturnPolicy.
+// Keep every supported destination by emitting multiple identical policies.
+export function withReturnPolicyCountries<T extends object>(policy: T) {
+  const policies: Array<T & { applicableCountry: string[] }> = []
+  for (let offset = 0; offset < shippingCountries.length; offset += 50) {
+    policies.push({ ...policy, applicableCountry: shippingCountries.slice(offset, offset + 50) })
+  }
+  return policies
+}
+
 export function isPersonalizedProduct(product: CustomizableProduct) {
   return Boolean(product.embroidery?.available || product.measurementFields?.length)
 }
@@ -17,9 +27,8 @@ export function getProductReturnLabel(product: CustomizableProduct) {
 
 export function getProductReturnPolicy(product: CustomizableProduct, siteUrl: string) {
   const personalized = isPersonalizedProduct(product)
-  return {
+  return withReturnPolicyCountries({
     '@type': 'MerchantReturnPolicy',
-    applicableCountry: shippingCountries,
     returnPolicyCategory: personalized
       ? 'https://schema.org/MerchantReturnNotPermitted'
       : 'https://schema.org/MerchantReturnFiniteReturnWindow',
@@ -33,5 +42,5 @@ export function getProductReturnPolicy(product: CustomizableProduct, siteUrl: st
       : `${returnPolicyText.eligibility} ${returnPolicyText.fee}`,
     merchantReturnLink: `${siteUrl}/returns`,
     url: `${siteUrl}/returns`,
-  }
+  })
 }

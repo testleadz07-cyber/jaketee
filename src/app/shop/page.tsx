@@ -53,9 +53,8 @@ export default async function Page({ searchParams }: {
     name: item.name,
     slug: item.slug,
   }))
-  const categoryIds = category !== 'all'
-    ? resolveDescendantIds(nodes, String(rawCategories.find((item) => item.slug === category)?._id ?? ''))
-    : null
+  const selectedCategory = rawCategories.find((item) => item.slug === category)
+  const categoryIds = category === 'all' ? null : selectedCategory ? resolveDescendantIds(nodes, String(selectedCategory._id)) : []
   const filter: Record<string, unknown> = { inStock: true, isDraft: { $ne: true }, status: 'active' }
   if (categoryIds) filter.categoryId = { $in: categoryIds }
   const facetFilter = { ...filter }

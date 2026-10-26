@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { startTransition, useEffect, useState, useCallback  } from 'react'
@@ -50,11 +53,11 @@ export default function AdminRefundsPage() {
   const [requests, setRequests] = useState<RefundRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [isDemoMode, setIsDemoMode] = useState(false)
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  const [activeTab, setActiveTab] = useUrlFilter<'all' | 'pending' | 'approved' | 'rejected'>('status', 'all')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
-  const [searchInput, setSearchInput] = useState('')
+  const [searchInput, setSearchInput] = useUrlFilter<string>('search', '')
   const [searchQuery, setSearchQuery] = useState('')
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const limit = 20
@@ -65,17 +68,14 @@ export default function AdminRefundsPage() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      setPage(1)
       setSearchQuery(searchInput)
     }, 300)
     return () => clearTimeout(t)
   }, [searchInput])
 
-  useEffect(() => {
-    startTransition(() => { setPage(1) })
-  }, [activeTab])
 
   const fetchRequests = useCallback(async () => {
+    if (searchQuery !== searchInput) return
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -100,7 +100,7 @@ export default function AdminRefundsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, activeTab, searchQuery])
+  }, [page, activeTab, searchQuery, searchInput])
 
   useEffect(() => {
     if (status === 'authenticated') startTransition(() => { fetchRequests() })
@@ -168,6 +168,7 @@ export default function AdminRefundsPage() {
 
       {/* Main */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'status', label: 'Status', defaultValue: 'all' }, { key: 'search', label: 'Search', defaultValue: '' }]} />
         {isDemoMode && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 text-amber-800 border border-amber-500/20">
             <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />

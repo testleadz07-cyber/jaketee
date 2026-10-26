@@ -1,5 +1,9 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+import { ActivityDevice } from '@/components/admin/activity-device'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback, useRef } from 'react'
@@ -393,17 +397,17 @@ export default function AdminGuestActivityPage() {
   const [activities, setActivities] = useState<GuestActivityRow[]>([])
   const [actions, setActions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-  const [actionFilter, setActionFilter] = useState('all')
-  const [countryFilter, setCountryFilter] = useState('')
+  const [actionFilter, setActionFilter] = useUrlFilter<string>('action', 'all')
+  const [countryFilter, setCountryFilter] = useUrlFilter<string>('country', '')
   const [countries, setCountries] = useState<string[]>([])
-  const [excludedCountries, setExcludedCountries] = useState<string[]>([])
-  const [guestIdFilter, setGuestIdFilter] = useState('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
-  const [page, setPage] = useState(1)
+  const [excludedCountries, setExcludedCountries] = useUrlFilter<string[]>('excludeCountry', ['PK', 'Localhost'])
+  const [guestIdFilter, setGuestIdFilter] = useUrlFilter<string>('guestId', '')
+  const [from, setFrom] = useUrlFilter<string>('from', '')
+  const [to, setTo] = useUrlFilter<string>('to', '')
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
-  const [limit, setLimit] = useState(20)
+  const [limit, setLimit] = useUrlFilter<number>('limit', 20)
   const [error, setError] = useState('')
   const requestNumber = useRef(0)
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null)
@@ -486,6 +490,7 @@ export default function AdminGuestActivityPage() {
 
       {/* Main Body */}
       <main className="container mx-auto min-w-0 px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'action', label: 'Action', defaultValue: 'all' }, { key: 'country', label: 'Country', defaultValue: '' }, { key: 'excludeCountry', label: 'Exclude country', defaultValue: ['PK', 'Localhost'] }, { key: 'guestId', label: 'Guest ID', defaultValue: '' }, { key: 'from', label: 'From', defaultValue: '' }, { key: 'to', label: 'To', defaultValue: '' }]} />
         <div>
           <h2 className="text-xl font-bold tracking-tight">Guest Activity</h2>
           <p className="text-sm text-muted-foreground">
@@ -592,6 +597,7 @@ export default function AdminGuestActivityPage() {
                   <TableHead>Country</TableHead>
                   <TableHead>Region</TableHead>
                   <TableHead>City</TableHead>
+                  <TableHead>Device</TableHead>
                   <TableHead>IP</TableHead>
                   <TableHead>User Agent</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
@@ -622,6 +628,7 @@ export default function AdminGuestActivityPage() {
                     <TableCell className="text-sm text-muted-foreground">
                       {activity.city || 'N/A'}
                     </TableCell>
+                    <TableCell><ActivityDevice userAgent={activity.userAgent} /></TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {activity.ip || 'N/A'}
                     </TableCell>

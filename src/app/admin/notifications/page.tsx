@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { startTransition, useEffect, useState, useCallback  } from 'react'
@@ -66,9 +69,9 @@ export default function AdminNotificationsPage() {
 
   const [notifications, setNotifications] = useState<NotificationRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [typeFilter, setTypeFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [page, setPage] = useState(1)
+  const [typeFilter, setTypeFilter] = useUrlFilter<string>('type', 'all')
+  const [statusFilter, setStatusFilter] = useUrlFilter<string>('status', 'all')
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -106,9 +109,6 @@ export default function AdminNotificationsPage() {
     if (status === 'authenticated') startTransition(() => { fetchNotifications() })
   }, [status, fetchNotifications])
 
-  useEffect(() => {
-    startTransition(() => { setPage(1) })
-  }, [typeFilter, statusFilter])
 
   const handleSelect = (notification: NotificationRow) => {
     setSelectedNotification(notification)
@@ -173,6 +173,7 @@ export default function AdminNotificationsPage() {
 
       {/* Main Body */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'type', label: 'Type', defaultValue: 'all' }, { key: 'status', label: 'Status', defaultValue: 'all' }]} />
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight">Notifications</h2>

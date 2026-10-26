@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
@@ -65,10 +68,10 @@ export default function AdminUsersPage() {
 
   const [users, setUsers] = useState<AdminUserRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [page, setPage] = useState(1)
+  const [search, setSearch] = useUrlFilter<string>('search', '')
+  const [roleFilter, setRoleFilter] = useUrlFilter<string>('role', 'all')
+  const [statusFilter, setStatusFilter] = useUrlFilter<string>('status', 'all')
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -227,6 +230,7 @@ export default function AdminUsersPage() {
 
       {/* Main Body */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'search', label: 'Search', defaultValue: '' }, { key: 'role', label: 'Role', defaultValue: 'all' }, { key: 'status', label: 'Status', defaultValue: 'all' }]} />
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight">User Management</h2>

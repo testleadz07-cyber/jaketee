@@ -1,6 +1,7 @@
 'use client'
 
 import { Footer } from '@/components/footer'
+import { PageLoading } from '@/components/page-loading'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import { startTransition, useEffect, useState  } from 'react'
@@ -200,12 +201,7 @@ export default function OrderTrackingPage() {
   }
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground mt-4">Loading order tracking...</p>
-      </div>
-    )
+    return <PageLoading label="Loading order tracking…" />
   }
 
   if (!session) {

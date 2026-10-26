@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Header } from '@/components/header'
+import { ProductReviewsSkeleton } from '@/components/product-details-skeleton'
 import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { useRecentlyViewedStore } from '@/store/recently-viewed'
 import { VideoMedia } from '@/components/video-media'
 import dynamic from 'next/dynamic'
 const ProductImageZoom = dynamic(() => import('@/components/product-image-zoom'), { ssr: false })
-const ReviewsSection = dynamic(() => import('@/components/reviews-section').then((mod) => mod.ReviewsSection))
+const ReviewsSection = dynamic(() => import('@/components/reviews-section').then((mod) => mod.ReviewsSection), { loading: () => <ProductReviewsSkeleton /> })
 import { Breadcrumbs } from '@/components/breadcrumbs'
 // import { FrequentlyBoughtTogether } from '@/components/FrequentlyBoughtTogether'
 const SizeGuide = dynamic(() => import('@/components/size-guide').then((mod) => mod.SizeGuide))
@@ -45,6 +46,7 @@ import { productImageAlt } from '@/lib/image-alt'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
 import { buildProductFaqs, type ProductFaq as ProductFaqData } from '@/lib/product-faqs'
 import { ProductDeliveryPolicies } from '@/components/product-delivery-policies'
+import { ReturnToCollectionLink } from '@/components/browsing-context'
 import { getProductVariants, getDefaultProductVariants } from '@/lib/product-variants'
 
 export interface ProductDetailData {
@@ -101,6 +103,8 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
   const [selectedImage, setSelectedImage] = useState(0)
   const [zoomOpen, setZoomOpen] = useState(false)
   const [overrideImage, setOverrideImage] = useState<string | null>(null)
+  const [loadedImageUrl, setLoadedImageUrl] = useState('')
+  const galleryImage = overrideImage || product.images?.[selectedImage]?.url || '/placeholder.png'
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => getDefaultProductVariants(getProductVariants(initialProduct)))
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
@@ -320,6 +324,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       {/* Product Detail */}
       <main className="min-w-0 w-full flex-1 pb-24 lg:pb-0">
         <div className="container mx-auto px-4 py-6 lg:py-8">
+          <ReturnToCollectionLink fallbackHref={categoryHref} fallbackLabel={`Back to ${categoryName}`} />
           <Breadcrumbs
             items={[
               ...categoryPath.map((ancestor, index) => ({
@@ -339,13 +344,16 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                 transition={{ duration: 0.3 }}
                 className="relative aspect-square overflow-hidden rounded-lg bg-muted"
               >
+                {loadedImageUrl !== galleryImage && <div aria-hidden="true" className="absolute inset-0 bg-muted motion-safe:animate-pulse" />}
                 <button type="button" onClick={() => setZoomOpen(true)} className="absolute inset-0" aria-label={`Enlarge image of ${product.name}`}>
                   <Image
-                    src={overrideImage || (product.images?.[selectedImage]?.url || '/placeholder.png')}
+                    src={galleryImage}
                     alt={productImageAlt(product.name, overrideImage || product.images?.[selectedImage]?.url || '', overrideImage ? 0 : (product.images?.[selectedImage]?.order ?? selectedImage))}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-contain"
+                    className={`object-contain ${loadedImageUrl === galleryImage ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setLoadedImageUrl(galleryImage)}
+                    onError={() => setLoadedImageUrl(galleryImage)}
                     priority
                   />
                   <span className="absolute bottom-4 right-4 rounded-md bg-background/90 p-2"><ZoomIn className="h-5 w-5" /></span>
@@ -588,7 +596,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                               className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                             >
                               <ShoppingCart className="h-5 w-5" />
-                              Add to Cart -
+                              Add to Cart
                               ${(getPrice() * quantity).toFixed(2)}
                             </motion.div>
                           )}
@@ -689,7 +697,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                             className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                           >
                             <ShoppingCart className="h-5 w-5" />
-                            Add to Cart -
+                            Add to Cart
                             ${(getPrice() * quantity).toFixed(2)}
                           </motion.div>
                         )}

@@ -57,7 +57,7 @@ function CustomizerLoadingPanel() {
           <div className="h-8 w-24 animate-pulse rounded-full bg-muted" />
         </div>
         <div className="h-[340px] animate-pulse rounded-lg bg-muted sm:h-[420px]" />
-        <p className="mt-4 text-sm text-muted-foreground">Loading design tools...</p>
+        <span role="status" className="sr-only">Loading design tools</span>
       </div>
     </div>
   )

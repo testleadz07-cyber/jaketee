@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
@@ -77,7 +80,7 @@ export default function BulkEditorPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [isDemoMode, setIsDemoMode] = useState(false)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [total, setTotal] = useState(0)
   const [dirtyRows, setDirtyRows] = useState<Record<string, DirtyRow>>({})
   const [categories, setCategories] = useState<Category[]>([])

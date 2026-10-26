@@ -1,6 +1,7 @@
 'use client'
 
 import { VideoMedia } from '@/components/video-media'
+import { ProductReviewsSkeleton, ReviewEntriesSkeleton } from '@/components/product-details-skeleton'
 import { VideoLinksEditor } from '@/components/video-links-editor'
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
@@ -248,6 +249,8 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
     count: allReviews.filter((r) => r.rating === star).length,
   }))
 
+  if (loading && allReviews.length === 0) return <ProductReviewsSkeleton />
+
   return (
     <div className="min-w-0 space-y-5 [overflow-wrap:anywhere]">
       <div className="flex flex-wrap justify-between items-center gap-4">
@@ -311,7 +314,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
       {/* Review List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="min-h-20" aria-busy="true" aria-label="Loading customer reviews" />
+          <div aria-busy="true" aria-label="Loading customer reviews"><ReviewEntriesSkeleton /></div>
         ) : reviews.length === 0 ? (
           <div className="flex flex-col items-start justify-between gap-4 border-y py-5 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">

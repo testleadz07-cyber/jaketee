@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { startTransition, useEffect, useState, useCallback  } from 'react'
@@ -53,9 +56,9 @@ export default function AdminContactMessagesPage() {
 
   const [messages, setMessages] = useState<ContactMessageRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [page, setPage] = useState(1)
+  const [search, setSearch] = useUrlFilter<string>('search', '')
+  const [statusFilter, setStatusFilter] = useUrlFilter<string>('status', 'all')
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -93,9 +96,6 @@ export default function AdminContactMessagesPage() {
     if (status === 'authenticated') startTransition(() => { fetchMessages() })
   }, [status, fetchMessages])
 
-  useEffect(() => {
-    startTransition(() => { setPage(1) })
-  }, [statusFilter, search])
 
   const toggleExpand = async (msg: ContactMessageRow) => {
     const opening = expandedId !== msg.id
@@ -174,6 +174,7 @@ export default function AdminContactMessagesPage() {
 
       {/* Main Body */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'search', label: 'Search', defaultValue: '' }, { key: 'status', label: 'Status', defaultValue: 'all' }]} />
         <div>
           <h2 className="text-xl font-bold tracking-tight">Contact Messages</h2>
           <p className="text-sm text-muted-foreground">

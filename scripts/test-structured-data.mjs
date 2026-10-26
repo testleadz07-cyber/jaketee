@@ -30,7 +30,10 @@ for (let index = 0; index < urls.length; index += 8) {
       const offer = product.offers
       if (!offer?.price || offer.priceCurrency !== 'USD' || !offer.availability || !offer.url) failed.push('offer')
       if (!offer?.shippingDetails?.shippingRate || !offer?.shippingDetails?.shippingDestination) failed.push('shipping')
-      if (!offer?.hasMerchantReturnPolicy?.merchantReturnDays || !offer?.hasMerchantReturnPolicy?.url) failed.push('returns')
+      const policies = Array.isArray(offer?.hasMerchantReturnPolicy) ? offer.hasMerchantReturnPolicy : [offer?.hasMerchantReturnPolicy]
+      if (!policies.length || policies.some(policy => !policy?.url || !policy?.returnPolicyCategory ||
+        (policy.returnPolicyCategory.endsWith('/MerchantReturnFiniteReturnWindow') && !policy.merchantReturnDays) ||
+        !policy.applicableCountry?.length || policy.applicableCountry.length > 50)) failed.push('returns')
       if (!product.brand || !allTypes.has('BreadcrumbList') || !allTypes.has('FAQPage')) failed.push('product supporting schemas')
       if (product.aggregateRating && Number(product.aggregateRating.reviewCount) <= 0) failed.push('rating gate')
     }

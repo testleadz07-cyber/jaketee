@@ -1,5 +1,7 @@
 'use client'
 
+import { SectionLoadingSkeleton } from '@/components/page-content-skeleton'
+
 import { useState, useEffect, Suspense } from 'react'
 import { getSession, signIn, useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
@@ -173,7 +175,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-4">
         <Breadcrumbs items={[{ label: 'Sign In' }]} className="flex justify-center" />
-        <Suspense fallback={<div>Loading login form...</div>}>
+        <Suspense fallback={<SectionLoadingSkeleton layout="form" label="Loading sign-in form" />}>
           <LoginContent />
         </Suspense>
       </div>

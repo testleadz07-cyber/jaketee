@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
@@ -147,14 +150,14 @@ export default function AdminFaqsPage() {
   const [categories, setCategories] = useState<string[]>([])
   const [displayPages, setDisplayPages] = useState<string[]>([])
   const [sourceBatches, setSourceBatches] = useState<string[]>([])
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [batchFilter, setBatchFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useUrlFilter<string>('status', 'all')
+  const [batchFilter, setBatchFilter] = useUrlFilter<string>('batch', 'all')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all')
-  const [displayPageFilter, setDisplayPageFilter] = useState('all')
-  const [page, setPage] = useState(1)
+  const [search, setSearch] = useUrlFilter<string>('search', '')
+  const [categoryFilter, setCategoryFilter] = useUrlFilter<string>('category', 'all')
+  const [displayPageFilter, setDisplayPageFilter] = useUrlFilter<string>('displayPage', 'all')
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [formOpen, setFormOpen] = useState(false)
@@ -302,6 +305,7 @@ export default function AdminFaqsPage() {
     <div className="min-h-screen bg-muted/10 flex flex-col">
 
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'status', label: 'Status', defaultValue: 'all' }, { key: 'batch', label: 'Batch', defaultValue: 'all' }, { key: 'search', label: 'Search', defaultValue: '' }, { key: 'category', label: 'Category', defaultValue: 'all' }, { key: 'displayPage', label: 'Display page', defaultValue: 'all' }]} />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight">FAQ Management</h2>

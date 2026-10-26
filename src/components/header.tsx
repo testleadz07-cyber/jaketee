@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { Heart, LayoutDashboard, LogOut, Menu, Package, User } from 'lucide-react'
@@ -15,11 +15,22 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 // Keep the optional prop compatible with existing storefront callers.
 export function Header(_props: { home?: boolean } = {}) {
+  const headerRef = useRef<HTMLElement>(null)
   const { data: session, status } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const user = status === 'authenticated' ? session?.user : undefined
   const isAdmin = user && (user as { role?: string }).role === 'admin'
   const closeMenu = () => setMobileMenuOpen(false)
+
+  useEffect(() => {
+    const header = headerRef.current
+    if (!header) return
+    const updateHeight = () => document.documentElement.style.setProperty('--site-header-height', `${header.getBoundingClientRect().height}px`)
+    updateHeight()
+    const observer = new ResizeObserver(updateHeight)
+    observer.observe(header)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const desktop = window.matchMedia('(min-width: 1024px)')
@@ -28,7 +39,7 @@ export function Header(_props: { home?: boolean } = {}) {
     return () => desktop.removeEventListener('change', closeOnDesktop)
   }, [])
 
-  return <header className="sticky top-0 z-50 border-b bg-background text-foreground shadow-sm">
+  return <header ref={headerRef} className="sticky top-0 z-50 border-b bg-background text-foreground shadow-sm">
     <div className="container mx-auto grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 py-2.5 md:grid-cols-[auto_auto_minmax(0,1fr)_auto] md:gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-8 lg:py-3">
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetTrigger asChild><Button variant="ghost" size="icon" aria-label="Open navigation menu" className="h-11 w-11 lg:hidden"><Menu aria-hidden="true" className="h-5 w-5" /></Button></SheetTrigger>
