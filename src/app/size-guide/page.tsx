@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Button } from '@/components/ui/button'
 import { JacketSizeReference } from '@/components/jacket-size-reference'
 import { SizeGuideResources } from '@/components/size-guide-resources'
+import { SizeGuideReturnLink } from '@/components/browsing-context'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
@@ -30,6 +31,7 @@ export default function SizeGuidePage() {
       <Header home />
       <main>
         <section className="section-shell py-6! md:py-8!">
+          <SizeGuideReturnLink />
           <Breadcrumbs items={[{ label: 'Size Guide' }]} className="mb-5" />
           <div className="rounded-2xl bg-[#242623] px-6 py-7 text-white sm:px-9"><p className="text-xs font-semibold uppercase tracking-widest text-white/65">A little measuring. A better starting point.</p><h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Jacket &amp; Vest Size Guide</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">Measure your body or compare a garment you already own. Use the reference charts below, then confirm the dimensions of the exact style you plan to order.</p><div className="mt-5 flex flex-wrap gap-x-5 gap-y-2"><a href="#size-charts" className="inline-flex min-h-11 items-center rounded-lg bg-white px-4 text-sm font-semibold text-zinc-950">View size charts</a><a href="#how-to-measure" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4">How to measure</a></div></div>
         </section>

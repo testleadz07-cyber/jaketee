@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { startTransition, useEffect, useState, useCallback  } from 'react'
@@ -48,8 +51,8 @@ export default function AdminSubscribersPage() {
 
   const [subscribers, setSubscribers] = useState<SubscriberRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
+  const [search, setSearch] = useUrlFilter<string>('search', '')
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [deleteTarget, setDeleteTarget] = useState<SubscriberRow | null>(null)
@@ -83,9 +86,6 @@ export default function AdminSubscribersPage() {
     if (status === 'authenticated') startTransition(() => { fetchSubscribers() })
   }, [status, fetchSubscribers])
 
-  useEffect(() => {
-    startTransition(() => { setPage(1) })
-  }, [search])
 
   const handleDelete = async (subscriber: SubscriberRow) => {
     try {
@@ -159,6 +159,7 @@ export default function AdminSubscribersPage() {
 
       {/* Main Body */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'search', label: 'Search', defaultValue: '' }]} />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight">Newsletter Subscribers</h2>

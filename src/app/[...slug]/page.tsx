@@ -1,11 +1,13 @@
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import { categorySocialImage } from '@/lib/category-social-image'
 import { Metadata } from 'next'
+import { Suspense } from 'react'
+import { CatalogPageLoading } from '@/components/catalog-page-loading'
 import { VARSITY_CATEGORY_SEO } from '@/lib/varsity-category-seo'
 import { YouMayAlsoLike } from '@/components/YouMayAlsoLike'
 import { getProductRecommendations } from '@/lib/product-recommendations'
 import { permanentRedirect, notFound } from 'next/navigation'
-import { resolveSlugPath } from '@/lib/route-resolver'
+import { resolveSlugPath, type ResolvedCategory, type ResolvedProduct } from '@/lib/route-resolver'
 import { ProductDetailView, type ProductDetailData } from '@/components/product-detail-view'
 import { getProductReturnPolicy } from '@/lib/product-return-policy'
 import { shippingDetailsJsonLd } from '@/lib/shipping-schema'
@@ -122,6 +124,24 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
   if (resolution.type === 'notfound') {
     notFound()
   }
+
+  return <Suspense fallback={<CatalogPageLoading
+    kind={resolution.type === 'category' ? 'collection' : 'product'}
+    title={resolution.type === 'category' ? resolution.category.heading || resolution.category.name : resolution.product.name}
+    description={resolution.type === 'category' ? resolution.category.introShort || resolution.category.description : undefined}
+    image={resolution.type === 'product' ? resolution.product.images?.[0]?.url : undefined}
+  />}>
+    <ResolvedCatalogPage slug={slug} query={query} requestedPage={requestedPage} resolution={resolution} canonicalUrl={canonicalUrl} />
+  </Suspense>
+}
+
+async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, canonicalUrl }: {
+  slug: string[]
+  query: Record<string, string | string[] | undefined>
+  requestedPage: number
+  resolution: ResolvedCategory | ResolvedProduct
+  canonicalUrl: string
+}) {
 
   if (resolution.type === 'product') {
     const product = resolution.product

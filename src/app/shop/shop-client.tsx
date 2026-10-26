@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { startTransition, useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { CatalogPending } from '@/components/catalog-pending'
 import Link from 'next/link'
 import Image from '@/components/optimized-image'
 import { Header } from '@/components/header'
@@ -14,7 +16,7 @@ import { RecentlyViewed } from '@/components/RecentlyViewed'
 import { CatalogSort } from '@/components/catalog-sort'
 import { Button } from '@/components/ui/button'
 import { CategoryFilters, AppliedCategoryFilters } from '@/components/category-filters'
-import { appendCatalogFilters, readCatalogFilters, emptyCatalogFilters, type CatalogFilters, type CatalogFacetData } from '@/lib/catalog-filters'
+import { appendCatalogFilters, readCatalogFilters, catalogSelectionKey, emptyCatalogFilters, type CatalogFilters, type CatalogFacetData } from '@/lib/catalog-filters'
 
 export interface Product {
   id: string
@@ -53,6 +55,8 @@ export default function ShopClient({ initialProducts, initialCategories, initial
   heroImages: Array<{ src: string; alt: string; label: string; href: string }>;
   initialFilters: CatalogFilters; initialSort: string; initialPage: number; initialFacets: CatalogFacetData;
 }) {
+  const queryString = useSearchParams().toString()
+  const selection = useRef(catalogSelectionKey(initialFilters, initialCategory, initialSort, initialPage))
   const [products, setProducts] = useState(initialProducts)
   const [total, setTotal] = useState(initialTotal)
   const [category, setCategory] = useState(initialCategory)
@@ -78,23 +82,42 @@ export default function ShopClient({ initialProducts, initialCategories, initial
     if (nextPage > 1) params.set('page', String(nextPage))
     return params
   }
-  const update = (nextFilters = filters, nextCategory = category, nextSort = sort, nextPage = 1) => {
-    setFilters({ ...nextFilters }); setSearch(nextFilters.search); setCategory(nextCategory); setSort(nextSort); setPage(nextPage)
-    setLoading(true); setProducts([])
-    const params = paramsFor(nextFilters, nextCategory, nextSort, nextPage)
-    window.history.pushState(null, '', `/shop${params.size ? `?${params}` : ''}`)
+  const update = (nextFilters = filters, nextCategory = category, nextSort = sort, nextPage?: number) => {
+    const normalized = readCatalogFilters(appendCatalogFilters(new URLSearchParams(), nextFilters))
+    const sameInputs = catalogSelectionKey(normalized, nextCategory, nextSort) === catalogSelectionKey(filters, category, sort)
+    const targetPage = nextPage ?? (sameInputs ? page : 1)
+    const key = catalogSelectionKey(normalized, nextCategory, nextSort, targetPage)
+    if (key === selection.current) return
+    selection.current = key
+    if (catalogSelectionKey(normalized) === catalogSelectionKey(emptyCatalogFilters)) {
+      const anchor = document.getElementById('shop-products')
+      if (anchor && anchor.getBoundingClientRect().top < 0) anchor.scrollIntoView({ block: 'start' })
+    }
+    setFilters(normalized); setSearch(normalized.search); setCategory(nextCategory); setSort(nextSort); setPage(targetPage)
+    setLoading(true)
+    const params = paramsFor(normalized, nextCategory, nextSort, targetPage)
+    window.history.pushState(null, '', '/shop' + (params.size ? '?' + params : ''))
   }
   useEffect(() => {
-    const restore = () => {
-      const params = new URLSearchParams(window.location.search)
-      const restored = readCatalogFilters(params)
-      setFilters(restored); setSearch(restored.search); setCategory(params.get('category') || 'all')
-      setSort(sorts.includes(params.get('sort') || '') ? params.get('sort')! : 'featured')
-      setPage(Math.max(1, parseInt(params.get('page') || '1') || 1)); setLoading(true); setProducts([])
-    }
-    window.addEventListener('popstate', restore)
-    return () => window.removeEventListener('popstate', restore)
-  }, [])
+    const params = new URLSearchParams(queryString)
+    const restored = readCatalogFilters(params)
+    const nextCategory = params.get('category') || 'all'
+    const nextSort = sorts.includes(params.get('sort') || '') ? params.get('sort')! : 'featured'
+    const nextPage = Math.max(1, parseInt(params.get('page') || '1') || 1)
+    const key = catalogSelectionKey(restored, nextCategory, nextSort, nextPage)
+    if (key === selection.current) return
+    selection.current = key
+    startTransition(() => {
+      setFilters(restored); setSearch(restored.search); setCategory(nextCategory)
+      setSort(nextSort); setPage(nextPage); setLoading(true)
+    })
+  }, [queryString])
+  useEffect(() => {
+    const nextSearch = search.trim().slice(0, 200)
+    if (nextSearch === filters.search) return
+    const timer = setTimeout(() => update({ ...filters, search: nextSearch }), 350)
+    return () => clearTimeout(timer)
+  }, [search, filters, category, sort])
   useEffect(() => {
     if (firstFacets.current) { firstFacets.current = false; return }
     const controller = new AbortController()
@@ -152,18 +175,18 @@ export default function ShopClient({ initialProducts, initialCategories, initial
         </nav>
         {children.length > 0 && <div className="mt-3"><label htmlFor="shop-subcategory" className="mr-3 text-sm font-medium">Style or material</label><select id="shop-subcategory" value={category} onChange={event => update(emptyCatalogFilters, event.target.value)} className="min-h-11 max-w-full rounded-lg border bg-card px-3 text-sm"><option value={root!.slug}>All {root!.name}</option>{children.map(item => <option key={item.slug} value={item.slug}>{item.name} ({item._count.products})</option>)}</select></div>}
       </section>
-      <section id="shop-products" className="store-section store-section--soft scroll-mt-20">
+      <section id="shop-products" className="store-section store-section--soft scroll-mt-[calc(var(--site-header-height,8rem)+1rem)]">
         <div className="section-shell py-5! md:py-8!">
-          <div className="sticky top-[78px] z-30 mb-4 flex flex-wrap items-center justify-between gap-3 border-b bg-background py-3 lg:static">
-            <div><h2 className="text-xl font-semibold">{selected?.name || 'Shop all products'}</h2><p role="status" aria-live="polite" className="mt-1 text-xs text-muted-foreground">{loading ? 'Finding your styles...' : `${total ? (page - 1) * PAGE_SIZE + 1 : 0}–${Math.min(page * PAGE_SIZE, total)} of ${total} products`}</p></div>
-            <div className="flex w-full gap-2 sm:w-auto"><div className="flex-1 lg:hidden"><CategoryFilters key={`mobile-${category}-${JSON.stringify(filters)}`} mode="mobile" value={filters} onApply={next => update(next)} facets={facets} /></div><CatalogSort value={sort} onChange={value => update(filters, category, value)} /></div>
+          <div className="sticky top-[var(--site-header-height,8rem)] z-30 mb-4 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-4 sm:px-5 sm:py-5 lg:static">
+            <div><h2 className="text-xl font-semibold">{selected?.name || 'Shop all products'}</h2><div role="status" aria-live="polite" className="mt-1 flex min-h-5 items-center text-xs text-muted-foreground">{loading ? <CatalogPending active /> : `${total ? (page - 1) * PAGE_SIZE + 1 : 0}–${Math.min(page * PAGE_SIZE, total)} of ${total} products`}</div></div>
+            <div className="flex w-full gap-2 sm:w-auto"><div className="flex-1 lg:hidden"><CategoryFilters mode="mobile" value={filters} onApply={next => update({ ...next, search: search.trim().slice(0, 200) })} onClear={searchOnly => update(emptyCatalogFilters, searchOnly ? category : 'all')} facets={facets} /></div><CatalogSort value={sort} onChange={value => update(filters, category, value)} /></div>
           </div>
-          <form role="search" aria-label="Search catalog" onSubmit={event => { event.preventDefault(); update({ ...filters, search: search.trim().slice(0, 200) }) }} className="mb-4 flex gap-2"><label htmlFor="shop-search" className="sr-only">Search this collection</label><input id="shop-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search by style, material, or name..." className="min-h-11 min-w-0 flex-1 rounded-lg border bg-card px-3 text-sm" /><Button className="min-h-11">Search</Button></form>
-          <AppliedCategoryFilters value={filters} onChange={next => update(next)} />
+          <form role="search" aria-label="Search catalog" onSubmit={event => { event.preventDefault(); update({ ...filters, search: search.trim().slice(0, 200) }) }} className="mb-4 flex gap-2"><label htmlFor="shop-search" className="sr-only">Search this collection</label><input id="shop-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search by style, material, or name..." maxLength={200} className="min-h-12 min-w-0 flex-1 rounded-lg border bg-card px-4 py-3 text-base" /></form>
+          <AppliedCategoryFilters value={filters} onChange={next => update(next)} category={category !== 'all' ? selected?.name || category : undefined} onRemoveCategory={() => update(filters, 'all')} onClearAll={() => update(emptyCatalogFilters, 'all')} />
           <div className="grid items-start gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-            <CategoryFilters key={`desktop-${category}-${JSON.stringify(filters)}`} mode="desktop" value={filters} onApply={next => update(next)} facets={facets} />
-            <div className="min-w-0" aria-busy={loading}>
-              {error ? <div role="alert" className="rounded-xl border p-6">We couldn’t load products. <button className="underline" onClick={() => { setLoading(true); setRetry(value => value + 1) }}>Try again</button></div> : loading ? <div aria-label="Loading products" className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />)}</div> : products.length ? <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">{products.map((product, index) => <ProductCard key={product.id} product={product} listingPosition={index + 1} collection />)}</div> : <div className="rounded-xl border border-dashed px-5 py-14 text-center"><h3 className="text-xl font-semibold">No matching products</h3><p className="mt-2 text-sm text-muted-foreground">Try another search or remove some filters.</p><Button variant="outline" className="mt-5" onClick={() => update(emptyCatalogFilters)}>Reset search &amp; filters</Button></div>}
+            <CategoryFilters mode="desktop" value={filters} onApply={next => update({ ...next, search: search.trim().slice(0, 200) })} onClear={searchOnly => update(emptyCatalogFilters, searchOnly ? category : 'all')} facets={facets} />
+            <div className="relative min-h-48 min-w-0" aria-busy={loading}>
+              {error ? <div role="alert" className="rounded-xl border p-6">We couldn’t load products. <button className="underline" onClick={() => { setLoading(true); setRetry(value => value + 1) }}>Try again</button></div> : loading && !products.length ? <div aria-label="Loading products" className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />)}</div> : products.length ? <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">{products.map((product, index) => <ProductCard key={product.id} product={product} listingPosition={index + 1} collection />)}</div> : <div className="rounded-xl border border-dashed px-5 py-14 text-center"><h3 className="text-xl font-semibold">No matching products</h3><p className="mt-2 text-sm text-muted-foreground">Try another search or remove some filters.</p><Button variant="outline" className="mt-5" onClick={() => update(emptyCatalogFilters)}>Reset search &amp; filters</Button></div>}
               {!loading && !error && pages > 1 && <nav aria-label="Product pages" className="mt-8 flex flex-wrap justify-center gap-2">{Array.from({ length: pages }, (_, index) => index + 1).map(number => <a key={number} href={`/shop?${paramsFor(filters, category, sort, number)}`} aria-current={page === number ? 'page' : undefined} onClick={event => { event.preventDefault(); update(filters, category, sort, number); document.getElementById('shop-products')?.scrollIntoView({ behavior: 'smooth' }) }} className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-3 text-sm ${page === number ? 'bg-primary text-primary-foreground' : 'bg-card'}`}>{number}</a>)}</nav>}
             </div>
           </div>

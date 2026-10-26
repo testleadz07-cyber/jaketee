@@ -1,9 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { CatalogPending } from '@/components/catalog-pending'
+import { PageLoading } from '@/components/page-loading'
+
+
+import { startTransition, useEffect, useRef, useState  } from 'react'
 import type { MouseEvent } from 'react'
 import { CategoryFilters, AppliedCategoryFilters, type CategoryFacetData } from '@/components/category-filters'
-import { appendCatalogFilters, readCatalogFilters, emptyCatalogFilters, type CatalogFilters } from '@/lib/catalog-filters'
+import { catalogSelectionKey, appendCatalogFilters, readCatalogFilters, emptyCatalogFilters, type CatalogFilters } from '@/lib/catalog-filters'
 import { CollectionSupport } from '@/components/collection-support'
 import { getCategoryHeroDescription } from '@/data/category-hero-copy'
 import { CollectionDesignImage } from '@/components/collection-design-image'
@@ -129,6 +134,8 @@ export function CategoryDetailView({
   initialFilters = emptyCatalogFilters,
   initialSort = 'featured',
 }: CategoryDetailViewProps) {
+  const queryString = useSearchParams().toString()
+  const selection = useRef(catalogSelectionKey(initialFilters, slug, initialSort, initialPage))
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [loading, setLoading] = useState(initialProducts.length === 0)
@@ -147,20 +154,24 @@ export function CategoryDetailView({
   useActivityView('view_category', { categoryId: trackedCategory?.id, slug }, Boolean(trackedCategory))
 
   useEffect(() => {
-    const restore = (force = false) => {
-      const params = new URLSearchParams(window.location.search)
-      setSearchDraft(readCatalogFilters(params).search)
-      setFilters(previous => { const next = readCatalogFilters(params); return !force && JSON.stringify(next) === JSON.stringify(previous) ? previous : next })
-      setSortBy(['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(params.get('sort') || '') ? params.get('sort')! : 'featured')
-      if (force) { setLoading(true); setProducts([]) }
-      setCurrentPage(Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1))
-    }
-    restore()
-    const onPopState = () => restore(true)
-    window.addEventListener('popstate', onPopState)
-    return () => window.removeEventListener('popstate', onPopState)
-  }, [slug])
-
+    const params = new URLSearchParams(queryString)
+    const restored = readCatalogFilters(params)
+    const nextSort = ['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(params.get('sort') || '') ? params.get('sort')! : 'featured'
+    const nextPage = Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1)
+    const key = catalogSelectionKey(restored, slug, nextSort, nextPage)
+    if (key === selection.current) return
+    selection.current = key
+    startTransition(() => {
+      setSearchDraft(restored.search); setFilters(restored); setSortBy(nextSort)
+      setCurrentPage(nextPage); setLoading(true)
+    })
+  }, [slug, queryString])
+  useEffect(() => {
+    const nextSearch = searchDraft.trim().slice(0, 200)
+    if (nextSearch === filters.search) return
+    const timer = setTimeout(() => applyFilters({ ...filters, search: nextSearch }), 350)
+    return () => clearTimeout(timer)
+  }, [searchDraft, filters, slug, sortBy])
   useEffect(() => {
     if (initialFacets) return
     let active = true
@@ -171,15 +182,22 @@ export function CategoryDetailView({
     return () => { active = false }
   }, [slug, initialFacets])
 
-  const applyFilters = (next: CatalogFilters) => {
+  function applyFilters(next: CatalogFilters, force = false) {
+    next = readCatalogFilters(appendCatalogFilters(new URLSearchParams(), next))
+    if (!force && catalogSelectionKey(next, slug, sortBy) === catalogSelectionKey(filters, slug, sortBy)) return
+    selection.current = catalogSelectionKey(next, slug, sortBy, 1)
+    if (catalogSelectionKey(next) === catalogSelectionKey(emptyCatalogFilters)) {
+      const anchor = document.getElementById('category-products')
+      if (anchor && anchor.getBoundingClientRect().top < 0) anchor.scrollIntoView({ block: 'start' })
+    }
     setLoading(true)
     setSearchDraft(next.search)
     setFilters({ ...next })
     const urlParams = appendCatalogFilters(new URLSearchParams(), next)
     if (sortBy !== 'featured') urlParams.set('sort', sortBy)
-    window.history.replaceState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
+    window.history.pushState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
     setCurrentPage(1)
-    setProducts([])
+
   }
 
   useEffect(() => {
@@ -193,14 +211,16 @@ export function CategoryDetailView({
   }, [slug, initialInsights])
 
   const handleSortChange = (value: string) => {
+    if (value === sortBy) return
+    selection.current = catalogSelectionKey(filters, slug, value, 1)
     logUserActivity('sort_changed', { sortOption: value, category: slug })
     setLoading(true)
     setSortBy(value)
     const urlParams = appendCatalogFilters(new URLSearchParams(), filters)
     if (value !== 'featured') urlParams.set('sort', value)
-    window.history.replaceState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
+    window.history.pushState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
     setCurrentPage(1)
-    setProducts([])
+
   }
 
   useEffect(() => {
@@ -276,29 +296,7 @@ export function CategoryDetailView({
   }, [slug, sortBy, currentPage, initialPage, pageSize, filters])
 
   if (loading && categories.length === 0) {
-    return (
-      <div className="category-page min-h-screen flex flex-col bg-background">
-        <Header home />
-        <main className="container mx-auto flex-1 px-4 py-8">
-          <div className="mb-6 h-5 w-56 animate-pulse rounded bg-muted" />
-          <div className="mb-10 grid gap-6 rounded-lg border bg-card p-5 md:grid-cols-[1fr_320px] md:p-8">
-            <div className="space-y-4">
-              <div className="h-4 w-28 animate-pulse rounded bg-muted" />
-              <div className="h-10 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-full max-w-xl animate-pulse rounded bg-muted" />
-              <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-            </div>
-            <div className="hidden aspect-[4/3] animate-pulse rounded-md bg-muted md:block" />
-          </div>
-          <div className={productGridClassName}>
-            {[...Array(8)].map((_, index) => (
-              <div key={index} className="aspect-[3/4] animate-pulse rounded-lg bg-muted" />
-            ))}
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
+    return <PageLoading label="Loading collection…" />
   }
 
   if (isMissing) {
@@ -328,7 +326,8 @@ export function CategoryDetailView({
     event.preventDefault()
     if (page === currentPage) return
     setLoading(true)
-    setProducts([])
+
+    selection.current = catalogSelectionKey(filters, slug, sortBy, page)
     setCurrentPage(page)
     window.history.pushState(null, '', pageHref(page))
     document.getElementById('category-products')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
@@ -387,27 +386,27 @@ export function CategoryDetailView({
         </nav>}
       </div>
 
-        <section id="category-products" className="store-section store-section--soft scroll-mt-20" aria-labelledby="category-products-heading">
+        <section id="category-products" className="store-section store-section--soft scroll-mt-[calc(var(--site-header-height,8rem)+1rem)]" aria-labelledby="category-products-heading">
           <div className="section-shell py-5! md:py-6!">
-        <div className="sticky top-[78px] z-30 -mx-1 mb-5 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-1 py-3 lg:static">
-          <div><h2 id="category-products-heading" className="text-xl font-semibold">Shop {category.name}</h2><p className="mt-1 text-xs text-muted-foreground" role="status" aria-live="polite">{loading ? 'Finding your styles...' : `${products.length} of ${productCount} ${productCount === 1 ? 'style' : 'styles'}`}</p></div>
+        <div className="sticky top-[var(--site-header-height,8rem)] z-30 mb-5 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-4 sm:px-5 sm:py-5 lg:static">
+          <div><h2 id="category-products-heading" className="text-xl font-semibold">Shop {category.name}</h2><div className="mt-1 flex min-h-5 items-center text-xs text-muted-foreground" role="status" aria-live="polite">{loading || loadingMore ? <CatalogPending active /> : `${products.length} of ${productCount} ${productCount === 1 ? 'style' : 'styles'}`}</div></div>
           <div className="flex w-full items-center gap-2 sm:w-auto">
-            {hasFilterControls && <div className="flex-1 lg:hidden"><CategoryFilters key={`mobile-${JSON.stringify(filters)}`} mode="mobile" value={filters} onApply={applyFilters} facets={facets} /></div>}
+            {hasFilterControls && <div className="flex-1 lg:hidden"><CategoryFilters mode="mobile" value={filters} onApply={next => applyFilters({ ...next, search: searchDraft.trim().slice(0, 200) })} onClear={() => applyFilters(emptyCatalogFilters)} facets={facets} /></div>}
             {collectionCount > 1 && <CatalogSort value={sortBy} onChange={handleSortChange} />}
             <Link href="/size-guide" className="hidden min-h-11 items-center gap-2 px-2 text-xs underline sm:inline-flex"><Ruler aria-hidden="true" className="h-4 w-4" />Size guide</Link>
           </div>
         </div>
         <form role="search" aria-label="Search this collection" className="mb-4 flex flex-wrap gap-2" onSubmit={event => { event.preventDefault(); applyFilters({ ...filters, search: searchDraft.trim().slice(0, 200) }) }}>
           <label htmlFor="collection-search" className="sr-only">Search {category.name}</label>
-          <input id="collection-search" type="search" value={searchDraft} onChange={event => setSearchDraft(event.target.value)} placeholder={`Search ${category.name.toLowerCase()}...`} className="min-h-11 min-w-0 flex-1 rounded-lg border bg-card px-3 text-sm" />
-          <Button type="submit" className="min-h-11">Search</Button>
+          <input id="collection-search" type="search" value={searchDraft} onChange={event => setSearchDraft(event.target.value)} placeholder={`Search ${category.name.toLowerCase()}...`} maxLength={200} className="min-h-12 min-w-0 flex-1 rounded-lg border bg-card px-4 py-3 text-base" />
+
           {filters.search && <Button type="button" variant="outline" className="min-h-11" onClick={() => applyFilters({ ...filters, search: '' })}>Reset search</Button>}
         </form>
         <AppliedCategoryFilters value={filters} onChange={applyFilters} />
         <div className={hasFilterControls ? 'grid items-start gap-6 lg:grid-cols-[220px_minmax(0,1fr)]' : ''}>
-          {hasFilterControls && <CategoryFilters key={`desktop-${JSON.stringify(filters)}`} mode="desktop" value={filters} onApply={applyFilters} facets={facets} />}
-          <div className="min-w-0" aria-busy={loading || loadingMore}>
-          {fetchError && <p role="alert" className="mb-4 rounded-lg border p-4 text-sm">We could not load these products. <button className="font-semibold underline" onClick={() => applyFilters({ ...filters })}>Try again</button></p>}
+          {hasFilterControls && <CategoryFilters mode="desktop" value={filters} onApply={next => applyFilters({ ...next, search: searchDraft.trim().slice(0, 200) })} onClear={() => applyFilters(emptyCatalogFilters)} facets={facets} />}
+          <div className="relative min-h-48 min-w-0" aria-busy={loading || loadingMore}>
+          {fetchError && <p role="alert" className="mb-4 rounded-lg border p-4 text-sm">We could not load these products. <button className="font-semibold underline" onClick={() => applyFilters(filters, true)}>Try again</button></p>}
         {loading && products.length === 0 ? (
           <div className={productGridClassName} aria-label="Loading products">
             {Array.from({ length: 8 }, (_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-md bg-muted" />)}

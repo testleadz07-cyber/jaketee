@@ -45,6 +45,7 @@ import { productImageAlt } from '@/lib/image-alt'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
 import { buildProductFaqs, type ProductFaq as ProductFaqData } from '@/lib/product-faqs'
 import { ProductDeliveryPolicies } from '@/components/product-delivery-policies'
+import { ReturnToCollectionLink } from '@/components/browsing-context'
 import { getProductVariants, getDefaultProductVariants } from '@/lib/product-variants'
 
 export interface ProductDetailData {
@@ -320,6 +321,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       {/* Product Detail */}
       <main className="min-w-0 w-full flex-1 pb-24 lg:pb-0">
         <div className="container mx-auto px-4 py-6 lg:py-8">
+          <ReturnToCollectionLink fallbackHref={categoryHref} fallbackLabel={`Back to ${categoryName}`} />
           <Breadcrumbs
             items={[
               ...categoryPath.map((ancestor, index) => ({
@@ -588,7 +590,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                               className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                             >
                               <ShoppingCart className="h-5 w-5" />
-                              Add to Cart -
+                              Add to Cart
                               ${(getPrice() * quantity).toFixed(2)}
                             </motion.div>
                           )}
@@ -689,7 +691,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                             className="flex min-w-0 flex-wrap items-center justify-center gap-2"
                           >
                             <ShoppingCart className="h-5 w-5" />
-                            Add to Cart -
+                            Add to Cart
                             ${(getPrice() * quantity).toFixed(2)}
                           </motion.div>
                         )}

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDesignHistory } from '@/hooks/use-design-history'
+import { designOptionVisible, visibleDesignColors, focusDesignChange } from '@/lib/design-view-controls'
 import { DesignHistoryControls } from '@/components/design-history-controls'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/header'
@@ -15,7 +16,7 @@ import { useCartStore } from '@/store/cart'
 import { captureJacketDesignPreviews, getJacketChestWidth } from '@/lib/jacket-design-preview'
 import { getCustomizationFee } from '@/lib/customization-pricing'
 import { DEFAULT_VARSITY_OPTIONS, VARSITY_COLORS, VARSITY_OPTIONS, VARSITY_TEMPLATE_ID, getVarsityImages, getVarsitySvg, getVarsityPrice, validateVarsityOptions } from '@/lib/varsity-template'
-import { JACKET_VIEWS, MAX_JACKET_TEXTS } from '@/types/jacket-customization'
+import { JACKET_VIEWS, MAX_JACKET_TEXTS, getJacketViewLabel, type JacketView } from '@/types/jacket-customization'
 import { VARSITY_PART_COLORS } from '@/lib/varsity-svg'
 
 const DRAFT_KEY = 'jacketee-varsity-design-v1'
@@ -33,12 +34,26 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const [selectedColor, setSelectedColor] = useState('Body color')
+  const [requestedColor, setSelectedColor] = useState('Body color')
+  const [activeView, setActiveView] = useState<JacketView>('front')
   const colorControlsRef = useRef<HTMLDetailsElement>(null)
   const lock = useRef(false)
   const addItem = useCartStore(state => state.addItem)
   const setDirectOrderItem = useCartStore(state => state.setDirectOrderItem)
   const images = useMemo(() => getVarsityImages(options), [options])
+  const visibleColors = useMemo(() => visibleDesignColors(images, activeView, VARSITY_PART_COLORS), [images, activeView])
+  const normalizeColor = (name: string) => /^(Left|Right) sleeve color$/.test(name) ? 'Sleeves color' : name
+  const selectedColor = visibleColors.has(requestedColor) ? normalizeColor(requestedColor) : normalizeColor([...visibleColors][0] || 'Body color')
+  const sleeveView = activeView === 'leftSleeve' || activeView === 'rightSleeve'
+  const navigateHistory = (direction: 'undo' | 'redo') => {
+    const change = history[direction]()
+    if (!change) return
+    setActiveView(change.view)
+    if (change.option?.endsWith('color')) setSelectedColor(change.option)
+    setMessage((direction === 'undo' ? 'Undo: ' : 'Redo: ') + change.label + '. Showing ' + getJacketViewLabel(change.view).toLowerCase() + '.')
+    setError('')
+    focusDesignChange(change.option)
+  }
   const collarPreview = useMemo(() => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(getVarsitySvg(options, 'front').replace('viewBox="0 0 720 720"', 'viewBox="258 52 204 176"'))}`, [options])
   const configuration = useMemo(() => ({ ...design, varsityOptions: options }), [design, options])
   const garmentPrice = getVarsityPrice(options)
@@ -139,7 +154,9 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
     <input type="color" aria-label={name} value={getColor(name)} onFocus={history.beginInteraction} onBlur={history.endInteraction} onChange={event => changeOption(name, event.target.value)} className="h-9 w-10 shrink-0 cursor-pointer rounded border" />
   </div>
 
-  const optionControl = (name: keyof typeof VARSITY_OPTIONS) => <fieldset key={name}>
+  const optionControl = (name: keyof typeof VARSITY_OPTIONS) => {
+    if (!designOptionVisible(name, activeView)) return null
+    return <fieldset key={name}>
     <legend className="mb-2 font-semibold">{name}</legend>
     {name === 'Size' && <div className="mb-3"><JacketSizeGuide sizes={[...VARSITY_OPTIONS.Size]} /></div>}
     {name === 'Lining' && <p className="mb-2 text-xs text-muted-foreground">The interior fabric is visible at the neckline. The chosen lining is saved with your order.</p>}
@@ -147,9 +164,11 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
     {name === 'Cuff style' && <p className="mb-2 text-xs text-muted-foreground">Ribbed cuffs use your knit stripe style. Plain fabric cuffs use the sleeve material without knit stripes.</p>}
     <div className="flex flex-wrap gap-2">{VARSITY_OPTIONS[name].map(value => <button type="button" key={value} aria-pressed={options[name] === value} onClick={() => changeOption(name, value)} className={`min-h-11 rounded-lg border px-3 py-2 text-sm ${options[name] === value ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:border-primary'}`}>{value}</button>)}</div>
   </fieldset>
+  }
 
   const controls = (
     <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">Options for {getJacketViewLabel(activeView).toLowerCase()}. Hidden settings stay saved when you switch views.</p>
       <CustomizationSection title="1. Materials">
         {optionControl('Body material')}
         {optionControl('Sleeve material')}
@@ -158,7 +177,7 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
         <p className="text-sm text-muted-foreground">Choose construction, stripes, and cuffs. Left and right refer to the wearer’s sides.</p>
         {SLEEVE_OPTION_NAMES.filter(name => name !== 'Sleeve material' && (name !== 'Sleeve stripe piping' || options['Sleeve stripe'] === 'Add stripe')).map(optionControl)}
       </CustomizationSection>
-      <CustomizationSection title="3. Collar & hood">
+      {!sleeveView && <CustomizationSection title="3. Collar & hood">
         <img src={collarPreview} alt={`${options['Collar style']} neckline close-up${options.Hood === 'Hooded' ? ' with hood' : ''}`} className="mx-auto h-48 w-full rounded-lg bg-muted object-contain" />
         <fieldset>
           <legend className="mb-2 font-semibold">Collar style</legend>
@@ -169,7 +188,7 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
         </fieldset>
         {optionControl('Hood')}
         <p className="text-xs text-muted-foreground">Collar stripes follow your knit style. {options.Hood === 'Hooded' ? 'The hood covers part of the collar; its edges remain visible at the front.' : 'Select Hooded to preview the collar with a hood.'}</p>
-      </CustomizationSection>
+      </CustomizationSection>}
       <CustomizationSection title="4. Finishing">
         {(['Closure', 'Pocket style', 'Knit style', 'Lining'] as const).map(optionControl)}
       </CustomizationSection>
@@ -177,7 +196,7 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
         <p className="mt-1 text-sm text-muted-foreground">One sleeve color applies to both sleeves.</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {Object.keys(VARSITY_COLORS).filter(name =>
-            name !== 'Right sleeve color' &&
+            name !== 'Right sleeve color' && visibleColors.has(name) &&
             (!name.startsWith('Hood') || options.Hood === 'Hooded') &&
             (name !== 'Stripe color' || options['Knit style'] !== 'Plain') &&
             (name !== 'Pockets color' || options['Pocket style'] !== 'No pockets') &&
@@ -236,14 +255,13 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
       <p className="text-sm text-muted-foreground">Design your own / Varsity jacket</p>
       <h1 className="mt-2 text-3xl font-bold">Design your varsity jacket</h1>
       <p className="mb-6 mt-2 text-muted-foreground">Choose your jacket colors and materials, then add text or artwork to the front, back, and each sleeve.</p>
-      {message && <p role="status" className="mb-4 rounded-lg border bg-muted p-3">{message}</p>}
       {error && <p role="alert" className="mb-4 rounded-lg border border-destructive p-3 text-destructive">{error}</p>}
       {busy && <p role="status" className="mb-4">Saving your four design previews…</p>}
       <div inert={busy} aria-busy={busy}>
-        <JacketDesignCanvas
+        <JacketDesignCanvas activeView={activeView} onViewChange={setActiveView} historyMessage={message}
           historyControls={<DesignHistoryControls canUndo={history.canUndo} canRedo={history.canRedo}
-            onUndo={() => { history.undo(); setMessage(''); setError('') }}
-            onRedo={() => { history.redo(); setMessage(''); setError('') }}
+            onUndo={() => navigateHistory('undo')}
+            onRedo={() => navigateHistory('redo')}
             onReset={() => { history.reset(); setSelectedColor('Body color'); setMessage('Design reset to defaults. You can undo this change.'); setError('') }} />}
           onInteractionStart={history.beginInteraction} onInteractionEnd={history.endInteraction}
           images={images} maxTextLength={24} selectedSize={options.Size} value={configuration}

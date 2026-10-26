@@ -1,5 +1,7 @@
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { Header } from '@/components/header'
 import { HomeHero, homeHeroImage } from '@/components/home-hero'
 import { getHomeHeroImages } from '@/lib/home-hero-images'
 import { connectDB } from '@/lib/mongodb'
@@ -42,7 +44,15 @@ export async function generateMetadata(): Promise<Metadata> {
   })
 }
 
-export default async function Page() {
+export default function Page() {
+  return <div className="home-page flex min-h-screen flex-col bg-background">
+    <Header home />
+    <Suspense fallback={null}><HomeHero /></Suspense>
+    <Suspense fallback={null}><HomeContent /></Suspense>
+  </div>
+}
+
+async function HomeContent() {
   if (!(await connectDB())) throw new Error('Catalog is temporarily unavailable')
 
   const rawCategories = await CategoryModel.find().lean()
@@ -150,5 +160,5 @@ export default async function Page() {
     curatedCategorySlugs.map((slug, index) => [slug, rawCategoryRows[index].map(mapProduct)])
   ) as Record<string, Product[]>
 
-  return <Home customDesign={<CustomDesignSection home />} hero={<HomeHero />} categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
+  return <Home customDesign={<Suspense fallback={null}><CustomDesignSection home /></Suspense>} categories={categories} featuredProducts={featuredProducts} newArrivals={newArrivals} categoryProducts={categoryProducts} />
 }

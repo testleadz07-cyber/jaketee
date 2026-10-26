@@ -60,7 +60,7 @@ export function ProductCard({ product, listingPosition, home = false, collection
   }
 
   return (
-    <Link href={buildProductUrl(product)} onClick={logListingClick} className="block h-full min-w-0">
+    <Link href={buildProductUrl(product)} data-product-link onClick={logListingClick} className="block h-full min-w-0">
       <div className="interactive-lift h-full">
         <Card className="h-full gap-0 overflow-hidden border py-0 hover:border-primary/60 transition-colors group cursor-pointer shadow-sm">
           <div className="relative aspect-square overflow-hidden bg-muted">

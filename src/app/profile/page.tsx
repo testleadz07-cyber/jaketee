@@ -1,6 +1,7 @@
 'use client'
 
 import { Footer } from '@/components/footer'
+import { PageLoading } from '@/components/page-loading'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { startTransition, useEffect, useState  } from 'react'
@@ -439,12 +440,7 @@ export default function ProfilePage() {
   }
 
   if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground mt-4">Loading your dashboard...</p>
-      </div>
-    )
+    return <PageLoading label="Loading your dashboard…" />
   }
 
   if (!session) {

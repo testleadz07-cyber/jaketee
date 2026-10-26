@@ -1,6 +1,17 @@
 export const catalogFacets = { size: 'Size', color: 'Color', material: 'Material', fit: 'Fit' } as const
 export type CatalogFilters = { search: string; minPrice: string; maxPrice: string; size: string[]; color: string[]; material: string[]; fit: string[] }
 export const emptyCatalogFilters: CatalogFilters = { search: '', minPrice: '', maxPrice: '', size: [], color: [], material: [], fit: [] }
+export function catalogSelectionKey(filters: CatalogFilters, category = 'all', sort = 'featured', page = 1) {
+  const normalized = readCatalogFilters(appendCatalogFilters(new URLSearchParams(), filters))
+  for (const key of Object.keys(catalogFacets) as Array<keyof typeof catalogFacets>) normalized[key].sort()
+  return JSON.stringify([normalized, category, sort, page])
+}
+
+export function priceFilterError(value: CatalogFilters) {
+  if ([value.minPrice, value.maxPrice].some(price => price !== '' && (!Number.isFinite(Number(price)) || Number(price) < 0))) return 'Enter a valid price of zero or more.'
+  if (value.minPrice && value.maxPrice && Number(value.minPrice) > Number(value.maxPrice)) return 'Minimum price must not exceed maximum price.'
+  return ''
+}
 export function readCatalogFilters(params: URLSearchParams): CatalogFilters {
   const price = (key: string) => {
     const value = params.get(key)

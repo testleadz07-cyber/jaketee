@@ -20,6 +20,9 @@ import { TEXT_LAYOUT_CHOICES } from '@/lib/jacket-text-layout'
 const TEXT_COLORS = ['#111111', '#ffffff', '#b91c1c', '#d4a017', '#1d4ed8']
 
 interface JacketDesignCanvasProps {
+  activeView?: JacketView
+  onViewChange?: (view: JacketView) => void
+  historyMessage?: string
   images: { url: string; alt?: string | null }[]
   maxTextLength: number
   selectedSize?: string
@@ -47,11 +50,13 @@ function getViewImageUrl(images: { url: string; alt?: string | null }[], view: J
   return images[viewIndex[view]]?.url || images[0]?.url
 }
 
-export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value, onChange, onDifficulty, leftContentTop, leftContentBottom, onPartSelect, historyControls, onInteractionStart, onInteractionEnd, frontPlacement }: JacketDesignCanvasProps) {
+export function JacketDesignCanvas({ activeView, onViewChange, historyMessage, images, maxTextLength, selectedSize, value, onChange, onDifficulty, leftContentTop, leftContentBottom, onPartSelect, historyControls, onInteractionStart, onInteractionEnd, frontPlacement }: JacketDesignCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const dragTarget = useRef<DragTarget | null>(null)
-  const [view, setView] = useState<JacketView>('front')
+  const [localView, setLocalView] = useState<JacketView>('front')
+  const view = activeView ?? localView
+  const setView = (next: JacketView) => { setLocalView(next); onViewChange?.(next) }
   const [category, setCategory] = useState<ArtworkCategory>('Animals')
   const [query, setQuery] = useState('')
   const [isUploading, setIsUploading] = useState(false)
@@ -359,6 +364,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
       {/* Right side: Canvas & Controls */}
       <div className="order-1 min-w-0 space-y-4 lg:order-2 lg:sticky lg:top-4">
         {historyControls}
+        {historyMessage && <p role="status" className="rounded-lg border bg-muted p-3 text-sm">{historyMessage}</p>}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-md border p-1 sm:grid-cols-4" aria-label="Jacket view">
             {JACKET_VIEWS.map((item) => (
@@ -385,7 +391,7 @@ export function JacketDesignCanvas({ images, maxTextLength, selectedSize, value,
         </div>}
 
         <div className="relative w-full min-w-0 overflow-hidden rounded-md border bg-muted" style={{ aspectRatio: '1 / 1' }}>
-          <canvas id="jacket-design-canvas-element" ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="absolute inset-0 block h-full w-full touch-none cursor-move"
+          <canvas id="jacket-design-canvas-element" data-design-preview tabIndex={-1} ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="absolute inset-0 block h-full w-full touch-none cursor-move focus-visible:outline-2 focus-visible:outline-primary"
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
             onPointerUp={finishInteraction} onPointerCancel={finishInteraction} onLostPointerCapture={finishInteraction}
             aria-label={`Live ${getJacketViewLabel(view)} jacket customization preview. Drag text or artwork to reposition it.`} />

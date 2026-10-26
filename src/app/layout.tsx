@@ -5,9 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { FloatingWhatsAppButton } from "@/components/floating-whatsapp-button";
+import { BrowsingContext } from '@/components/browsing-context';
 import { SessionTracker } from "@/components/SessionTracker";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { GuestActivityTracker } from "@/components/guest-activity-tracker";
+import { BotpressChat } from "@/components/botpress-chat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -138,9 +140,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <Providers>
+          <BrowsingContext />
           {children}
           <CookieConsentBanner />
           <FloatingWhatsAppButton />
+          <BotpressChat />
           <SessionTracker />
           <GoogleAnalytics />
           <GuestActivityTracker />

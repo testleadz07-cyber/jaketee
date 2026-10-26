@@ -7,7 +7,6 @@ import Image from '@/components/optimized-image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { HomeGroupOrders } from '@/components/home-group-orders'
-import { Header } from '@/components/header'
 import { ProductCard } from '@/components/product-card'
 import { productGridClassName } from '@/lib/product-grid'
 import dynamic from 'next/dynamic'
@@ -120,8 +119,7 @@ const homeFaqJsonLd = {
   })),
 }
 
-export default function Home({ categories, featuredProducts, newArrivals, categoryProducts, hero, customDesign }: {
-  hero: React.ReactNode
+export default function Home({ categories, featuredProducts, newArrivals, categoryProducts, customDesign }: {
   customDesign: React.ReactNode
   categories: Category[]
   featuredProducts: Product[]
@@ -194,15 +192,11 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
   }
 
   return (
-    <div className="home-page flex min-h-screen flex-col bg-background">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeFaqJsonLd) }}
       />
-      <Header home />
-
-      {hero}
-
       <section className="border-b bg-muted/30">
         <div className="container mx-auto grid grid-cols-2 gap-3 px-4 py-4 lg:grid-cols-4">
           {trustItems.map((item) => (
@@ -374,6 +368,6 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
 
 
       <Footer />
-    </div>
+    </>
   )
 }

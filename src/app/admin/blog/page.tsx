@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
@@ -82,15 +85,15 @@ export default function AdminBlog() {
 
   const [posts, setPosts] = useState<BlogPostListItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchInput, setSearchInput] = useState('')
+  const [searchInput, setSearchInput] = useUrlFilter<string>('search', '')
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [categoryFilter, setCategoryFilter] = useState('all')
-  const [dateField, setDateField] = useState<'createdAt' | 'publishedAt'>('createdAt')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const [statusFilter, setStatusFilter] = useUrlFilter<string>('status', 'all')
+  const [categoryFilter, setCategoryFilter] = useUrlFilter<string>('category', 'all')
+  const [dateField, setDateField] = useUrlFilter<'createdAt' | 'publishedAt'>('dateField', 'createdAt')
+  const [dateFrom, setDateFrom] = useUrlFilter<string>('dateFrom', '')
+  const [dateTo, setDateTo] = useUrlFilter<string>('dateTo', '')
   const [deleteTarget, setDeleteTarget] = useState<BlogPostListItem | null>(null)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const limit = 20
@@ -100,6 +103,7 @@ export default function AdminBlog() {
   const [addingCategory, setAddingCategory] = useState(false)
 
   const fetchCategories = useCallback(async () => {
+    if (searchQuery !== searchInput) return
     try {
       const res = await fetch('/api/admin/blog-categories')
       if (res.ok) {
@@ -119,15 +123,11 @@ export default function AdminBlog() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      setPage(1)
       setSearchQuery(searchInput)
     }, 300)
     return () => clearTimeout(t)
   }, [searchInput])
 
-  useEffect(() => {
-    void Promise.resolve().then(() => setPage(1))
-  }, [statusFilter, categoryFilter, dateField, dateFrom, dateTo])
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
@@ -154,7 +154,7 @@ export default function AdminBlog() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter, categoryFilter, dateField, dateFrom, dateTo, searchQuery])
+  }, [page, statusFilter, categoryFilter, dateField, dateFrom, dateTo, searchQuery, searchInput])
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -279,6 +279,7 @@ export default function AdminBlog() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'search', label: 'Search', defaultValue: '' }, { key: 'status', label: 'Status', defaultValue: 'all' }, { key: 'category', label: 'Category', defaultValue: 'all' }, { key: 'dateField', label: 'Date field', defaultValue: 'createdAt' }, { key: 'dateFrom', label: 'From', defaultValue: '' }, { key: 'dateTo', label: 'To', defaultValue: '' }]} />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">Blog Posts</h2>

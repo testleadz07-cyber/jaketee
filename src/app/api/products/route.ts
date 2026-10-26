@@ -74,6 +74,8 @@ export async function GET(request: NextRequest) {
       if (category) {
         const descendantIds = resolveDescendantIds(categoryNodes, String(category._id))
         filter.categoryId = { $in: descendantIds }
+      } else {
+        filter.categoryId = { $in: [] }
       }
     }
 

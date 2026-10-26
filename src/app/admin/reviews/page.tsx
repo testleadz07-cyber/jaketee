@@ -1,5 +1,8 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+import { AppliedUrlFilters } from '@/components/applied-url-filters'
+
 import { VideoMedia } from '@/components/video-media'
 
 import { useSession } from 'next-auth/react'
@@ -60,11 +63,11 @@ export default function AdminReviewsPage() {
 
   const [reviews, setReviews] = useState<AdminReview[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
+  const [activeTab, setActiveTab] = useUrlFilter<'all' | 'pending' | 'approved' | 'rejected'>('status', 'pending')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
-  const [searchInput, setSearchInput] = useState('')
+  const [searchInput, setSearchInput] = useUrlFilter<string>('search', '')
   const [searchQuery, setSearchQuery] = useState('')
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useUrlFilter<number>('page', 1)
   const [pages, setPages] = useState(1)
   const [total, setTotal] = useState(0)
   const limit = 20
@@ -77,17 +80,14 @@ export default function AdminReviewsPage() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      setPage(1)
       setSearchQuery(searchInput)
     }, 300)
     return () => clearTimeout(t)
   }, [searchInput])
 
-  useEffect(() => {
-    startTransition(() => { setPage(1) })
-  }, [activeTab])
 
   const fetchReviews = useCallback(async () => {
+    if (searchQuery !== searchInput) return
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -108,7 +108,7 @@ export default function AdminReviewsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, activeTab, searchQuery])
+  }, [page, activeTab, searchQuery, searchInput])
 
   useEffect(() => {
     if (status === 'authenticated') startTransition(() => { fetchReviews() })
@@ -204,6 +204,7 @@ export default function AdminReviewsPage() {
 
       {/* Main Body */}
       <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+        <AppliedUrlFilters filters={[{ key: 'status', label: 'Status', defaultValue: 'pending', clearValue: 'all' }, { key: 'search', label: 'Search', defaultValue: '' }]} />
         <div>
           <h2 className="text-xl font-bold tracking-tight">Review Moderation</h2>
           <p className="text-sm text-muted-foreground">Approve, reject, or delete customer reviews before they go live on product pages.</p>
