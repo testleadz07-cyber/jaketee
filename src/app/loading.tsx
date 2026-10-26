@@ -1,19 +1,18 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useSelectedLayoutSegments } from 'next/navigation'
 import { PageLoading } from '@/components/page-loading'
+import { CatalogRouteLoading, getLoadingCollection } from '@/components/catalog-route-loading'
 import { CatalogPageLoading } from '@/components/catalog-page-loading'
-import { CATEGORIES } from '@/data/categories'
-import { buildCategoryUrl, resolveAncestorChain } from '@/lib/categories'
-
-// Match complete known paths; a product beneath a category must never match.
-const knownCollections = new Map(CATEGORIES.map(category => [buildCategoryUrl(resolveAncestorChain(CATEGORIES, category._id)), category]))
 
 export default function Loading() {
   const pathname = usePathname()
+  const segments = useSelectedLayoutSegments()
   const section = pathname?.split('/')[1] || ''
   if (!section) return null
-  const collection = knownCollections.get(pathname || '')
-  if (collection) return <CatalogPageLoading kind="collection" title={collection.name} description={collection.description} />
+  if (section === 'shop') return <CatalogPageLoading kind="collection" collectionLayout="shop" />
+  // Next returns a catch-all match as one joined segment. Static branches
+  // such as /profile/orders/id have separate segments and retain their loader.
+  if (getLoadingCollection(pathname || '') || segments[0]?.includes('/') || section === 'product') return <CatalogRouteLoading />
   return <PageLoading label={section === 'checkout' ? 'Preparing checkout…' : section === 'design' || section === 'customize' ? 'Preparing your designer…' : 'Loading page…'} storefront={section !== 'admin'} />
 }

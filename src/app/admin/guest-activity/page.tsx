@@ -2,6 +2,7 @@
 
 import { useUrlFilter } from '@/hooks/use-url-filter'
 import { AppliedUrlFilters } from '@/components/applied-url-filters'
+import { ActivityDevice } from '@/components/admin/activity-device'
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -596,6 +597,7 @@ export default function AdminGuestActivityPage() {
                   <TableHead>Country</TableHead>
                   <TableHead>Region</TableHead>
                   <TableHead>City</TableHead>
+                  <TableHead>Device</TableHead>
                   <TableHead>IP</TableHead>
                   <TableHead>User Agent</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
@@ -626,6 +628,7 @@ export default function AdminGuestActivityPage() {
                     <TableCell className="text-sm text-muted-foreground">
                       {activity.city || 'N/A'}
                     </TableCell>
+                    <TableCell><ActivityDevice userAgent={activity.userAgent} /></TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {activity.ip || 'N/A'}
                     </TableCell>

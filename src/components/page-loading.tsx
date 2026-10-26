@@ -1,13 +1,17 @@
-import { Header } from '@/components/header'
+'use client'
 
-export function PageLoading({ label, storefront = true }: { label: string; storefront?: boolean }) {
-  return <div className="min-h-screen bg-background text-foreground">
+import { usePathname } from 'next/navigation'
+import { Header } from '@/components/header'
+import { PageContentSkeleton, getPageSkeletonLayout, type PageSkeletonLayout } from '@/components/page-content-skeleton'
+
+export function PageLoading({ label, storefront = true, layout }: { label: string; storefront?: boolean; layout?: PageSkeletonLayout }) {
+  const pathname = usePathname() || '/'
+  const skeletonLayout = layout || getPageSkeletonLayout(pathname)
+  return <div className="min-h-screen min-w-0 bg-background text-foreground">
     {storefront && <Header />}
-    <main className="section-shell py-8!">
-      <div role="status" aria-live="polite" className="loading-feedback flex items-center gap-3 rounded-xl border bg-card px-4 py-4 text-sm text-card-foreground">
-        <span aria-hidden="true" className="size-4 shrink-0 animate-spin rounded-full border-2 border-primary/25 border-t-primary motion-reduce:animate-none" />
-        {label}
-      </div>
+    <span role="status" className="sr-only">{label}</span>
+    <main className={skeletonLayout === 'designer' || skeletonLayout === 'customizer' ? 'mx-auto w-full max-w-[1600px] px-4 py-8 lg:px-8' : 'section-shell py-6! md:py-8!'} aria-busy="true">
+      <PageContentSkeleton layout={skeletonLayout} />
     </main>
   </div>
 }

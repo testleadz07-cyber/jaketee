@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
 import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
+import { ActivityDevice } from '@/components/admin/activity-device'
 import {
   ChevronLeft,
   Loader2,
@@ -77,6 +78,8 @@ interface UserActivityRow {
   ip: string | null
   userAgent: string | null
   country: string
+  region?: string | null
+  city?: string | null
   createdAt: string
 }
 
@@ -745,7 +748,10 @@ export default function AdminUserDetailPage() {
                         <TableHead>Time</TableHead>
                         <TableHead>Action</TableHead>
                         <TableHead>Details</TableHead>
-                        <TableHead>Location</TableHead>
+                        <TableHead>Country</TableHead>
+                        <TableHead className="whitespace-nowrap">State / Region</TableHead>
+                        <TableHead>City</TableHead>
+                        <TableHead>Device</TableHead>
                         <TableHead>IP Address</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -766,6 +772,9 @@ export default function AdminUserDetailPage() {
                           <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                             {activity.country}
                           </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{activity.region || '—'}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{activity.city || '—'}</TableCell>
+                          <TableCell><ActivityDevice userAgent={activity.userAgent} /></TableCell>
                           <TableCell className="text-xs text-muted-foreground font-mono whitespace-nowrap">
                             {activity.ip || 'N/A'}
                           </TableCell>

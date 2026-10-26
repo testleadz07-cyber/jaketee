@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { CatalogPending } from '@/components/catalog-pending'
-import { PageLoading } from '@/components/page-loading'
+import { CatalogPageLoading } from '@/components/catalog-page-loading'
 
 
 import { startTransition, useEffect, useRef, useState  } from 'react'
@@ -296,7 +296,7 @@ export function CategoryDetailView({
   }, [slug, sortBy, currentPage, initialPage, pageSize, filters])
 
   if (loading && categories.length === 0) {
-    return <PageLoading label="Loading collection…" />
+    return <CatalogPageLoading kind="collection" />
   }
 
   if (isMissing) {

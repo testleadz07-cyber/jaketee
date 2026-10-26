@@ -1,6 +1,7 @@
 'use client'
 
 import { Footer } from '@/components/footer'
+import { PageLoading } from '@/components/page-loading'
 import { getJacketTextSummary } from '@/types/jacket-customization'
 
 import { calculateShipping, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
@@ -1292,19 +1293,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
-          <Card className="border-2">
-            <CardContent className="flex items-center justify-center py-16">
-              <Loader2 className="mr-2 h-5 w-5 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">Loading checkout...</span>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    }>
+    <Suspense fallback={<PageLoading label="Loading checkout" layout="checkout" />}>
       <CheckoutContent />
     </Suspense>
   )
