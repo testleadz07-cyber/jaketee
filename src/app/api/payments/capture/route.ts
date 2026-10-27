@@ -1,3 +1,4 @@
+import { notifyOrder } from '@/lib/notifications'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -49,6 +50,7 @@ async function getPayPalAccessToken() {
 async function markOrderPaid(order: InstanceType<typeof Order>, paypalCaptureId: string) {
   if (order.paymentStatus === 'paid' || order.status === 'paid' || order.statusHistory.some((entry: { status: string }) => entry.status === 'paid')) {
     if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
+    await notifyOrder(order, true)
     return
   }
 
@@ -56,6 +58,8 @@ async function markOrderPaid(order: InstanceType<typeof Order>, paypalCaptureId:
   if (order.status === 'pending') order.status = 'paid'
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: `Confirmed via PayPal capture ${paypalCaptureId}` })
   await order.save()
+
+  await notifyOrder(order, true)
 
   await decrementStockForOrder(order.items)
 
@@ -122,6 +126,7 @@ export async function POST(request: NextRequest) {
     }
     if (order.paymentStatus === 'paid' || order.status === 'paid' || order.statusHistory.some((entry: { status: string }) => entry.status === 'paid')) {
       if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
+      await notifyOrder(order, true)
       return NextResponse.json({ status: 'COMPLETED', id: order.paymentId })
     }
     if (order.status !== 'pending') {

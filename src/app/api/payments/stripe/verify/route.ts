@@ -1,3 +1,4 @@
+import { notifyOrder } from '@/lib/notifications'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
     }
     if (getOrderPaymentStatus(order) === 'paid') {
       if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
+      await notifyOrder(order, true)
       return NextResponse.json({ status: 'paid', order })
     }
     
@@ -62,6 +64,8 @@ export async function POST(request: NextRequest) {
       if (order.status === 'pending') order.status = 'paid'
       order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via Stripe verification' })
       await order.save()
+
+      await notifyOrder(order, true)
 
       await decrementStockForOrder(order.items)
 

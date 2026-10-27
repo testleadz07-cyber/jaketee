@@ -1,5 +1,7 @@
 'use client'
 
+import { GoogleSignIn, googleAuthErrors } from '@/components/google-sign-in'
+import { getSafeAuthCallback, getPostSignInDestination, getGoogleCompletionUrl } from '@/lib/auth-redirect'
 import { SectionLoadingSkeleton } from '@/components/page-content-skeleton'
 
 import { useState, useEffect, Suspense } from 'react'
@@ -14,6 +16,8 @@ import { AlertCircle, CheckCircle } from 'lucide-react'
 import { BrandLogo } from '@/components/brand-logo'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { useTurnstile } from '@/components/turnstile-challenge'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 async function waitForSession() {
   for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -24,40 +28,32 @@ async function waitForSession() {
   return null
 }
 
-function getSafeCallbackUrl(value: string | null) {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return null
-  return value
-}
-
-function getDestination(role: string | undefined, callbackUrl: string | null) {
-  if (callbackUrl && (role === 'admin' || !callbackUrl.startsWith('/admin'))) {
-    return callbackUrl
-  }
-  return role === 'admin' ? '/admin/dashboard' : '/profile'
-}
-
 function redirectTo(destination: string) {
   window.location.replace(destination)
 }
 
 function LoginContent() {
+  const verification = useTurnstile('login')
   const searchParams = useSearchParams()
   const { data: session } = useSession()
   const [identifier, setIdentifier] = useState('')
+  const formActivity = useGuestFormActivity('login', { identifier })
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const success = searchParams.get('success') === 'true'
     ? 'Account created successfully! Please sign in.'
     : ''
-  const callbackUrl = getSafeCallbackUrl(searchParams.get('callbackUrl'))
+  const oauthError = searchParams.get('error')
+  const displayedError = error || (oauthError ? googleAuthErrors[oauthError] || 'Google sign-in did not complete. Please try again.' : '')
+  const callbackUrl = getSafeAuthCallback(searchParams.get('callbackUrl'))
 
   useEffect(() => {
-    if (session?.user) {
+    if (session?.user && !oauthError) {
       const role = (session.user as any).role
-      redirectTo(getDestination(role, callbackUrl))
+      redirectTo(getPostSignInDestination(role, callbackUrl))
     }
-  }, [callbackUrl, session])
+  }, [callbackUrl, session, oauthError])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,22 +61,24 @@ function LoginContent() {
     setIsLoading(true)
 
     try {
+      const turnstileToken = await verification.getToken()
       const result = await signIn('credentials', {
+        turnstileToken,
         identifier,
         password,
         redirect: false,
       })
 
       if (result?.error) {
-        setError('Invalid email or password')
+        setError(result.error.includes('Security verification') ? 'Security verification failed. Please try again.' : 'Invalid email or password')
         setIsLoading(false)
       } else {
         const updatedSession = await waitForSession()
         const role = (updatedSession?.user as any)?.role || 'customer'
-        redirectTo(getDestination(role, callbackUrl))
+        redirectTo(getPostSignInDestination(role, callbackUrl))
       }
     } catch (error) {
-      setError('An error occurred. Please try again.')
+      setError(error instanceof Error ? error.message : 'An error occurred. Please try again.')
       setIsLoading(false)
     }
   }
@@ -97,11 +95,12 @@ function LoginContent() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+        <GoogleSignIn callbackUrl={getGoogleCompletionUrl(callbackUrl)} disabled={isLoading} />
+        <form onSubmit={handleSubmit} {...formActivity.bindings} className="space-y-4">
+          {displayedError && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
               <AlertCircle className="h-4 w-4" />
-              {error}
+              {displayedError}
             </div>
           )}
 
@@ -142,6 +141,7 @@ function LoginContent() {
             />
           </div>
 
+          {verification.widget}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>

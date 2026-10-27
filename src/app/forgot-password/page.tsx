@@ -9,9 +9,13 @@ import { AlertCircle, CheckCircle, Mail } from 'lucide-react'
 import { BrandLogo } from '@/components/brand-logo'
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { useTurnstile } from '@/components/turnstile-challenge'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 export default function ForgotPasswordPage() {
+  const verification = useTurnstile('forgot_password')
   const [email, setEmail] = useState('')
+  const formActivity = useGuestFormActivity('forgot_password', { email })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -23,21 +27,23 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
 
     try {
+      const turnstileToken = await verification.getToken()
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       })
 
       const data = await res.json().catch(() => ({}))
 
       if (res.ok) {
+        await formActivity.submitted({ email })
         setSuccess(data.message || "If an account with that email exists, we've sent a password reset link.")
       } else {
         setError(data.error || 'Something went wrong. Please try again.')
       }
     } catch (error) {
-      setError('An error occurred. Please try again.')
+      setError(error instanceof Error ? error.message : 'An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -79,7 +85,7 @@ export default function ForgotPasswordPage() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} {...formActivity.bindings} className="space-y-4">
                 {error && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                     <AlertCircle className="h-4 w-4" />
@@ -100,6 +106,8 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
+                {verification.widget}
+                {formActivity.notice}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
                     'Sending...'

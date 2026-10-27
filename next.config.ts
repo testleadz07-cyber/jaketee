@@ -61,6 +61,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      { source: "/firebase-messaging-sw.js", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }, { key: "Service-Worker-Allowed", value: "/" }] },
       {
         source: "/:path*",
         headers: [
@@ -92,13 +93,13 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://cdn.botpress.cloud https://files.bpcontent.cloud",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://cdn.botpress.cloud https://files.bpcontent.cloud https://challenges.cloudflare.com",
               "style-src 'self' 'unsafe-inline' https://cdn.botpress.cloud https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://images.unsplash.com https://res.cloudinary.com https://z-cdn.chatglm.cn https://i.ytimg.com https://www.google-analytics.com https://*.google-analytics.com",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://webchat.botpress.cloud wss://webchat.botpress.cloud https://cdn.botpress.cloud https://files.bpcontent.cloud",
+              "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://webchat.botpress.cloud wss://webchat.botpress.cloud https://cdn.botpress.cloud https://files.bpcontent.cloud https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com",
               "media-src 'self' https://res.cloudinary.com",
-              "frame-src 'self' https://www.youtube-nocookie.com https://cdn.botpress.cloud",
+              "frame-src 'self' https://www.youtube-nocookie.com https://cdn.botpress.cloud https://challenges.cloudflare.com",
               "frame-ancestors 'self'",
             ].join("; "),
           },

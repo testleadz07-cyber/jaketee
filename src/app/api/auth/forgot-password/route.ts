@@ -3,15 +3,18 @@ import crypto from 'crypto'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import { sendEmail, passwordResetTemplate } from '@/lib/email'
+import { requireTurnstile } from '@/lib/turnstile'
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null)
+    const denied = await requireTurnstile(body?.turnstileToken, 'forgot_password')
+    if (denied) return denied
     const email = body?.email
 
-    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email || typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: 'Please provide a valid email address' }, { status: 400 })
     }
 

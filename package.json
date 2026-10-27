@@ -29,7 +29,8 @@
     "content:keyword-map": "node scripts/generate-keyword-map.mjs",
     "content:task-18-blogs": "node scripts/update-task-18-blog-content.mjs",
     "content:blog-internal-links": "node scripts/update-blog-internal-links.mjs",
-    "audit:internal-links": "node scripts/audit-internal-links.mjs"
+    "audit:internal-links": "node scripts/audit-internal-links.mjs",
+    "test:google-push": "node scripts/test-google-push.cjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
@@ -75,6 +76,8 @@
     "cmdk": "^1.1.1",
     "dotenv": "^17.4.2",
     "embla-carousel-react": "^8.6.0",
+    "firebase": "12.14.0",
+    "firebase-admin": "14.5.0",
     "framer-motion": "^12.23.2",
     "geoip-lite": "^2.0.3",
     "input-otp": "^1.4.2",
@@ -116,7 +119,10 @@
   },
   "overrides": {
     "nodemailer": "$nodemailer",
-    "postcss": "^8.5.31"
+    "postcss": "^8.5.31",
+    "@firebase/app": "0.14.13",
+    "@firebase/app-compat": "0.5.13",
+    "@grpc/grpc-js": "^1.14.0"
   },
   "browserslist": [
     "chrome >= 111",

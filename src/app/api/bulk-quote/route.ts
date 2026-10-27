@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit'
 import { connectDB } from '@/lib/mongodb'
 import ContactMessage from '@/models/ContactMessage'
 import { createNotification } from '@/lib/notifications'
+import { requireTurnstile } from '@/lib/turnstile'
 
 export const runtime = 'nodejs'
 
@@ -14,6 +15,8 @@ export async function POST(request: NextRequest) {
   if (Number(request.headers.get('content-length')) > 6 * 1024 * 1024) return NextResponse.json({ error: 'Your request is too large.' }, { status: 413 })
   try {
     const form = await request.formData()
+    const denied = await requireTurnstile(form.get('turnstileToken'), 'bulk_quote')
+    if (denied) return denied
     const fields = ['name', 'email', 'organization', 'quantity', 'jacketType', 'deadline', 'country', 'program', 'notes'] as const
     const data = Object.fromEntries(fields.map(key => [key, String(form.get(key) || '').trim()]))
     const fieldErrors: Record<string, string> = {}

@@ -4,13 +4,18 @@ import User from '@/models/User'
 import { hashPassword } from '@/lib/auth'
 import { createNotification } from '@/lib/notifications'
 import { sendEmail, welcomeEmailTemplate } from '@/lib/email'
+import { requireTurnstile } from '@/lib/turnstile'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const denied = await requireTurnstile(body?.turnstileToken, 'register')
+    if (denied) return denied
     const { name, username, email, password } = body
 
-    if (!name || !username || !email || !password) {
+    if (typeof name !== 'string' || !name.trim() || name.length > 200 ||
+      typeof username !== 'string' || typeof email !== 'string' || email.length > 254 ||
+      typeof password !== 'string' || !password || password.length > 1024) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 

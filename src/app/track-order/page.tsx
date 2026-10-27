@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { useToast } from '@/hooks/use-toast'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 import {
   Loader2,
   Package,
@@ -135,6 +136,7 @@ export default function TrackOrderPage() {
 
   const [orderNumber, setOrderNumber] = useState('')
   const [email, setEmail] = useState('')
+  const formActivity = useGuestFormActivity('track_order', { orderNumber, email })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [order, setOrder] = useState<OrderDetail | null>(null)
@@ -164,6 +166,7 @@ export default function TrackOrderPage() {
       const data = await res.json()
 
       if (res.ok) {
+        await formActivity.submitted({ orderNumber: orderNumber.trim(), email: email.trim() })
         setOrder(data)
       } else {
         setError(data.error || 'We could not find that order.')
@@ -243,7 +246,8 @@ export default function TrackOrderPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleLookup} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <form onSubmit={handleLookup} {...formActivity.bindings} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">{formActivity.notice}</div>
                 <div className="space-y-2">
                   <Label htmlFor="track-order-number">Order Number</Label>
                   <Input

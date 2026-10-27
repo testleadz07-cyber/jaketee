@@ -1,3 +1,5 @@
+import { sanitizeGuestForm, isGuestFormAction } from '@/lib/guest-form-schema'
+
 /** Shared browser/server contract. Unknown detail fields are deliberately discarded. */
 const customization = ['productId', 'customizationSessionId', 'step', 'activeSeconds'] as const
 export const EVENT_FIELDS = {
@@ -26,6 +28,8 @@ export const EVENT_FIELDS = {
   checkout_error: ['checkoutStep', 'errorCode'],
   contact_button_clicked: ['channel'],
   information_opened: ['sectionName'],
+  guest_form_draft: [],
+  guest_form_submitted: [],
 } as const
 
 export type AnalyticsEventName = keyof typeof EVENT_FIELDS
@@ -38,13 +42,27 @@ export function normalizeActivityPath(value: unknown): string | undefined {
   return value.split(/[?#]/)[0] || '/'
 }
 
-export function parseActivity(value: unknown): { action: AnalyticsEventName; details: Record<string, string | number> } {
+export type ActivityDetails = Record<string, string | number | boolean | Record<string, string>>
+export function parseActivity(value: unknown): { action: AnalyticsEventName; details: ActivityDetails } {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid activity')
   const { action, details = {} } = value as Record<string, unknown>
   if (typeof action !== 'string' || !Object.hasOwn(EVENT_FIELDS, action)) throw new Error('Unsupported action')
   if (!details || typeof details !== 'object' || Array.isArray(details)) throw new Error('Invalid details')
   const input = details as Record<string, unknown>
-  const result: Record<string, string | number> = {}
+  const result: ActivityDetails = {}
+  if (isGuestFormAction(action)) {
+    if (typeof input.formSessionId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.formSessionId)) throw new Error('Invalid form session')
+    const snapshot = sanitizeGuestForm(input.form, input.fields)
+    if (!Object.keys(snapshot.fields).length && action === 'guest_form_submitted') throw new Error('Empty guest form')
+    result.form = snapshot.form
+    result.formSessionId = input.formSessionId
+    if (typeof input.formRevision !== 'number' || !Number.isSafeInteger(input.formRevision) || input.formRevision < 1 || input.formRevision > 1e9) throw new Error('Invalid form revision')
+    result.formRevision = input.formRevision
+    if (typeof input.consentAt !== 'string' || input.consentAt.length > 40 || !Number.isFinite(Date.parse(input.consentAt))) throw new Error('Invalid form consent reference')
+    result.consentAt = input.consentAt
+    result.fields = snapshot.fields
+    result.truncated = snapshot.truncated || input.truncated === true
+  }
   const fields: readonly string[] = EVENT_FIELDS[action as AnalyticsEventName]
   for (const key of ['path', 'source', ...fields]) {
     const item = input[key]

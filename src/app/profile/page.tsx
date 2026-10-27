@@ -1,5 +1,6 @@
 'use client'
 
+import { GoogleSignIn } from '@/components/google-sign-in'
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
 import { useSession } from 'next-auth/react'
@@ -485,6 +486,7 @@ export default function ProfilePage() {
 
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6">
+              <div className="max-w-md"><GoogleSignIn linking callbackUrl="/profile" /></div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Profile Edit */}
                 <Card className="border-2">

@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       pages: Math.max(1, Math.ceil(total / limit)),
       actions: distinctActions,
       countries,
-    })
+    }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error: any) {
     console.error('Admin guest activity fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch guest activity' }, { status: 500 })

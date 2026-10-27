@@ -15,7 +15,9 @@ node_modules
 
 # next.js
 /.next/
+/.next-chat/
 /.next-nav-audit/
+/.next-google-push-preview/
 /out/
 /output/
 

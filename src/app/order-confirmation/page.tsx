@@ -1,4 +1,5 @@
 'use client'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 import { Footer } from '@/components/footer'
 import { SectionLoadingSkeleton } from '@/components/page-content-skeleton'
@@ -66,6 +67,7 @@ function ConfirmationContent() {
   const [verificationError, setVerificationError] = useState<string | null>(null)
   const [downloadingInvoice, setDownloadingInvoice] = useState(false)
   const [lookupEmail, setLookupEmail] = useState('')
+  const formActivity = useGuestFormActivity('order_confirmation', { email: lookupEmail })
 
   useEffect(() => {
     if (!order) return
@@ -128,6 +130,7 @@ function ConfirmationContent() {
         body: JSON.stringify({ orderId, email }),
       })
       if (res.ok) {
+        if (emailOverride) await formActivity.submitted({ email: emailOverride })
         setOrder(await res.json())
       }
     } catch (error) {
@@ -205,7 +208,8 @@ function ConfirmationContent() {
           <p className="text-muted-foreground mb-6 max-w-sm">
             Enter the email used at checkout to view your order, or use your order number on the tracking page.
           </p>
-          <form className="flex w-full max-w-sm flex-col gap-3" onSubmit={(event) => { event.preventDefault(); setLoading(true); void fetchOrderDetails(lookupEmail) }}>
+          <form {...formActivity.bindings} className="flex w-full max-w-sm flex-col gap-3" onSubmit={(event) => { event.preventDefault(); setLoading(true); void fetchOrderDetails(lookupEmail) }}>
+            {formActivity.notice}
             <Input type="email" required autoComplete="email" aria-label="Checkout email" placeholder="Email used at checkout" value={lookupEmail} onChange={(event) => setLookupEmail(event.target.value)} />
             <Button type="submit">Find My Order</Button>
           </form>

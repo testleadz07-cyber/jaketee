@@ -1,3 +1,4 @@
+import { notifyOrder } from '@/lib/notifications'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { applyStripeShippingAddress } from '@/lib/stripe-shipping-address'
@@ -93,6 +94,7 @@ async function markOrderPaid(checkoutSession: Stripe.Checkout.Session) {
   // this order via the client redirect, or Stripe may redeliver the event.
   if (order.paymentStatus === 'paid' || order.status === 'paid' || order.statusHistory.some((entry: { status: string }) => entry.status === 'paid')) {
     if (order.paymentStatus !== 'paid') { order.paymentStatus = 'paid'; await order.save() }
+    await notifyOrder(order, true)
     return
   }
 
@@ -102,6 +104,8 @@ async function markOrderPaid(checkoutSession: Stripe.Checkout.Session) {
   order.paymentId = checkoutSession.id
   order.statusHistory.push({ status: 'paid', timestamp: new Date(), note: 'Confirmed via Stripe webhook' })
   await order.save()
+
+  await notifyOrder(order, true)
 
   await decrementStockForOrder(order.items)
 

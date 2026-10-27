@@ -1,6 +1,9 @@
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import { categorySocialImage } from '@/lib/category-social-image'
 import { Metadata } from 'next'
+import { getCatalogProducts, getSearchFacetProducts } from '@/lib/catalog-products'
+import { catalogSortValue } from '@/lib/product-search'
+
 import { Suspense } from 'react'
 import { CatalogPageLoading } from '@/components/catalog-page-loading'
 import { VARSITY_CATEGORY_SEO } from '@/lib/varsity-category-seo'
@@ -402,18 +405,13 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
       const filterParams = new URLSearchParams()
       for (const [key, value] of Object.entries(query)) for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) filterParams.append(key, item)
       const productFilter = { inStock: true, isDraft: { $ne: true }, status: 'active', categoryId: { $in: descendantIds }, ...catalogFilterQuery(readCatalogFilters(filterParams)) }
-      const sortOption = filterParams.get('sort')
-      const productSort: Record<string, 1 | -1> = sortOption === 'price-asc' ? { price: 1 } : sortOption === 'price-desc' ? { price: -1 } : sortOption === 'name' ? { name: 1 } : sortOption === 'newest' ? { createdAt: -1 } : { isFeatured: -1, createdAt: -1 }
-      const [rawProducts, total, facetProducts] = await Promise.all([
-        Product.find(productFilter)
-          .sort({ ...productSort, _id: 1 })
-          .skip((requestedPage - 1) * CATEGORY_PRODUCTS_PER_PAGE)
-          .limit(CATEGORY_PRODUCTS_PER_PAGE)
-          .populate('categoryId', 'name slug')
-          .lean(),
-        Product.countDocuments(productFilter),
-        Product.find({ inStock: true, isDraft: { $ne: true }, status: 'active', categoryId: { $in: descendantIds } }).select('price variants -_id').lean(),
+      const selectedFilters = readCatalogFilters(filterParams)
+      const sortOption = catalogSortValue(filterParams.get('sort'), Boolean(selectedFilters.search))
+      const [catalog, facetProducts] = await Promise.all([
+        getCatalogProducts({ filter: productFilter, search: selectedFilters.search, selectedColors: selectedFilters.color, categories: rawCategories, sort: sortOption, page: requestedPage, limit: CATEGORY_PRODUCTS_PER_PAGE }),
+        getSearchFacetProducts({ inStock: true, isDraft: { $ne: true }, status: 'active', categoryId: { $in: descendantIds } }, selectedFilters.search, rawCategories),
       ])
+      const { products: rawProducts, total } = catalog
       initialFacets = getCatalogFacetData(facetProducts as any)
       initialTotalProducts = total
       initialProducts = rawProducts.map((product: any) => {
@@ -421,6 +419,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
         const categoryPath = resolveAncestorChain(nodes, leafId).map((item) => ({ name: item.name, slug: item.slug }))
         return {
           id: String(product._id),
+          searchMatch: product.searchMatch,
           name: product.name,
           slug: product.slug,
           description: product.description || '',
@@ -574,7 +573,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
         slug={category.slug}
         initialCategories={initialCategories.map((item) => item.slug === 'varsity-jackets' ? { ...item, ...VARSITY_CATEGORY_SEO } : item)}
         initialFilters={readCatalogFilters(new URLSearchParams(Object.entries(query).flatMap(([key, value]) => (Array.isArray(value) ? value : value === undefined ? [] : [value]).map(item => [key, item]))))}
-        initialSort={typeof query.sort === 'string' && ['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(query.sort) ? query.sort : 'featured'}
+        initialSort={catalogSortValue(typeof query.sort === 'string' ? query.sort : null, Boolean(query.search))}
         initialProducts={initialProducts}
         initialTotalProducts={initialTotalProducts}
         initialPage={requestedPage}

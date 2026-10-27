@@ -57,7 +57,8 @@ export function NotificationBell() {
     if (!isAdmin) return
     startTransition(() => { fetchNotifications() })
     const interval = setInterval(fetchNotifications, POLL_INTERVAL_MS)
-    return () => clearInterval(interval)
+    window.addEventListener('jacketee-notifications-updated', fetchNotifications)
+    return () => { clearInterval(interval); window.removeEventListener('jacketee-notifications-updated', fetchNotifications) }
   }, [isAdmin])
 
   useEffect(() => {

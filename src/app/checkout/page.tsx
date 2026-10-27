@@ -27,6 +27,7 @@ import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from
 import { logUserActivity } from '@/lib/activity'
 import { checkoutAddressKey, EMPTY_CHECKOUT_ADDRESS, readCheckoutAddressDraft, suggestCheckoutLocation, type CheckoutAddressDraft, type AddressConfirmation } from '@/lib/checkout-address-draft'
 import { useHasMounted } from '@/hooks/use-has-mounted'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 interface SavedAddress {
   label: string
@@ -125,6 +126,9 @@ function CheckoutContent() {
   const [promoCodeInput, setPromoCodeInput] = useState('')
   const [isValidating, setIsValidating] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const formActivity = useGuestFormActivity('checkout', {
+    ...currentAddress, step, paymentMethod, promoCode: promoCodeInput || appliedPromo?.code || '',
+  })
 
   // Shipping input refs for browser autofill sync
   const nameRef = useRef<HTMLInputElement>(null)
@@ -211,6 +215,7 @@ function CheckoutContent() {
               throw new Error(data.error || 'Could not start PayPal checkout')
             }
             paypalDbOrderIdRef.current = data.orderId
+            await formActivity.submitted({ name: shippingName, email: shippingEmail, phone: shippingPhone, street: shippingStreet, city: shippingCity, state: shippingState, zip: shippingZip, country: shippingCountry, paymentMethod: 'paypal', promoCode: appliedPromo?.code || '', step: 3 })
             return data.id
           } catch (error) {
             console.error('Error creating PayPal order:', error)
@@ -559,6 +564,7 @@ function CheckoutContent() {
       if (res.ok) {
         const data = await res.json()
         if (data.url) {
+          await formActivity.submitted({ ...payload.shippingAddress, email: payload.email, paymentMethod: 'stripe', promoCode: payload.promoCode, step: 3 })
           window.location.href = data.url
         } else {
           throw new Error('Failed to retrieve checkout URL')
@@ -689,7 +695,8 @@ function CheckoutContent() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
+      <main {...formActivity.bindings} className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
+        <div className="mb-4">{formActivity.notice}</div>
         <Breadcrumbs items={[{ label: 'Checkout' }]} className="mb-6" />
         <motion.div
           initial={{ opacity: 0, y: 15 }}

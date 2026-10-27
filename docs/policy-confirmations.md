@@ -2,6 +2,8 @@
 
 The privacy, terms and cookie pages were aligned with the repository. This is not a certification of legal compliance or of production provider settings. Do not replace the following gaps with invented details.
 
+For the plain-language questions, reasons and suggested people to help answer them, see the [project TODO list](../TODO.md). Keep these audit notes aligned with that checklist when answers are confirmed.
+
 ## Business confirmation
 
 1. **Legal identity:** registered legal name, trading-name relationship, registration number where relevant, full service/postal address, country of establishment. The public contact location remains the existing Adalatghar, Sialkot entry; it is not described as a verified registered address.

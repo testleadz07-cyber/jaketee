@@ -14,6 +14,7 @@ import { JacketSizeGuide } from '@/components/jacket-size-guide'
 import { FulfillmentNotice } from '@/components/fulfillment-notice'
 import { useCartStore } from '@/store/cart'
 import { captureJacketDesignPreviews, getJacketChestWidth } from '@/lib/jacket-design-preview'
+import { downloadDesignImages } from '@/lib/download-design-images'
 import { getCustomizationFee } from '@/lib/customization-pricing'
 import { DEFAULT_VARSITY_OPTIONS, VARSITY_COLORS, VARSITY_OPTIONS, VARSITY_TEMPLATE_ID, getVarsityImages, getVarsitySvg, getVarsityPrice, validateVarsityOptions } from '@/lib/varsity-template'
 import { JACKET_VIEWS, MAX_JACKET_TEXTS, getJacketViewLabel, type JacketView } from '@/types/jacket-customization'
@@ -102,14 +103,8 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
     setError('')
     try {
       const previews = await captureJacketDesignPreviews(configuration, images, getJacketChestWidth(options.Size))
-      const blob = new Blob([JSON.stringify({ template: VARSITY_TEMPLATE_ID, options, design, previews }, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'my-varsity-design.json'
-      link.click()
-      URL.revokeObjectURL(url)
-      setMessage('Design and all four previews downloaded.')
+      downloadDesignImages(previews, 'Custom Varsity Jacket')
+      setMessage('Download started: ZIP with four PNG images of your current design.')
     } catch { setError('The design could not be downloaded. Please retry.') }
     finally { lock.current = false; setBusy(false) }
   }

@@ -47,6 +47,7 @@ export const metadata: Metadata = {
   verification: Object.keys(verification).length > 0 ? verification : undefined,
   icons: {
     icon: "/logo.webp",
+    apple: "/push-icon-192.png",
   },
   openGraph: {
     url: SITE_URL,

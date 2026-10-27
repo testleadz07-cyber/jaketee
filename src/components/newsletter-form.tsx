@@ -5,9 +5,13 @@ import { Loader2, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
+import { useTurnstile } from '@/components/turnstile-challenge'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 export function NewsletterForm() {
+  const verification = useTurnstile('newsletter')
   const [email, setEmail] = useState('')
+  const formActivity = useGuestFormActivity('newsletter', { email })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const handleSubscribe = async (e: React.FormEvent) => {
@@ -16,15 +20,17 @@ export function NewsletterForm() {
 
     setIsSubmitting(true)
     try {
+      const turnstileToken = await verification.getToken()
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       })
 
       const data = await res.json()
 
       if (res.ok) {
+        await formActivity.submitted({ email })
         toast({
           title: 'Subscription Successful!',
           description: data.message || 'Thank you for subscribing to our newsletter.',
@@ -37,10 +43,10 @@ export function NewsletterForm() {
           variant: 'destructive',
         })
       }
-    } catch {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to communicate with server.',
+        description: error instanceof Error ? error.message : 'Failed to communicate with server.',
         variant: 'destructive',
       })
     } finally {
@@ -51,10 +57,12 @@ export function NewsletterForm() {
   return (
     <form
       onSubmit={handleSubscribe}
-      className="flex flex-col gap-2 sm:flex-row"
+      {...formActivity.bindings}
+      className="flex flex-col gap-2"
       data-mcp-action="newsletter_signup"
       data-mcp-description="Subscribe to Jacketee custom jacket updates and offers"
     >
+      <div className="flex flex-col gap-2 sm:flex-row">
       <Input
         id="footer-newsletter-email"
         name="email"
@@ -65,6 +73,7 @@ export function NewsletterForm() {
         onChange={(e) => setEmail(e.target.value)}
         className="h-11 w-full bg-background text-sm"
         required
+        disabled={isSubmitting}
       />
       <Button
         type="submit"
@@ -81,6 +90,9 @@ export function NewsletterForm() {
           </>
         )}
       </Button>
+      </div>
+      {verification.widget}
+      {formActivity.notice}
     </form>
   )
 }

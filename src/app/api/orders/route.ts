@@ -1,3 +1,4 @@
+import { notifyOrder } from '@/lib/notifications'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -196,6 +197,8 @@ export async function POST(request: NextRequest) {
       ],
     })
 
+    await notifyOrder(order)
+    if (order.paymentStatus === 'paid') await notifyOrder(order, true)
     return NextResponse.json({ ...order.toObject(), id: String(order._id) }, { status: 201 })
   } catch (error: any) {
     console.error('Custom order creation error:', error)
