@@ -4,7 +4,7 @@ const faqs = [
   ['Do I need to choose a product first?', 'No. Start your varsity jacket here without choosing a catalog product. To customize an existing product, open its product page and select its customization button.'],
   ['What can I customize?', 'Choose body and sleeve materials, colors, sleeve style, collar, hood, closure, pockets, knit stripes, lining, and size. Both sleeves share one color. Add text and artwork to the front, back, and each sleeve.'],
   ['How much does a custom varsity jacket cost?', 'A cotton fleece base jacket costs $55 USD. A material upgrade adds $10 once per jacket, a hood adds $5, and a zipper adds $2. Text and artwork can add fees shown in your total. Shipping is calculated at checkout.'],
-  ['Can I save my design?', 'Save design stores your selections and artwork in this browser on this device. Returning here restores your saved design. Download design creates a JSON file with your configuration and four previews. Importing that file is not currently supported.'],
+  ['Can I save my design?', 'Save design stores your selections and artwork in this browser on this device. Returning here restores your saved design. Download design exports a ZIP containing four PNG images of your current design: front, back, left sleeve and right sleeve.'],
   ['Can I upload my own logo?', 'Yes. Upload a PNG, JPG, or WebP image under 5 MB, or choose artwork from the library. Position it on the preview and check each view before ordering.'],
   ['How do I choose a size?', 'Open the Size section and check the size guide before selecting your size. Contact our team if you need help with fit or materials. Preview textures are illustrative.'],
 ]
