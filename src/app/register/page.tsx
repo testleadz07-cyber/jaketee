@@ -1,5 +1,6 @@
 'use client'
 
+import { GoogleSignIn } from '@/components/google-sign-in'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSession, signIn } from 'next-auth/react'
@@ -14,6 +15,8 @@ import { BrandLogo } from '@/components/brand-logo'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { useTurnstile } from '@/components/turnstile-challenge'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 async function waitForSession() {
   for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -29,10 +32,13 @@ function redirectTo(destination: string) {
 }
 
 export default function RegisterPage() {
+  const verification = useTurnstile('register')
+  const loginVerification = useTurnstile('login')
   const router = useRouter()
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
+  const formActivity = useGuestFormActivity('registration', { name, username, email })
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -61,10 +67,11 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
+      const turnstileToken = await verification.getToken()
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, username, email, password }),
+        body: JSON.stringify({ name, username, email, password, turnstileToken }),
       })
 
       const data = await res.json()
@@ -75,7 +82,13 @@ export default function RegisterPage() {
         return
       }
 
+      await formActivity.submitted({ name, username, email })
+      // Registration consumed its token; automatic login needs a fresh login token.
+      let loginToken: string
+      try { loginToken = await loginVerification.getToken() }
+      catch { router.replace('/login?success=true'); return }
       const result = await signIn('credentials', {
+        turnstileToken: loginToken,
         identifier: email,
         password,
         redirect: false,
@@ -91,7 +104,7 @@ export default function RegisterPage() {
       const role = (updatedSession?.user as any)?.role || 'customer'
       redirectTo(role === 'admin' ? '/admin/dashboard' : '/profile')
     } catch (error) {
-      setError('An error occurred. Please try again.')
+      setError(error instanceof Error ? error.message : 'An error occurred. Please try again.')
       setIsLoading(false)
     }
   }
@@ -101,7 +114,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-4">
         <Breadcrumbs items={[{ label: 'Register' }]} className="flex justify-center" />
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="w-full"
@@ -117,7 +130,8 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <GoogleSignIn disabled={isLoading} />
+            <form onSubmit={handleSubmit} {...formActivity.bindings} className="space-y-4">
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                   <AlertCircle className="h-4 w-4" />
@@ -209,6 +223,8 @@ export default function RegisterPage() {
                 </Label>
               </div>
 
+              {verification.widget}
+              {loginVerification.widget}
               <Button type="submit" className="w-full" disabled={isLoading || !agreedToTerms}>
                 {isLoading ? 'Creating account...' : 'Register'}
               </Button>

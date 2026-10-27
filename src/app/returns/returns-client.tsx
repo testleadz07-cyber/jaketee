@@ -25,9 +25,11 @@ import {
 import Link from 'next/link'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Footer } from '@/components/footer'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 export default function ReturnsClient({ resources }: { resources: React.ReactNode }) {
   const [form, setForm] = useState({ orderId: '', name: '', email: '', reason: '' })
+  const formActivity = useGuestFormActivity('returns', { ...form, orderNumber: form.orderId })
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
@@ -51,6 +53,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
         body: JSON.stringify({ orderId: form.orderId, reason: form.reason, userName: form.name, userEmail: form.email })
       })
       if (res.ok) {
+        await formActivity.submitted({ ...form, orderNumber: form.orderId })
         setSubmitted(true)
         setForm({ orderId: '', name: '', email: '', reason: '' })
       } else {
@@ -325,7 +328,8 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                   <Button variant="outline" size="sm" onClick={() => setSubmitted(false)}>Submit Another Request</Button>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
+                <form onSubmit={handleSubmit} {...formActivity.bindings} className="space-y-4 max-w-xl">
+                  {formActivity.notice}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="orderId">Order Number *</Label>

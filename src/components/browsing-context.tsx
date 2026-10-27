@@ -23,7 +23,10 @@ function safeContext(raw: string): Context | null {
 
 function currentHref() {
   const url = new URL(window.location.href)
-  for (const key of [...url.searchParams.keys()]) if (!allowedQuery.has(key)) url.searchParams.delete(key)
+  for (const key of [...url.searchParams.keys()]) {
+    const variantOption = /^variant\.(colou?r|fit|gender|audience|material|fabric|body|sleeves?|shell|body material|sleeves? material)$/i.test(key)
+    if (!allowedQuery.has(key) && !variantOption) url.searchParams.delete(key)
+  }
   return url.pathname + url.search
 }
 

@@ -8,8 +8,10 @@ import Image from '@/components/optimized-image'
 import { Input } from '@/components/ui/input'
 import { WhatsAppHelp } from '@/components/whatsapp-help'
 import { buildProductUrl } from '@/lib/categories'
+import { searchProductHref, type SearchMatch } from '@/lib/product-search'
 
 interface SearchSuggestion {
+  searchMatch?: SearchMatch
   id: string
   name: string
   slug: string
@@ -80,7 +82,7 @@ export function HeaderSearch({ className = '' }: { className?: string }) {
     setQuery('')
     setSuggestions([])
     setActive(-1)
-    router.push(buildProductUrl({ slug: product.slug, categoryPath: product.categoryPath }))
+    router.push(searchProductHref(buildProductUrl({ slug: product.slug, categoryPath: product.categoryPath }), product.searchMatch))
   }
   function handleKey(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Escape') { setOpen(false); setActive(-1); return }
@@ -103,7 +105,7 @@ export function HeaderSearch({ className = '' }: { className?: string }) {
     {expanded && <div className="absolute inset-x-0 top-full z-[70] mt-2 max-h-[min(28rem,65dvh)] overflow-y-auto overscroll-contain rounded-xl border bg-popover text-popover-foreground shadow-xl">
       <p role="status" aria-live="polite" className="px-4 pt-4 pb-2 text-xs text-muted-foreground">{searching ? 'Searching products…' : failed ? 'Suggestions are temporarily unavailable. You can still search the shop.' : suggestions.length ? `${suggestions.length} suggestions. Use the up and down arrows to choose.` : `No suggestions for “${term}”. Try the full shop search below.`}</p>
       {searching && <div className="flex justify-center py-4"><Loader2 aria-hidden="true" className="h-5 w-5 animate-spin" /></div>}
-      <ul id={`${id}-results`} role="listbox" aria-label="Product suggestions" className="p-2">{suggestions.map((product, index) => <li key={product.id} role="presentation"><button id={`${id}-option-${index}`} role="option" aria-selected={active === index} type="button" tabIndex={-1} onPointerDown={event => event.preventDefault()} onClick={() => select(product)} className={`flex min-h-16 w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-accent ${active === index ? 'bg-accent' : ''}`}><span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white">{product.thumbnail && <Image src={product.thumbnail} alt="" fill sizes="48px" className="object-contain" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-5">{product.name}</span><span className="mt-1 block text-sm font-semibold text-primary">${product.price.toFixed(2)}</span></span></button></li>)}</ul>
+      <ul id={`${id}-results`} role="listbox" aria-label="Product suggestions" className="p-2">{suggestions.map((product, index) => <li key={product.id} role="presentation"><button id={`${id}-option-${index}`} role="option" aria-selected={active === index} type="button" tabIndex={-1} onPointerDown={event => event.preventDefault()} onClick={() => select(product)} className={`flex min-h-16 w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-accent ${active === index ? 'bg-accent' : ''}`}><span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white">{product.thumbnail && <Image src={product.thumbnail} alt="" fill sizes="48px" className="object-contain" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-5">{product.name}</span>{product.searchMatch?.options && <span className="mt-1 block text-xs text-muted-foreground">Available: {Object.values(product.searchMatch.options).join(' · ')}</span>}<span className="mt-1 block text-sm font-semibold text-primary">${product.price.toFixed(2)}</span></span></button></li>)}</ul>
       <Link href={resultsUrl} onClick={() => setOpen(false)} className="flex min-h-12 items-center justify-between gap-3 border-t px-4 py-3 text-sm font-semibold text-primary hover:bg-accent">View all search results<ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" /></Link>
       {!searching && !failed && !suggestions.length && <div className="border-t px-4 pb-3"><WhatsAppHelp message={`I am looking for ${term}. Can you help me find the right jacket?`} /></div>}
     </div>}

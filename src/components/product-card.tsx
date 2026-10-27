@@ -11,9 +11,11 @@ import { useWishlistStore } from '@/store/wishlist'
 import { buildProductUrl } from '@/lib/categories'
 import { getDisplayCompareAtPrice } from '@/lib/pricing'
 import { logUserActivity } from '@/lib/activity'
+import { searchProductHref, type SearchMatch } from '@/lib/product-search'
 
 interface ProductCardProps {
   product: {
+    searchMatch?: SearchMatch
     id: string
     name: string
     slug: string
@@ -40,13 +42,14 @@ export function ProductCard({ product, listingPosition, home = false, collection
   const isInWishlist = useWishlistStore((state) => state.items.some((item) => item.productId === product.id))
   const addToWishlist = useWishlistStore((state) => state.addItem)
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
-  const imageUrl = product.images[0]?.url || '/placeholder.png'
+  const imageUrl = product.searchMatch?.image || product.images[0]?.url || '/placeholder.png'
 
-  const displayCompareAtPrice = getDisplayCompareAtPrice(product)
+  const displayPrice = product.searchMatch?.price ?? product.price
+  const displayCompareAtPrice = getDisplayCompareAtPrice({ ...product, price: displayPrice })
   const discount =
     displayCompareAtPrice
       ? Math.round(
-          ((displayCompareAtPrice - product.price) / displayCompareAtPrice) *
+          ((displayCompareAtPrice - displayPrice) / displayCompareAtPrice) *
             100
         )
       : 0
@@ -60,13 +63,13 @@ export function ProductCard({ product, listingPosition, home = false, collection
   }
 
   return (
-    <Link href={buildProductUrl(product)} data-product-link onClick={logListingClick} className="block h-full min-w-0">
+    <Link href={searchProductHref(buildProductUrl(product), product.searchMatch)} data-product-link onClick={logListingClick} className="block h-full min-w-0">
       <div className="interactive-lift h-full">
         <Card className="h-full gap-0 overflow-hidden border py-0 hover:border-primary/60 transition-colors group cursor-pointer shadow-sm">
           <div className="relative aspect-square overflow-hidden bg-muted">
             <Image
               src={imageUrl}
-              alt={product.images[0]?.alt || product.name}
+              alt={product.searchMatch?.image && product.searchMatch.color ? `${product.name} in ${product.searchMatch.color}` : product.images[0]?.alt || product.name}
               fill
               sizes="(max-width: 1023px) 50vw, (max-width: 1279px) 25vw, 320px"
               quality={70}
@@ -125,6 +128,7 @@ export function ProductCard({ product, listingPosition, home = false, collection
               {product.category?.name || 'Uncategorized'}
             </Badge>}
 
+            {product.searchMatch?.options && <p className="mb-2 text-xs font-medium text-primary">Available: {Object.values(product.searchMatch.options).join(' · ')}</p>}
             <h3 className="mb-3 min-h-10 text-sm font-semibold leading-5 line-clamp-2 group-hover:text-primary transition-colors sm:min-h-12 sm:text-base sm:leading-6">
               {product.name}
             </h3>
@@ -132,7 +136,7 @@ export function ProductCard({ product, listingPosition, home = false, collection
             <div className="mt-auto flex items-center justify-between">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 <span className="text-lg font-bold text-primary sm:text-xl">
-                  ${product.price.toFixed(2)}
+                  ${displayPrice.toFixed(2)}
                 </span>
                 {displayCompareAtPrice && (
                   <span className="text-sm text-muted-foreground line-through">

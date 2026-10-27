@@ -28,10 +28,6 @@ export function appendCatalogFilters(params: URLSearchParams, filters: CatalogFi
 }
 export function catalogFilterQuery(filters: CatalogFilters) {
   const query: Record<string, unknown> = {}
-  if (filters.search) {
-    const escaped = filters.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    query.$or = ['name', 'slug', 'description'].map(key => ({ [key]: { $regex: escaped, $options: 'i' } }))
-  }
   if (filters.minPrice || filters.maxPrice) query.price = { ...(filters.minPrice ? { $gte: Number(filters.minPrice) } : {}), ...(filters.maxPrice ? { $lte: Number(filters.maxPrice) } : {}) }
   const variants = (Object.keys(catalogFacets) as Array<keyof typeof catalogFacets>).filter(key => filters[key].length).map(key => ({ variants: { $elemMatch: { name: catalogFacets[key], value: { $in: filters[key] }, inStock: { $ne: false } } } }))
   if (variants.length) query.$and = variants

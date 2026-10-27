@@ -8,6 +8,8 @@ import { resolveDescendantIds, resolveAncestorChain, type CategoryNode } from '@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { Types } from 'mongoose'
+import { getCatalogProducts, getSearchFacetProducts } from '@/lib/catalog-products'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,10 +82,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (searchParams.get('facets') === 'true' && !all) {
-      const facetProducts = await Product.find(filter).select('price variants -_id').lean()
+      const facetProducts = await getSearchFacetProducts(filter, (search || '').trim().slice(0, 200), allCategories)
       return NextResponse.json(getCatalogFacetData(facetProducts as any))
     }
     Object.assign(filter, catalogFilterQuery(readCatalogFilters(searchParams)))
+
+    if (!all) {
+      const selectedFilters = readCatalogFilters(searchParams)
+      const selectedSort = sort === 'price' ? (order === 'asc' ? 'price-asc' : 'price-desc') : sort === 'name' && order === 'desc' ? 'name-desc' : sort
+      const result = await getCatalogProducts({ filter, search: selectedFilters.search, selectedColors: selectedFilters.color, categories: allCategories, sort: searchParams.has('sort') ? selectedSort : selectedFilters.search ? 'relevance' : 'name', page, limit })
+      const nodes = allCategories.map((category: any) => ({ _id: String(category._id), parentId: category.parentId ? String(category.parentId) : null, name: category.name, slug: category.slug }))
+      const mapped = result.products.map((product: any) => ({ ...product, id: String(product._id), category: product.categoryId ? { _id: String(product.categoryId._id), name: product.categoryId.name, slug: product.categoryId.slug } : null, categoryPath: product.categoryId ? resolveAncestorChain(nodes, String(product.categoryId._id)).map(category => ({ name: category.name, slug: category.slug })) : [] }))
+      return NextResponse.json(mapped, { headers: { 'Cache-Control': 'no-store', 'X-Total-Count': String(result.total), 'X-Page': String(page), 'X-Pages': String(Math.max(1, Math.ceil(result.total / limit))) } })
+    }
 
     if (search) {
       const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

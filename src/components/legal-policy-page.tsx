@@ -15,7 +15,7 @@ export function LegalPolicyPage({ policy }: { policy: SitePolicy }) {
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Jacketee policies</p>
           <h1 id="policy-title" className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">{policy.title}</h1>
           <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">{policy.description}</p>
-          <p className="mt-5 text-sm text-muted-foreground">Last updated: <time dateTime="2026-10-23">October 23, 2026</time></p>
+          <p className="mt-5 text-sm text-muted-foreground">Last updated: <time dateTime="2026-10-27">October 27, 2026</time></p>
         </div>
       </section>
       <div className="container mx-auto grid items-start gap-6 px-4 pb-12 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-10 md:pb-16">

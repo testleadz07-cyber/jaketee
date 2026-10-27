@@ -1,6 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import { catalogSortValue, broaderSearches, type SearchMatch } from '@/lib/product-search'
 import { CatalogPending } from '@/components/catalog-pending'
 import { CatalogPageLoading } from '@/components/catalog-page-loading'
 
@@ -45,6 +46,7 @@ interface Category {
 }
 
 interface Product {
+  searchMatch?: SearchMatch
   id: string
   name: string
   slug: string
@@ -149,6 +151,7 @@ export function CategoryDetailView({
   const [totalProducts, setTotalProducts] = useState(initialTotalProducts)
   const [insights, setInsights] = useState<CategoryInsights | null>(initialInsights || null)
   const skipInitialProductFetch = useRef(initialCategories.length > 0)
+  const skipInitialFacetFetch = useRef(Boolean(initialFacets))
   const [searchDraft, setSearchDraft] = useState(initialFilters.search)
   const trackedCategory = categories.find(category => category.slug === slug)
   useActivityView('view_category', { categoryId: trackedCategory?.id, slug }, Boolean(trackedCategory))
@@ -156,7 +159,7 @@ export function CategoryDetailView({
   useEffect(() => {
     const params = new URLSearchParams(queryString)
     const restored = readCatalogFilters(params)
-    const nextSort = ['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(params.get('sort') || '') ? params.get('sort')! : 'featured'
+    const nextSort = catalogSortValue(params.get('sort'), Boolean(restored.search))
     const nextPage = Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1)
     const key = catalogSelectionKey(restored, slug, nextSort, nextPage)
     if (key === selection.current) return
@@ -173,19 +176,22 @@ export function CategoryDetailView({
     return () => clearTimeout(timer)
   }, [searchDraft, filters, slug, sortBy])
   useEffect(() => {
-    if (initialFacets) return
+    if (skipInitialFacetFetch.current) { skipInitialFacetFetch.current = false; return }
     let active = true
-    fetch(`/api/products?category=${encodeURIComponent(slug)}&facets=true`).then(response => {
+    const controller = new AbortController()
+    fetch(`/api/products?category=${encodeURIComponent(slug)}&facets=true&search=${encodeURIComponent(filters.search)}`, { signal: controller.signal }).then(response => {
       if (!response.ok) throw new Error('Facets unavailable')
       return response.json()
     }).then(data => { if (active) setFacets(data) }).catch(() => { if (active) setFacets({ groups: [], minPrice: 0, maxPrice: 0 }) })
-    return () => { active = false }
-  }, [slug, initialFacets])
+    return () => { active = false; controller.abort() }
+  }, [slug, filters.search])
 
   function applyFilters(next: CatalogFilters, force = false) {
     next = readCatalogFilters(appendCatalogFilters(new URLSearchParams(), next))
     if (!force && catalogSelectionKey(next, slug, sortBy) === catalogSelectionKey(filters, slug, sortBy)) return
-    selection.current = catalogSelectionKey(next, slug, sortBy, 1)
+    const nextSort = next.search && !filters.search && sortBy === 'featured' ? 'relevance' : !next.search && sortBy === 'relevance' ? 'featured' : sortBy
+    selection.current = catalogSelectionKey(next, slug, nextSort, 1)
+    setSortBy(nextSort)
     if (catalogSelectionKey(next) === catalogSelectionKey(emptyCatalogFilters)) {
       const anchor = document.getElementById('category-products')
       if (anchor && anchor.getBoundingClientRect().top < 0) anchor.scrollIntoView({ block: 'start' })
@@ -194,7 +200,7 @@ export function CategoryDetailView({
     setSearchDraft(next.search)
     setFilters({ ...next })
     const urlParams = appendCatalogFilters(new URLSearchParams(), next)
-    if (sortBy !== 'featured') urlParams.set('sort', sortBy)
+    if (nextSort !== (next.search ? 'relevance' : 'featured')) urlParams.set('sort', nextSort)
     window.history.pushState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
     setCurrentPage(1)
 
@@ -217,7 +223,7 @@ export function CategoryDetailView({
     setLoading(true)
     setSortBy(value)
     const urlParams = appendCatalogFilters(new URLSearchParams(), filters)
-    if (value !== 'featured') urlParams.set('sort', value)
+    if (value !== (filters.search ? 'relevance' : 'featured')) urlParams.set('sort', value)
     window.history.pushState(null, '', `${window.location.pathname}${urlParams.size ? `?${urlParams}` : ''}`)
     setCurrentPage(1)
 
@@ -318,7 +324,7 @@ export function CategoryDetailView({
   const categoryUrl = buildCategoryUrl(ancestorChain)
   const pageHref = (page: number) => {
     const params = appendCatalogFilters(new URLSearchParams(), filters)
-    if (sortBy !== 'featured') params.set('sort', sortBy)
+    if (sortBy !== (filters.search ? 'relevance' : 'featured')) params.set('sort', sortBy)
     if (page > 1) params.set('page', String(page))
     return `${categoryUrl}${params.size ? `?${params}` : ''}`
   }
@@ -392,7 +398,7 @@ export function CategoryDetailView({
           <div><h2 id="category-products-heading" className="text-xl font-semibold">Shop {category.name}</h2><div className="mt-1 flex min-h-5 items-center text-xs text-muted-foreground" role="status" aria-live="polite">{loading || loadingMore ? <CatalogPending active /> : `${products.length} of ${productCount} ${productCount === 1 ? 'style' : 'styles'}`}</div></div>
           <div className="flex w-full items-center gap-2 sm:w-auto">
             {hasFilterControls && <div className="flex-1 lg:hidden"><CategoryFilters mode="mobile" value={filters} onApply={next => applyFilters({ ...next, search: searchDraft.trim().slice(0, 200) })} onClear={() => applyFilters(emptyCatalogFilters)} facets={facets} /></div>}
-            {collectionCount > 1 && <CatalogSort value={sortBy} onChange={handleSortChange} />}
+            {collectionCount > 1 && <CatalogSort searchActive={Boolean(filters.search)} value={sortBy} onChange={handleSortChange} />}
             <Link href="/size-guide" className="hidden min-h-11 items-center gap-2 px-2 text-xs underline sm:inline-flex"><Ruler aria-hidden="true" className="h-4 w-4" />Size guide</Link>
           </div>
         </div>
@@ -450,6 +456,7 @@ export function CategoryDetailView({
             <PackageSearch className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="text-xl font-semibold">No products found</h3>
             <p className="mt-2 text-muted-foreground">{hasFilters ? "Try removing a filter or choosing a wider price range." : "More styles are on their way. Explore another material below."}</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">{broaderSearches(filters.search).length > 0 && <p className="w-full text-xs text-muted-foreground">Try a broader search</p>}{broaderSearches(filters.search).map(suggestion => <Button key={suggestion} variant="outline" onClick={() => applyFilters({ ...filters, search: suggestion })}>{suggestion}</Button>)}</div>
             {hasFilters && <Button variant="outline" className="mt-4" onClick={() => applyFilters(emptyCatalogFilters)}>Clear filters</Button>}
             <WhatsAppHelp message={`I couldn't find any products in ${category.name}. Can you help me find a suitable product?`} />
             <Button asChild variant="outline" className="mt-6">

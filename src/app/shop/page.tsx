@@ -1,5 +1,8 @@
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
+import { getCatalogProducts, getSearchFacetProducts } from '@/lib/catalog-products'
+import { catalogSortValue } from '@/lib/product-search'
+
 import { readCatalogFilters, catalogFilterQuery, getCatalogFacetData } from '@/lib/catalog-filters'
 import { collectionDesignImages } from '@/lib/collection-design-images'
 import { getCustomDesignImages } from '@/components/custom-design-section'
@@ -41,7 +44,7 @@ export default async function Page({ searchParams }: {
   const params = new URLSearchParams(Object.entries(query).flatMap(([key, value]) => (Array.isArray(value) ? value : value === undefined ? [] : [value]).map(item => [key, item])))
   const filters = readCatalogFilters(params)
   const category = params.get('category') || 'all'
-  const sort = ['featured', 'newest', 'price-asc', 'price-desc', 'name'].includes(params.get('sort') || '') ? params.get('sort')! : 'featured'
+  const sort = catalogSortValue(params.get('sort'), Boolean(filters.search))
   const page = Math.max(1, parseInt(params.get('page') || '1') || 1)
   const rawCategories = await CategoryModel.find().lean()
   const nodes: CategoryNode[] = rawCategories.map((item) => ({
@@ -59,23 +62,17 @@ export default async function Page({ searchParams }: {
   if (categoryIds) filter.categoryId = { $in: categoryIds }
   const facetFilter = { ...filter }
   Object.assign(filter, catalogFilterQuery(filters))
-  const sortOrder: Record<string, 1 | -1> = sort === 'price-asc' ? { price: 1 } : sort === 'price-desc' ? { price: -1 } : sort === 'name' ? { name: 1 } : sort === 'newest' ? { createdAt: -1 } : { isFeatured: -1, createdAt: -1 }
 
-  const [rawProducts, total, counts, facetProducts] = await Promise.all([
-    ProductModel.find(filter)
-      .sort({ ...sortOrder, _id: 1 })
-      .skip((page - 1) * 24)
-      .limit(24)
-      .populate('categoryId', 'name slug')
-      .lean(),
-    ProductModel.countDocuments(filter),
+  const [catalog, counts, facetProducts] = await Promise.all([
+    getCatalogProducts({ filter, search: filters.search, selectedColors: filters.color, categories: rawCategories, sort, page, limit: 24 }),
     ProductModel.aggregate([
       { $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } },
       { $sort: { isFeatured: -1, createdAt: -1, _id: 1 } },
       { $group: { _id: '$categoryId', count: { $sum: 1 }, image: { $first: { $arrayElemAt: ['$images.url', 0] } }, name: { $first: '$name' }, productImages: { $push: '$images.url' } } },
     ]),
-    ProductModel.find(facetFilter).select('price variants -_id').lean(),
+    getSearchFacetProducts(facetFilter, filters.search, rawCategories),
   ])
+  const { products: rawProducts, total } = catalog
   const countById = new Map<string, number>(counts.map((row) => [String(row._id), row.count]))
   const imageCategories = rawCategories.map(item => ({ id: String(item._id), parentId: item.parentId ? String(item.parentId) : null, name: item.name, image: item.image || '', productImages: (counts.find(row => String(row._id) === String(item._id))?.productImages || []).flat().filter((url: unknown) => typeof url === 'string') }))
   const categories: Category[] = rawCategories.map((item) => ({
@@ -91,6 +88,7 @@ export default async function Page({ searchParams }: {
   }))
   const products: Product[] = rawProducts.map((item) => ({
     id: String(item._id),
+    searchMatch: item.searchMatch,
     name: item.name,
     slug: item.slug,
     description: item.description ?? '',

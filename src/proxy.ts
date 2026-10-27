@@ -11,6 +11,8 @@ const ROUTE_LIMITS: Record<string, { windowMs: number; max: number }> = {
   '/api/auth/callback/credentials': { windowMs: 15 * 60 * 1000, max: 8 },
   // Registration - prevent mass account creation
   '/api/auth/register': { windowMs: 60 * 60 * 1000, max: 5 },
+  '/api/auth/forgot-password': { windowMs: 60 * 60 * 1000, max: 5 },
+  '/api/auth/reset-password': { windowMs: 15 * 60 * 1000, max: 10 },
   // Promo / coupon code guessing
   '/api/discounts/validate': { windowMs: 60 * 1000, max: 10 },
   '/api/discounts/check': { windowMs: 60 * 1000, max: 10 },

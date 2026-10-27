@@ -1,5 +1,7 @@
 'use client'
 
+import { PushNotificationSettings } from '@/components/admin/push-notification-settings'
+
 import { useUrlFilter } from '@/hooks/use-url-filter'
 import { AppliedUrlFilters } from '@/components/applied-url-filters'
 
@@ -57,6 +59,8 @@ function formatFieldLabel(key: string) {
 }
 
 const TYPE_LABELS: Record<string, string> = {
+  new_order: 'New Order',
+  payment_received: 'Payment Received',
   user_registered: 'New User',
   contact_form: 'Contact Form',
   newsletter_signup: 'Newsletter',
@@ -172,7 +176,7 @@ export default function AdminNotificationsPage() {
     <div className="min-h-screen bg-muted/10 flex flex-col">
 
       {/* Main Body */}
-      <main className="container mx-auto px-4 py-8 flex-1 space-y-6">
+      <main className="container mx-auto min-w-0 px-4 py-8 flex-1 space-y-6">
         <AppliedUrlFilters filters={[{ key: 'type', label: 'Type', defaultValue: 'all' }, { key: 'status', label: 'Status', defaultValue: 'all' }]} />
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -188,6 +192,8 @@ export default function AdminNotificationsPage() {
             </Button>
           )}
         </div>
+
+        <PushNotificationSettings />
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -269,7 +275,7 @@ export default function AdminNotificationsPage() {
         )}
 
         {pages > 1 && (
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               Page {page} of {pages} ({total} notifications)
             </p>
@@ -297,43 +303,43 @@ export default function AdminNotificationsPage() {
 
       {/* Notification Detail Modal */}
       <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
-        <DialogContent>
+        <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
           {selectedNotification && (
             <>
-              <DialogHeader>
-                <div className="flex items-center gap-2">
+              <DialogHeader className="shrink-0 border-b px-4 py-4 pr-12 text-left sm:px-6 sm:pr-14">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">
                     {TYPE_LABELS[selectedNotification.type] || selectedNotification.type}
                   </Badge>
                   {!selectedNotification.read && <Badge>Unread</Badge>}
                 </div>
-                <DialogTitle>{selectedNotification.title}</DialogTitle>
+                <DialogTitle className="leading-snug [overflow-wrap:anywhere]">{selectedNotification.title}</DialogTitle>
                 <DialogDescription>
                   {new Date(selectedNotification.createdAt).toLocaleString()}
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4 py-2">
-                <p className="text-sm text-foreground whitespace-pre-wrap">{selectedNotification.message}</p>
+              <div role="region" aria-label="Notification details" tabIndex={0} className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
+                <p className="whitespace-pre-wrap text-sm text-foreground [overflow-wrap:anywhere]">{selectedNotification.message}</p>
 
                 {selectedNotification.metadata && Object.keys(selectedNotification.metadata).length > 0 && (
-                  <div className="rounded-lg border divide-y">
+                  <div className="min-w-0 rounded-lg border divide-y">
                     {Object.entries(selectedNotification.metadata).map(([key, value]) => (
-                      <div key={key} className="flex flex-col gap-0.5 px-3 py-2">
+                      <div key={key} className="flex min-w-0 flex-col gap-1 px-3 py-3">
                         <span className="text-xs font-medium text-muted-foreground">{formatFieldLabel(key)}</span>
-                        <span className="text-sm break-words">{String(value)}</span>
+                        <span className="whitespace-pre-wrap text-sm leading-6 [overflow-wrap:anywhere]">{String(value)}</span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setSelectedNotification(null)}>
+              <DialogFooter className="shrink-0 border-t px-4 py-3 sm:px-6">
+                <Button className="min-h-11 w-full sm:w-auto" variant="outline" onClick={() => setSelectedNotification(null)}>
                   Close
                 </Button>
                 {selectedNotification.link && (
-                  <Button onClick={handleGoToLink}>
+                  <Button className="min-h-11 w-full sm:w-auto" onClick={handleGoToLink}>
                     View related page
                     <ArrowUpRight className="h-4 w-4 ml-2" />
                   </Button>

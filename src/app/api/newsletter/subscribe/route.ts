@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import Subscriber from '@/models/Subscriber'
 import { createNotification } from '@/lib/notifications'
 import { newsletterSubscriptionTemplate, sendEmail } from '@/lib/email'
+import { requireTurnstile } from '@/lib/turnstile'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const NEWSLETTER_DISCOUNT_CODE = 'WELCOME15'
@@ -10,9 +11,11 @@ const NEWSLETTER_DISCOUNT_CODE = 'WELCOME15'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const denied = await requireTurnstile(body?.turnstileToken, 'newsletter')
+    if (denied) return denied
     const { email } = body
 
-    if (!email || typeof email !== 'string') {
+    if (!email || typeof email !== 'string' || email.length > 254) {
       return NextResponse.json({ error: 'Email address is required.' }, { status: 400 })
     }
 

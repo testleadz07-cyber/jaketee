@@ -1,3 +1,4 @@
+import { notifyOrder } from '@/lib/notifications'
 
 import { calculateShipping } from '@/config/fulfillment'
 import { verifyAddressConfirmation } from '@/lib/address-confirmation'
@@ -139,6 +140,7 @@ export async function POST(request: NextRequest) {
         // /capture route can both find it.
         pendingOrder.paymentId = data.id
         await pendingOrder.save()
+        await notifyOrder(pendingOrder)
         return NextResponse.json({ id: data.id, orderId: String(pendingOrder._id) })
       } else {
         const errText = await res.text()

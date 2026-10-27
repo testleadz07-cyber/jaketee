@@ -6,6 +6,7 @@ export type CookieConsent = {
   analytics: boolean
   marketing: boolean
   updatedAt: string
+  formActivityVersion?: number
 }
 
 export const COOKIE_CONSENT_KEY = 'luxestore_cookie_consent'
@@ -32,14 +33,15 @@ export function getStoredConsent(): CookieConsent | null {
       functional: parsed.functional === true,
       analytics: parsed.analytics === true,
       marketing: parsed.marketing === true,
-      updatedAt: parsed.updatedAt || new Date().toISOString(),
+      updatedAt: typeof parsed.updatedAt === 'string' && Number.isFinite(Date.parse(parsed.updatedAt)) ? parsed.updatedAt : new Date(0).toISOString(),
+      formActivityVersion: parsed.formActivityVersion === 1 ? 1 : undefined,
     }
   } catch {
     return null
   }
 }
 
-export function saveConsent(consent: Omit<CookieConsent, 'necessary' | 'updatedAt'>) {
+export function saveConsent(consent: Pick<CookieConsent, 'functional' | 'analytics' | 'marketing'>) {
   if (typeof window === 'undefined') return
   const full: CookieConsent = {
     necessary: true,
@@ -47,6 +49,7 @@ export function saveConsent(consent: Omit<CookieConsent, 'necessary' | 'updatedA
     analytics: consent.analytics,
     marketing: consent.marketing,
     updatedAt: new Date().toISOString(),
+    formActivityVersion: consent.analytics ? 1 : undefined,
   }
   try {
     window.localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(full))
@@ -73,5 +76,6 @@ export function openCookiePreferences() {
 }
 
 export function hasConsentDecision(): boolean {
-  return getStoredConsent() !== null
+  const consent = getStoredConsent()
+  return consent !== null && (!consent.analytics || consent.formActivityVersion === 1)
 }

@@ -13,6 +13,8 @@ import { getWhatsAppUrl } from '@/lib/whatsapp'
 import { logUserActivity } from '@/lib/activity'
 import { shippingCountryOptions } from '@/config/fulfillment'
 import { contactLimits, validateContact, type ContactErrors, type ContactValues } from '@/lib/contact-validation'
+import { useTurnstile } from '@/components/turnstile-challenge'
+import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 const emptyForm: ContactValues = { name: '', email: '', subject: '', message: '', country: '' }
 const whatsappUrl = getWhatsAppUrl('Hi! I would like some help from the Jacketee team.')
@@ -23,7 +25,9 @@ const quickLinks = [
 ]
 
 export default function ContactPage() {
+  const verification = useTurnstile('contact')
   const [formData, setFormData] = useState<ContactValues>(emptyForm)
+  const formActivity = useGuestFormActivity('contact', formData)
   const [errors, setErrors] = useState<ContactErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -50,7 +54,8 @@ export default function ContactPage() {
     submissionLock.current = true
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.values) })
+      const turnstileToken = await verification.getToken()
+      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...result.values, turnstileToken }) })
       const data = await response.json().catch(() => null)
       if (!response.ok || data?.success !== true) {
         const fieldErrors: ContactErrors = {}
@@ -62,10 +67,11 @@ export default function ContactPage() {
         setSubmitError(typeof data?.error === 'string' ? data.error : 'Your message could not be sent. Please try again or contact us by email or WhatsApp.')
         return
       }
+      await formActivity.submitted(result.values)
       setSentTo(result.values.email)
       setFormData(emptyForm)
-    } catch {
-      setSubmitError('We could not confirm that your message was sent. Your details are still here. Check your connection, try again, or email info@jacketee.com.')
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'We could not confirm that your message was sent. Your details are still here. Check your connection, try again, or email info@jacketee.com.')
     } finally {
       submissionLock.current = false
       setIsSubmitting(false)
@@ -103,7 +109,7 @@ export default function ContactPage() {
               <h2 id="message-title" className="text-2xl font-bold">Send us a message</h2>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">Tell us what you need and we’ll reply by email. All fields are required except delivery country.</p>
               {sentTo ? <div role="status" className="mt-6 rounded-xl border bg-primary/5 p-6"><CheckCircle2 className="h-8 w-8 text-primary" /><h3 className="mt-4 text-lg font-semibold">Thanks. Your message has been sent.</h3><p className="mt-2 break-words text-sm leading-6 text-muted-foreground">We’ll reply to <strong className="font-medium text-foreground">{sentTo}</strong>. Check your inbox and spam folder for our response.</p><Button variant="outline" className="mt-5 min-h-11" onClick={() => setSentTo('')}>Send another message</Button></div> :
-                <form ref={formRef} id="contact-form" onSubmit={handleSubmit} noValidate aria-busy={isSubmitting} className="mt-6 space-y-5" data-mcp-action="contact" data-mcp-description="Send Jacketee a support, custom jacket, or bulk order inquiry">
+                <form ref={formRef} id="contact-form" onSubmit={handleSubmit} {...formActivity.bindings} noValidate aria-busy={isSubmitting} className="mt-6 space-y-5" data-mcp-action="contact" data-mcp-description="Send Jacketee a support, custom jacket, or bulk order inquiry">
                   <fieldset disabled={isSubmitting} className="space-y-5 disabled:opacity-70"><legend className="sr-only">Your contact details and enquiry</legend>
                     <div className="grid gap-5 sm:grid-cols-2">
                       <div><label htmlFor="contact-name" className="mb-2 block text-sm font-medium">Name</label><Input id="contact-name" name="name" autoComplete="name" required maxLength={contactLimits.name} value={formData.name} onChange={event => update('name', event.target.value)} className="min-h-11" {...errorProps('name')} />{fieldError('name')}</div>
@@ -113,6 +119,8 @@ export default function ContactPage() {
                     <div><label htmlFor="contact-country" className="mb-2 block text-sm font-medium">Delivery country <span className="font-normal text-muted-foreground">(optional)</span></label><select id="contact-country" name="country" autoComplete="country" value={formData.country} onChange={event => update('country', event.target.value)} className="min-h-11 w-full rounded-md border bg-background px-3 text-base sm:text-sm" aria-invalid={!!errors.country} aria-describedby={errors.country ? 'contact-country-hint contact-country-error' : 'contact-country-hint'}><option value="">Select if your question is about shipping</option>{shippingCountryOptions.map(country => <option key={country.code} value={country.code}>{country.name}</option>)}</select><p id="contact-country-hint" className="mt-2 text-xs leading-5 text-muted-foreground">Helps us answer questions about delivery to your destination.</p>{fieldError('country')}</div>
                     <div><label htmlFor="contact-message" className="mb-2 block text-sm font-medium">Message</label><Textarea id="contact-message" name="message" required rows={6} maxLength={contactLimits.message} value={formData.message} onChange={event => update('message', event.target.value)} placeholder="Tell us about your question, design idea or order." className="min-h-40 text-base sm:text-sm" aria-invalid={!!errors.message} aria-describedby={errors.message ? 'contact-message-hint contact-message-error' : 'contact-message-hint'} /><div id="contact-message-hint" className="mt-2 flex flex-wrap justify-between gap-2 text-xs leading-5 text-muted-foreground"><span>For order help, include your order number if you have it.</span><span>{formData.message.length}/{contactLimits.message}</span></div>{fieldError('message')}</div>
                   </fieldset>
+                  {verification.widget}
+                  {formActivity.notice}
                   {submitError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm leading-6 text-destructive">{submitError}</p>}
                   <p className="text-xs leading-5 text-muted-foreground">We use your details to respond to your enquiry. Read our <Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>.</p>
                   <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={isSubmitting}>{isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending…</> : <><Send className="mr-2 h-4 w-4" />Send message</>}</Button>

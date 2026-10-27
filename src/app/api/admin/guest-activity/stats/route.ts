@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       countries: (summary?.countries || []).filter((value: unknown) => typeof value === 'string' && value),
       timezone: ACTIVITY_REPORTING_TIMEZONE,
       from: range.$gte?.toISOString() || null, to: range.$lt?.toISOString() || null,
-    })
+    }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error) {
     console.error('Admin guest activity stats fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch guest activity stats' }, { status: 500 })

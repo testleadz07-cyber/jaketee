@@ -4,7 +4,8 @@ export interface IUser extends Document {
   name: string
   username?: string
   email: string
-  password: string
+  password?: string
+  googleId?: string
   role: 'admin' | 'customer'
   isActive: boolean
   phone?: string
@@ -47,7 +48,8 @@ const UserSchema = new Schema<IUser>(
     name: { type: String, required: true },
     username: { type: String, trim: true, lowercase: true },
     email: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, required: function () { return !this.googleId } },
+    googleId: { type: String },
     role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
     isActive: { type: Boolean, default: true },
     phone: { type: String },
@@ -60,6 +62,7 @@ const UserSchema = new Schema<IUser>(
 )
 
 UserSchema.index({ email: 1 })
+UserSchema.index({ googleId: 1 }, { unique: true, sparse: true })
 UserSchema.index({ username: 1 }, { unique: true, sparse: true })
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema)

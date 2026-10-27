@@ -1,3 +1,4 @@
+import { notifyOrder } from '@/lib/notifications'
 
 import { calculateShipping } from '@/config/fulfillment'
 import { verifyAddressConfirmation } from '@/lib/address-confirmation'
@@ -139,6 +140,7 @@ export async function POST(request: NextRequest) {
     // Update order with the Stripe Session ID to link them
     order.paymentId = stripeSession.id
     await order.save()
+    await notifyOrder(order)
 
     return NextResponse.json({ url: stripeSession.url })
   } catch (error: any) {

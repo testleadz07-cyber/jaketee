@@ -4,6 +4,7 @@ import { createNotification } from '@/lib/notifications'
 import { connectDB } from '@/lib/mongodb'
 import ContactMessage from '@/models/ContactMessage'
 import { validateContact } from '@/lib/contact-validation'
+import { requireTurnstile } from '@/lib/turnstile'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,8 @@ export async function POST(request: NextRequest) {
     try { body = await request.json() } catch {
       return NextResponse.json({ error: 'Please send a valid message.' }, { status: 400 })
     }
+    const denied = await requireTurnstile((body as { turnstileToken?: unknown } | null)?.turnstileToken, 'contact')
+    if (denied) return denied
     const { values, errors } = validateContact(body)
     if (Object.keys(errors).length) return NextResponse.json({ error: 'Please check the highlighted fields.', errors }, { status: 400 })
     const { name, email, subject, country } = values

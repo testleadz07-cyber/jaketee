@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { isGuestStatsData, isGuestActivityList } from '@/lib/guest-activity-response'
+import { guestFormLabels, isGuestFormAction, type GuestFormName } from '@/lib/guest-form-schema'
 
 interface GuestActivityRow {
   id: string
@@ -77,8 +78,22 @@ interface GuestStatsData {
 const renderActivityDetails = (activity: GuestActivityRow) => {
   const details = activity.details
   if (!details) return <span className="text-xs text-muted-foreground">N/A</span>
+  if (isGuestFormAction(activity.action)) {
+    const form = typeof details.form === 'string' && Object.hasOwn(guestFormLabels, details.form) ? guestFormLabels[details.form as GuestFormName] : 'Guest form'
+    const fields = details.fields && typeof details.fields === 'object' && !Array.isArray(details.fields) ? Object.entries(details.fields).filter(([, value]) => typeof value === 'string') : []
+    return <div className="w-64 space-y-2 whitespace-normal text-xs [overflow-wrap:anywhere] sm:w-80">
+      <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{form}</span><span className="rounded-full bg-muted px-2 py-1">{activity.action === 'guest_form_submitted' ? 'Reported submission' : 'Draft / unconfirmed'}</span></div>
+      <p className="break-all text-muted-foreground">{typeof details.path === 'string' ? details.path : ''}</p>
+      {typeof details.capturedAt === 'string' && <p className="text-muted-foreground">Last update: {formatDateTime(details.capturedAt)}</p>}
+      <details className="rounded-md border p-2"><summary className="cursor-pointer font-medium">{fields.length ? `View ${fields.length} saved fields` : 'No saved fields'}</summary>
+        <dl tabIndex={0} aria-label="Saved guest form fields" className="mt-3 max-h-72 space-y-3 overflow-y-auto overscroll-contain pr-1">{fields.map(([key, value]) => <div key={key}><dt className="font-semibold capitalize">{key.replace(/([A-Z])/g, ' $1')}</dt><dd className="mt-1 whitespace-pre-wrap text-muted-foreground [overflow-wrap:anywhere]">{String(value)}</dd></div>)}</dl>
+        {details.truncated === true && <p className="mt-2 text-muted-foreground">Long entries were shortened for the activity snapshot.</p>}
+      </details>
+      <p className="text-muted-foreground">Guest analytics snapshot; a reported submission does not confirm payment or server acceptance.</p>
+    </div>
+  }
   return (
-    <pre className="w-80 whitespace-pre-wrap break-words text-xs text-muted-foreground">
+    <pre tabIndex={0} className="max-h-72 w-64 overflow-y-auto overscroll-contain whitespace-pre-wrap text-xs text-muted-foreground [overflow-wrap:anywhere] sm:w-80">
       {JSON.stringify(details, null, 2)}
     </pre>
   )
@@ -166,11 +181,11 @@ const renderPieLabel = ({ name, percent }: any) => {
 const PieLegend = ({ payload }: any) => {
   if (!payload?.length) return null
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center pt-2">
+    <div className="flex max-h-28 flex-wrap justify-center gap-x-4 gap-y-1.5 overflow-y-auto pt-2">
       {payload.map((entry: any, index: number) => (
-        <div key={index} className="flex items-center gap-1.5 text-xs">
+        <div key={index} className="flex min-w-0 max-w-full items-center gap-1.5 text-xs">
           <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-muted-foreground">{formatActionName(entry.value)}</span>
+          <span className="text-muted-foreground [overflow-wrap:anywhere]">{formatActionName(entry.value)}</span>
         </div>
       ))}
     </div>
@@ -228,26 +243,26 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-7xl max-h-[92vh] overflow-y-auto p-0">
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-7xl flex-col gap-0 overflow-hidden p-0 sm:max-w-7xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b px-6 py-4">
-          <DialogHeader>
-            <DialogTitle className="text-lg flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
+        <div className="shrink-0 border-b bg-background px-4 py-4 pr-12 sm:px-6 sm:pr-14">
+          <DialogHeader className="min-w-0 text-left">
+            <DialogTitle className="flex items-center gap-2 text-base leading-snug sm:text-lg">
+              <Activity className="h-5 w-5 shrink-0 text-primary" />
               Guest Activity Overview
             </DialogTitle>
-            <DialogDescription className="flex items-center gap-1.5">
-              <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{guestId}</span>
+            <DialogDescription className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="max-w-full break-all rounded bg-muted px-2 py-0.5 font-mono text-xs">{guestId}</span>
               {data && data.countries.length > 0 && (
-                <span className="text-xs flex items-center gap-1 ml-2">
-                  <Globe className="h-3 w-3" /> {data.countries.join(', ')}
+                <span className="flex min-w-0 items-start gap-1 text-xs [overflow-wrap:anywhere]">
+                  <Globe className="h-3 w-3 shrink-0" /> {data.countries.join(', ')}
                 </span>
               )}
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="px-6 pb-6 space-y-6">
+        <div role="region" aria-label="Guest activity charts and summary" tabIndex={0} className="min-h-0 min-w-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 sm:space-y-6 sm:p-6">
           {error ? (
             <div role="alert" className="py-8 text-center space-y-3">
               <p className="text-destructive">{error}</p>
@@ -275,7 +290,7 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
               </div>
 
               {/* Charts in Tabs for mobile, grid for desktop */}
-              <Tabs defaultValue="timeline" className="w-full">
+              <Tabs defaultValue="timeline" className="min-w-0 w-full">
                 <TabsList className="w-full grid grid-cols-3">
                   <TabsTrigger value="timeline" className="text-xs sm:text-sm">📈 Timeline</TabsTrigger>
                   <TabsTrigger value="actions" className="text-xs sm:text-sm">🎯 Actions</TabsTrigger>
@@ -284,11 +299,11 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
 
                 {/* ── Timeline ── */}
                 <TabsContent value="timeline" className="mt-4">
-                  <div className="border rounded-xl p-5 bg-card shadow-sm">
+                  <div className="min-w-0 rounded-xl border bg-card p-3 shadow-sm sm:p-5">
                     <h3 className="font-semibold text-sm mb-1">Activity Over Time</h3>
                     <p className="text-xs text-muted-foreground mb-4">Daily event count in UTC; selected date range or the last 90 days</p>
                     {data.timeline.length > 0 ? (
-                      <div className="h-96">
+                      <div className="h-64 min-w-0 sm:h-96">
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={data.timeline} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                             <defs>
@@ -313,11 +328,11 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
 
                 {/* ── Actions Breakdown ── */}
                 <TabsContent value="actions" className="mt-4">
-                  <div className="border rounded-xl p-5 bg-card shadow-sm">
+                  <div className="min-w-0 rounded-xl border bg-card p-3 shadow-sm sm:p-5">
                     <h3 className="font-semibold text-sm mb-1">Action Breakdown</h3>
                     <p className="text-xs text-muted-foreground mb-4">Distribution of action types performed</p>
                     {data.actions.length > 0 ? (
-                      <div className="h-[420px]">
+                      <div className="h-80 min-w-0 sm:h-[420px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
@@ -326,8 +341,8 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
                               nameKey="name"
                               cx="50%"
                               cy="45%"
-                              outerRadius={140}
-                              innerRadius={70}
+                              outerRadius="75%"
+                              innerRadius="40%"
                               paddingAngle={2}
                               label={renderPieLabel}
                               labelLine={false}
@@ -349,11 +364,11 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
 
                 {/* ── Top Pages ── */}
                 <TabsContent value="pages" className="mt-4">
-                  <div className="border rounded-xl p-5 bg-card shadow-sm">
+                  <div className="min-w-0 rounded-xl border bg-card p-3 shadow-sm sm:p-5">
                     <h3 className="font-semibold text-sm mb-1">Top Pages Visited</h3>
                     <p className="text-xs text-muted-foreground mb-4">Recorded page views (top 10); legacy events without page views are excluded</p>
                     {data.pages.length > 0 ? (
-                      <div style={{ height: Math.max(300, data.pages.length * 48 + 60) }}>
+                      <div className="min-w-0" style={{ height: Math.max(300, data.pages.length * 48 + 60) }}>
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={data.pages} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
@@ -362,8 +377,8 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
                               dataKey="name"
                               type="category"
                               fontSize={11}
-                              width={140}
-                              tickFormatter={formatPageName}
+                              width={90}
+                              tickFormatter={(name: string) => { const label = formatPageName(name); return label.length > 12 ? `${label.slice(0, 12)}…` : label }}
                               stroke="hsl(var(--muted-foreground))"
                             />
                             <RechartsTooltip content={<BarTooltip />} />
@@ -511,7 +526,7 @@ export default function AdminGuestActivityPage() {
               ))}
             </SelectContent>
           </Select>
-          <div className="relative flex-1 min-w-[180px]">
+          <div className="relative min-w-0 flex-1 sm:min-w-[180px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               aria-label="Filter by country" placeholder="Filter by country..."

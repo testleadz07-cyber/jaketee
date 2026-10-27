@@ -4,6 +4,8 @@ export interface ILoginSession extends Document {
   userId: mongoose.Types.ObjectId
   loginAt: Date
   logoutAt?: Date
+  /** Authentication revocation. logoutAt is also set by analytics page-close. */
+  revokedAt?: Date
   lastSeenAt: Date
   durationSeconds?: number
   ip?: string
@@ -17,6 +19,7 @@ const LoginSessionSchema = new Schema<ILoginSession>(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     loginAt: { type: Date, required: true, default: Date.now },
     logoutAt: { type: Date },
+    revokedAt: { type: Date },
     lastSeenAt: { type: Date, default: Date.now },
     durationSeconds: { type: Number },
     ip: { type: String },

@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { startTransition, useState, useEffect, useRef, type ReactNode } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { readSearchSelection } from '@/lib/product-search'
 import { CopySection, ProductCopy } from '@/components/product-copy'
 import { FaqText } from '@/components/faq-text'
 import { useSession } from 'next-auth/react'
@@ -96,20 +98,32 @@ interface ProductDetailViewProps {
 }
 
 export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProducts }: ProductDetailViewProps) {
+  const searchParams = useSearchParams()
+  const requestedSelection = readSearchSelection(initialProduct.variants, searchParams.toString())
+  const requestedKey = JSON.stringify(requestedSelection)
   const { data: session } = useSession()
   const router = useRouter()
 
   const [product, setProduct] = useState<ProductDetailData>(initialProduct)
   const [selectedImage, setSelectedImage] = useState(0)
   const [zoomOpen, setZoomOpen] = useState(false)
-  const [overrideImage, setOverrideImage] = useState<string | null>(null)
+  const [overrideImage, setOverrideImage] = useState<string | null>(() => requestedSelection.image)
   const [loadedImageUrl, setLoadedImageUrl] = useState('')
   const galleryImage = overrideImage || product.images?.[selectedImage]?.url || '/placeholder.png'
-  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => getDefaultProductVariants(getProductVariants(initialProduct)))
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => ({ ...getDefaultProductVariants(getProductVariants(initialProduct)), ...requestedSelection.options }))
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
   const [sizeError, setSizeError] = useState(false)
   const sizeGroupRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const selection = JSON.parse(requestedKey) as ReturnType<typeof readSearchSelection>
+    if (!Object.keys(selection.options).length) return
+    startTransition(() => {
+      setSelectedVariants({ ...getDefaultProductVariants(getProductVariants(initialProduct)), ...selection.options })
+      setOverrideImage(selection.image)
+    })
+  }, [requestedKey])
 
   const requestSizeSelection = () => {
     setSizeError(true)

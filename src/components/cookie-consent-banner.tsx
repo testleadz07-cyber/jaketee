@@ -102,7 +102,7 @@ export function CookieConsentBanner() {
                 <p className="text-sm font-semibold hidden sm:block">We value your privacy</p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   We use cookies to keep the site working, remember your preferences, and (with your consent)
-                  analyze traffic. Analytics is not loaded before you opt in. No advertising pixels are currently enabled. Read our{' '}
+                  analyze traffic and save guest form details such as names, emails, messages and delivery addresses, including unfinished entries. Password and payment fields are excluded. Analytics is not loaded before you opt in. No advertising pixels are currently enabled. Read our{' '}
                   <Link href="/cookie-policy" className="text-primary hover:underline">
                     Cookie Policy
                   </Link>{' '}
@@ -169,7 +169,7 @@ export function CookieConsentBanner() {
               <div className="space-y-0.5 pr-4">
                 <Label className="text-sm font-medium">Analytics</Label>
                 <p className="text-xs text-muted-foreground">
-                  Enables Google Analytics and site activity measurement. Off until you opt in.
+                  Enables Google Analytics, site activity measurement and saving guest names, emails, messages and delivery details, including unfinished entries, in our private admin activity records. Form values are not sent to Google Analytics. Password and payment fields are excluded. Off until you opt in.
                 </p>
               </div>
               <Switch
