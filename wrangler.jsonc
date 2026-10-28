@@ -25,6 +25,7 @@
   },
   "workers_dev": true,
   "preview_urls": true,
+  "keep_vars": true,
   "ratelimits": [
     {
       "name": "LOGIN_LIMITER",

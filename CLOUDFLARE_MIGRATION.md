@@ -11,6 +11,11 @@ The active Worker is **jaketee**, with main **.open-next/worker.js**. No cron
 triggers or scheduled handler are configured. The old worker.ts is unused.
 Package preview/deploy/upload scripts use the standard OpenNext CLI commands.
 R2, D1 and Durable Object cache bindings are commented examples only.
+`keep_vars: true` preserves runtime variables managed in the Cloudflare dashboard
+across Wrangler deployments. Store MONGODB_URI and other credentials as encrypted
+runtime Secrets, save/deploy that settings change, and verify the active Worker
+version receives them. Build variables are separate and do not supply runtime
+bindings. This setting preserves existing values; it cannot restore a deleted URI.
 The generated-entry OpenNext build passed. Wrangler's local dry run reported
 23404.69 KiB uncompressed / 5062.61 KiB gzip, with the requested self-reference,
 Images, assets and minute-level rate-limit bindings. No deployment was performed.
