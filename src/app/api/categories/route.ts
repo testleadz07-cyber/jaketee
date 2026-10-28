@@ -1,3 +1,6 @@
+import { publicRead } from '@/lib/public-cache'
+import { getPublicCategories } from '@/lib/public-catalog'
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Category from '@/models/Category'
@@ -9,10 +12,9 @@ import { authOptions } from '@/lib/auth-options'
 
 export async function GET() {
   try {
-    const db = await connectDB()
-    if (!db) throw new Error('Database not connected')
-
-    const categories = await Category.find().lean()
+    const categoriesWithCount = await publicRead('categories-with-counts', [], 60, ['public-categories', 'public-catalog'], async () => {
+    if (!await connectDB()) throw new Error('Database not connected')
+    const categories = await getPublicCategories()
     const nodes: CategoryNode[] = categories.map((c: any) => ({
       _id: String(c._id),
       parentId: c.parentId ? String(c.parentId) : null,
@@ -26,7 +28,7 @@ export async function GET() {
       counts.map((c: any) => [String(c._id), c.count as number])
     )
 
-    const categoriesWithCount = categories.map((cat: any) => {
+    const result = categories.map((cat: any) => {
       const descendantIds = resolveDescendantIds(nodes, String(cat._id))
       const count = descendantIds.reduce((sum, id) => sum + (countByCategoryId.get(id) || 0), 0)
       return {
@@ -35,6 +37,9 @@ export async function GET() {
         parentId: cat.parentId ? String(cat.parentId) : null,
         _count: { products: count },
       }
+    })
+
+      return result
     })
     return NextResponse.json(categoriesWithCount, { headers: { 'Cache-Control': 'no-store' } })
   } catch (dbError: any) {
@@ -83,6 +88,7 @@ export async function POST(request: NextRequest) {
       image,
       parentId: resolvedParentId,
     })
+    invalidateHomeCache('catalog')
     return NextResponse.json({ ...category.toObject(), id: String(category._id) }, { status: 201 })
   } catch (error: any) {
     if (error.code === 11000) {

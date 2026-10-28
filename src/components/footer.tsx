@@ -10,6 +10,7 @@ import { buildCategoryUrl } from '@/lib/categories'
 import { openCookiePreferences } from '@/lib/cookie-consent'
 import { getStaticCategories } from '@/lib/static-data'
 import { BrandLogo } from '@/components/brand-logo'
+import { readPublicJson } from '@/lib/public-json'
 
 interface Category {
   id: string
@@ -121,14 +122,15 @@ const socialLinks = [
   },
 ]
 
-export function Footer() {
-  const [categories, setCategories] = useState<Category[]>(() => getStaticCategories())
+export function Footer({ initialCategories }: { initialCategories?: Category[] } = {}) {
+  const [loadedCategories, setCategories] = useState<Category[]>(() => initialCategories || getStaticCategories())
+  const categories = initialCategories || loadedCategories
 
   useEffect(() => {
+    if (initialCategories) return
     let isMounted = true
 
-    fetch('/api/categories')
-      .then((res) => (res.ok ? res.json() : getStaticCategories()))
+    readPublicJson<Category[]>('/api/categories')
       .then((data) => {
         if (isMounted) setCategories(data)
       })
@@ -139,7 +141,7 @@ export function Footer() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [initialCategories])
 
 
   const categoryLinks: FooterLink[] = categories

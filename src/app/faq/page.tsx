@@ -1,29 +1,20 @@
-import { connectDB } from '@/lib/mongodb'
-import Faq from '@/models/Faq'
+import { connection } from 'next/server'
+import { getPublicFaqPage } from '@/lib/public-faq-page'
 import FaqPage from './faq-client'
-import { buildFaqCategories, type DbFaqItem } from '@/lib/faq-page-data'
+import { buildFaqCategories, type FaqCategory } from '@/lib/faq-page-data'
 import { productFaqAnswerText } from '@/lib/product-faqs'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export default async function Page() {
-  let rawFaqs: any[] = []
+  let categories: FaqCategory[]
   try {
-    if (await connectDB()) rawFaqs = await Faq.find().sort({ category: 1, order: 1, _id: 1 }).lean()
+    categories = await getPublicFaqPage()
   } catch (error) {
+    await connection()
     console.error('Unable to load FAQs; using the published fallback answers', error)
+    categories = buildFaqCategories([])
   }
-  const dbFaqs: DbFaqItem[] = rawFaqs.map((faq) => ({
-    id: String(faq._id),
-    status: faq.status,
-    mergedQuestions: faq.mergedQuestions || [],
-    question: faq.question,
-    answer: faq.answer,
-    category: faq.category,
-    bullets: faq.bullets ?? [],
-    ordered: faq.ordered ?? [],
-  }))
-  const categories = buildFaqCategories(dbFaqs)
   const schema = {
     '@context': 'https://schema.org', '@type': 'FAQPage',
     mainEntity: categories.flatMap(category => category.items.map(faq => ({

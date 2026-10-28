@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 // src/app/api/admin/bulk-edit/route.ts
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -90,6 +91,7 @@ export async function PUT(request: Request) {
 
     if (bulkOps.length > 0) {
       const result = await Product.bulkWrite(bulkOps)
+      invalidateHomeCache('catalog')
       if (result.matchedCount !== bulkOps.length) {
         return NextResponse.json({ error: 'One or more products were not found' }, { status: 404 })
       }

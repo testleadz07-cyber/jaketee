@@ -1,5 +1,7 @@
 "use client"
 
+import { readPublicJson } from '@/lib/public-json'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Star } from 'lucide-react'
@@ -16,12 +18,12 @@ export interface CollectionSupportData {
 export function CollectionSupport({ slug, name, initialData }: { slug: string; name: string; initialData?: CollectionSupportData }) {
   const [data, setData] = useState<CollectionSupportData | undefined>(initialData)
   useEffect(() => {
-    const controller = new AbortController()
-    fetch(`/api/category-insights/${encodeURIComponent(slug)}`, { signal: controller.signal }).then(response => {
-      if (!response.ok) throw new Error('Collection information unavailable')
-      return response.json()
-    }).then(next => { if (!controller.signal.aborted) setData(initialData ? { ...initialData, articles: next.articles } : next) }).catch(() => {})
-    return () => controller.abort()
+    if (initialData?.articles) return
+    let active = true
+    const suffix = initialData ? '?articlesOnly=1' : ''
+    readPublicJson<CollectionSupportData>(`/api/category-insights/${encodeURIComponent(slug)}${suffix}`, 60_000)
+      .then(next => { if (active) setData(initialData ? { ...initialData, articles: next.articles } : next) }).catch(() => {})
+    return () => { active = false }
   }, [slug, initialData])
   if (!data) return null
   return <>

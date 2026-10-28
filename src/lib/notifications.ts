@@ -39,7 +39,7 @@ export async function notifyOrder(order: { _id: unknown; orderNumber: string }, 
     type: paid ? 'payment_received' : 'new_order',
     title: paid ? 'Payment received' : 'New order',
     message: `${paid ? 'Payment confirmed for' : 'Created'} order ${order.orderNumber}.`,
-    link: `/admin/orders/${order._id}`,
+    link: '/admin/orders',
     eventKey: `${paid ? 'paid' : 'order'}:${order._id}`,
   })
 }

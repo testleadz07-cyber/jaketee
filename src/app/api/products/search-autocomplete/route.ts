@@ -1,6 +1,6 @@
+import { getPublicCategories } from '@/lib/public-catalog'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
-import Category from '@/models/Category'
 import { resolveAncestorChain } from '@/lib/categories'
 import { getCatalogProducts } from '@/lib/catalog-products'
 
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   if (q.length < 2) return NextResponse.json([])
   try {
     if (!await connectDB()) return NextResponse.json({ error: 'Search unavailable' }, { status: 503 })
-    const categories = await Category.find().lean()
+    const categories = await getPublicCategories()
     const result = await getCatalogProducts({ filter: { inStock: true, isDraft: { $ne: true }, status: 'active' }, search: q, categories, sort: 'relevance', limit: 8 })
     const nodes = categories.map((category: any) => ({ _id: String(category._id), parentId: category.parentId ? String(category.parentId) : null, name: category.name, slug: category.slug }))
     return NextResponse.json(result.products.map((product: any) => ({

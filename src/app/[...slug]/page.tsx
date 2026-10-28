@@ -1,3 +1,5 @@
+import { publicRead } from '@/lib/public-cache'
+import { getPublicCategories, getPublicCategoryCounts } from '@/lib/public-catalog'
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import { categorySocialImage } from '@/lib/category-social-image'
 import { Metadata } from 'next'
@@ -168,14 +170,14 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
       if (db) {
         const productId = product._id || product.id
         const reviewMatch = { productId, status: 'approved' }
-        const [matched, reviewSummary, recentReviews] = await Promise.all([
+        const [matched, reviewSummary, recentReviews] = await publicRead('product-support', [String(productId), faqTargets], 300, ['public-support'], async () => Promise.all([
           Faq.find({ status: { $ne: 'draft' }, displayPages: { $in: faqTargets } }).lean(),
           Review.aggregate([
             { $match: reviewMatch },
             { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } },
           ]),
           Review.find(reviewMatch).sort({ createdAt: -1 }).limit(5).lean(),
-        ])
+        ]))
         approvedReviewCount = Number(reviewSummary[0]?.count || 0)
         approvedAverageRating = Number(reviewSummary[0]?.average || 0)
         approvedReviews = recentReviews
@@ -199,7 +201,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
     } catch (error) {
       console.error('Error fetching product FAQs:', error)
     }
-    const recommendations = await getProductRecommendations(String(product._id || product.id))
+    const recommendations = await getProductRecommendations(String(product._id || product.id), product)
     // Pass only plain card data across the client component boundary.
     const relatedProducts = (recommendations?.youMayAlsoLike || []).map((related: any) => ({
       id: String(related.id || related._id),
@@ -369,7 +371,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
   try {
     const db = await connectDB()
     if (db) {
-      const rawCategories = await Category.find().lean()
+      const rawCategories = await getPublicCategories()
       const nodes = rawCategories.map((item: any) => ({
         _id: String(item._id),
         name: item.name,
@@ -380,7 +382,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
         introLong: item.introLong || '',
         parentId: item.parentId ? String(item.parentId) : null,
       }))
-      const counts = await Product.aggregate([{ $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } }, { $sort: { isFeatured: -1, createdAt: -1, _id: 1 } }, { $group: { _id: '$categoryId', count: { $sum: 1 }, image: { $first: { $arrayElemAt: ['$images.url', 0] } }, productImages: { $push: '$images.url' } } }])
+      const counts = await getPublicCategoryCounts()
       const countById = new Map<string, number>(counts.map((item: any) => [String(item._id), Number(item.count)]))
       const imageCategories = rawCategories.map((item: any) => ({ id: String(item._id), parentId: item.parentId ? String(item.parentId) : null, name: item.name, image: item.image || '', productImages: (counts.find((row: any) => String(row._id) === String(item._id))?.productImages || []).flat().filter((url: unknown) => typeof url === 'string') }))
       initialCategories = rawCategories.map((item: any) => {
@@ -442,7 +444,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
         const path = chain.slice(0, chain.indexOf(item) + 1).map((part) => part.slug).join('/')
         return [item.slug, `/${item.slug}`, path, `/${path}`]
       })
-      const matchedFaqs = await Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).limit(40).lean()
+      const matchedFaqs = await publicRead('collection-faqs', targets, 300, ['public-support'], async () => Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).limit(40).lean())
       const faqs: Array<{ id: string; question: string; answer: string[]; bullets: string[]; ordered: string[]; href?: string }> = matchedFaqs
         .filter((faq: any) => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim()))
         .sort((a: any, b: any) => Number(a.order || 0) - Number(b.order || 0))
@@ -475,17 +477,17 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
         faqs.push({ id: `guide-${faqs.length}`, question, answer: [answer], bullets: [], ordered: [], href })
       }
 
-      const allCategoryProducts = await Product.find({ categoryId: { $in: descendantIds }, isDraft: { $ne: true }, status: 'active' }, '_id name slug categoryId').lean()
+      const allCategoryProducts = await publicRead('collection-products', descendantIds, 60, ['public-products'], async () => Product.find({ categoryId: { $in: descendantIds }, isDraft: { $ne: true }, status: 'active' }, '_id name slug categoryId').lean())
       const productIds = allCategoryProducts.map((product: any) => product._id)
       let reviews: any[] = []
       let reviewCount = 0
       let averageRating = 0
       if (productIds.length > 0) {
         const reviewMatch = { productId: { $in: productIds }, status: 'approved' }
-        const [summary, latestReviews] = await Promise.all([
+        const [summary, latestReviews] = await publicRead('collection-reviews', productIds, 300, ['public-support'], async () => Promise.all([
           Review.aggregate([{ $match: reviewMatch }, { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } }]),
           Review.find(reviewMatch).sort({ createdAt: -1 }).limit(3).lean(),
-        ])
+        ]))
         reviewCount = Number(summary[0]?.count || 0)
         averageRating = Number(summary[0]?.average || 0)
         const productById = new Map(allCategoryProducts.map((product: any) => [String(product._id), product]))

@@ -1,21 +1,50 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
-  
+  const restrictedPaths = [
+    '/admin/',
+    '/api/',
+    '/checkout/',
+    '/cart',
+    '/profile/',
+    '/order-confirmation/',
+    '/search',
+    '/*?*sort=',
+    '/*?*filter=',
+    '/*?*color=',
+    '/*?*size=',
+  ]
+
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/api/', '/checkout/', '/cart', '/profile/', '/order-confirmation/'],
+        disallow: restrictedPaths,
       },
       {
-        userAgent: ['GPTBot', 'ClaudeBot', 'Google-Extended', 'PerplexityBot', 'Bytespider'],
+        userAgent: 'bingbot',
+        crawlDelay: 5,
         allow: '/',
-        disallow: ['/admin/', '/api/', '/checkout/', '/cart', '/profile/', '/order-confirmation/'],
+        disallow: restrictedPaths,
+      },
+      {
+        userAgent: [
+          'GPTBot',
+          'ClaudeBot',
+          'PerplexityBot',
+          'Bytespider',
+          'CCBot',
+          'Amazonbot',
+          'meta-externalagent',
+        ],
+        disallow: '/',
+      },
+      {
+        userAgent: ['AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot', 'PetalBot'],
+        disallow: '/',
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: 'https://www.jacketee.com/sitemap.xml',
   }
 }

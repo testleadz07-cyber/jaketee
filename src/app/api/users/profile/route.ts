@@ -21,7 +21,7 @@ export async function GET() {
     const userId = (session.user as any).id
     const user = await User.findById(userId).select('-password').lean()
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Your account is no longer available' }, { status: 401 })
     }
 
     return NextResponse.json(user)
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Current password is required to set a new password' }, { status: 400 })
       }
       const user = await User.findById(userId)
-      if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      if (!user) return NextResponse.json({ error: 'Your account is no longer available' }, { status: 401 })
 
       const isValid = await comparePassword(currentPassword, user.password)
       if (!isValid) {
@@ -68,7 +68,9 @@ export async function PUT(request: NextRequest) {
 
     const user = await User.findByIdAndUpdate(userId, updateData, { returnDocument: 'after' }).select('-password').lean()
 
-    if (newPassword && user) {
+    if (!user) return NextResponse.json({ error: 'Your account is no longer available' }, { status: 401 })
+
+    if (newPassword) {
       sendEmail({
         to: (user as any).email,
         subject: 'Your Jacketee password was changed',

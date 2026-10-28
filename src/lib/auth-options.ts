@@ -5,6 +5,7 @@ import { resolveGoogleUser } from '@/lib/google-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
+import { getActiveSessionUser } from '@/lib/session-user'
 import { comparePassword } from '@/lib/auth'
 import { isLoginLocked, recordFailedLogin, resetLoginAttempts } from '@/lib/rate-limit'
 import { verifyTurnstile } from '@/lib/turnstile'
@@ -99,13 +100,22 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (session?.user) {
-        (session.user as any).role = token.role
-        ;(session.user as any).id = token.userId
-        ;(session.user as any).loginSessionId = token.loginSessionId
-        ;(session.user as any).username = token.username
+      try {
+        const user = await getActiveSessionUser(token.userId, token.loginSessionId)
+        if (!user) return null as unknown as typeof session
+        session.user = {
+          ...session.user,
+          name: user.name,
+          email: user.email,
+          ...{ id: String(user._id), role: user.role, username: user.username, loginSessionId: token.loginSessionId },
+        }
+        return session
+      } catch {
+        // Fail closed during an outage, but do not throw: NextAuth deletes the
+        // JWT cookie on callback errors. Returning null lets a later check recover.
+        console.error('Unable to validate login session')
+        return null as unknown as typeof session
       }
-      return session
     },
   },
   events: {

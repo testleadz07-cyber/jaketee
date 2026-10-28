@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
+import LoginSession from '@/models/LoginSession'
+import PushDevice from '@/models/PushDevice'
 import Order from '@/models/Order'
 import mongoose from 'mongoose'
 import { hashPassword } from '@/lib/auth'
@@ -207,6 +209,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    if (update.isActive === false) {
+      await LoginSession.updateMany({ userId: id, revokedAt: null }, { $set: { revokedAt: new Date() } })
+    }
+
     return NextResponse.json({
       id: String(user._id),
       name: user.name,
@@ -255,6 +261,9 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
+
+    await LoginSession.updateMany({ userId: id, revokedAt: null }, { $set: { revokedAt: new Date() } })
+    if (user.role === 'admin') await PushDevice.deleteMany({ userId: id })
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

@@ -1,15 +1,14 @@
+import { getPublicBlogCategories, getPublicBlogRows } from '@/lib/public-blog'
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { metadata as archiveMetadata } from './metadata'
 import { STATIC_BLOG_GUIDES, blogPageNumber, blogArchivePath } from '@/lib/blog-archive'
 import { connectDB } from '@/lib/mongodb'
-import BlogPost from '@/models/BlogPost'
-import BlogCategory from '@/models/BlogCategory'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import BlogListPage, { type BlogCategory as CategorySummary, type BlogPostSummary } from './blog-list-client'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 const PAGE_SIZE = 9
 
@@ -22,26 +21,15 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 export default async function Page({ searchParams }: {
   searchParams: Promise<{ page?: string; category?: string; tag?: string }>
 }) {
-  if (!(await connectDB())) {
-    throw new Error('Blog content is temporarily unavailable')
-  }
-
   const { page: requestedPage, category: categorySlug, tag } = await searchParams
   const page = blogPageNumber(requestedPage)
-  const category = categorySlug ? await BlogCategory.findOne({ slug: categorySlug }).lean() : null
+  const availableCategories = await getPublicBlogCategories()
+  const category = categorySlug ? availableCategories.find(item => item.slug === categorySlug) : null
   if (categorySlug && !category) notFound()
-  const query = { status: 'published', ...(tag ? { tags: tag } : {}), ...(category ? { categories: category._id } : {}) }
-
-  const [databaseTotal, databasePosts, rawCategories, imageCandidates] = await Promise.all([
-    BlogPost.countDocuments(query),
-    BlogPost.find(query)
-      .populate('categories', 'name slug')
-      .select('title slug excerpt featuredImage categories tags taggedProducts author publishedAt views')
-      .sort({ publishedAt: -1 })
-      .lean(),
-    BlogCategory.find().select('name slug').sort({ name: 1 }).lean(),
-    getBlogImageCandidates(),
+  const [{ posts: databasePosts, total: databaseTotal }, imageCandidates] = await Promise.all([
+    getPublicBlogRows({ categoryId: category?._id, tag, all: true }), getBlogImageCandidates(),
   ])
+  const rawCategories = availableCategories
 
   const guides = category || tag ? [] : STATIC_BLOG_GUIDES.filter(guide => !databasePosts.some(post => post.slug === guide.slug))
   const total = databaseTotal + guides.length

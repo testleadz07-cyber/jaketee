@@ -1,6 +1,6 @@
 'use client'
 
-import { startTransition, useEffect, useRef, useState  } from 'react'
+import { startTransition, useCallback, useEffect, useRef, useState  } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Bell, Loader2 } from 'lucide-react'
@@ -40,9 +40,12 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const fetchNotifications = async () => {
+  const inFlight = useRef(false)
+  const fetchNotifications = useCallback(async () => {
+    if (!isAdmin || document.visibilityState !== 'visible' || inFlight.current) return
+    inFlight.current = true
     try {
-      const res = await fetch('/api/admin/notifications?limit=8')
+      const res = await fetch('/api/admin/notifications?limit=8&summary=true', { cache: 'no-store', signal: AbortSignal.timeout(15_000) })
       if (res.ok) {
         const data = await res.json()
         setNotifications(data.notifications || [])
@@ -50,16 +53,28 @@ export function NotificationBell() {
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
-    }
-  }
+    } finally { inFlight.current = false }
+  }, [isAdmin])
 
   useEffect(() => {
     if (!isAdmin) return
-    startTransition(() => { fetchNotifications() })
-    const interval = setInterval(fetchNotifications, POLL_INTERVAL_MS)
+    let interval: ReturnType<typeof setInterval> | undefined
+    const visibility = () => {
+      clearInterval(interval)
+      if (document.visibilityState !== 'visible') return
+      startTransition(() => { void fetchNotifications() })
+      interval = setInterval(() => { void fetchNotifications() }, POLL_INTERVAL_MS)
+    }
+    visibility()
+    document.addEventListener('visibilitychange', visibility)
     window.addEventListener('jacketee-notifications-updated', fetchNotifications)
-    return () => { clearInterval(interval); window.removeEventListener('jacketee-notifications-updated', fetchNotifications) }
-  }, [isAdmin])
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', visibility)
+      window.removeEventListener('jacketee-notifications-updated', fetchNotifications)
+    }
+  }, [isAdmin, fetchNotifications])
+
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

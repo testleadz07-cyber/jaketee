@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import { BulkProgramPage } from '@/components/bulk-program-page'
 import { getCustomLandingConfig } from '@/data/custom-jacket-landings'
 
+export const revalidate = 60
+
 const config = getCustomLandingConfig('senior-class-jackets')
 
 export async function generateMetadata(): Promise<Metadata> {

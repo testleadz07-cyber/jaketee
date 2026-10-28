@@ -1,3 +1,5 @@
+import { getPublicCategories, getPublicCategoryCounts } from '@/lib/public-catalog'
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters } from '@/lib/catalog-filters'
 import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
@@ -65,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     // Fetched once, used both for category-rollup filtering and for
     // resolving each product's full categoryPath (root -> leaf) below.
-    const allCategories = await Category.find().lean()
+    const allCategories = all ? await Category.find().lean() : await getPublicCategories()
     const categoryNodes: CategoryNode[] = allCategories.map((c: any) => ({
       _id: String(c._id),
       parentId: c.parentId ? String(c.parentId) : null,
@@ -197,6 +199,7 @@ export async function POST(request: NextRequest) {
       stockCount: 100,
     })
 
+    invalidateHomeCache('catalog')
     return NextResponse.json({ ...product.toObject(), id: String(product._id) }, { status: 201 })
   } catch (error: any) {
     if (error.code === 11000) {

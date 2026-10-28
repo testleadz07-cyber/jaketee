@@ -1,3 +1,5 @@
+import { publicRead } from '@/lib/public-cache'
+import { getPublicCategories } from '@/lib/public-catalog'
 import { BlogCard } from '@/components/blog-card'
 import Image from '@/components/optimized-image'
 import { cache } from 'react'
@@ -10,7 +12,6 @@ import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
 import { productGridClassName } from '@/lib/product-grid'
 import { connectDB } from '@/lib/mongodb'
-import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { buildProductUrl, resolveAncestorChain, resolveDescendantIds } from '@/lib/categories'
 import { getStaticCategories, getStaticProducts } from '@/lib/static-data'
@@ -22,7 +23,7 @@ export const getCustomLandingProducts = cache(async (categorySlug: string) => {
   try {
     const db = await connectDB()
     if (db) {
-      const rawCategories = await Category.find({}).lean()
+      const rawCategories = await getPublicCategories()
       const categories = rawCategories.map((category: any) => ({
         _id: String(category._id),
         name: category.name,
@@ -32,10 +33,11 @@ export const getCustomLandingProducts = cache(async (categorySlug: string) => {
       const category = categories.find((item) => item.slug === categorySlug)
       if (!category) return []
       const ids = resolveDescendantIds(categories, category._id)
-      const products = await Product.find({ categoryId: { $in: ids }, inStock: true, isDraft: { $ne: true }, status: 'active' })
+      const products = await publicRead('custom-landing-products', categorySlug, 60, ['public-products', 'public-categories'], async () => Product.find({ categoryId: { $in: ids }, inStock: true, isDraft: { $ne: true }, status: 'active' })
+        .select('name slug description price compareAtPrice compareAtPriceVerified images categoryId isFeatured inStock')
         .sort({ isFeatured: -1, createdAt: -1 })
         .limit(8)
-        .lean()
+        .lean())
       return products.map((product: any) => {
         const categoryPath = resolveAncestorChain(categories, String(product.categoryId)).map((item) => ({ name: item.name, slug: item.slug }))
         return {
@@ -105,7 +107,7 @@ export async function CustomJacketLandingPage({ pageKey }: { pageKey: string }) 
               <h1 className="text-4xl font-bold md:text-6xl">{config.keyword}</h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/90 md:text-lg">{config.intro}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href={config.categorySlug === 'fleece-hoodies' ? '/design/hoodie' : designerHref ? '/design/varsity' : config.categoryHref} className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">{config.categorySlug === 'fleece-hoodies' ? 'Design Your Hoodie' : designerHref ? 'Start Your Design' : 'Choose a Jacket'} <ArrowRight className="h-4 w-4" /></Link>
+                <Link href={designerHref || config.categoryHref} className="inline-flex h-11 items-center gap-2 bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-800">{config.categorySlug === 'fleece-hoodies' ? 'Design Your Hoodie' : designerHref ? 'Start Your Design' : 'Choose a Jacket'} <ArrowRight className="h-4 w-4" /></Link>
                 <Link href="/bulk-orders" className="inline-flex h-11 items-center border border-white/60 px-5 text-sm font-semibold text-white hover:bg-white hover:text-zinc-950">Get a Bulk Quote</Link>
               </div>
             </div>

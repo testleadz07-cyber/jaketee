@@ -519,7 +519,7 @@ export function CategoryDetailView({
       <CollectionSupport key={category.slug} slug={category.slug} name={category.name} initialData={insights || undefined} />
       </main>
 
-      <Footer />
+      <Footer initialCategories={categories} />
     </div>
   )
 }

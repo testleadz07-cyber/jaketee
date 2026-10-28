@@ -1,8 +1,6 @@
 'use client'
 
-import { BlogCard } from '@/components/blog-card'
-import { useEffect, useState } from 'react'
-import { ArrowRight, BadgeCheck, Headphones, Palette, PackageCheck, Star } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Headphones, Palette, PackageCheck } from 'lucide-react'
 import Image from '@/components/optimized-image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -50,26 +48,6 @@ export interface Category {
   }
 }
 
-interface BlogPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string
-  featuredImage?: string | null
-}
-
-interface ReviewHighlight {
-  id: string
-  name: string
-  rating: number
-  comment: string
-  image: string | null
-  productName: string
-  productHref: string
-}
-
-
-
 const trustItems = [
   { icon: BadgeCheck, label: 'Custom design support' },
   { icon: Palette, label: 'Material and color guidance' },
@@ -100,12 +78,6 @@ const homeFaqs = [
   },
 ]
 
-const featuredArticleSlugs = [
-  'hooded-varsity-jackets-guide',
-  'corporate-away-day-uniforms-custom-jacket-vs-polo',
-  'sports-teams-custom-jackets-award-nights-banquets',
-]
-
 const homeFaqJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -119,43 +91,16 @@ const homeFaqJsonLd = {
   })),
 }
 
-export default function Home({ categories, featuredProducts, newArrivals, categoryProducts, customDesign }: {
+export default function Home({ categories, featuredProducts, newArrivals, categoryImages, customDesign, reviews, articles }: {
   customDesign: React.ReactNode
   categories: Category[]
   featuredProducts: Product[]
   newArrivals: Product[]
-  categoryProducts: Record<string, Product[]>
+  categoryImages: Record<string, { url: string; alt: string }>
+  reviews: React.ReactNode
+  articles: React.ReactNode
 }) {
-  const [articles, setArticles] = useState<BlogPost[]>([])
-  const [reviewHighlights, setReviewHighlights] = useState<ReviewHighlight[]>([])
   const loading = false
-
-  useEffect(() => {
-    const loadEditorialContent = async () => {
-      const [blogResult, reviewResult] = await Promise.allSettled([
-        fetch('/api/blog?limit=24').then((res) => res.ok ? res.json() : { posts: [] }),
-        fetch('/api/reviews/highlights').then((res) => res.ok ? res.json() : []),
-      ])
-
-      if (blogResult.status === 'fulfilled' && Array.isArray(blogResult.value.posts)) {
-        const publishedPosts = blogResult.value.posts as BlogPost[]
-        const usablePosts = publishedPosts.filter((post) => /^https:\/\//.test(post.featuredImage || ''))
-        const selectedPosts = featuredArticleSlugs
-          .map((slug) => usablePosts.find((post) => post.slug === slug))
-          .filter((post): post is BlogPost => Boolean(post))
-        setArticles([
-          ...selectedPosts,
-          ...usablePosts.filter((post) => !selectedPosts.some((selected) => selected.id === post.id)),
-        ].slice(0, 3))
-      }
-
-      if (reviewResult.status === 'fulfilled' && Array.isArray(reviewResult.value)) {
-        setReviewHighlights(reviewResult.value)
-      }
-    }
-
-    loadEditorialContent()
-  }, [])
 
   const categoryTiles = curatedCategorySlugs
     .map((slug) => categories.find((category) => category.slug === slug))
@@ -221,8 +166,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 lg:gap-6">
               {categoryTiles.map((category) => {
-                const sampleProduct = categoryProducts[category.slug]?.find((product) => product.images?.some((image) => image.url))
-                const productImage = sampleProduct?.images.find((image) => image.url)
+                const productImage = categoryImages[category.slug]
                 const imageUrl = category.image || productImage?.url
 
                 return (
@@ -279,33 +223,7 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
           </div>
         </section>
 
-        {reviewHighlights.length > 0 && (
-          <section className="store-section store-section--contrast">
-            <div className="section-shell">
-              <h2 className="text-2xl font-bold md:text-3xl">From Jacketee customers</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">
-                Read approved reviews from people who ordered Jacketee products.
-              </p>
-              <div className="mt-8 grid gap-6 md:grid-cols-3">
-                {reviewHighlights.map((review) => (
-                  <Link key={review.id} href={review.productHref} className="group block border-t border-white/25 pt-5">
-                    {review.image && (
-                      <div className="relative mb-5 aspect-[4/3] overflow-hidden bg-muted">
-                        <Image src={review.image} alt={`Customer photo of ${review.productName}`} fill sizes="(max-width: 768px) 100vw, 33vw" quality={70} className="object-cover" />
-                      </div>
-                    )}
-                    <div className="flex gap-0.5 text-amber-500" aria-label={`${review.rating} out of 5 stars`}>
-                      {Array.from({ length: review.rating }).map((_, index) => <Star key={index} className="h-4 w-4 fill-current" />)}
-                    </div>
-                    <p className="mt-3 line-clamp-4 text-sm leading-6">{review.comment}</p>
-                    <p className="mt-4 text-sm font-semibold">{review.name}</p>
-                    <p className="mt-1 text-xs text-white/65 group-hover:underline">{review.productName}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        {reviews}
 
         <HomeGroupOrders />
 
@@ -340,34 +258,14 @@ export default function Home({ categories, featuredProducts, newArrivals, catego
 
         <RecentlyViewed limit={4} sectionClassName="store-section store-section--soft" />
 
-        {articles.length > 0 && (
-          <section className="store-section store-section--plain">
-            <div className="section-shell">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase text-primary">Jacketee Journal</p>
-                  <h2 className="mt-2 text-2xl font-bold md:text-3xl">The stories behind your next jacket</h2>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                    Fresh ideas, practical guides, and the details that make a jacket yours.
-                  </p>
-                </div>
-                <Link href="/blog" className="inline-flex items-center text-sm font-semibold hover:underline">
-                  View all articles <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </div>
-              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {articles.map(article => <BlogCard key={article.id} article={article} />)}
-              </div>
-            </div>
-          </section>
-        )}
+        {articles}
       </main>
 
 
 
 
 
-      <Footer />
+      <Footer initialCategories={categories} />
     </>
   )
 }

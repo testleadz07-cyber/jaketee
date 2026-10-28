@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     const category = await BlogCategory.create({ name, slug, description })
+    invalidateHomeCache('articles')
     return NextResponse.json({ ...category.toObject(), id: String(category._id) }, { status: 201 })
   } catch (error: any) {
     console.error('Blog category create error:', error)
@@ -88,6 +90,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
+    invalidateHomeCache('articles')
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Blog category delete error:', error)

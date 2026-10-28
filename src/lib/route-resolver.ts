@@ -1,8 +1,5 @@
+import { getPublicCategories, getPublicProduct } from '@/lib/public-catalog'
 import { cache } from 'react'
-import mongoose from 'mongoose'
-import { connectDB } from '@/lib/mongodb'
-import Category from '@/models/Category'
-import Product from '@/models/Product'
 import { findStaticProduct, getStaticCategories } from '@/lib/static-data'
 import { resolveAncestorChain, toPublicCategorySlug, toStoredCategorySlug } from '@/lib/categories'
 
@@ -50,16 +47,17 @@ export type SlugResolution = ResolvedCategory | ResolvedProduct | ResolvedRedire
  * Cached per-request (React cache()) so layout.tsx's generateMetadata and
  * page.tsx's render both resolving the same path only does the work once.
  */
-export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugResolution> => {
+const resolvePath = cache(async (pathKey: string, uncached = false): Promise<SlugResolution> => {
+  const segments: string[] = JSON.parse(pathKey)
   if (segments.length === 0) return { type: 'notfound' }
   const lastSegment = segments[segments.length - 1]
   const storedLastSegment = toStoredCategorySlug(lastSegment)
 
-  const db = await connectDB()
+  let db = true
 
   let categories: ResolverCategory[]
-  if (db) {
-    const all = await Category.find().lean()
+  try {
+    const all = await getPublicCategories(uncached)
     categories = all.map((c: any) => ({
       _id: String(c._id),
       name: c.name,
@@ -73,7 +71,8 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
       image: c.image,
       parentId: c.parentId ? String(c.parentId) : null,
     }))
-  } else {
+  } catch {
+    db = false
     categories = getStaticCategories().map((c: any) => ({
       _id: String(c._id ?? c.id),
       name: c.name,
@@ -108,14 +107,7 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
 
   // Otherwise, try resolving the last segment as a product slug/id.
   let product: any = null
-  if (db) {
-    if (mongoose.Types.ObjectId.isValid(lastSegment)) {
-      product = await Product.findOne({ _id: lastSegment, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
-    }
-    if (!product) {
-      product = await Product.findOne({ slug: lastSegment, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
-    }
-  }
+  if (db) product = await getPublicProduct(lastSegment, uncached)
   if (!product) {
     product = findStaticProduct(lastSegment)
   }
@@ -147,3 +139,5 @@ export const resolveSlugPath = cache(async (segments: string[]): Promise<SlugRes
     },
   }
 })
+
+export function resolveSlugPath(segments: string[], uncached = false) { return resolvePath(JSON.stringify(segments), uncached) }

@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 import Product from '@/models/Product'
 import { getGarmentCategory } from '@/lib/garment-template'
 import { VARSITY_TEMPLATE_ID } from '@/lib/varsity-template'
@@ -10,28 +11,34 @@ import { VARSITY_TEMPLATE_ID } from '@/lib/varsity-template'
 export async function decrementStockForOrder(
   items: Array<{ productId: string; quantity: number }>
 ) {
-  for (const item of items) {
-    const quantity = Number(item.quantity) || 0
-    if (!item.productId || item.productId === VARSITY_TEMPLATE_ID || getGarmentCategory(item.productId) || quantity <= 0) continue
+  let availabilityChanged = false
+  try {
+    for (const item of items) {
+      const quantity = Number(item.quantity) || 0
+      if (!item.productId || item.productId === VARSITY_TEMPLATE_ID || getGarmentCategory(item.productId) || quantity <= 0) continue
 
-    const updated = await Product.findByIdAndUpdate(
-      item.productId,
-      { $inc: { stockCount: -quantity } },
-      { returnDocument: 'after' }
-    )
+      const updated = await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stockCount: -quantity } },
+        { returnDocument: 'after' }
+      )
 
-    if (!updated) continue
+      if (!updated) continue
 
-    if (updated.stockCount <= 0) {
-      await Product.findByIdAndUpdate(item.productId, {
-        stockCount: Math.max(0, updated.stockCount),
-        inStock: false,
-      })
-      if (updated.stockCount < 0) {
-        console.error(
-          `Oversold: product ${item.productId} went to ${updated.stockCount} after order fulfillment`
-        )
+      if (updated.stockCount <= 0) {
+        availabilityChanged = true
+        await Product.findByIdAndUpdate(item.productId, {
+          stockCount: Math.max(0, updated.stockCount),
+          inStock: false,
+        })
+        if (updated.stockCount < 0) {
+          console.error(
+            `Oversold: product ${item.productId} went to ${updated.stockCount} after order fulfillment`
+          )
+        }
       }
     }
+  } finally {
+    if (availabilityChanged) invalidateHomeCache()
   }
 }

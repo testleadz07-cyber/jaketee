@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 // src/app/api/admin/tags/route.ts
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -93,6 +94,7 @@ export async function PUT(request: Request) {
     await Tag.updateOne({ name: newTag }, { $setOnInsert: { name: newTag } }, { upsert: true })
     await Product.updateMany({ tags: oldTag }, [{ $set: { tags: { $setUnion: [{ $filter: { input: '$tags', as: 'tag', cond: { $ne: ['$$tag', { $literal: oldTag }] } } }, { $literal: [newTag] }] } } }])
     await Tag.deleteOne({ name: oldTag })
+    invalidateHomeCache()
     return NextResponse.json({ oldTag, newTag })
   } catch (error) {
     console.error('PUT /api/admin/tags error:', error)
@@ -115,6 +117,7 @@ export async function DELETE(request: Request) {
     }
     await Product.updateMany({ tags: tag }, { $pull: { tags: tag } })
     await Tag.deleteOne({ name: tag })
+    invalidateHomeCache()
     return NextResponse.json({ deletedTag: tag })
   } catch (error) {
     console.error('DELETE /api/admin/tags error:', error)

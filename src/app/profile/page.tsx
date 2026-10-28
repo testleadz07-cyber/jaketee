@@ -3,7 +3,7 @@
 import { GoogleSignIn } from '@/components/google-sign-in'
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
-import { useSession } from 'next-auth/react'
+import { getSession, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { startTransition, useEffect, useState  } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -124,6 +124,11 @@ export default function ProfilePage() {
   async function fetchProfile() {
     try {
       const res = await fetch('/api/users/profile')
+      if (res.status === 401) {
+        await getSession()
+        router.replace('/login')
+        return
+      }
       if (res.ok) {
         const data = await res.json()
         setName(data.name || '')

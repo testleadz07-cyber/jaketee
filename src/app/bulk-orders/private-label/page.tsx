@@ -2,6 +2,8 @@ import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { BulkProgramPage } from '@/components/bulk-program-page'
 
+export const revalidate = 60
+
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders/private-label`
 

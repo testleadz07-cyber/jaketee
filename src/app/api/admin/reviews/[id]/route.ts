@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -60,6 +61,7 @@ export async function PATCH(
     }
 
     await recalcProductStats(review.productId)
+    invalidateHomeCache('reviews')
 
     return NextResponse.json({
       ...review.toObject(),
@@ -96,6 +98,7 @@ export async function DELETE(
     }
 
     await recalcProductStats(review.productId)
+    invalidateHomeCache('reviews')
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

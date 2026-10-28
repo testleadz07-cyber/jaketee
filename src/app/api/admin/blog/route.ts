@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -171,6 +172,7 @@ export async function POST(request: NextRequest) {
       taggedProducts: taggedProducts || [],
     })
 
+    invalidateHomeCache('articles')
     return NextResponse.json({ ...post.toObject(), id: String(post._id) }, { status: 201 })
   } catch (error: any) {
     console.error('Admin blog create error:', error)

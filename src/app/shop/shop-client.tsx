@@ -204,6 +204,6 @@ export default function ShopClient({ initialProducts, initialCategories, initial
       </section>
       <CollectionSupport key={category} slug={category} name={selected?.name || 'all products'} />
     </main>
-    <Footer />
+    <Footer initialCategories={initialCategories} />
   </div>
 }

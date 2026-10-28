@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
@@ -133,6 +134,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
+    invalidateHomeCache('articles')
     return NextResponse.json({ ...post.toObject(), id: String(post._id) })
   } catch (error: any) {
     console.error('Admin blog update error:', error)
@@ -158,6 +160,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
+    invalidateHomeCache('articles')
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Admin blog delete error:', error)

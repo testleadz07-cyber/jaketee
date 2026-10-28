@@ -1,3 +1,4 @@
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await Product.deleteMany({ _id: { $in: ids } })
+    invalidateHomeCache('catalog')
 
     return NextResponse.json({
       message: 'Products deleted successfully',

@@ -1,3 +1,4 @@
+import { publicRead } from '@/lib/public-cache'
 import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -36,9 +37,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const reviews = await Review.find(query)
+    const reviews = await publicRead('approved-reviews', query, 60, ['public-support'], async () => Review.find(query)
       .sort({ createdAt: -1 })
-      .lean()
+      .lean())
 
     // Map _id to id
     const mapped = reviews.map((r: any) => ({

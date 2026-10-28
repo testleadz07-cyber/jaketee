@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider refetchOnWindowFocus={false} refetchWhenOffline={false}>
+    <SessionProvider refetchInterval={60} refetchOnWindowFocus={true} refetchWhenOffline={false}>
       <ThemeProvider
         attribute="class"
         defaultTheme="system"

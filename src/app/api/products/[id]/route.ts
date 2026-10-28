@@ -1,3 +1,5 @@
+import { getPublicCategories, getPublicProduct } from '@/lib/public-catalog'
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
@@ -23,11 +25,11 @@ export async function GET(
     const canViewDrafts = session?.user && (session.user as any).role === 'admin'
     const visibilityFilter = canViewDrafts ? {} : { isDraft: { $ne: true }, status: 'active' }
 
-    let product
-    if (mongoose.Types.ObjectId.isValid(id)) {
+    let product = !canViewDrafts ? await getPublicProduct(id) : null
+    if (canViewDrafts && mongoose.Types.ObjectId.isValid(id)) {
       product = await Product.findOne({ _id: id, ...visibilityFilter }).populate('categoryId', 'name slug').lean()
     }
-    if (!product) {
+    if (!product && canViewDrafts) {
       product = await Product.findOne({ slug: id, ...visibilityFilter }).populate('categoryId', 'name slug').lean()
     }
 
@@ -37,7 +39,7 @@ export async function GET(
 
     let categoryPath: { name: string; slug: string }[] = []
     if (product.categoryId) {
-      const allCategories = await Category.find().lean()
+      const allCategories = canViewDrafts ? await Category.find().lean() : await getPublicCategories()
       const categoryChainNodes = allCategories.map((c: any) => ({
         _id: String(c._id),
         parentId: c.parentId ? String(c.parentId) : null,
@@ -110,6 +112,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
+    invalidateHomeCache('catalog')
     return NextResponse.json({ ...product, id: String(product._id) })
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
@@ -137,6 +140,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
+    invalidateHomeCache('catalog')
     return NextResponse.json({ message: 'Product deleted' })
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })

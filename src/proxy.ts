@@ -62,7 +62,7 @@ export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   // Resolve legacy product URLs before rendering so the response is a real 301.
   if (/^\/products\/[^/]+\/?$/.test(pathname)) {
-    const resolution = await resolveSlugPath(pathname.split('/').filter(Boolean))
+    const resolution = await resolveSlugPath(pathname.split('/').filter(Boolean), true)
     if (resolution.type === 'redirect') {
       return NextResponse.redirect(new URL(resolution.to, 'https://www.jacketee.com'), 301)
     }
