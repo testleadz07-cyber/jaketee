@@ -1,10 +1,11 @@
-export const ACTIVITY_REPORTING_TIMEZONE = 'UTC'
+export const ACTIVITY_REPORTING_TIMEZONE = 'Asia/Karachi'
 
 function parseDay(value: string): Date {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Dates must use YYYY-MM-DD')
   const date = new Date(`${value}T00:00:00.000Z`)
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new Error('Invalid date')
-  return date
+  // Pakistan observes UTC+05:00 year-round; interpret filters as local midnight.
+  return new Date(date.getTime() - 5 * 60 * 60 * 1000)
 }
 
 export function activityDateRange(params: URLSearchParams, defaultDays?: number, now = new Date()) {

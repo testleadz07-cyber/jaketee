@@ -85,6 +85,7 @@ export default function AdminBlog() {
 
   const [posts, setPosts] = useState<BlogPostListItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [searchInput, setSearchInput] = useUrlFilter<string>('search', '')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useUrlFilter<string>('status', 'all')
@@ -103,7 +104,6 @@ export default function AdminBlog() {
   const [addingCategory, setAddingCategory] = useState(false)
 
   const fetchCategories = useCallback(async () => {
-    if (searchQuery !== searchInput) return
     try {
       const res = await fetch('/api/admin/blog-categories')
       if (res.ok) {
@@ -129,7 +129,8 @@ export default function AdminBlog() {
   }, [searchInput])
 
 
-  const fetchPosts = useCallback(async () => {
+  const fetchPosts = useCallback(async (signal?: AbortSignal) => {
+    if (signal?.aborted || searchQuery !== searchInput) return
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -142,24 +143,32 @@ export default function AdminBlog() {
       if (dateTo) params.set('dateTo', dateTo)
       if (searchQuery.trim()) params.set('search', searchQuery.trim())
 
-      const res = await fetch(`/api/admin/blog?${params.toString()}`)
+      const res = await fetch(`/api/admin/blog?${params.toString()}`, { signal })
       if (res.ok) {
         const data = await res.json()
+        if (signal?.aborted) return
         setPosts(data)
         setTotal(Number(res.headers.get('X-Total-Count') || data.length))
         setPages(Number(res.headers.get('X-Pages') || 1))
       }
     } catch (error) {
+      if (signal?.aborted) return
       console.error('Error fetching blog posts:', error)
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+        setHasLoaded(true)
+      }
     }
   }, [page, statusFilter, categoryFilter, dateField, dateFrom, dateTo, searchQuery, searchInput])
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      void Promise.resolve().then(fetchPosts)
-    }
+    if (status !== 'authenticated') return
+    const controller = new AbortController()
+    Promise.resolve().then(() => {
+      if (!controller.signal.aborted) void fetchPosts(controller.signal)
+    })
+    return () => controller.abort()
   }, [status, fetchPosts])
 
   useEffect(() => {
@@ -257,7 +266,7 @@ export default function AdminBlog() {
 
   const filteredPosts = posts
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading' || (loading && !hasLoaded)) {
     return <AdminLoadingShell label="Loading blog posts..." />
   }
 
@@ -453,7 +462,9 @@ export default function AdminBlog() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
-              {filteredPosts.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center gap-2 py-12" role="status"><Loader2 className="h-5 w-5 animate-spin" />Loading blog posts...</div>
+              ) : filteredPosts.length > 0 ? (
                 filteredPosts.map((post) => (
                   <div
                     key={post.id}

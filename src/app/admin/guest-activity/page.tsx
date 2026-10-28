@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { isGuestStatsData, isGuestActivityList } from '@/lib/guest-activity-response'
+import { ACTIVITY_REPORTING_TIMEZONE } from '@/lib/guest-activity-query'
 import { guestFormLabels, isGuestFormAction, type GuestFormName } from '@/lib/guest-form-schema'
 
 interface GuestActivityRow {
@@ -109,18 +110,18 @@ const CHART_COLORS = [
 ]
 
 const formatDate = (dateStr: string) => {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const d = new Date(dateStr + 'T00:00:00+05:00')
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: ACTIVITY_REPORTING_TIMEZONE })
 }
 
 const formatDateFull = (dateStr: string) => {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+  const d = new Date(dateStr + 'T00:00:00+05:00')
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: ACTIVITY_REPORTING_TIMEZONE })
 }
 
 const formatDateTime = (dateStr: string) => {
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC'
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: ACTIVITY_REPORTING_TIMEZONE }) + ' PKT'
 }
 
 const formatPageName = (name: string) => {
@@ -301,7 +302,7 @@ function GuestStatsDialog({ guestId, open, onOpenChange, from, to }: { guestId: 
                 <TabsContent value="timeline" className="mt-4">
                   <div className="min-w-0 rounded-xl border bg-card p-3 shadow-sm sm:p-5">
                     <h3 className="font-semibold text-sm mb-1">Activity Over Time</h3>
-                    <p className="text-xs text-muted-foreground mb-4">Daily event count in UTC; selected date range or the last 90 days</p>
+                    <p className="text-xs text-muted-foreground mb-4">Daily event count in Pakistan time (PKT); selected date range or the last 90 days</p>
                     {data.timeline.length > 0 ? (
                       <div className="h-64 min-w-0 sm:h-96">
                         <ResponsiveContainer width="100%" height="100%">
@@ -509,7 +510,7 @@ export default function AdminGuestActivityPage() {
         <div>
           <h2 className="text-xl font-bold tracking-tight">Guest Activity</h2>
           <p className="text-sm text-muted-foreground">
-            Browsing activity from anonymous (not logged in) visitors, identified by a per-browser guest ID. Dates and times use UTC.
+            Browsing activity from anonymous (not logged in) visitors, identified by a per-browser guest ID. Dates and times use Pakistan time (PKT, UTC+05:00).
           </p>
         </div>
 
@@ -570,13 +571,13 @@ export default function AdminGuestActivityPage() {
             className="w-full sm:w-56"
           />
           <Input
-            type="date" aria-label="Start date (UTC)"
+            type="date" aria-label="Start date (Pakistan time)"
             value={from}
             onChange={(e) => { setFrom(e.target.value); setPage(1) }}
             className="w-full sm:w-40"
           />
           <Input
-            type="date" aria-label="End date (UTC)"
+            type="date" aria-label="End date (Pakistan time)"
             value={to}
             onChange={(e) => { setTo(e.target.value); setPage(1) }}
             className="w-full sm:w-40"
@@ -622,7 +623,7 @@ export default function AdminGuestActivityPage() {
                 {activities.map((activity) => (
                   <TableRow key={activity.id}>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(activity.createdAt).toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC'}
+                      {new Date(activity.createdAt).toLocaleString('en-US', { timeZone: ACTIVITY_REPORTING_TIMEZONE }) + ' PKT'}
                     </TableCell>
                     <TableCell className="text-xs font-mono text-muted-foreground">
                       {activity.id}

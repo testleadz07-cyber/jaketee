@@ -175,20 +175,20 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
   const controls = (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">Options for {getJacketViewLabel(activeView).toLowerCase()}. Hidden settings stay saved when you switch views.</p>
-      <CustomizationSection title="1. Materials">
+      <CustomizationSection title="Materials">
         {isHoodie ? <><p className="text-sm text-muted-foreground">Cotton fleece body and sleeves, with ribbed cuffs and waistband.</p>{optionControl('Fleece weight')}</> : <>{optionControl('Body material')}{optionControl('Sleeve material')}</>}
       </CustomizationSection>
-      <CustomizationSection title="2. Construction">
+      <CustomizationSection title="Construction">
         {isHoodie ? <>{optionControl('Closure')}{optionControl('Fit')}{optionControl('Sleeve style')}</> : Object.keys(optionChoices).filter(key => !['Body material', 'Sleeve material', 'Collar style', 'Hood', 'Closure', 'Pocket style', 'Lining', 'Size'].includes(key)).map(optionControl)}
       </CustomizationSection>
-      {!sleeveView && <CustomizationSection title={isHoodie ? "3. Hood & drawstrings" : "3. Collar & hood"}>
+      {!sleeveView && <CustomizationSection title={isHoodie ? "Hood & drawstrings" : "Collar & hood"}>
         <img src={collarPreview} alt="Current neckline close-up" className="mx-auto h-48 w-full rounded-lg bg-muted object-contain" />
         {isHoodie ? <><p className="text-sm text-muted-foreground">An attached hood is included with both hoodie styles.</p>{optionControl('Hood lining')}{optionControl('Drawstrings')}</> : <>{optionControl('Collar style')}{optionControl('Hood')}</>}
       </CustomizationSection>}
-      {activeView === 'front' && <CustomizationSection title="4. Finishing">
+      {activeView === 'front' && <CustomizationSection title="Finishing">
         {isHoodie ? <>{optionControl('Pocket style')}<p className="text-xs text-muted-foreground">Full-zip hoodies use split pockets; pullovers use a kangaroo pocket.</p></> : (['Closure', 'Pocket style', 'Lining'] as const).map(optionControl)}
       </CustomizationSection>}
-      <CustomizationSection detailsRef={colorControlsRef} title="5. Colors">
+      <CustomizationSection detailsRef={colorControlsRef} title="Colors">
         <p className="mt-1 text-sm text-muted-foreground">One sleeve color applies to both sleeves.</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {Object.keys(colorChoices).filter(name => visibleColors.has(name) &&
@@ -213,7 +213,7 @@ export function GarmentDesigner({ category, children }: { category: GarmentCateg
 
   const review = (
     <div className="mt-6 space-y-4 border-t pt-6">
-      <CustomizationSection title="7. Size">
+      <CustomizationSection title="Size">
         {optionControl('Size')}
       </CustomizationSection>
       <section aria-labelledby="jacket-summary-title" className="overflow-hidden rounded-xl border bg-background shadow-sm">

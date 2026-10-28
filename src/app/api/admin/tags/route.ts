@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
 import Tag from '@/models/Tag'
+import { Types } from 'mongoose'
 
 // Ensure DB connection
 async function ensureDB() {
@@ -14,16 +15,21 @@ async function ensureDB() {
 }
 
 // GET: list distinct tags
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.user || (session.user as any).role !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
+    const categoryId = new URL(request.url).searchParams.get('categoryId')
+    if (categoryId !== null && !/^[a-f0-9]{24}$/i.test(categoryId)) {
+      return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
+    }
     await ensureDB()
     const [registered, usage] = await Promise.all([
-      Tag.find().lean(),
+      categoryId ? Promise.resolve([]) : Tag.find().lean(),
       Product.aggregate([
+        ...(categoryId ? [{ $match: { categoryId: new Types.ObjectId(categoryId) } }] : []),
         { $project: { tags: { $setUnion: [{ $ifNull: ['$tags', []] }, []] } } },
         { $unwind: '$tags' },
         { $group: { _id: '$tags', count: { $sum: 1 } } },

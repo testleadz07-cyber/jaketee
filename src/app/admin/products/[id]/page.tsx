@@ -206,8 +206,8 @@ export default function EditProduct() {
   }
 
   const activeCategoryId =
-    product.category?._id ||
-    (typeof product.categoryId === 'string' ? product.categoryId : product.categoryId?._id)
+    (typeof product.categoryId === 'string' ? product.categoryId : product.categoryId?._id) ||
+    product.category?._id
   const isJacketCategory = activeCategoryId
     ? isJacketCategoryPath(resolveAncestorChain(categoryNodes, activeCategoryId))
     : false
@@ -242,7 +242,7 @@ export default function EditProduct() {
                 <Label htmlFor="name">Product Name</Label>
                 <Input id="name" value={product.name} onChange={(e) => setProduct({ ...product, name: e.target.value })} disabled={saving} />
               </div>
-              <ProductTagsEditor value={product.tags || []} onChange={tags => setProduct({ ...product, tags })} disabled={saving} />
+              <ProductTagsEditor categoryId={activeCategoryId} value={product.tags || []} onChange={tags => setProduct({ ...product, tags })} disabled={saving} />
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" rows={4} value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} disabled={saving} />

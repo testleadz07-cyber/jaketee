@@ -155,6 +155,7 @@ export default function AdminFaqsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useUrlFilter<string>('search', '')
+  const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useUrlFilter<string>('category', 'all')
   const [displayPageFilter, setDisplayPageFilter] = useUrlFilter<string>('displayPage', 'all')
   const [page, setPage] = useUrlFilter<number>('page', 1)
@@ -169,21 +170,28 @@ export default function AdminFaqsPage() {
     if (status === 'unauthenticated') router.push('/login')
   }, [status, router])
 
-  const fetchFaqs = useCallback(async () => {
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchQuery(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const fetchFaqs = useCallback(async (signal?: AbortSignal) => {
+    if (signal?.aborted || searchQuery !== search) return
     setLoading(true)
     try {
       const params = new URLSearchParams()
       params.set('page', String(page))
       params.set('limit', String(limit))
-      if (search.trim()) params.set('search', search.trim())
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
       if (categoryFilter !== 'all') params.set('category', categoryFilter)
       if (displayPageFilter !== 'all') params.set('displayPage', displayPageFilter)
       if (statusFilter !== 'all') params.set('status', statusFilter)
       if (batchFilter !== 'all') params.set('sourceBatch', batchFilter)
 
-      const res = await fetch(`/api/admin/faqs?${params.toString()}`)
+      const res = await fetch(`/api/admin/faqs?${params.toString()}`, { signal })
       if (res.ok) {
         const data = await res.json()
+        if (signal?.aborted) return
         setFaqs(data.faqs || [])
         setCategories(data.categories || [])
         setDisplayPages(data.displayPages || [])
@@ -195,16 +203,20 @@ export default function AdminFaqsPage() {
         toast({ title: 'Error', description: data.error || 'Failed to fetch FAQs', variant: 'destructive' })
       }
     } catch {
+      if (signal?.aborted) return
       toast({ title: 'Error', description: 'Failed to fetch FAQs', variant: 'destructive' })
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) setLoading(false)
     }
-  }, [page, search, categoryFilter, displayPageFilter, statusFilter, batchFilter, toast])
+  }, [page, search, searchQuery, categoryFilter, displayPageFilter, statusFilter, batchFilter, toast])
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      void Promise.resolve().then(fetchFaqs)
-    }
+    if (status !== 'authenticated') return
+    const controller = new AbortController()
+    Promise.resolve().then(() => {
+      if (!controller.signal.aborted) void fetchFaqs(controller.signal)
+    })
+    return () => controller.abort()
   }, [status, fetchFaqs])
 
   const openCreate = () => {

@@ -164,15 +164,15 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
   const controls = (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">Options for {getJacketViewLabel(activeView).toLowerCase()}. Hidden settings stay saved when you switch views.</p>
-      <CustomizationSection title="1. Materials">
+      <CustomizationSection title="Materials">
         {optionControl('Body material')}
         {optionControl('Sleeve material')}
       </CustomizationSection>
-      <CustomizationSection title="2. Sleeves">
+      <CustomizationSection title="Sleeves">
         <p className="text-sm text-muted-foreground">Choose construction, stripes, and cuffs. Left and right refer to the wearer’s sides.</p>
         {SLEEVE_OPTION_NAMES.filter(name => name !== 'Sleeve material' && (name !== 'Sleeve stripe piping' || options['Sleeve stripe'] === 'Add stripe')).map(optionControl)}
       </CustomizationSection>
-      {!sleeveView && <CustomizationSection title="3. Collar & hood">
+      {!sleeveView && <CustomizationSection title="Collar & hood">
         <img src={collarPreview} alt={`${options['Collar style']} neckline close-up${options.Hood === 'Hooded' ? ' with hood' : ''}`} className="mx-auto h-48 w-full rounded-lg bg-muted object-contain" />
         <fieldset>
           <legend className="mb-2 font-semibold">Collar style</legend>
@@ -184,10 +184,10 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
         {optionControl('Hood')}
         <p className="text-xs text-muted-foreground">Collar stripes follow your knit style. {options.Hood === 'Hooded' ? 'The hood covers part of the collar; its edges remain visible at the front.' : 'Select Hooded to preview the collar with a hood.'}</p>
       </CustomizationSection>}
-      <CustomizationSection title="4. Finishing">
+      <CustomizationSection title="Finishing">
         {(['Closure', 'Pocket style', 'Knit style', 'Lining'] as const).map(optionControl)}
       </CustomizationSection>
-      <CustomizationSection detailsRef={colorControlsRef} title="5. Colors">
+      <CustomizationSection detailsRef={colorControlsRef} title="Colors">
         <p className="mt-1 text-sm text-muted-foreground">One sleeve color applies to both sleeves.</p>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {Object.keys(VARSITY_COLORS).filter(name =>
@@ -211,7 +211,7 @@ export function VarsityDesigner({ children }: { children?: React.ReactNode }) {
 
   const review = (
     <div className="mt-6 space-y-4 border-t pt-6">
-      <CustomizationSection title="7. Size">
+      <CustomizationSection title="Size">
         {optionControl('Size')}
       </CustomizationSection>
       <section aria-labelledby="jacket-summary-title" className="overflow-hidden rounded-xl border bg-background shadow-sm">

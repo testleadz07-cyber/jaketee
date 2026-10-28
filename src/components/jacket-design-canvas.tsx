@@ -262,7 +262,7 @@ export function JacketDesignCanvas({ activeView, onViewChange, historyMessage, i
       {/* Left side: Customization Options */}
       <div className="order-2 min-w-0 space-y-6 lg:order-1 lg:space-y-8">
         {leftContentTop && <div>{leftContentTop}</div>}
-        <CustomizationSection title="6. Text & artwork" collapsible={Boolean(onPartSelect)}>
+        <CustomizationSection title="Text & artwork" collapsible={Boolean(onPartSelect)}>
 
         <div className="space-y-6">
           <div className="space-y-3">

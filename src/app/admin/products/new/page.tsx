@@ -293,7 +293,7 @@ export default function NewProduct() {
                   />
                 </div>
 
-                <ProductTagsEditor value={formData.tags} onChange={tags => setFormData({ ...formData, tags })} disabled={submitting} />
+                <ProductTagsEditor categoryId={formData.categoryId} value={formData.tags} onChange={tags => setFormData({ ...formData, tags })} disabled={submitting} />
                 <div className="space-y-2">
                   <Label htmlFor="description">Description *</Label>
                   <Textarea
