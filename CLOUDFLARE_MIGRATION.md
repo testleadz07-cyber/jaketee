@@ -17,12 +17,20 @@ runtime Secrets, save/deploy that settings change, and verify the active Worker
 version receives them. Build variables are separate and do not supply runtime
 bindings. This setting preserves existing values; it cannot restore a deleted URI.
 The generated-entry OpenNext build passed. Wrangler's local dry run reported
-23404.69 KiB uncompressed / 5062.61 KiB gzip, with the requested self-reference,
+23426.47 KiB uncompressed / 5062.97 KiB gzip, with the requested self-reference,
 Images, assets and minute-level rate-limit bindings. No deployment was performed.
 
-Runtime follow-up (business logic intentionally unchanged): the old request-local
-MongoDB wrapper and SECURITY_LIMITER enforcement are not wired through this entry.
-Do not set MONGO_PER_REQUEST=true without restoring a request scope. Existing
+MongoDB request isolation is now installed through the OpenNext server wrapper
+in `open-next.config.ts`, while retaining the generated Worker entry. It delegates
+to the adapter's own `cloudflare-node` wrapper, scopes models/connections per
+invocation, and closes connections after response streaming and registered
+background tasks finish. No new runtime variable is needed. The custom wrapper
+requires the adapter's explicit config-validation opt-out because its validator
+only accepts the literal stock wrapper name. Recheck this integration on adapter
+upgrades; offline regression tests exercise the real stock wrapper concurrently.
+
+Runtime follow-up (business logic intentionally unchanged): SECURITY_LIMITER
+enforcement from the old entry is still not wired through this entry. Existing
 strict limiter callers require SECURITY_LIMITER and will fail if invoked with
 that binding missing; LOGIN_LIMITER/API_LIMITER alone do not replace it.
 Build success confirms packaging, not those integrations.

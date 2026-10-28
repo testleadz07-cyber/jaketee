@@ -76,6 +76,61 @@ async function main() {
   await assert.rejects(connectDB, /requires the custom Workers request scope/)
   console.log('PASS: concurrent request model isolation, populate bindings, constructors and cleanup')
 
+  // Exercise the actual OpenNext wrapper selected by the generated Worker.
+  const standardWrapper = (await import('@opennextjs/aws/overrides/wrappers/cloudflare-node.js')).default
+  const adapter = harness({ MONGODB_URI: 'mongodb://offline-test' }, {
+    mongoose,
+    '@opennextjs/aws/overrides/wrappers/cloudflare-node.js': { __esModule: true, default: standardWrapper },
+  })
+  const adapterScope = adapter.load('src/lib/worker-request-scope.ts')
+  const adapterDb = adapter.load('src/lib/mongodb.ts')
+  const adapterProduct = adapter.load('src/models/Product.ts').default
+  const wrapper = adapter.load('src/cloudflare/request-wrapper.ts').default
+  const activeConnections = [], releases = [], backgroundChecks = [], lifecycle = []
+  const adaptedFetch = await wrapper.wrapper(async (_event, options) => {
+    const connection = await adapterDb.connectDB()
+    activeConnections.push(connection)
+    assert.equal(adapterProduct.db, connection)
+    const state = adapterScope.getWorkerRequestScope()
+    const deferred = new Promise(resolve => releases.push(resolve))
+    options.waitUntil(deferred.then(async () => {
+      assert.equal(adapterScope.getWorkerRequestScope(), state)
+      assert.equal(adapterProduct.db, connection)
+      assert.ok(!connection.closedByTest, 'Background DB work must finish before cleanup')
+      backgroundChecks.push(connection)
+    }))
+    const writable = options.streamCreator.writeHeaders({ statusCode: 200, headers: {}, cookies: [] })
+    writable.end('products')
+  }, { convertFrom: async request => request.url })
+  const responses = await Promise.all([1, 2].map(id => adaptedFetch(new Request(`https://example.invalid/shop?id=${id}`), {}, {
+    waitUntil(promise) { lifecycle.push(promise) },
+  })))
+  assert.notEqual(activeConnections[0], activeConnections[1])
+  assert.deepEqual(await Promise.all(responses.map(response => response.text())), ['products', 'products'])
+  assert.ok(activeConnections.every(connection => !connection.closedByTest))
+  releases.forEach(resolve => resolve())
+  await Promise.all(lifecycle)
+  assert.equal(backgroundChecks.length, 2)
+  assert.ok(activeConnections.every(connection => connection.closedByTest))
+
+  // Handler failure, body cancellation, and null-body responses also clean up.
+  const scopedFetch = adapter.load('src/lib/scoped-worker-fetch.ts').scopedWorkerFetch
+  for (const mode of ['failure', 'cancel', 'empty']) {
+    const tasks = []
+    let connection
+    const fetch = scopedFetch(async () => {
+      connection = await adapterDb.connectDB()
+      if (mode === 'failure') throw Error('test failure')
+      return mode === 'empty' ? new Response(null, { status: 204 }) : new Response(new ReadableStream())
+    })
+    const result = fetch(new Request('https://example.invalid/shop'), {}, { waitUntil: promise => tasks.push(promise) })
+    if (mode === 'failure') await assert.rejects(result, /test failure/)
+    else { const response = await result; if (response.body) await response.body.cancel() }
+    await Promise.all(tasks)
+    assert.ok(connection.closedByTest, `${mode} must close its DB connection`)
+  }
+  console.log('PASS: generated OpenNext wrapper isolates concurrent MongoDB requests and cleans up streams/background/errors')
+
   const storageData = new Map()
   let serial = Promise.resolve()
   const storage = {
