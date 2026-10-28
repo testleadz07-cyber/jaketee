@@ -1,12 +1,3 @@
-import { v2 as cloudinary } from 'cloudinary'
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
-  api_key: process.env.CLOUDINARY_API_KEY || '',
-  api_secret: process.env.CLOUDINARY_API_SECRET || '',
-  secure: true,
-})
-
 export async function uploadImage(
   file: File | Buffer,
   folder: string = 'luxestore',
@@ -21,30 +12,25 @@ export async function uploadImage(
     return null
   }
 
-  let buffer: Buffer
-  if (file instanceof File) {
-    buffer = Buffer.from(await file.arrayBuffer())
-  } else {
-    buffer = file
-  }
-
-  return new Promise((resolve) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: resourceType },
-      (error, result) => {
-        if (error) {
-          console.error('Cloudinary upload error:', error)
-          resolve(null)
-        } else if (result) {
-          resolve({
-            url: result.secure_url,
-            publicId: result.public_id,
-          })
-        } else {
-          resolve(null)
-        }
-      }
-    )
-    uploadStream.end(buffer)
-  })
+  try {
+    const timestamp = Math.floor(Date.now() / 1000).toString()
+    // Cloudinary signs alphabetically sorted non-file parameters plus the secret.
+    // This is their SHA-1 protocol signature, not HMAC.
+    const signed = new TextEncoder().encode(`folder=${folder}&timestamp=${timestamp}${apiSecret}`)
+    const digest = await crypto.subtle.digest('SHA-1', signed)
+    const signature = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+    const body = new FormData()
+    const blob = file instanceof File ? file : new Blob([new Uint8Array(file)])
+    body.set('file', blob, file instanceof File ? file.name : 'upload.png')
+    body.set('folder', folder)
+    body.set('timestamp', timestamp)
+    body.set('api_key', apiKey)
+    body.set('signature', signature)
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/${resourceType}/upload`, {
+      method: 'POST', body, signal: AbortSignal.timeout(60000),
+    })
+    if (!response.ok) { console.error('Cloudinary upload failed', response.status); return null }
+    const result = await response.json() as { secure_url?: string; public_id?: string }
+    return result.secure_url && result.public_id ? { url: result.secure_url, publicId: result.public_id } : null
+  } catch { console.error('Cloudinary upload unavailable'); return null }
 }

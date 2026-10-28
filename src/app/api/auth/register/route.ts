@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     })
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${request.nextUrl.protocol}//${request.nextUrl.host}`
-    sendEmail({
+    await sendEmail({
       to: user.email,
       subject: 'Welcome to Jacketee',
       html: welcomeEmailTemplate({ userName: user.name, shopUrl: appUrl }),

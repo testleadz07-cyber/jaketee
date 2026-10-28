@@ -13,6 +13,7 @@ export default function imageLoader({ src, width, quality }: ImageLoaderProps): 
     return match[1] + parts.join('/')
   }
   if (src.startsWith('data:') || src.startsWith('blob:') || /\.svg(?:\?|$)/i.test(src)) return src
-  // Keep Next's optimizer for local images and other configured remote hosts.
-  return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`
+  // Serve local assets and other hosts directly. Workers tests have no image
+  // optimization binding; returning /_next/image would require one (or sharp).
+  return src
 }

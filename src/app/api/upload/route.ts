@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { uploadImage } from '@/lib/cloudinary'
+import { boundedFormData, RequestBodyTooLarge } from '@/lib/request-body'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const formData = await request.formData()
+    const formData = await boundedFormData(request, 26 * 1024 * 1024)
     const file = formData.get('file') as File | null
     const mediaType = (formData.get('type') as string | null) || 'image'
 
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
+    if (error instanceof RequestBodyTooLarge) return NextResponse.json({ error: 'Upload is too large' }, { status: 413 })
     console.error('Upload API error:', error)
     return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
   }

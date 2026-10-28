@@ -19,34 +19,23 @@ function decodeHeader(value: string | null): string | undefined {
 /**
  * Resolves the visitor's country from platform-injected request headers -
  * no outbound network call needed (unlike a third-party IP-geolocation API).
- * Netlify: x-nf-geo carries base64-encoded JSON with a `country` object.
- * Vercel: x-vercel-ip-country carries a plain ISO country code.
+ * Cloudflare overwrites cf-ipcountry at its edge. Vercel is the fallback.
+ * These hints must never be used as an authorization or fraud boundary.
  */
 export function getGeoFromRequest(request: NextRequest): RequestGeo {
-  // Only trust headers when deployment explicitly selects an overwriting edge.
-  const provider = process.env.ACTIVITY_GEO_PROVIDER ||
-    (process.env.VERCEL === '1' ? 'vercel' : process.env.NETLIFY === 'true' ? 'netlify' : '')
-  const netlifyGeo = provider === 'netlify' ? request.headers.get('x-nf-geo') : null
-  if (netlifyGeo) {
-    try {
-      const parsed = JSON.parse(Buffer.from(netlifyGeo, 'base64').toString('utf-8'))
-      return {
-        country: boundedGeo(parsed?.country?.code || parsed?.country?.name),
-        region: boundedGeo(parsed?.subdivision?.name || parsed?.subdivision?.code),
-        city: boundedGeo(parsed?.city),
-      }
-    } catch {
-      // malformed header - fall through to other sources
-    }
-  }
-
-  if (provider !== 'vercel') return {}
+  const cfCountry = countryCode(request.headers.get('cf-ipcountry'))
+  if (cfCountry) return { country: cfCountry }
   return {
-    country: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country'))),
+    country: countryCode(request.headers.get('x-vercel-ip-country')),
     region: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country-region'))),
     city: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-city'))),
     postalCode: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-postal-code'))),
   }
+}
+
+function countryCode(value: string | null): string | undefined {
+  const code = value?.trim().toUpperCase()
+  return code && /^[A-Z]{2}$/.test(code) && code !== 'XX' ? code : undefined
 }
 
 function boundedGeo(value: unknown): string | undefined {

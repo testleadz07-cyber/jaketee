@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
         return NextResponse.json({ error: 'Enter a valid checkout email' }, { status: 400 })
       }
-      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      if (process.env.EMAIL_PROVIDER === 'disabled' || (process.env.EMAIL_PROVIDER === 'cloudflare-api'
+        ? !process.env.CLOUDFLARE_ACCOUNT_ID || !process.env.CLOUDFLARE_EMAIL_API_TOKEN
+        : !process.env.SMTP_USER || !process.env.SMTP_PASS)) {
         return NextResponse.json({ error: 'Email verification is unavailable right now' }, { status: 503 })
       }
       const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
