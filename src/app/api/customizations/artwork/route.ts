@@ -5,7 +5,7 @@ import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit'
 const ALLOWED_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 export async function POST(request: NextRequest) {
-  const limit = checkRateLimit(`custom-artwork:${getClientIp(request)}`, 10, 60 * 60 * 1000)
+  const limit = await checkRateLimit(`custom-artwork:${getClientIp(request)}`, 10, 60 * 60 * 1000)
   if (!limit.success) {
     return NextResponse.json({ error: 'Too many artwork uploads. Please try again later.' }, { status: 429, headers: rateLimitHeaders(limit) })
   }

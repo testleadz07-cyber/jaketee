@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export type NotificationType = 'user_registered' | 'contact_form' | 'refund_request' | 'newsletter_signup' | 'new_order' | 'payment_received'
@@ -47,4 +48,4 @@ NotificationSchema.index({ type: 1, createdAt: -1 })
 NotificationSchema.index({ eventKey: 1 }, { unique: true, sparse: true })
 NotificationSchema.index({ pushState: 1, pushNextAttemptAt: 1 })
 
-export default mongoose.models.Notification || mongoose.model<INotification>('Notification', NotificationSchema)
+export default requestScopedModel(mongoose.models.Notification || mongoose.model<INotification>('Notification', NotificationSchema))

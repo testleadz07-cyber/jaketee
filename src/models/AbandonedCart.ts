@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IAbandonedCartItem {
@@ -58,5 +59,5 @@ const AbandonedCartSchema = new Schema<IAbandonedCart>(
 
 AbandonedCartSchema.index({ recovered: 1, lastActivityAt: 1 })
 
-export default mongoose.models.AbandonedCart ||
-  mongoose.model<IAbandonedCart>('AbandonedCart', AbandonedCartSchema)
+export default requestScopedModel(mongoose.models.AbandonedCart ||
+  mongoose.model<IAbandonedCart>('AbandonedCart', AbandonedCartSchema))

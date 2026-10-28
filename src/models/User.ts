@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IUser extends Document {
@@ -65,4 +66,4 @@ UserSchema.index({ email: 1 })
 UserSchema.index({ googleId: 1 }, { unique: true, sparse: true })
 UserSchema.index({ username: 1 }, { unique: true, sparse: true })
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
+export default requestScopedModel(mongoose.models.User || mongoose.model<IUser>('User', UserSchema))

@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IDiscount extends Document {
@@ -59,4 +60,4 @@ const DiscountSchema = new Schema<IDiscount>(
   { timestamps: true }
 )
 
-export default mongoose.models.Discount || mongoose.model<IDiscount>('Discount', DiscountSchema)
+export default requestScopedModel(mongoose.models.Discount || mongoose.model<IDiscount>('Discount', DiscountSchema))

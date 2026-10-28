@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
 
         const identifier = credentials.identifier.trim().toLowerCase()
 
-        const lockStatus = isLoginLocked(identifier)
+        const lockStatus = await isLoginLocked(identifier)
         if (lockStatus.locked) {
           throw new Error('Too many failed login attempts. Please try again later.')
         }
@@ -50,13 +50,13 @@ export const authOptions: NextAuthOptions = {
           })
           const isValid = user ? await comparePassword(credentials.password, user.password) : false
           if (!user || !isValid) {
-            recordFailedLogin(identifier)
+            await recordFailedLogin(identifier)
             throw new Error('Invalid email or username or password')
           }
           if (user.isActive === false) {
             throw new Error('This account has been disabled. Please contact support.')
           }
-          resetLoginAttempts(identifier)
+          await resetLoginAttempts(identifier)
           return { id: String(user._id), email: user.email, name: user.name, username: user.username, role: user.role }
         }
 

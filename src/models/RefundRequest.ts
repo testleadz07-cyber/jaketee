@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IRefundRequest extends Document {
@@ -17,4 +18,4 @@ const RefundRequestSchema = new Schema<IRefundRequest>(
   { timestamps: true }
 );
 
-export default mongoose.models.RefundRequest || mongoose.model<IRefundRequest>('RefundRequest', RefundRequestSchema);
+export default requestScopedModel(mongoose.models.RefundRequest || mongoose.model<IRefundRequest>('RefundRequest', RefundRequestSchema))

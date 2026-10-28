@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface ILoginSession extends Document {
@@ -34,5 +35,5 @@ LoginSessionSchema.index({ userId: 1, loginAt: -1 })
 LoginSessionSchema.index({ loginAt: -1 })
 LoginSessionSchema.index({ logoutAt: 1, lastSeenAt: 1 }) // for "active now" queries
 
-export default mongoose.models.LoginSession ||
-  mongoose.model<ILoginSession>('LoginSession', LoginSessionSchema)
+export default requestScopedModel(mongoose.models.LoginSession ||
+  mongoose.model<ILoginSession>('LoginSession', LoginSessionSchema))

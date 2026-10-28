@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IReview extends Document {
@@ -34,4 +35,4 @@ const ReviewSchema = new Schema<IReview>(
 ReviewSchema.index({ productId: 1, createdAt: -1 })
 ReviewSchema.index({ productId: 1, status: 1 })
 
-export default mongoose.models.Review || mongoose.model<IReview>('Review', ReviewSchema)
+export default requestScopedModel(mongoose.models.Review || mongoose.model<IReview>('Review', ReviewSchema))
