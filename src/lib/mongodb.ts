@@ -14,6 +14,24 @@ declare global { var mongoose: MongooseCache | undefined }
 const cached = globalThis.mongoose ??= { conn: null, promise: null } as MongooseCache
 interface RequestDatabase { connection: Connection; promise: Promise<Connection> }
 
+function logConnectionFailure(error: unknown) {
+  type Failure = { name?: unknown; code?: unknown; cause?: { name?: unknown; code?: unknown }; reason?: { servers?: Map<string, { error?: Failure }> } }
+  const details = error as Failure | null
+  const safeLabel = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
+    ? value : typeof value === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,79}$/.test(value) ? value : undefined
+  // Never log the error object, message, stack or connection string: parse and
+  // authentication errors can contain credentials. Codes identify the failure.
+  console.error('MongoDB connection unavailable', {
+    errorType: safeLabel(details?.name), code: safeLabel(details?.code),
+    causeType: safeLabel(details?.cause?.name), causeCode: safeLabel(details?.cause?.code),
+    serverErrors: details?.reason?.servers && typeof details.reason.servers.values === 'function'
+      ? Array.from(details.reason.servers.values()).slice(0, 3).map(({ error: serverError }) => ({
+        errorType: safeLabel(serverError?.name), code: safeLabel(serverError?.code),
+        causeCode: safeLabel(serverError?.cause?.code),
+      })) : undefined,
+  })
+}
+
 function requestDatabase(): RequestDatabase | undefined {
   const scope = getWorkerRequestScope()
   if (!scope) return undefined
@@ -58,11 +76,14 @@ export function requestScopedModel<T extends Model<any>>(base: T): T {
 }
 
 export async function connectDB() {
-  if (!process.env.MONGODB_URI) return null
+  if (!process.env.MONGODB_URI) {
+    console.error('MONGODB_URI is missing or empty in the active runtime')
+    return null
+  }
   const scoped = requestDatabase()
   if (scoped) {
-    try { return await scoped.promise } catch {
-      console.error('Request MongoDB connection unavailable')
+    try { return await scoped.promise } catch (error) {
+      logConnectionFailure(error)
       return null
     }
   }
@@ -72,9 +93,9 @@ export async function connectDB() {
   }
   if (cached.conn) return cached.conn
   cached.promise ??= mongoose.connect(process.env.MONGODB_URI, options)
-  try { return cached.conn = await cached.promise } catch {
+  try { return cached.conn = await cached.promise } catch (error) {
     cached.promise = null
-    console.error('MongoDB connection unavailable')
+    logConnectionFailure(error)
     return null
   }
 }
