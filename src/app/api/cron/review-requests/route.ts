@@ -11,6 +11,7 @@ const CLAIM_TIMEOUT_MS = 30 * 60 * 1000
 
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
+  if (process.env.CRON_ENABLED === 'false' || process.env.MIGRATION_TEST_MODE === 'true') return false
   if (!secret) return false
   const header = request.headers.get('authorization') || ''
   const provided = header.startsWith('Bearer ') ? header.slice(7) : request.headers.get('x-cron-secret')
@@ -49,11 +50,14 @@ async function runReviewRequestSweep(request: NextRequest) {
   const candidates = await Order.find({
     status: 'delivered',
     reviewRequestSentAt: { $exists: false },
-    $or: [
-      { reviewRequestClaimedAt: { $exists: false } },
-      { reviewRequestClaimedAt: { $lte: staleClaimBefore } },
+    $and: [
+      { $or: [{ reviewRequestClaimedAt: { $exists: false } }, { reviewRequestClaimedAt: { $lte: staleClaimBefore } }] },
+      { $or: [
+        { deliveredAt: { $lte: eligibleBefore } },
+        { deliveredAt: null, statusHistory: { $elemMatch: { status: 'delivered', timestamp: { $lte: eligibleBefore } } } },
+      ] },
     ],
-  }).limit(100)
+  }).sort({ deliveredAt: 1, _id: 1 }).limit(5)
 
   let emailsSent = 0
   let skipped = 0

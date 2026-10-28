@@ -1,6 +1,7 @@
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { Header } from '@/components/header'
 import { HomeHero, homeHeroImage } from '@/components/home-hero'
 import { getHomeHeroImages } from '@/lib/home-hero-images'
@@ -40,7 +41,10 @@ export async function generateMetadata(): Promise<Metadata> {
   })
 }
 
-export default function Page() {
+export default async function Page() {
+  // Smoke-test builds must not prerender against the live catalog. Normal
+  // Vercel builds retain their existing 60-second ISR behavior.
+  if (process.env.MIGRATION_TEST_MODE === 'true') await connection()
   return <div className="home-page flex min-h-screen flex-col bg-background">
     <Header home />
     <Suspense fallback={null}><HomeHero /></Suspense>
