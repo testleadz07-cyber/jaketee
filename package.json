@@ -30,9 +30,17 @@
     "content:task-18-blogs": "node scripts/update-task-18-blog-content.mjs",
     "content:blog-internal-links": "node scripts/update-blog-internal-links.mjs",
     "audit:internal-links": "node scripts/audit-internal-links.mjs",
-    "test:google-push": "node scripts/test-google-push.cjs"
+    "test:google-push": "node scripts/test-google-push.cjs",
+    "build:cloudflare": "node scripts/cloudflare-build.mjs",
+    "preview": "npm run build:cloudflare && opennextjs-cloudflare preview",
+    "deploy": "npm run build:cloudflare && opennextjs-cloudflare deploy",
+    "upload": "npm run build:cloudflare && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --strict-vars=false --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "test:cloudflare": "node scripts/test-cloudflare-migration.cjs",
+    "typecheck:worker": "npm run cf-typegen && tsc --noEmit -p tsconfig.worker.json"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "1.20.14",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -71,15 +79,12 @@
     "@types/sanitize-html": "^2.16.1",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
-    "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "dotenv": "^17.4.2",
     "embla-carousel-react": "^8.6.0",
     "firebase": "12.14.0",
-    "firebase-admin": "14.5.0",
     "framer-motion": "^12.23.2",
-    "geoip-lite": "^2.0.3",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.525.0",
     "marked": "^18.0.7",
@@ -97,7 +102,6 @@
     "react-resizable-panels": "^3.0.3",
     "recharts": "^2.15.4",
     "sanitize-html": "^2.17.7",
-    "sharp": "^0.34.3",
     "sonner": "^2.0.6",
     "stripe": "^22.3.0",
     "tailwind-merge": "^3.3.1",
@@ -115,19 +119,27 @@
     "eslint-config-next": "^16.1.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "4.154.0"
   },
   "overrides": {
     "nodemailer": "$nodemailer",
     "postcss": "^8.5.31",
     "@firebase/app": "0.14.13",
     "@firebase/app-compat": "0.5.13",
-    "@grpc/grpc-js": "^1.14.0"
+    "@grpc/grpc-js": "^1.14.0",
+    "@node-minify/core": {
+      "glob": "^10.5.0"
+    },
+    "zod": "^4.6.6"
   },
   "browserslist": [
     "chrome >= 111",
     "edge >= 111",
     "firefox >= 111",
     "safari >= 16.4"
-  ]
+  ],
+  "engines": {
+    "node": ">=22.16.0"
+  }
 }

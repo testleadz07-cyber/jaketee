@@ -56,3 +56,11 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# Cloudflare local state and generated bundles
+/.open-next/
+/.wrangler/
+.dev.vars*
+!.dev.vars.example
+/cloudflare-env.d.ts
+/migration-artifacts/
