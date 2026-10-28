@@ -2,6 +2,11 @@
 
 ## Current generated-entry configuration
 
+After changing Cloudflare's production branch to `cloudflare-migration`, save
+the build settings. A subsequent push to this branch triggers a new build;
+changing the branch setting alone does not rebuild an already-pushed commit.
+Check the new build's branch and commit instead of retrying an old `main` build.
+
 The active Worker is **jaketee**, with main **.open-next/worker.js**. No cron
 triggers or scheduled handler are configured. The old worker.ts is unused.
 Package preview/deploy/upload scripts use the standard OpenNext CLI commands.
