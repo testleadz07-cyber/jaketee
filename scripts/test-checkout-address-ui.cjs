@@ -50,6 +50,8 @@ async function mount({ storage = new Map(), user = null, profile, suggestion = {
     '@/lib/checkout-address-draft': drafts,
     '@/hooks/use-toast': { useToast: () => ({ toast: () => {} }) },
     '@/hooks/use-has-mounted': { useHasMounted: () => true },
+    '@/hooks/use-guest-form-activity': { useGuestFormActivity: () => ({ bindings: {}, notice: null, submitted: async () => {} }) },
+    '@/components/turnstile-challenge': { useTurnstile: () => ({ token: 'offline', reset() {}, widget: null, ready: true }) },
     '@/store/cart': { useCartStore: () => ({ items: [{ id: 'line', productId: 'product', name: 'Jacket', image: '/test.png', quantity: 2, price: 100, variants: [] }], clearCart: () => {}, clearDirectOrderItem: () => {}, clearAppliedPromo: () => {} }) },
     '@/types/jacket-customization': { getCustomizedViews: () => [] },
     '@/lib/activity': { logUserActivity: () => {} },

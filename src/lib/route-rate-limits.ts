@@ -43,4 +43,3 @@ export function getRateLimitConfig(pathname: string) {
   if (pathname.startsWith('/api/')) return DEFAULT_API_LIMIT
   return null
 }
-

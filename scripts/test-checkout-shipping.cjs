@@ -21,6 +21,7 @@ function load(file) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText
   new Function('require', 'module', 'exports', source)(id => {
+    if (id === '@/lib/mongodb' && file.includes(`${path.sep}models${path.sep}`)) return { requestScopedModel: model => model }
     if (mocks[id]) return { __esModule: true, ...mocks[id] }
     if (id.startsWith('@/')) return load(`src/${id.slice(2)}.ts`)
     if (id.startsWith('.')) return load(path.resolve(path.dirname(file), `${id}.ts`))
@@ -64,11 +65,13 @@ async function main() {
     delete process.env.VERCEL; delete process.env.NETLIFY; delete process.env.ACTIVITY_GEO_PROVIDER
     const request = { headers: new Headers({ 'x-vercel-ip-country': 'US', 'x-vercel-ip-country-region': 'TX',
       'x-vercel-ip-city': 'San%20Antonio', 'x-vercel-ip-postal-code': '78201' }) }
-    assert.deepEqual(geo.getGeoFromRequest(request), {})
-    assert.equal((await location.GET(request).json()).suggestion, null)
-    process.env.VERCEL = '1'
+    // Platform headers work without Vercel/Netlify environment flags.
+    assert.equal(geo.getGeoFromRequest(request).country, 'US')
     assert.deepEqual((await location.GET(request).json()).suggestion, { country: 'US', state: 'TX', city: 'San Antonio', zip: '78201' })
     assert.equal(location.GET(request).headers.get('cache-control'), 'private, no-store')
+    request.headers.set('cf-ipcountry', 'CA')
+    assert.equal((await location.GET(request).json()).suggestion.country, 'CA')
+    request.headers.delete('cf-ipcountry')
     request.headers.set('x-vercel-ip-country', 'IL')
     assert.equal((await location.GET(request).json()).suggestion, null)
     assert.equal((await location.GET({ headers: new Headers() }).json()).suggestion, null)
