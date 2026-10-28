@@ -3,9 +3,7 @@ import urlRedirects from "./src/data/url-redirects.json";
 import contentLinkRepairs from "./src/data/content-link-repairs.json";
 import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 
-if (process.env.NODE_ENV === 'development' && process.env.CLOUDFLARE_DEV === 'true') {
-  initOpenNextCloudflareForDev();
-}
+initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],

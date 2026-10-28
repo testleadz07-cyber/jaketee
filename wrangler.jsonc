@@ -1,34 +1,51 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "jacketee",
-  "main": "worker.ts",
-  // Pin to the newest date supported by the installed workerd runtime.
+  "name": "jaketee",
+  "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-23",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
-  "observability": { "enabled": true },
-  "vars": {
-    "CLOUDFLARE_WORKER": "true",
-    "MIGRATION_TEST_MODE": "true",
-    "MONGO_PER_REQUEST": "true",
-    "CRON_ENABLED": "false",
-    "EMAIL_PROVIDER": "disabled",
-    "PUSH_ENABLED": "false"
-  },
-  "ratelimits": [
-    { "name": "LOGIN_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } },
-    { "name": "API_LIMITER", "namespace_id": "1002", "simple": { "limit": 120, "period": 60 } }
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
   ],
-  // SQLite DOs preserve the existing hourly / 15-minute security windows.
-  "durable_objects": { "bindings": [{ "name": "SECURITY_LIMITER", "class_name": "SecurityRateLimiter" }] },
-  "migrations": [{ "tag": "security-v1", "new_sqlite_classes": ["SecurityRateLimiter"] }],
-  // No schedules until isolated database, email and payment tests have passed.
-  "triggers": { "crons": [] }
-  // Enable after testing: "triggers": { "crons": ["0 * * * *", "15 3 * * *"] }
-  // Production ISR (also replace the config in open-next.config.ts):
-  // ,"services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "jacketee" }]
-  // ,"r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "jacketee-cache" }]
-  // ,"d1_databases": [{ "binding": "NEXT_TAG_CACHE_D1", "database_name": "jacketee-tags", "database_id": "<provisioned-id>" }]
-  // Add { "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" } to durable_objects.bindings
-  // and a NEW migration { "tag": "cache-v1", "new_sqlite_classes": ["DOQueueHandler"] }.
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "jaketee"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "workers_dev": true,
+  "preview_urls": true,
+  "ratelimits": [
+    {
+      "name": "LOGIN_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    },
+    {
+      "name": "API_LIMITER",
+      "namespace_id": "1002",
+      "simple": {
+        "limit": 100,
+        "period": 60
+      }
+    }
+  ]
+  // Optional production cache examples; inactive for free-plan testing.
+  // ,"r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "jaketee-cache" }]
+  // ,"d1_databases": [{ "binding": "NEXT_TAG_CACHE_D1", "database_name": "jaketee-tags", "database_id": "<database-id>" }]
+  // ,"durable_objects": { "bindings": [{ "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" }] }
+  // ,"migrations": [{ "tag": "cache-v1", "new_sqlite_classes": ["DOQueueHandler"] }]
 }

@@ -1,5 +1,32 @@
 # Cloudflare migration
 
+## Current generated-entry configuration
+
+The active Worker is **jaketee**, with main **.open-next/worker.js**. No cron
+triggers or scheduled handler are configured. The old worker.ts is unused.
+Package preview/deploy/upload scripts use the standard OpenNext CLI commands.
+R2, D1 and Durable Object cache bindings are commented examples only.
+The generated-entry OpenNext build passed. Wrangler's local dry run reported
+23404.69 KiB uncompressed / 5062.61 KiB gzip, with the requested self-reference,
+Images, assets and minute-level rate-limit bindings. No deployment was performed.
+
+Runtime follow-up (business logic intentionally unchanged): the old request-local
+MongoDB wrapper and SECURITY_LIMITER enforcement are not wired through this entry.
+Do not set MONGO_PER_REQUEST=true without restoring a request scope. Existing
+strict limiter callers require SECURITY_LIMITER and will fail if invoked with
+that binding missing; LOGIN_LIMITER/API_LIMITER alone do not replace it.
+Build success confirms packaging, not those integrations.
+This build check uses MIGRATION_TEST_MODE=true with local production credentials
+masked. Set MIGRATION_TEST_MODE=true in Workers Builds for the same database-free
+test build; otherwise the existing homepage prerender needs database access.
+
+Standard adapter builds may copy local .env values into ignored output. Keep
+runtime secrets in Cloudflare settings; the earlier isolated build/sanitization
+helpers remain available separately. Do not commit generated artifacts.
+
+The notes below describe the earlier migration and are historical where they
+refer to the custom entry, its guards or its security Durable Object binding.
+
 Branch: `cloudflare-migration`, created from `feature/checkout-shipping-address`.
 This is an isolated testing profile, not a production cutover. No domain, DNS,
 Cloudflare deployment, production database, payment, email or device was changed.
@@ -274,7 +301,7 @@ environment"; it does not deploy or disable runtime migration guards.
    `npx opennextjs-cloudflare deploy`. Non-production version command:
    `npx opennextjs-cloudflare upload`. Do not use `npm run deploy` as the dashboard
    deploy command, because that would repeat the build.
-5. The worker name in `wrangler.jsonc` is `jacketee`. Ensure this is not an existing
+5. The worker name in `wrangler.jsonc` is `jaketee`. Ensure this is not an existing
    live Worker in your account. If occupied, change it to a distinct test name
    before connecting Builds. Also update the commented self-reference service.
 6. Wrangler provisions the SQLite security DO migration. These bindings are
@@ -307,25 +334,11 @@ Email Routing alone is not outbound email sending.
 - No automatic retry through a second provider: a timeout may already have sent
   the message, so automatic cross-provider fallback could duplicate it.
 
-## Production caching and scheduling gates
+## Production caching
 
-TODO before production: provision R2 incremental cache, the DO revalidation queue,
-and D1 tag cache using the commented matching configuration; apply the adapter's
-D1 schema/migrations and test revalidatePath/revalidateTag for catalog edits.
-Only then consider changing sitemap to `revalidate = 86400`. Verify catalog,
-stock, draft visibility and personalized responses before adding CDN rules.
-
-To activate schedules after the test checklist passes, disable migration test
-mode, set `CRON_ENABLED=true`, configure NEXTAUTH_URL/CRON_SECRET, and replace the
-empty cron list with `0 * * * *` and `15 3 * * *` (UTC: hourly and 03:15 daily,
-08:15 Asia/Karachi). The scheduled handler calls the generated fetch internally
-with Bearer authorization, consumes the body and treats non-2xx as failure.
-Disable any old Vercel/external schedules before enabling these.
-
-Leases reduce overlap; they cannot guarantee exactly-once mail after an upstream
-success followed by a crash/timeout. Monitor failures and backlog. Five-record
-daily review batches are suitable only for low-volume tests; adjust scheduling
-and batch sizing when moving to paid Workers.
+R2/D1/DO cache configuration remains optional and inactive. Provision and test
+the matching resources before enabling persistent ISR or tag invalidation.
+Cron scheduling is out of scope and disabled.
 
 ## Acceptance checklist and remaining risks
 
