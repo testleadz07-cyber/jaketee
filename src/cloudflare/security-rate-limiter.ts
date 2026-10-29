@@ -38,6 +38,9 @@ export class SecurityRateLimiter {
     const result = await this.state.storage.transaction(async storage => {
       const gate = await storage.get<ReturnGate>('returns') || { attempts: [] }
       gate.attempts = gate.attempts.filter(time => time > now - RETURN_DAY)
+      // Alarm delivery can lag behind a new request. Expired state must not
+      // schedule an invalid alarm or keep yesterday's abandoned reservation.
+      if (!gate.attempts.length) gate.claim = undefined
       if (data.action === 'returns-complete') {
         if (gate.claim && gate.claim.id === data.id) gate.claim.complete = true
         await storage.put('returns', gate)

@@ -75,6 +75,10 @@ async function main() {
   assert.equal(limits.filter(row => row.success).length, 3, 'Exact hourly IP budget is serialized')
   now += 3600001
   assert.equal((await gate('returns-ip', 'limit', { limit: 3, windowMs: 3600000 })).success, true)
+  now += 86400001
+  const nextDay = await gate('recovery', 'returns-reserve')
+  assert.equal(nextDay.status, 'reserved')
+  assert.notEqual(nextDay.id, abandoned.id, 'Expired state recovers even when its cleanup alarm has not fired yet')
   assert.ok(queryCount > 0)
   let verified = false, writes = 0, notifications = 0, inserted = true
   const bodyHelpers = load('src/lib/request-body.ts', {}, { ReadableStream })
