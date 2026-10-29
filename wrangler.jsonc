@@ -7,6 +7,9 @@
     "nodejs_compat",
     "global_fetch_strictly_public"
   ],
+  "limits": {
+    "cpu_ms": 30000
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -54,7 +57,7 @@
       }
     }
   ]
-  // Optional production cache examples; inactive for free-plan testing.
+  // Optional cache examples; inactive until explicitly provisioned.
   // ,"r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "jaketee-cache" }]
   // ,"d1_databases": [{ "binding": "NEXT_TAG_CACHE_D1", "database_name": "jaketee-tags", "database_id": "<database-id>" }]
   // Optional cache DO bindings/migrations must be appended to the arrays above.

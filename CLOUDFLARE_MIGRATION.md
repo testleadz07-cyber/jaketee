@@ -1,6 +1,20 @@
 # Cloudflare migration
 
-## Active free-plan public data cache
+## Current deployment target
+
+The active `feature/checkout-shipping-address` branch includes the merged
+Cloudflare migration. All ongoing implementation must target Cloudflare Workers
+via OpenNext with `nodejs_compat`; do not assume Vercel compatibility. The operator
+confirmed Workers Paid on 2026-10-29. `wrangler.jsonc` explicitly sets a 30,000 ms
+(30-second) CPU limit per request. This setting takes effect on the next authorized
+deployment; updating the local file does not change the live Worker.
+
+R2 remains disabled by operator choice. The existing public-data cache, security
+bindings, MongoDB connection bounds and disabled cron configuration remain in use.
+Paid CPU limits do not prove that every route/integration works: complete the
+real-data acceptance checks in `SECURITY_FIXES.md` before production cutover.
+
+## Active R2-free public data cache
 
 R2 remains disabled by operator choice. Cloudflare SSR public database reads now
 use `publicRead`: BSON-safe serialized results in the native Cache API, with
