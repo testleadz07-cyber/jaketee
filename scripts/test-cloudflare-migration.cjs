@@ -42,14 +42,63 @@ async function main() {
   assert.ok(wrangler.durable_objects.bindings.some(binding => binding.name === 'SECURITY_LIMITER' && binding.class_name === 'SecurityRateLimiter'))
   assert.ok(wrangler.migrations.some(migration => migration.new_sqlite_classes.includes('SecurityRateLimiter')))
   assert.ok(!wrangler.triggers?.crons?.length)
-  const generatedHandler = { fetch: async () => new Response('generated') }
+  let delegated = 0, delegatedEnv, nativeSuccess = true, durableSuccess = true, durableCalls = 0
+  const nativeCalls = []
+  const generatedHandler = { fetch: async (_request, env) => {
+    delegated++; delegatedEnv = env
+    return new Response('generated', { status: 201, headers: { 'Set-Cookie': 'test=value; HttpOnly', 'X-Generated': 'yes' } })
+  } }
   const entryHarness = harness({}, {
     [path.resolve('.open-next/worker.js')]: { __esModule: true, default: generatedHandler },
   })
   const configuredEntry = entryHarness.load(wrangler.main)
-  assert.equal(configuredEntry.default, generatedHandler, 'Do not replace OpenNext request handling')
+  const activeFetch = configuredEntry.default.fetch
+  const protectionEnv = {
+    LOGIN_LIMITER: { limit: async input => { nativeCalls.push(['login', input.key]); return { success: nativeSuccess } } },
+    API_LIMITER: { limit: async input => { nativeCalls.push(['api', input.key]); return { success: nativeSuccess } } },
+    SECURITY_LIMITER: { idFromName: name => name, get: () => ({ fetch: async (_url, init) => {
+      durableCalls++
+      const data = JSON.parse(init.body)
+      assert.equal(data.action, 'limit')
+      return Response.json({ success: durableSuccess, limit: data.limit, remaining: durableSuccess ? data.limit - 1 : 0,
+        resetAt: Date.now() + data.windowMs, ...(!durableSuccess ? { retryAfterSec: 30 } : {}) })
+    } }) },
+  }
+  const protectedRequest = path => new Request('https://example.invalid' + path, {
+    headers: { 'cf-connecting-ip': '203.0.113.7', 'x-forwarded-for': 'spoofed' },
+  })
+  const allowed = await activeFetch(protectedRequest('/api/contact'), protectionEnv, {})
+  assert.equal(allowed.status, 201)
+  assert.equal(await allowed.text(), 'generated')
+  assert.equal(allowed.headers.get('Set-Cookie'), 'test=value; HttpOnly')
+  assert.equal(allowed.headers.get('X-Generated'), 'yes')
+  assert.equal(allowed.headers.get('X-RateLimit-Limit'), '5')
+  assert.equal(allowed.headers.get('Cache-Control'), 'private, no-store')
+  assert.equal(delegatedEnv.CLOUDFLARE_WORKER, 'true', 'Do not apply middleware memory limits a second time')
+  assert.deepEqual(nativeCalls[0], ['api', '/api/contact:203.0.113.7'])
+  await activeFetch(protectedRequest('/api/auth/callback/credentials'), protectionEnv, {})
+  assert.deepEqual(nativeCalls[1], ['login', '/api/auth/callback/credentials:203.0.113.7'])
+  nativeSuccess = false
+  const beforeDeny = delegated, beforeDurable = durableCalls
+  const nativeDenied = await activeFetch(protectedRequest('/api/contact'), protectionEnv, {})
+  assert.equal(nativeDenied.status, 429)
+  assert.equal(nativeDenied.headers.get('Retry-After'), '60')
+  assert.equal(durableCalls, beforeDurable)
+  nativeSuccess = true; durableSuccess = false
+  const durableDenied = await activeFetch(protectedRequest('/api/contact'), protectionEnv, {})
+  assert.equal(durableDenied.status, 429)
+  assert.equal(durableDenied.headers.get('Retry-After'), '30')
+  assert.equal(delegated, beforeDeny, 'Denied requests must never invoke application code')
+  assert.equal((await activeFetch(protectedRequest('/api/contact'), {}, {})).status, 503)
+  assert.equal((await activeFetch(protectedRequest('/api/contact'), { API_LIMITER: protectionEnv.API_LIMITER }, {})).status, 503)
+  const callsBeforeExempt = nativeCalls.length
+  for (const path of ['/shop', '/api/auth/session', '/api/auth/csrf', '/api/webhooks/stripe', '/api/webhooks/paypal', '/api/cron/abandoned-cart']) {
+    assert.equal((await activeFetch(protectedRequest(path), {}, {})).status, 201)
+  }
+  assert.equal((await activeFetch(new Request('https://example.invalid/api/contact', { method: 'OPTIONS' }), {}, {})).status, 201)
+  assert.equal(nativeCalls.length, callsBeforeExempt)
   assert.equal(configuredEntry.SecurityRateLimiter, entryHarness.load('src/cloudflare/security-rate-limiter.ts').SecurityRateLimiter)
-  console.log('PASS: configured Worker exposes the SQLite security limiter and preserves generated fetch/no cron')
+  console.log('PASS: active entry enforces native/durable limits, preserves generated responses, exempts provider/session traffic and has no cron')
 
   // Real Mongoose schemas with disconnected, simulated request connections.
   const mongoose = new (require('mongoose').Mongoose)()

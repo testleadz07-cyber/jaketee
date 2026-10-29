@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt'
 import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit-memory'
 import { getRateLimitConfig } from '@/lib/route-rate-limits'
 
-// Edge-safe Next 16 middleware. Cloudflare also enforces durable limits in worker.ts.
+// Edge-safe Next 16 middleware. cloudflare-worker.ts enforces Workers API limits.
 // Vercel retains its previous in-memory API protection here.
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -27,8 +27,7 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // The custom entry has already enforced durable limits on Workers. Avoid a
-  // second isolate-local counter grouping requests without forwarded headers.
+  // The active Worker entry has already enforced native and durable API limits.
   if (process.env.CLOUDFLARE_WORKER === 'true') return NextResponse.next()
 
   // --- API rate limiting (Node/Vercel fallback) ------------------------------

@@ -1,5 +1,72 @@
 # Cloudflare migration
 
+## Current status — 2026-10-29
+
+The deployed test service is `jaketee`, production branch `cloudflare-migration`,
+at https://jaketee.testleadz07.workers.dev. Commit `7e0ed65` built and deployed
+successfully. Live shop, session and location probes returned 200; guest address
+confirmation returned 200 in 292 ms. Email/push and login were confirmed by the
+operator. These checks do not prove payment completion or resolve CPU limits.
+
+`cloudflare-worker.ts` now delegates to the generated OpenNext handler through
+`src/cloudflare/protected-fetch.ts`. The active guard calls native LOGIN_LIMITER
+or API_LIMITER, then SECURITY_LIMITER to enforce the existing longer route
+windows globally. Native limits are approximate and local to a Cloudflare
+location; the Durable Object counter is authoritative for the configured route
+budget. Existing anonymous route/IP keys are preserved, so people sharing an IP
+share these abuse budgets; these are not individual customer quotas.
+Session/CSRF/auth discovery, OPTIONS, provider webhooks and cron routes bypass
+this outer guard. Webhooks retain their existing signature verification. Missing
+protection bindings fail closed for protected API routes. No cron trigger or
+scheduled handler is enabled, and `worker.ts` remains historical and unused.
+The generated request wrapper still owns streaming and MongoDB cleanup.
+
+### Workers Builds and Previews
+
+- Production and Previews Base **build command**: `npx opennextjs-cloudflare build`.
+- Production **deploy command**: `npx opennextjs-cloudflare deploy`.
+- New Worker Previews **preview command**: `npx wrangler preview`.
+- Root directory: `/`; production branch: `cloudflare-migration`.
+- Build-time public variables and runtime variables/secrets remain separate.
+  Preserve configured public keys; do not use the isolated local build helper as
+  the dashboard build command without its explicit configured-environment opt-in.
+- `npm run preview` / `opennextjs-cloudflare preview` is a local development
+  preview; it is not the new remote Worker Previews command.
+- Do not replace the new remote preview command with `versions upload` or the
+  adapter `upload` command. Those belong to the older version-upload workflow.
+- The Previews Base build command was changed from `npm run build` to the
+  OpenNext command above in the dashboard, saved, and verified after reloading.
+  Production already used the correct OpenNext build/deploy commands.
+
+Main domains `jacketee.com` and `www.jacketee.com` still resolve to Vercel.
+Switching them is a separate traffic cutover: confirm timing, move the domain
+route, then align NEXTAUTH_URL/NEXT_PUBLIC_APP_URL, OAuth callback allowlists,
+Turnstile hostnames and external callback endpoints. Do not add an active domain
+route to Wrangler while the service is still being tested on workers.dev.
+
+Persistent R2/D1/cache bindings remain optional and inactive. Stripe webhook
+configuration and CPU-plan changes are explicitly excluded from this work.
+
+Verification of the active protection wiring: app/Worker type checks,
+Cloudflare contract tests and checkout tests passed. The full isolated OpenNext
+build passed the credential scan. Wrangler dry run: 23417.13 KiB uncompressed /
+5059.93 KiB gzip. Actual local workerd accepted 60 visitor-country requests and
+returned 429 with Retry-After on request 61; session polling remained 200 without
+rate-limit headers after that limit was reached. These probes used no database,
+email, payment or push credentials.
+
+References checked against current documentation:
+- https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
+- https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
+- https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/
+- https://opennext.js.org/cloudflare/howtos/custom-worker
+
+## Earlier implementation notes (historical)
+
+The notes below record earlier migration stages. Statements about missing
+deployments, old entry points, disabled integrations and unperformed tests are
+historical; the current status above takes precedence.
+
 Visitor metadata now comes from Cloudflare only: `CF-Connecting-IP` for IP and
 OpenNext's `getCloudflareContext().cf` for country, region, city and postal code.
 Forwarded chains and Vercel geo headers are ignored. Activity, login records,
