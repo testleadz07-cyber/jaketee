@@ -76,6 +76,47 @@ async function main() {
   now += 3600001
   assert.equal((await gate('returns-ip', 'limit', { limit: 3, windowMs: 3600000 })).success, true)
   assert.ok(queryCount > 0)
+  let verified = false, writes = 0, notifications = 0, inserted = true
+  const bodyHelpers = load('src/lib/request-body.ts', {}, { ReadableStream })
+  const endpoint = load('src/app/api/returns/route.ts', {
+    'next/server': { NextResponse: Response }, 'next-auth': { getServerSession: async () => null },
+    '@/lib/auth-options': { authOptions: {} }, '@/lib/request-body': bodyHelpers,
+    '@/lib/turnstile': { requireTurnstile: async (_token, action) => {
+      assert.equal(action, 'returns')
+      return verified ? null : Response.json({ error: 'Verification failed' }, { status: 403 })
+    } },
+    '@/lib/return-request': { parseReturnInput: api.parseReturnInput, submitReturn: async () => { writes++; return { status: 201, id: 'saved', orderNumber: 'JT-123', inserted } } },
+    '@/lib/notifications': { createNotification: async payload => { assert.equal(payload.type, 'refund_request'); notifications++ } },
+  })
+  const post = (data, origin = 'https://example.invalid') => {
+    const request = new Request('https://example.invalid/api/returns', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(data) })
+    request.nextUrl = new URL(request.url)
+    return endpoint.POST(request)
+  }
+  assert.equal((await post(input, 'https://other.invalid')).status, 403)
+  assert.equal((await post({ ...input, unexpected: true })).status, 400)
+  assert.equal((await post({ ...input, reason: 'x'.repeat(11000) })).status, 413)
+  assert.equal((await post(input)).status, 403)
+  assert.equal(writes, 0, 'Origin, validation, byte and Turnstile failures must precede writes')
+  verified = true
+  assert.equal((await post(input)).status, 201)
+  assert.equal(notifications, 1)
+  inserted = false
+  assert.equal((await post(input)).status, 201)
+  assert.equal(notifications, 1, 'Idempotent retry must not notify twice')
+  let providerResult = { success: true, action: 'returns', hostname: 'example.invalid' }
+  const turnstile = load('src/lib/turnstile.ts', { 'server-only': {}, 'next/server': { NextResponse: Response } }, {
+    AbortSignal, process: { env: { NODE_ENV: 'production', TURNSTILE_SECRET_KEY: 'fixture-secret', TURNSTILE_HOSTNAMES: 'example.invalid' } },
+    fetch: async () => Response.json(providerResult),
+  })
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), true)
+  providerResult = { ...providerResult, action: 'newsletter' }
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), false)
+  providerResult = { success: true, action: 'returns', hostname: 'other.invalid' }
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), false)
+  providerResult.success = false
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), false)
   console.log('PASS: returns validation, generic ownership denial, signed-in ownership, pending duplicates, parallel inserts, exact hourly limits, daily quotas and recoverable idempotent claims')
+  console.log('PASS: returns endpoint checks origin, bounded JSON and Turnstile before writes; duplicate retries do not notify twice')
 }
 main().catch(error => { console.error(error); process.exitCode = 1 })

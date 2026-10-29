@@ -31,6 +31,7 @@
     "content:blog-internal-links": "node scripts/update-blog-internal-links.mjs",
     "audit:internal-links": "node scripts/audit-internal-links.mjs",
     "test:google-push": "node scripts/test-google-push.cjs",
+    "test:security": "node scripts/test-admin-authorization.cjs && node scripts/test-admin-route-access.cjs && node scripts/test-return-security.cjs && node scripts/test-admin-tags.cjs",
     "build:cloudflare": "node scripts/cloudflare-build.mjs",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",

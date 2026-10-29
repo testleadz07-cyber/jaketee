@@ -39,7 +39,7 @@ export class SecurityRateLimiter {
       const gate = await storage.get<ReturnGate>('returns') || { attempts: [] }
       gate.attempts = gate.attempts.filter(time => time > now - RETURN_DAY)
       if (data.action === 'returns-complete') {
-        if (gate.claim?.id === data.id) gate.claim.complete = true
+        if (gate.claim && gate.claim.id === data.id) gate.claim.complete = true
         await storage.put('returns', gate)
         return { status: 'complete' }
       }
