@@ -14,6 +14,28 @@ bindings, MongoDB connection bounds and disabled cron configuration remain in us
 Paid CPU limits do not prove that every route/integration works: complete the
 real-data acceptance checks in `SECURITY_FIXES.md` before production cutover.
 
+## Production build safety
+
+Use `npm run build:cloudflare:production` for Workers Builds (Production and
+remote preview builds). This explicit entry preserves configured build variables,
+including `NEXT_PUBLIC_*`, runs OpenNext, removes packaged env files/generated
+runtime-secret fallbacks, and scans the artifact against known secrets from both
+the CI environment and local env files. Any detected leak fails the command and
+prevents the following deploy step. Diagnostics report file/key names, not values.
+Runtime secrets must remain Worker bindings; public build variables intentionally
+remain in browser output. No additional `CLOUDFLARE_PRODUCTION_BUILD` dashboard
+variable is required by this dedicated command.
+
+Keep `npm run build:cloudflare` for the existing credential-free local test build.
+The legacy environment-variable opt-in remains supported. Neither command deploys.
+The dashboard deploy command stays `npx opennextjs-cloudflare deploy`.
+
+Validation: the production entry completed a full OpenNext build with isolated
+test credentials and preserved a configured public-variable marker. Sanitization
+and the known-secret scan passed. `npm run test:build-security` covers CI-only and
+local secrets, raw/escaped strings, generated cache payloads, source-env
+preservation and intentional public values. No upload/deployment was performed.
+
 ## Active R2-free public data cache
 
 R2 remains disabled by operator choice. Cloudflare SSR public database reads now
@@ -104,20 +126,20 @@ The generated request wrapper still owns streaming and MongoDB cleanup.
 
 ### Workers Builds and Previews
 
-- Production and Previews Base **build command**: `npx opennextjs-cloudflare build`.
+- Production and Previews Base **build command**: `npm run build:cloudflare:production`.
 - Production **deploy command**: `npx opennextjs-cloudflare deploy`.
 - New Worker Previews **preview command**: `npx wrangler preview`.
-- Root directory: `/`; production branch: `cloudflare-migration`.
+- Root directory: `/`; production branch: `feature/checkout-shipping-address`.
 - Build-time public variables and runtime variables/secrets remain separate.
-  Preserve configured public keys; do not use the isolated local build helper as
-  the dashboard build command without its explicit configured-environment opt-in.
+  Preserve configured public keys; use the dedicated production entry, not the
+  isolated local-test build, for dashboard builds.
 - `npm run preview` / `opennextjs-cloudflare preview` is a local development
   preview; it is not the new remote Worker Previews command.
 - Do not replace the new remote preview command with `versions upload` or the
   adapter `upload` command. Those belong to the older version-upload workflow.
-- The Previews Base build command was changed from `npm run build` to the
-  OpenNext command above in the dashboard, saved, and verified after reloading.
-  Production already used the correct OpenNext build/deploy commands.
+- The earlier dashboard used direct OpenNext build commands. Update Production
+  and Previews Base to the production wrapper above after its commit is available
+  remotely; a code change alone does not update the dashboard build command.
 
 Main domains `jacketee.com` and `www.jacketee.com` still resolve to Vercel.
 Switching them is a separate traffic cutover: confirm timing, move the domain

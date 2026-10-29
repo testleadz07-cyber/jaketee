@@ -33,6 +33,8 @@
     "test:google-push": "node scripts/test-google-push.cjs",
     "test:security": "node scripts/test-admin-authorization.cjs && node scripts/test-admin-route-access.cjs && node scripts/test-return-security.cjs && node scripts/test-admin-tags.cjs",
     "build:cloudflare": "node scripts/cloudflare-build.mjs",
+    "build:cloudflare:production": "node scripts/cloudflare-production-build.mjs",
+    "test:build-security": "node scripts/test-cloudflare-artifact.mjs",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
