@@ -12,6 +12,8 @@ const ROUTE_LIMITS: Record<string, { windowMs: number; max: number }> = {
   '/api/contact': { windowMs: 60 * 60 * 1000, max: 5 },
   // Newsletter signup spam
   '/api/newsletter/subscribe': { windowMs: 60 * 60 * 1000, max: 5 },
+  // Enforced once at the Worker perimeter, using the existing durable counter.
+  '/api/returns': { windowMs: 60 * 60 * 1000, max: 3 },
   // Checkout / payment abuse
   '/api/orders': { windowMs: 60 * 1000, max: 10 },
   '/api/orders/confirmation': { windowMs: 60 * 1000, max: 10 },

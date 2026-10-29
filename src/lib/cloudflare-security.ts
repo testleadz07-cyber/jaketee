@@ -9,11 +9,15 @@ export interface SecurityEnv {
   API_LIMITER?: { limit(input: { key: string }): Promise<{ success: boolean }> }
 }
 
-export async function securityOperation(env: SecurityEnv, key: string, action: string, limit = 5, windowMs = 900000) {
+export async function securityObject(env: SecurityEnv, key: string) {
   if (!env.SECURITY_LIMITER) throw new Error('SECURITY_LIMITER binding is required on Cloudflare')
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key))
   const name = Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('')
-  const object = env.SECURITY_LIMITER.get(env.SECURITY_LIMITER.idFromName(name))
+  return env.SECURITY_LIMITER.get(env.SECURITY_LIMITER.idFromName(name))
+}
+
+export async function securityOperation(env: SecurityEnv, key: string, action: string, limit = 5, windowMs = 900000) {
+  const object = await securityObject(env, key)
   const response = await object.fetch('https://security.internal/', {
     method: 'POST', body: JSON.stringify({ action, limit, windowMs }),
   })
