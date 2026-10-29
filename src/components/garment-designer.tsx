@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDesignHistory } from '@/hooks/use-design-history'
 import { designOptionVisible, visibleDesignColors, focusDesignChange } from '@/lib/design-view-controls'

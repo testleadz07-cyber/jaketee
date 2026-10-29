@@ -71,7 +71,8 @@ const resolvePath = cache(async (pathKey: string, uncached = false): Promise<Slu
       image: c.image,
       parentId: c.parentId ? String(c.parentId) : null,
     }))
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV === 'production' && process.env.MIGRATION_TEST_MODE !== 'true') throw error
     db = false
     categories = getStaticCategories().map((c: any) => ({
       _id: String(c._id ?? c.id),
@@ -108,7 +109,7 @@ const resolvePath = cache(async (pathKey: string, uncached = false): Promise<Slu
   // Otherwise, try resolving the last segment as a product slug/id.
   let product: any = null
   if (db) product = await getPublicProduct(lastSegment, uncached)
-  if (!product) {
+  if (!product && (process.env.NODE_ENV !== 'production' || process.env.MIGRATION_TEST_MODE === 'true')) {
     product = findStaticProduct(lastSegment)
   }
   if (!product) {

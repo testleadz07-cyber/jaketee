@@ -1,15 +1,9 @@
 import { getPublicBlogRows, getPublicBlogCategories } from '@/lib/public-blog'
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 
 export async function GET(request: NextRequest) {
   try {
-    const db = await connectDB()
-    if (!db) {
-      return NextResponse.json({ posts: [], total: 0, page: 1, pages: 0 })
-    }
-
     const { searchParams } = new URL(request.url)
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const limit = Math.min(24, Math.max(1, parseInt(searchParams.get('limit') || '9', 10)))

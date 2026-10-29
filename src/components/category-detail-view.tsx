@@ -1,5 +1,8 @@
 'use client'
 
+import { readPublicResponse } from '@/lib/public-json'
+
+
 import { useSearchParams } from 'next/navigation'
 import { catalogSortValue, broaderSearches, type SearchMatch } from '@/lib/product-search'
 import { CatalogPending } from '@/components/catalog-pending'
@@ -179,7 +182,7 @@ export function CategoryDetailView({
     if (skipInitialFacetFetch.current) { skipInitialFacetFetch.current = false; return }
     let active = true
     const controller = new AbortController()
-    fetch(`/api/products?category=${encodeURIComponent(slug)}&facets=true&search=${encodeURIComponent(filters.search)}`, { signal: controller.signal }).then(response => {
+    readPublicResponse(`/api/products?category=${encodeURIComponent(slug)}&facets=true&search=${encodeURIComponent(filters.search)}`, { signal: controller.signal }).then(response => {
       if (!response.ok) throw new Error('Facets unavailable')
       return response.json()
     }).then(data => { if (active) setFacets(data) }).catch(() => { if (active) setFacets({ groups: [], minPrice: 0, maxPrice: 0 }) })
@@ -209,7 +212,7 @@ export function CategoryDetailView({
   useEffect(() => {
     if (initialInsights) return
     let active = true
-    fetch(`/api/category-insights/${encodeURIComponent(slug)}`)
+    readPublicResponse(`/api/category-insights/${encodeURIComponent(slug)}`)
       .then((response) => response.ok ? response.json() : EMPTY_INSIGHTS)
       .then((data) => { if (active) setInsights(data) })
       .catch((error) => { console.error('Error loading category insights:', error); if (active) setInsights(EMPTY_INSIGHTS) })
@@ -248,7 +251,7 @@ export function CategoryDetailView({
       setIsMissing(false)
       setFetchError(false)
       try {
-        const catData: Category[] = categories.length ? categories : await fetch('/api/categories', { signal: controller.signal }).then(response => { if (!response.ok) throw new Error('Categories unavailable'); return response.json() })
+        const catData: Category[] = categories.length ? categories : await readPublicResponse('/api/categories', { signal: controller.signal }).then(response => { if (!response.ok) throw new Error('Categories unavailable'); return response.json() })
         if (cancelled) return
         setCategories(previous => catData.map(item => ({ ...item, image: item.image || previous.find(existing => existing.id === item.id)?.image, designImages: previous.find(existing => existing.id === item.id)?.designImages })))
 
@@ -274,7 +277,7 @@ export function CategoryDetailView({
           params.set('sort', sortBy)
         }
 
-        const prodRes = await fetch(`/api/products?${params.toString()}`, { signal: controller.signal })
+        const prodRes = await readPublicResponse(`/api/products?${params.toString()}`, { signal: controller.signal })
         if (!prodRes.ok) throw new Error('Products unavailable')
         const prodData = await prodRes.json()
         if (!Array.isArray(prodData)) throw new Error('Invalid catalog response')

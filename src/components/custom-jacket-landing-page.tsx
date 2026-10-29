@@ -11,7 +11,6 @@ import { Footer } from '@/components/footer'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { ProductCard } from '@/components/product-card'
 import { productGridClassName } from '@/lib/product-grid'
-import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
 import { buildProductUrl, resolveAncestorChain, resolveDescendantIds } from '@/lib/categories'
 import { getStaticCategories, getStaticProducts } from '@/lib/static-data'
@@ -21,8 +20,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
 export const getCustomLandingProducts = cache(async (categorySlug: string) => {
   try {
-    const db = await connectDB()
-    if (db) {
+    {
       const rawCategories = await getPublicCategories()
       const categories = rawCategories.map((category: any) => ({
         _id: String(category._id),
@@ -51,6 +49,7 @@ export const getCustomLandingProducts = cache(async (categorySlug: string) => {
     }
   } catch (error) {
     console.error(`Custom landing product fetch failed for ${categorySlug}:`, error)
+    if (process.env.NODE_ENV === 'production' && process.env.MIGRATION_TEST_MODE !== 'true') return []
   }
 
   const categories = getStaticCategories()

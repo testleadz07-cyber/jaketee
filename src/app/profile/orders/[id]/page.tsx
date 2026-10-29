@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
 import { useSession } from 'next-auth/react'

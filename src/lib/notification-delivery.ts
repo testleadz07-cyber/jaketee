@@ -3,14 +3,17 @@ import { randomUUID } from 'crypto'
 import { connectDB } from '@/lib/mongodb'
 import Notification from '@/models/Notification'
 import { isPushConfigured } from '@/lib/push-config'
+import { getWorkerRequestScope } from '@/lib/worker-request-scope'
 
 // Persist before responding; deliver after responding. A crashed invocation leaves
 // a recoverable lease rather than losing the notification or retrying forever in memory.
 async function deliverPendingNotifications(limit = 5, notificationId?: string) {
   if (!isPushConfigured() || !await connectDB()) return
   const { sendAdminPush } = await import('@/lib/push-notifications')
-  const deadline = Date.now() + 40_000
+  // Leave ten seconds of Workers' background window for lease persistence/cleanup.
+  const deadline = Date.now() + 20_000
   for (let index = 0; index < limit && Date.now() < deadline; index++) {
+    if (Number(getWorkerRequestScope()?.values.get('fcm-sends') || 0) >= 20) return
     const now = new Date()
     const leaseId = randomUUID()
     const notification = await Notification.findOneAndUpdate({
@@ -27,6 +30,7 @@ async function deliverPendingNotifications(limit = 5, notificationId?: string) {
       const result = await sendAdminPush({
         id: String(notification._id), type: notification.type, link: notification.link,
         excludeTokens: notification.pushDeliveredTokens || [],
+        deadline,
         onDelivered: async tokens => { await Notification.updateOne(ownership, { $addToSet: { pushDeliveredTokens: { $each: tokens } } }) },
       })
       // No enabled device is not delivery. Keep the saved notification pending.

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { connection, after } from 'next/server'
 import { getPublicBlogPost, getPublicBlogCategories, getPublicBlogRows } from '@/lib/public-blog'
 import { getPublicCategories } from '@/lib/public-catalog'
@@ -15,7 +17,6 @@ import { blogDescription, blogHeadline, blogStructuredData } from '@/lib/blog-po
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   await connection()
-  if (!(await connectDB())) throw new Error('Blog content is temporarily unavailable')
 
   const { slug } = await params
   const rawPost = await getPublicBlogPost(slug)
@@ -49,9 +50,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     .map((id: any) => productsById.get(String(id)))
     .filter(Boolean)
   const related = categoryIds.length ? (await getPublicBlogRows({ categoryId: { $in: categoryIds }, excludeId: post._id, limit: 3 })).posts : []
-  const currentViews = await BlogPost.findById(post._id).select('views').lean()
   after(async () => {
-    try { await BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }, { timestamps: false }) }
+    try {
+      if (!await connectDB()) return
+      await BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }, { timestamps: false })
+    }
     catch { console.error('Blog view count update failed') }
   })
 
@@ -69,7 +72,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     author: { name: 'Jacketee Team' },
     publishedAt: post.publishedAt?.toISOString() ?? '',
     updatedAt: post.updatedAt?.toISOString() ?? post.publishedAt?.toISOString() ?? '',
-    views: (currentViews?.views ?? post.views ?? 0) + 1,
+    views: (post.views ?? 0) + 1,
     taggedProducts: resolvedProducts.map((product: any) => ({
       id: String(product._id),
       name: product.name,

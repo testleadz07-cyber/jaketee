@@ -66,7 +66,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
-    invalidateHomeCache('catalog')
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ ...category, id: String((category as any)._id) })
   } catch (error: any) {
     if (error.code === 11000) {
@@ -115,7 +115,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
-    invalidateHomeCache('catalog')
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ message: 'Category deleted successfully' })
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 })

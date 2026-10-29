@@ -1,4 +1,6 @@
 'use client'
+
+import { apiFetch as fetch } from '@/lib/api-fetch'
 import { deliverySettings, returnPolicyText } from '@/config/fulfillment'
 
 import { useState } from 'react'

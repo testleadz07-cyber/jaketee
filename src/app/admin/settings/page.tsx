@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'

@@ -91,7 +91,7 @@ export async function PUT(request: Request) {
 
     if (bulkOps.length > 0) {
       const result = await Product.bulkWrite(bulkOps)
-      invalidateHomeCache('catalog')
+      await invalidateHomeCache('catalog')
       if (result.matchedCount !== bulkOps.length) {
         return NextResponse.json({ error: 'One or more products were not found' }, { status: 404 })
       }

@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { startTransition, useCallback, useEffect, useRef, useState  } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'

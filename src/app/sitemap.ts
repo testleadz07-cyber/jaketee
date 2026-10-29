@@ -6,10 +6,12 @@ import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
 import Faq from '@/models/Faq'
 import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
+import { publicRead } from '@/lib/public-cache'
 
 export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  return publicRead<MetadataRoute.Sitemap>('public-sitemap', [], 300, ['public-products', 'public-categories', 'public-blog', 'public-support'], async () => {
   const baseUrl = 'https://www.jacketee.com'
 
   // Static routes
@@ -138,4 +140,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const routes = [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes, ...blogCategoryRoutes]
   return [...new Map(routes.map(route => [route.url, route])).values()]
+  })
 }

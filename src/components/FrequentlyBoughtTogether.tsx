@@ -1,5 +1,8 @@
 'use client'
 
+import { readPublicResponse } from '@/lib/public-json'
+
+
 import { startTransition, useState, useEffect  } from 'react'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -56,7 +59,7 @@ export function FrequentlyBoughtTogether({ currentProduct }: FrequentlyBoughtTog
 
   async function fetchRecommendations() {
     try {
-      const res = await fetch(`/api/products/${currentProductId}/recommendations`)
+      const res = await readPublicResponse(`/api/products/${currentProductId}/recommendations`)
       if (res.ok) {
         const data = await res.json()
         const fbt = data.frequentlyBoughtTogether || []

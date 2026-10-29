@@ -7,15 +7,14 @@ import Product from '@/models/Product'
 import { resolveDescendantIds } from '@/lib/categories'
 import SectionImage from '@/models/SectionImage'
 import savedImages from '@/data/custom-design-images.json'
-import { unstable_cache } from 'next/cache'
 
-const getHomeDesignImages = unstable_cache(async () => {
+const getHomeDesignImages = () => publicRead('home-custom-design-images-v1', [], 3600, ['homepage-images'], async () => {
   if (!await connectDB()) throw new Error('Homepage design images unavailable')
   const images: Record<string, { url: string; alt: string }> = Object.fromEntries(savedImages.map(image => [image.key, image]))
   const stored = await SectionImage.find({ section: 'home-custom-design' }).select('key url alt -_id').lean()
   for (const image of stored) if (typeof image.url === 'string' && image.url.trim()) images[image.key] = { url: image.url.trim(), alt: image.alt }
   return images
-}, ['home-custom-design-images-v1'], { revalidate: 3600, tags: ['homepage-images'] })
+})
 
 export async function getCustomDesignImages() {
   try { return await getHomeDesignImages() }
@@ -31,7 +30,7 @@ export async function CustomDesignSection({ categorySlugs = [], home = false }: 
   let categoryImages: string[] = []
   if (categorySlugs.length) {
     try {
-      if (await connectDB()) {
+      {
         const categories = await getPublicCategories()
         const current = categories.find(item => item.slug === categorySlugs.at(-1))
         if (current) {

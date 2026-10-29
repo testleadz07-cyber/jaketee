@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useEffect, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'

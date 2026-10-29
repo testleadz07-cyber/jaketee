@@ -39,6 +39,6 @@ export async function decrementStockForOrder(
       }
     }
   } finally {
-    if (availabilityChanged) invalidateHomeCache()
+    if (availabilityChanged) await invalidateHomeCache()
   }
 }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
 import { resolveSlugPath } from '@/lib/route-resolver'
 
 export const dynamic = 'force-dynamic'
@@ -9,11 +8,12 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get('slug')
   if (!slug || slug.length > 2048 || slug.includes('/')) return new NextResponse(null, { status: 404 })
-  if (process.env.MONGODB_URI && !await connectDB()) return new NextResponse(null, { status: 503 })
-  const resolution = await resolveSlugPath(['products', slug], true)
+  let resolution
+  try { resolution = await resolveSlugPath(['products', slug]) }
+  catch { return new NextResponse(null, { status: 503 }) }
   const headers = { 'Cache-Control': 'no-store' }
   if (resolution.type === 'redirect') return new NextResponse(null, {
-    status: 301, headers: { ...headers, Location: new URL(resolution.to, 'https://www.jacketee.com').href },
+    status: 301, headers: { ...headers, Location: new URL(resolution.to, request.nextUrl.origin).href },
   })
   return new NextResponse(null, { status: resolution.type === 'product' ? 204 : 404, headers })
 }

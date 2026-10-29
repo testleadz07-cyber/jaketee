@@ -35,10 +35,21 @@ export function protectedWorkerFetch(fetch: WorkerFetch): WorkerFetch {
       }
     }
 
-    const response = await fetch(request, { ...env, CLOUDFLARE_WORKER: 'true' }, ctx)
-    if (!headers) return response
+    const cacheMetrics = { hits: 0, misses: 0, bypasses: 0 }
+    const response = await fetch(request, { ...env, CLOUDFLARE_WORKER: 'true', __PUBLIC_CACHE_METRICS: cacheMetrics }, ctx)
+    const legacyRedirect = /^\/products\/[^/]+\/?$/.test(path) && response.status === 308 && response.headers.has('location')
+    const staging = new URL(request.url).hostname.endsWith('.workers.dev')
+    if (!headers && !legacyRedirect && !staging) return response
     const responseHeaders = new Headers(response.headers)
-    for (const [name, value] of Object.entries(headers)) responseHeaders.set(name, value)
-    return new Response(response.body, { status: response.status, statusText: response.statusText, headers: responseHeaders })
+    for (const [name, value] of Object.entries(headers || {})) responseHeaders.set(name, value)
+    if (staging) responseHeaders.set('X-Robots-Tag', 'noindex, nofollow')
+    const publicApi = /^\/api\/(categories|products|reviews|reviews\/stats|reviews\/highlights|faqs|blog)$/.test(path) ||
+      /^\/api\/(category-insights\/[^/]+|products\/[^/]+\/recommendations)$/.test(path)
+    if (request.method === 'GET' && publicApi && !new URL(request.url).searchParams.has('all') && response.ok) {
+      if (cacheMetrics.bypasses) responseHeaders.set('X-Public-Data-Cache', 'BYPASS')
+      else if (cacheMetrics.misses) responseHeaders.set('X-Public-Data-Cache', 'MISS')
+      else if (cacheMetrics.hits) responseHeaders.set('X-Public-Data-Cache', 'HIT')
+    }
+    return new Response(response.body, { status: legacyRedirect ? 301 : response.status, statusText: legacyRedirect ? 'Moved Permanently' : response.statusText, headers: responseHeaders })
   }
 }

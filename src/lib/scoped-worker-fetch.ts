@@ -8,6 +8,7 @@ export function scopedWorkerFetch(fetch: FetchHandler): FetchHandler {
   return async (request, env, ctx, ...args) => {
     const scope: WorkerRequestScope = { values: new Map(), cleanup: [] }
     scope.values.set('request-headers', request.headers)
+    scope.values.set('request-url', request.url)
     const pending = new Set<Promise<unknown>>()
     const context = new Proxy(ctx, {
       get(target, property) {

@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
       taggedProducts: taggedProducts || [],
     })
 
-    invalidateHomeCache('articles')
+    await invalidateHomeCache('articles')
     return NextResponse.json({ ...post.toObject(), id: String(post._id) }, { status: 201 })
   } catch (error: any) {
     console.error('Admin blog create error:', error)

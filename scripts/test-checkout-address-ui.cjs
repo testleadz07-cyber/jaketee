@@ -43,6 +43,7 @@ async function mount({ storage = new Map(), user = null, profile, suggestion = {
     },
   }
   const mocks = {
+    '@/lib/api-fetch': { apiFetch: (...args) => globalThis.fetch(...args) },
     react: hookReact,
     'next-auth/react': { useSession: () => ({ status: user ? 'authenticated' : 'unauthenticated', data: user ? { user } : null }) },
     'next/navigation': { useRouter: () => ({ push: () => {} }), useSearchParams: () => new URLSearchParams() },

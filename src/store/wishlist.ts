@@ -1,3 +1,4 @@
+import { apiFetch as fetch } from '@/lib/api-fetch'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { createFunctionalStorage } from '@/lib/functional-storage'

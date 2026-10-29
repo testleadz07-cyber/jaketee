@@ -28,11 +28,13 @@
   "keep_vars": true,
   "durable_objects": {
     "bindings": [
-      { "name": "SECURITY_LIMITER", "class_name": "SecurityRateLimiter" }
+      { "name": "SECURITY_LIMITER", "class_name": "SecurityRateLimiter" },
+      { "name": "PUBLIC_CACHE_TAGS", "class_name": "PublicCacheTags" }
     ]
   },
   "migrations": [
-    { "tag": "security-v1", "new_sqlite_classes": ["SecurityRateLimiter"] }
+    { "tag": "security-v1", "new_sqlite_classes": ["SecurityRateLimiter"] },
+    { "tag": "public-cache-v1", "new_sqlite_classes": ["PublicCacheTags"] }
   ],
   "ratelimits": [
     {

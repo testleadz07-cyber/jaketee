@@ -1,5 +1,9 @@
 'use client'
 
+import { readPublicResponse, invalidatePublicJson } from '@/lib/public-json'
+
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { VideoMedia } from '@/components/video-media'
 import { ProductReviewsSkeleton, ReviewEntriesSkeleton } from '@/components/product-details-skeleton'
 import { VideoLinksEditor } from '@/components/video-links-editor'
@@ -64,7 +68,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
   async function fetchReviews() {
     setLoading(true)
     try {
-      const res = await fetch(`/api/reviews?productId=${productId}`)
+      const res = await readPublicResponse(`/api/reviews?productId=${productId}`)
       let data: Review[] = []
       if (res.ok) {
         data = await res.json()
@@ -207,6 +211,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
         setRating(5)
         setReviewImages([])
         setReviewVideos([])
+        invalidatePublicJson(`/api/reviews?productId=${productId}`)
         fetchReviews()
         if (onReviewSubmitted) {
           onReviewSubmitted()

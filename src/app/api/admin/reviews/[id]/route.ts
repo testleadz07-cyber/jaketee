@@ -61,7 +61,7 @@ export async function PATCH(
     }
 
     await recalcProductStats(review.productId)
-    invalidateHomeCache('reviews')
+    await invalidateHomeCache('reviews')
 
     return NextResponse.json({
       ...review.toObject(),
@@ -98,7 +98,7 @@ export async function DELETE(
     }
 
     await recalcProductStats(review.productId)
-    invalidateHomeCache('reviews')
+    await invalidateHomeCache('reviews')
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

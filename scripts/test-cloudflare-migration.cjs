@@ -42,11 +42,11 @@ async function main() {
   assert.ok(wrangler.durable_objects.bindings.some(binding => binding.name === 'SECURITY_LIMITER' && binding.class_name === 'SecurityRateLimiter'))
   assert.ok(wrangler.migrations.some(migration => migration.new_sqlite_classes.includes('SecurityRateLimiter')))
   assert.ok(!wrangler.triggers?.crons?.length)
-  let delegated = 0, delegatedEnv, nativeSuccess = true, durableSuccess = true, durableCalls = 0
+  let delegated = 0, delegatedEnv, nativeSuccess = true, durableSuccess = true, durableCalls = 0, generatedStatus = 201
   const nativeCalls = []
   const generatedHandler = { fetch: async (_request, env) => {
     delegated++; delegatedEnv = env
-    return new Response('generated', { status: 201, headers: { 'Set-Cookie': 'test=value; HttpOnly', 'X-Generated': 'yes' } })
+    return new Response('generated', { status: generatedStatus, headers: { 'Set-Cookie': 'test=value; HttpOnly', 'X-Generated': 'yes', ...(generatedStatus === 308 ? { location: '/canonical' } : {}) } })
   } }
   const entryHarness = harness({}, {
     [path.resolve('.open-next/worker.js')]: { __esModule: true, default: generatedHandler },
@@ -98,6 +98,13 @@ async function main() {
   assert.equal((await activeFetch(new Request('https://example.invalid/api/contact', { method: 'OPTIONS' }), {}, {})).status, 201)
   assert.equal(nativeCalls.length, callsBeforeExempt)
   assert.equal(configuredEntry.SecurityRateLimiter, entryHarness.load('src/cloudflare/security-rate-limiter.ts').SecurityRateLimiter)
+  assert.equal(configuredEntry.PublicCacheTags, entryHarness.load('src/cloudflare/public-cache-tags.ts').PublicCacheTags)
+  assert.ok(wrangler.durable_objects.bindings.some(binding => binding.name === 'PUBLIC_CACHE_TAGS'))
+  generatedStatus = 308
+  assert.equal((await activeFetch(protectedRequest('/products/old'), {}, {})).status, 301)
+  assert.equal((await activeFetch(protectedRequest('/customize'), {}, {})).status, 308)
+  generatedStatus = 201
+  assert.equal((await activeFetch(new Request('https://jaketee.testleadz07.workers.dev/shop'), {}, {})).headers.get('X-Robots-Tag'), 'noindex, nofollow')
   console.log('PASS: active entry enforces native/durable limits, preserves generated responses, exempts provider/session traffic and has no cron')
 
   // Real Mongoose schemas with disconnected, simulated request connections.
@@ -305,6 +312,10 @@ async function main() {
   assert.equal(sent.responses[1].error.code, 'messaging/registration-token-not-registered')
   await messaging.sendEachForMulticast({ tokens: ['valid'] })
   assert.equal(tokenCalls, 1)
+  const sendsBeforeDeadline = sends
+  const expiredDelivery = await messaging.sendEachForMulticast({ tokens: ['valid'], deadline: Date.now() - 1 })
+  assert.equal(expiredDelivery.failureCount, 1)
+  assert.equal(sends, sendsBeforeDeadline, 'Expired background work must not start another provider request')
   const fcmScope = fcm.load('src/lib/worker-request-scope.ts')
   await fcmScope.runInWorkerRequest({ values: new Map(), cleanup: [] }, async () => {
     const limited = await messaging.sendEachForMulticast({ tokens: Array.from({ length: 23 }, (_, i) => 'device-' + i) })

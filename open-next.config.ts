@@ -1,7 +1,9 @@
 import { defineCloudflareConfig } from '@opennextjs/cloudflare'
+import staticAssetsIncrementalCache from '@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache'
 
-// Free-plan testing: no R2 or persistent cache required.
-const config = defineCloudflareConfig()
+// Immutable SSG assets only. DB-backed pages use SSR + the explicit public data
+// cache (Cache API + SQLite tag versions), so no R2 subscription is required.
+const config = defineCloudflareConfig({ incrementalCache: staticAssetsIncrementalCache })
 config.default!.override!.wrapper = async () => (await import('./src/cloudflare/request-wrapper')).default
 // Both config variants are bundled by the Cloudflare adapter. Keep Node
 // built-ins external, but bundle the wrapper itself into the generated config.

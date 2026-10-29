@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { Footer } from '@/components/footer'
 import { useState } from 'react'
 import Image from '@/components/optimized-image'

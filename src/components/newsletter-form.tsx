@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useState } from 'react'
 import { Loader2, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'

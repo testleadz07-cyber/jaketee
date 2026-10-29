@@ -43,6 +43,10 @@ export async function GET() {
     })
     return NextResponse.json(categoriesWithCount, { headers: { 'Cache-Control': 'no-store' } })
   } catch (dbError: any) {
+    if (process.env.NODE_ENV === 'production' && process.env.MIGRATION_TEST_MODE !== 'true') {
+      console.error('Categories unavailable')
+      return NextResponse.json({ error: 'Categories temporarily unavailable' }, { status: 503 })
+    }
     console.error('Error fetching categories from database, using static fallback:', dbError)
     return NextResponse.json(getStaticCategoriesWithCount())
   }
@@ -88,7 +92,7 @@ export async function POST(request: NextRequest) {
       image,
       parentId: resolvedParentId,
     })
-    invalidateHomeCache('catalog')
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ ...category.toObject(), id: String(category._id) }, { status: 201 })
   } catch (error: any) {
     if (error.code === 11000) {

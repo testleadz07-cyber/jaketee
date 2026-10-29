@@ -1,5 +1,72 @@
 # Cloudflare migration
 
+## Active free-plan public data cache
+
+R2 remains disabled by operator choice. Cloudflare SSR public database reads now
+use `publicRead`: BSON-safe serialized results in the native Cache API, with
+PUBLIC_CACHE_TAGS SQLite Durable Object versions checked before cache lookup.
+Only public catalog, categories, recommendations, approved reviews, FAQs, blog,
+policy/bulk resources, section images and sitemap use this helper. Database
+connections are opened inside cache-miss loaders. Cache entries are local to a
+Cloudflare location, can be evicted, and expire by data class (30–3600 seconds).
+The tag versions are shared across locations; mutations await invalidation.
+There are no global in-flight request promises or cached MongoDB I/O objects.
+If cache infrastructure fails, the helper reads current data instead of serving
+an entry whose invalidation version could not be checked. Values over 1 MiB and
+high-cardinality query overflow bypass caching. MongoDB pool size remains 1 per
+Worker invocation with response/background cleanup.
+
+DB-backed pages render on request; they are not frozen into immutable SSG output.
+OpenNext's official static-assets incremental cache serves genuinely static SSG
+content. No R2, D1, ISR revalidation queue, cache-purge token, cron trigger or
+scheduled handler is required for this configuration. This is an SSR + public
+data cache design, not persistent full-page ISR. The existing SECURITY_LIMITER
+binding/migration is retained; public-cache-v1 adds only PUBLIC_CACHE_TAGS.
+
+Browser public reads deduplicate identical requests, omit cookies, preserve
+pagination headers and exclude private/admin/draft endpoints. Each consumer can
+abort independently. Successful content mutations clear the current browser's
+public-read cache; other browsers retain the documented maximum 60-second TTL.
+Account/session/admin/cart/order/checkout/payment responses remain uncached.
+Client API GETs have a 20-second timeout; writes and payments are never retried
+by that helper. Provider calls in PayPal have explicit 15-second timeouts.
+Push sends use a 20-second background deadline, shared send budget and persisted
+retry state; a failed/unfinished delivery remains pending for the existing retry.
+
+Global/catalog loading boundaries were removed so resolution finishes before
+the first HTTP bytes. Catalog pages retain their own post-resolution skeletons.
+The active entry preserves legacy /products redirects as HTTP 301 and adds
+noindex/nofollow for workers.dev responses. Production catalog failures no longer
+serve the local fixture catalog. Main-domain traffic remains on Vercel.
+
+The complete static inventory of all 83 page entry points and their reachable
+API/data dependencies is in `docs/cloudflare-page-api-audit.md`; regenerate it
+with `npm run audit:page-data`. Conditional and imported calls are listed, not
+claimed as initial-load request counts. Run `npm run test:cloudflare`, checkout,
+Google/push and merge-safety tests, app/Worker types and the isolated full build.
+
+Verification completed: those checks passed, the full isolated OpenNext build
+passed its credential scan, and both production-only and full npm audits report
+zero vulnerabilities. Wrangler dry run: 23466.86 KiB uncompressed / 5090.14 KiB
+gzip. Actual final local Worker probes returned legacy-product 301 without a
+meta refresh, missing-product 404, session 200 and the public cache MISS header
+with the new binding active. Cache HIT/no-DB and invalidation behaviour are
+covered by contract tests using simulated database/cache storage; live cache
+verification follows deployment. No real orders, payments or mail were generated.
+
+Dependencies: NextAuth 4.24.15 explicitly supports Next 16; Nodemailer 10.3.0 and
+sharp 0.35.5 replace vulnerable versions. The existing peer overrides are kept
+aligned with these direct dependencies. Credentials and Stripe configuration
+remain unchanged. CPU-plan changes and main-domain cutover remain excluded;
+production traffic readiness still requires those gates and live acceptance.
+
+References checked:
+- https://developers.cloudflare.com/workers/runtime-apis/cache/
+- https://opennext.js.org/cloudflare/caching
+- https://developers.cloudflare.com/workers/runtime-apis/context/#waituntil
+
+## Earlier deployment record (historical)
+
 ## Current status — 2026-10-29
 
 The deployed test service is `jaketee`, production branch `cloudflare-migration`,

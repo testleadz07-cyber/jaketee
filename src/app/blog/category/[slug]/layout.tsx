@@ -1,13 +1,10 @@
 import { getPublicBlogCategories, getPublicBlogRows } from '@/lib/public-blog'
 import { cache } from 'react'
-import { connectDB } from '@/lib/mongodb'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
 const getCategory = cache(async (slug: string) => {
   try {
-    const db = await connectDB()
-    if (!db) return null
     return (await getPublicBlogCategories()).find(item => item.slug === slug) || null
   } catch (error) {
     console.error('Error fetching blog category:', error)

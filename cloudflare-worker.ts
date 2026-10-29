@@ -5,3 +5,4 @@ import { protectedWorkerFetch } from './src/cloudflare/protected-fetch'
 
 export default { ...handler, fetch: protectedWorkerFetch(handler.fetch) }
 export { SecurityRateLimiter } from './src/cloudflare/security-rate-limiter'
+export { PublicCacheTags } from './src/cloudflare/public-cache-tags'

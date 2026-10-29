@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getPublicBlogCategories, getPublicBlogRows } from '@/lib/public-blog'
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'

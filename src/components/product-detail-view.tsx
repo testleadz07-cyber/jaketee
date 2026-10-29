@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { startTransition, useState, useEffect, useRef, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { readSearchSelection } from '@/lib/product-search'

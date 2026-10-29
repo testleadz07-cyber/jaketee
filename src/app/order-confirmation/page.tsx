@@ -1,4 +1,6 @@
 'use client'
+
+import { apiFetch as fetch } from '@/lib/api-fetch'
 import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
 
 import { Footer } from '@/components/footer'

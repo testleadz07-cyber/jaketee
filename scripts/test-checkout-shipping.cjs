@@ -22,6 +22,7 @@ function load(file) {
   const mod = { exports: {} }
   cache.set(file, mod)
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
+    fileName: file,
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText
   new Function('require', 'module', 'exports', source)(id => {

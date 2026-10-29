@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
       displayPages: normalizeDisplayPages(body.displayPages),
     })
 
-    invalidateHomeCache('faqs')
+    await invalidateHomeCache('faqs')
     return NextResponse.json(mapFaq(faq), { status: 201 })
   } catch (error) {
     console.error('Admin FAQ create error:', error)
@@ -233,7 +233,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'FAQ not found' }, { status: 404 })
     }
 
-    invalidateHomeCache('faqs')
+    await invalidateHomeCache('faqs')
     return NextResponse.json(mapFaq(faq))
   } catch (error) {
     console.error('Admin FAQ update error:', error)
@@ -264,7 +264,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'FAQ not found' }, { status: 404 })
     }
 
-    invalidateHomeCache('faqs')
+    await invalidateHomeCache('faqs')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Admin FAQ delete error:', error)

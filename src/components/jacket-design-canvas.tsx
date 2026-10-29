@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { PointerEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { ImagePlus, Loader2, RotateCcw, Search, Type, X } from 'lucide-react'
 import { CustomizationSection } from '@/components/customization-section'

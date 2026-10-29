@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await Product.deleteMany({ _id: { $in: ids } })
-    invalidateHomeCache('catalog')
+    await invalidateHomeCache('catalog')
 
     return NextResponse.json({
       message: 'Products deleted successfully',

@@ -25,6 +25,7 @@ async function getPayPalAccessToken() {
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
 
   const res = await fetch(`${base}/v1/oauth2/token`, {
+    signal: AbortSignal.timeout(15000),
     method: 'POST',
     headers: {
       'Authorization': `Basic ${auth}`,
@@ -65,6 +66,7 @@ async function verifyWebhookSignature(request: NextRequest, rawBody: string): Pr
   }
 
   const res = await fetch(`${base}/v1/notifications/verify-webhook-signature`, {
+    signal: AbortSignal.timeout(15000),
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,

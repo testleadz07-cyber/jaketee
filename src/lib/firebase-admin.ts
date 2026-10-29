@@ -2,13 +2,15 @@ import { isPushConfigured } from '@/lib/push-config'
 import { getWorkerRequestScope } from './worker-request-scope'
 export { isPushConfigured }
 
-interface MulticastMessage { tokens: string[]; data?: Record<string, string>; webpush?: { headers?: Record<string, string> } }
+interface MulticastMessage { tokens: string[]; data?: Record<string, string>; webpush?: { headers?: Record<string, string> }; deadline?: number }
 interface SendResult { success: boolean; messageId?: string; error?: { code: string; message: string } }
 let cachedToken: { value: string; expiresAt: number; identity: string } | undefined
 let cachedKey: { key: CryptoKey; pem: string } | undefined
 const base64url = (value: string | Uint8Array) => Buffer.from(value).toString('base64url')
 
-async function accessToken() {
+const requestTimeout = (deadline?: number) => AbortSignal.timeout(Math.max(1, Math.min(15000, (deadline ?? Date.now() + 15000) - Date.now())))
+
+async function accessToken(deadline?: number) {
   const email = process.env.FIREBASE_CLIENT_EMAIL!
   const pem = process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n')
   if (cachedToken?.identity === email && cachedToken.expiresAt > Date.now() + 60000) return cachedToken.value
@@ -24,7 +26,7 @@ async function accessToken() {
   const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cachedKey.key, new TextEncoder().encode(unsigned))
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST', body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: unsigned + '.' + base64url(new Uint8Array(signature)) }),
-    signal: AbortSignal.timeout(15000),
+    signal: requestTimeout(deadline),
   })
   const result = await response.json() as { access_token?: string; expires_in?: number }
   if (!response.ok || !result.access_token) throw new Error('FCM authorization unavailable')
@@ -42,6 +44,9 @@ export function adminMessaging() {
       const scope = getWorkerRequestScope()
       let token: string | undefined
       for (const recipient of message.tokens) {
+        if (message.deadline && Date.now() >= message.deadline - 1000) {
+          responses.push({ success: false, error: { code: 'messaging/unavailable', message: 'Delivery deadline reached; retry pending' } }); continue
+        }
         if (process.env.MIGRATION_TEST_MODE === 'true' && !allowed.has(recipient)) {
           responses.push({ success: false, error: { code: 'messaging/unavailable', message: 'Device is not permitted in migration tests' } }); continue
         }
@@ -53,10 +58,10 @@ export function adminMessaging() {
         }
         if (scope) scope.values.set('fcm-sends', used + 1)
         try {
-          token ??= await accessToken()
+          token ??= await accessToken(message.deadline)
           const response = await fetch('https://fcm.googleapis.com/v1/projects/' + encodeURIComponent(process.env.FIREBASE_PROJECT_ID!) + '/messages:send', {
             method: 'POST', headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
-            body: JSON.stringify({ message: { token: recipient, data: message.data, webpush: message.webpush } }), signal: AbortSignal.timeout(15000),
+            body: JSON.stringify({ message: { token: recipient, data: message.data, webpush: message.webpush } }), signal: requestTimeout(message.deadline),
           })
           const result = await response.json() as { name?: string; error?: { status?: string; details?: Array<{ errorCode?: string }> } }
           if (response.ok && result.name) responses.push({ success: true, messageId: result.name })

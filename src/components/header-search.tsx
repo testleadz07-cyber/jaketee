@@ -1,5 +1,8 @@
 'use client'
 
+import { readPublicResponse } from '@/lib/public-json'
+
+
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -42,7 +45,7 @@ export function HeaderSearch({ className = '' }: { className?: string }) {
     const requestVersion = version.current
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/products/search-autocomplete?q=${encodeURIComponent(term)}`, { signal: controller.signal })
+        const response = await readPublicResponse(`/api/products/search-autocomplete?q=${encodeURIComponent(term)}`, { signal: controller.signal })
         if (!response.ok) throw Error('Search unavailable')
         const data: unknown = await response.json()
         if (controller.signal.aborted || requestVersion !== version.current) return
