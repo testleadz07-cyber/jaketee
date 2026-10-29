@@ -300,7 +300,7 @@ export default function ProfilePage() {
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || 'Could not request verification')
       setClaimRequested(true)
-      toast({ title: 'Check your email', description: result.message })
+      toast({ title: 'Verification requested', description: result.message })
     } catch (cause) {
       toast({ title: 'Request failed', description: cause instanceof Error ? cause.message : 'Please try again.', variant: 'destructive' })
     } finally {
@@ -728,7 +728,7 @@ export default function ProfilePage() {
                     Send verification link
                   </Button>
                 </form>
-                {claimRequested && <p role="status" className="mt-2 text-sm text-muted-foreground">If guest orders exist for that email, a link is on its way.</p>}
+                {claimRequested && <p role="status" className="mt-2 text-sm text-muted-foreground">If eligible, check your inbox and spam folder. If no link arrives, try again later or contact support.</p>}
               </section>
               {isOrdersLoading ? (
                 <div className="flex flex-col justify-center items-center py-12 bg-card border-2 rounded-xl">

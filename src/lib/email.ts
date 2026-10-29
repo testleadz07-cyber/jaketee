@@ -8,71 +8,86 @@ const INFO_EMAIL = 'info@jacketee.com'
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || INFO_EMAIL
 const FROM_EMAIL = process.env.EMAIL_FROM || `"${BRAND_NAME}" <${INFO_EMAIL}>`
 
-export async function sendEmail({
-  to,
-  subject,
-  html,
-  attachments,
-}: {
+export type EmailResult = {
+  success: boolean
+  status: 'accepted' | 'failed'
+  provider: string
+  message: string
+  code?: string
+}
+
+// Never infer a transport from the presence of SMTP credentials.
+export function emailConfigurationError(): string | null {
+  const provider = process.env.EMAIL_PROVIDER?.trim()
+  if (provider === 'cloudflare-api') {
+    return process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_EMAIL_API_TOKEN
+      ? null : 'Email API is not configured'
+  }
+  if (provider === 'smtp') {
+    return process.env.SMTP_USER && process.env.SMTP_PASS ? null : 'SMTP is not configured'
+  }
+  return provider === 'disabled' ? 'Email is disabled' : 'Select an explicit email provider'
+}
+
+export async function sendEmail({ to, subject, html, attachments }: {
   to: string
   subject: string
   html: string
   attachments?: { filename: string; content: Buffer; contentType: string }[]
-}) {
+}): Promise<EmailResult> {
+  const provider = process.env.EMAIL_PROVIDER?.trim() || 'unconfigured'
+  const fail = (code: string, httpStatus?: number): EmailResult => {
+    console.error('Email delivery failed', { provider, code, ...(httpStatus ? { httpStatus } : {}) })
+    return { success: false, status: 'failed', provider, code, message: 'Email could not be accepted. Please try again later.' }
+  }
+  const accepted = (): EmailResult => ({ success: true, status: 'accepted', provider, message: 'Email accepted by provider' })
+  if (emailConfigurationError()) return fail('CONFIGURATION')
+  if (process.env.MIGRATION_TEST_MODE === 'true') {
+    const allowed = (process.env.EMAIL_TEST_RECIPIENTS || '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean)
+    if (!allowed.includes(to.trim().toLowerCase()) || /[,;<>\r\n]/.test(to)) return fail('TEST_RECIPIENT_NOT_ALLOWED')
+  }
   try {
-    if (process.env.EMAIL_PROVIDER === 'disabled') return { success: false, message: 'Email disabled' }
-    if (process.env.MIGRATION_TEST_MODE === 'true') {
-      const allowed = (process.env.EMAIL_TEST_RECIPIENTS || '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean)
-      // Accept a single bare address only in tests; do not allow comma-separated
-      // addresses or display-name syntax to bypass the recipient allowlist.
-      if (!allowed.includes(to.trim().toLowerCase()) || /[,;<>\r\n]/.test(to)) {
-        return { success: false, message: 'Recipient is not permitted in migration tests' }
-      }
-    }
-    if (process.env.EMAIL_PROVIDER === 'cloudflare-api') {
-      const account = process.env.CLOUDFLARE_ACCOUNT_ID
-      const token = process.env.CLOUDFLARE_EMAIL_API_TOKEN
-      if (!account || !token) return { success: false, message: 'Cloudflare email is not configured' }
+    if (provider === 'cloudflare-api') {
       const namedFrom = FROM_EMAIL.match(/^(.*?)\s*<([^<>]+)>$/)
       const payload = JSON.stringify({
         from: namedFrom ? { address: namedFrom[2], name: namedFrom[1].trim().replace(/^"|"$/g, '') } : FROM_EMAIL,
         to, subject, html, reply_to: INFO_EMAIL,
         attachments: attachments?.map(file => ({ filename: file.filename, content: file.content.toString('base64'), type: file.contentType, disposition: 'attachment' })),
       })
-      if (new TextEncoder().encode(payload).byteLength > 5 * 1024 * 1024) return { success: false, message: 'Email exceeds Cloudflare message size limit' }
-      const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account)}/email/sending/send`, {
-        method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      if (new TextEncoder().encode(payload).byteLength > 5 * 1024 * 1024) return fail('MESSAGE_TOO_LARGE')
+      const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(process.env.CLOUDFLARE_ACCOUNT_ID!)}/email/sending/send`, {
+        method: 'POST', headers: { authorization: `Bearer ${process.env.CLOUDFLARE_EMAIL_API_TOKEN}`, 'content-type': 'application/json' },
         body: payload, signal: AbortSignal.timeout(15000),
       })
-      const result = await response.json() as { success?: boolean; result?: { delivered?: string[]; queued?: string[]; permanent_bounces?: string[] } }
-      const accepted = [...(result.result?.delivered || []), ...(result.result?.queued || [])]
-      if (!response.ok || !result.success || !accepted.some(address => address.toLowerCase() === to.toLowerCase()) || result.result?.permanent_bounces?.length) {
-        return { success: false, message: `Cloudflare email was not accepted (${response.status})` }
+      const result = await response.json().catch(() => null) as {
+        success?: boolean; errors?: { code?: number }[]
+        result?: { delivered?: string[]; queued?: string[]; permanent_bounces?: string[] }
+      } | null
+      const recipients = [...(result?.result?.delivered || []), ...(result?.result?.queued || [])]
+      if (!response.ok || !result?.success || !recipients.some(address => address.toLowerCase() === to.toLowerCase()) || result.result?.permanent_bounces?.length) {
+        return fail(result?.errors?.[0]?.code ? `API_${result.errors[0].code}` : 'API_REJECTED', response.status)
       }
-      return { success: true, message: 'Email accepted' }
+      return accepted()
     }
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return { success: false, message: 'SMTP is not configured' }
-    // No reusable TCP transporter across Worker invocations.
+    // SMTP is retained only as an explicit opt-in for supported environments.
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: Number(process.env.SMTP_PORT) || 587,
       secure: process.env.SMTP_SECURE === 'true',
-      connectionTimeout: 10000, socketTimeout: 15000,
+      connectionTimeout: 10000, greetingTimeout: 10000, socketTimeout: 15000,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     })
-    const info = await transporter.sendMail({
-      from: FROM_EMAIL,
-      replyTo: INFO_EMAIL,
-      to,
-      subject,
-      html,
-      attachments,
-    })
-    console.log('Email sent:', { to, subject, messageId: info.messageId })
-    return { success: true, message: 'Email sent', messageId: info.messageId }
-  } catch (error: any) {
-    console.error('Email error:', error)
-    return { success: false, message: error.message }
+    try {
+      const info = await transporter.sendMail({ from: FROM_EMAIL, replyTo: INFO_EMAIL, to, subject, html, attachments })
+      if (!info.accepted?.some((address: unknown) => String(address).toLowerCase() === to.toLowerCase())) return fail('SMTP_REJECTED')
+      return accepted()
+    } finally { transporter.close() }
+  } catch (cause: unknown) {
+    const error = cause as { name?: string; code?: string }
+    // Only log allowlisted diagnostics, never provider messages, recipients or tokens.
+    const code = error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'TIMEOUT'
+      : typeof error?.code === 'string' && /^[A-Z0-9_]{1,40}$/.test(error.code) ? error.code : 'CONNECTION_FAILED'
+    return fail(code)
   }
 }
 

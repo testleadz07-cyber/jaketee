@@ -34,7 +34,7 @@ export function NewsletterForm() {
       if (res.ok) {
         await formActivity.submitted({ email })
         toast({
-          title: 'Subscription Successful!',
+          title: data.emailStatus === 'failed' ? 'Subscription saved — email unavailable' : 'Subscription saved',
           description: data.message || 'Thank you for subscribing to our newsletter.',
         })
         setEmail('')

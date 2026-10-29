@@ -28,33 +28,35 @@ export async function POST(request: NextRequest) {
     const db = await connectDB()
     if (db) {
       const existing = await Subscriber.findOne({ email: trimmedEmail })
+      let subscriber
       if (existing) {
-        return NextResponse.json({ error: 'You are already subscribed to our newsletter!' }, { status: 409 })
+        // A retry only sends the previously failed welcome email, not another subscription.
+        subscriber = await Subscriber.findOneAndUpdate({
+          _id: existing._id,
+          welcomeEmailStatus: 'failed',
+          welcomeEmailAttemptAt: { $lt: new Date(Date.now() - 60_000) },
+        }, { $set: { welcomeEmailStatus: 'pending', welcomeEmailAttemptAt: new Date() } }, { returnDocument: 'after' })
+        if (!subscriber) {
+          return NextResponse.json({ error: 'Already subscribed. If a welcome email recently failed, wait a minute before retrying.' }, { status: 409 })
+        }
+      } else {
+        subscriber = await Subscriber.create({ email: trimmedEmail, welcomeEmailStatus: 'pending', welcomeEmailAttemptAt: new Date() })
       }
 
-      await Subscriber.create({ email: trimmedEmail })
-
-      await Promise.allSettled([Promise.resolve().then(() => createNotification({
-        type: 'newsletter_signup',
-        title: 'New newsletter subscriber',
-        message: trimmedEmail,
-      })), Promise.resolve().then(async () => {
-
+      if (!existing) await createNotification({ type: 'newsletter_signup', title: 'New newsletter subscriber', message: trimmedEmail }).catch(() => console.error('Newsletter admin notification failed'))
       const emailResult = await sendEmail({
         to: trimmedEmail,
         subject: 'Welcome to Jacketee - You are subscribed',
-        html: newsletterSubscriptionTemplate({
-          shopUrl: APP_URL,
-          discountCode: NEWSLETTER_DISCOUNT_CODE,
-        }),
-      })
-
-      if (!emailResult.success) {
-        console.error('Newsletter confirmation email failed:', emailResult.message)
-      }
-      })])
-
-      return NextResponse.json({ message: 'Successfully subscribed. Please check your email for your welcome code.' }, { status: 201 })
+        html: newsletterSubscriptionTemplate({ shopUrl: APP_URL, discountCode: NEWSLETTER_DISCOUNT_CODE }),
+      }).catch(() => ({ success: false }))
+      await Subscriber.updateOne({ _id: subscriber._id }, { $set: { welcomeEmailStatus: emailResult.success ? 'accepted' : 'failed' } }).catch(() => console.error('Newsletter email status could not be saved'))
+      return NextResponse.json({
+        subscribed: true,
+        emailStatus: emailResult.success ? 'accepted' : 'failed',
+        message: emailResult.success
+          ? 'Subscription saved. Your welcome email was accepted for delivery; check your inbox and spam folder.'
+          : 'Subscription saved, but we could not send your welcome email. Retry this email address after a minute to request the welcome email, or contact support; your subscription is already saved.',
+      }, { status: 201 })
     }
 
     return NextResponse.json({ error: 'We could not save your subscription. Please try again later.' }, { status: 503 })

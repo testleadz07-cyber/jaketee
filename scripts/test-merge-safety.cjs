@@ -66,7 +66,8 @@ async function main() {
     '@/lib/mongodb': { connectDB: async () => dbAvailable },
     '@/models/Subscriber': { __esModule: true, default: {
       findOne: async () => null,
-      create: async data => { if (saveFails) throw Error('Save failed'); saved.push(data) },
+      create: async data => { if (saveFails) throw Error('Save failed'); saved.push(data); return { _id: 'subscriber' } },
+      updateOne: async () => ({}),
     } },
     '@/lib/notifications': { createNotification: async () => { throw Error('Notification failed') } },
     '@/lib/email': { newsletterSubscriptionTemplate: () => '', sendEmail: async () => { emailCalls++; throw Error('SMTP failed') } },
