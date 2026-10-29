@@ -60,7 +60,7 @@ These automated access tests mock identity/provider boundaries. They do not clai
 - Reservation failures are fail-closed. An interrupted request can require waiting 60 seconds before retry; reserved attempts can reduce that order's available attempts for 24 hours.
 - `/api/admin/refunds` POST no longer creates unverified records, even for admins. Submission belongs to the verified public endpoint; admin review/status changes remain GET/PATCH.
 - No new public blog-category endpoint was needed. Existing public blog server caching/invalidation remains intact.
-- The two uncommitted autocomplete changes (`src/lib/public-json.ts`, `scripts/test-public-data-cache.cjs`) predate this task and are excluded from these security commits.
+- The autocomplete changes (`src/lib/public-json.ts`, `scripts/test-public-data-cache.cjs`) predate the security task and are excluded from its security commits. They were subsequently committed separately during parent-branch merge preparation.
 - CPU-plan and Stripe configuration remain outside this task. No production readiness/load-test claim is made from an isolated preview.
 
 ## Build and preview results
@@ -83,7 +83,7 @@ OpenNext emitted its existing Windows/config-wrapper warnings and Next's middlew
 
 Smoke used `localhost` because Next normalizes local127.0.0.1 URLs for same-origin checks; the existing push endpoint used its explicitly configured local `NEXTAUTH_URL` origin. No actual Turnstile/provider credentials were used. Real authenticated business operations, real public blog data, and a real accepted return remain the integration checklist above.
 
-The build covers the current working tree, including the two pre-existing uncommitted autocomplete files noted above; those files are not included in these security commits. The local dry-run measured the final custom Worker entry and bindings without uploading anything.
+The build covered the working tree, including the two pre-existing autocomplete files noted above; they were uncommitted during validation and subsequently committed separately before the parent-branch merge. The local dry-run measured the final custom Worker entry and bindings without uploading anything.
 
 After the HTTP preview smoke, the per-order Durable Object gained a tested guard for next-day expired state when an alarm is delayed. Its source is outside the generated Next server bundle: the final Worker typecheck, reservation regression tests and final custom-entry Wrangler dry-run cover this final change. No page/API source changed after the full Next build/HTTP smoke.
 

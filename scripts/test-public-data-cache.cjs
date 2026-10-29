@@ -95,6 +95,11 @@ async function main() {
   assert.equal((await response.json())[0].id, 'public')
   assert.equal((await (await readPublicResponse('/api/categories')).json())[0].id, 'public')
   assert.equal(fetches, 1, 'One component aborting must not cancel another component or cause a second fetch')
+  const suggestions = readPublicResponse('/api/products/search-autocomplete?q=varsity')
+  release()
+  assert.equal((await (await suggestions).json())[0].id, 'public', 'Header autocomplete must reach its public endpoint')
+  await readPublicResponse('/api/products/search-autocomplete?q=varsity')
+  assert.equal(fetches, 2, 'Repeated autocomplete terms share the public browser cache')
   for (const url of ['/api/admin/users', '/api/users/profile', '/api/products?all=true', 'https://evil.invalid/api/products']) {
     await assert.rejects(readPublicResponse(url), /Only public/)
   }

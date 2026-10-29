@@ -7,7 +7,7 @@ const responses = new Map<string, { expiresAt: number; promise: Promise<SavedRes
 function assertPublicUrl(url: string) {
   const parsed = new URL(url, 'https://public.invalid')
   const path = parsed.pathname
-  const allowed = path === '/api/categories' || path === '/api/products' || path === '/api/blog' ||
+  const allowed = path === '/api/categories' || path === '/api/products' || path === '/api/products/search-autocomplete' || path === '/api/blog' ||
     path === '/api/reviews' || path === '/api/reviews/stats' || /^\/api\/category-insights\/[^/]+$/.test(path) ||
     /^\/api\/products\/[^/]+\/recommendations$/.test(path)
   if (!url.startsWith('/api/') || !allowed || parsed.searchParams.has('all') || url.length > 2048) throw new Error('Only public catalog reads may use the shared cache')
