@@ -73,22 +73,13 @@ export function checkRateLimit(key: string, limit: number, windowMs: number): Ra
 }
 
 /**
- * Resolve the best-effort client IP from a request, accounting for the
- * reverse proxy (Caddy) sitting in front of the app in production.
+ * Use Cloudflare's edge-supplied address; ignore caller-controlled forwarded
+ * chains and x-real-ip. Local development can have no public address.
  */
-export function getClientIp(request: Request, trustCloudflare = false): string {
+export function getClientIp(request: Pick<Request, 'headers'>, trustCloudflare = true): string {
   const headers = request.headers
   const cloudflareIp = headers.get('cf-connecting-ip')
-  if (trustCloudflare && cloudflareIp) return cloudflareIp.trim()
-  const forwardedFor = headers.get('x-forwarded-for')
-  if (forwardedFor) {
-    // x-forwarded-for can be a comma-separated list; the first entry is the
-    // original client.
-    return forwardedFor.split(',')[0].trim()
-  }
-
-  const realIp = headers.get('x-real-ip')
-  if (realIp) return realIp.trim()
+  if (trustCloudflare && cloudflareIp && cloudflareIp.length <= 64 && /^[\da-f:.]+$/i.test(cloudflareIp.trim())) return cloudflareIp.trim()
 
   return 'unknown'
 }

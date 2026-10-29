@@ -1,5 +1,16 @@
 # Cloudflare migration
 
+Visitor metadata now comes from Cloudflare only: `CF-Connecting-IP` for IP and
+OpenNext's `getCloudflareContext().cf` for country, region, city and postal code.
+Forwarded chains and Vercel geo headers are ignored. Activity, login records,
+session heartbeat and checkout/delivery suggestions share these helpers. Location
+remains an approximate suggestion and never replaces the confirmed shipping address.
+
+Guest address confirmation validates/signs locally without opening MongoDB.
+Authenticated confirmation retains account validation. The client bounds the
+confirmation request to 20 seconds and shows a readable error for HTML outages;
+optional profile-address saving runs separately with a 10-second timeout.
+
 ## Current generated-entry configuration
 
 After changing Cloudflare's production branch to `cloudflare-migration`, save
@@ -141,9 +152,9 @@ Cloudflare deployment, production database, payment, email or device was changed
 ### Integrations and jobs
 
 - `src/lib/geo.ts`, `src/app/api/visitor-country/route.ts`,
-  `src/app/api/chat-visibility/route.ts`: Cloudflare country first, Vercel fallback,
-  no geoip database or Vercel/Netlify runtime detection. Country is a hint, never
-  an authorization boundary. Cloudflare currently supplies country only here.
+  `src/app/api/chat-visibility/route.ts`: Cloudflare-only metadata, including city,
+  region and postal-code suggestions through OpenNext's request context. No
+  geoip database or Vercel/Netlify detection. Location is never an authorization boundary.
 - `src/lib/email.ts`: environment-controlled SMTP TLS and request-local transport;
   optional Cloudflare REST provider; attachments; test recipient allowlist;
   missing configuration and rejected/bounced delivery return failure.

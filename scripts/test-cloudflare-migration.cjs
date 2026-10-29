@@ -106,6 +106,7 @@ async function main() {
     activeConnections.push(connection)
     assert.equal(adapterProduct.db, connection)
     const state = adapterScope.getWorkerRequestScope()
+    assert.equal(state.values.get('request-headers').get('cf-connecting-ip'), `203.0.113.${new URL(_event).searchParams.get('id')}`)
     const deferred = new Promise(resolve => releases.push(resolve))
     options.waitUntil(deferred.then(async () => {
       assert.equal(adapterScope.getWorkerRequestScope(), state)
@@ -116,7 +117,7 @@ async function main() {
     const writable = options.streamCreator.writeHeaders({ statusCode: 200, headers: {}, cookies: [] })
     writable.end('products')
   }, { convertFrom: async request => request.url })
-  const responses = await Promise.all([1, 2].map(id => adaptedFetch(new Request(`https://example.invalid/shop?id=${id}`), {}, {
+  const responses = await Promise.all([1, 2].map(id => adaptedFetch(new Request(`https://example.invalid/shop?id=${id}`, { headers: { 'cf-connecting-ip': `203.0.113.${id}` } }), {}, {
     waitUntil(promise) { lifecycle.push(promise) },
   })))
   assert.notEqual(activeConnections[0], activeConnections[1])
@@ -209,10 +210,20 @@ async function main() {
   const image = harness().load('src/lib/image-loader.ts').default
   for (const src of ['/logo.webp', 'https://images.unsplash.com/test', '/test.svg']) assert.equal(image({ src, width: 640 }), src)
   assert.match(image({ src: 'https://res.cloudinary.com/test/image/upload/v1/a.jpg', width: 640 }), /w_640\/v1\/a.jpg/)
-  const geo = harness().load('src/lib/geo.ts')
+  let cfGeo
+  const geo = harness({}, { '@opennextjs/cloudflare': { getCloudflareContext: () => ({ cf: cfGeo }) } }).load('src/lib/geo.ts')
   assert.equal(geo.getCountryFromRequest({ headers: new Headers({ 'cf-ipcountry': 'PK', 'x-vercel-ip-country': 'US' }) }), 'PK')
-  assert.equal(geo.getCountryFromRequest({ headers: new Headers({ 'cf-ipcountry': 'XX', 'x-vercel-ip-country': 'US' }) }), 'US')
-  console.log('PASS: no optimizer fallback and Cloudflare/Vercel country precedence')
+  assert.equal(geo.getCountryFromRequest({ headers: new Headers({ 'cf-ipcountry': 'XX', 'x-vercel-ip-country': 'US' }) }), undefined)
+  cfGeo = { country: 'US', regionCode: 'TX', city: 'Austin', postalCode: '78701' }
+  const cloudflareGeo = geo.getGeoFromRequest({ headers: new Headers({ 'cf-ipcountry': 'PK', 'x-vercel-ip-city': 'Spoofed' }) })
+  assert.equal(cloudflareGeo.country, 'US')
+  assert.equal(cloudflareGeo.city, 'Austin')
+  assert.equal(cloudflareGeo.region, 'TX')
+  assert.equal(cloudflareGeo.postalCode, '78701')
+  const clientIp = harness().load('src/lib/rate-limit-memory.ts').getClientIp
+  assert.equal(clientIp({ headers: new Headers({ 'cf-connecting-ip': '2001:db8::1', 'x-forwarded-for': '1.2.3.4' }) }), '2001:db8::1')
+  assert.equal(clientIp({ headers: new Headers({ 'x-forwarded-for': '1.2.3.4', 'x-real-ip': '1.2.3.5' }) }), 'unknown')
+  console.log('PASS: image loading and Cloudflare-only IP/location metadata; forwarded headers ignored')
 
   const body = harness().load('src/lib/request-body.ts')
   assert.equal(await body.boundedText(new Request('https://test/', { method: 'POST', body: 'abc' }), 3), 'abc')
