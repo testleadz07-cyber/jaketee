@@ -25,6 +25,8 @@ const ROUTE_LIMITS: Record<string, { windowMs: number; max: number }> = {
   // Reviews / uploads - spam and storage abuse
   '/api/reviews': { windowMs: 60 * 1000, max: 8 },
   '/api/upload': { windowMs: 60 * 1000, max: 10 },
+  '/api/upload-snapshot': { windowMs: 60 * 60 * 1000, max: 20 },
+  '/api/customizations/artwork': { windowMs: 60 * 60 * 1000, max: 10 },
 }
 
 // NextAuth polls these frequently on every page load; don't throttle them.

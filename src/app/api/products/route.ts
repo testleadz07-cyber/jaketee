@@ -1,3 +1,4 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { getPublicCategories, getPublicCategoryCounts } from '@/lib/public-catalog'
 import { invalidateHomeCache } from '@/lib/home-cache'
 import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters } from '@/lib/catalog-filters'
@@ -153,10 +154,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {

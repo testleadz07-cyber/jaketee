@@ -1,6 +1,5 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import mongoose from 'mongoose'
 
@@ -9,10 +8,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -31,6 +28,7 @@ export async function GET(
 
     const total = await LoginSession.countDocuments({ userId: id })
     const sessions = await LoginSession.find({ userId: id })
+      .select('_id loginAt logoutAt lastSeenAt durationSeconds ip country userAgent')
       .sort({ loginAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)

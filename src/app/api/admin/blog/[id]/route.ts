@@ -1,7 +1,6 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 
@@ -13,18 +12,10 @@ function slugify(input: string) {
     .replace(/(^-|-$)+/g, '')
 }
 
-async function isAdmin() {
-  const session = await getServerSession(authOptions)
-  if (!session || (session.user as any).role !== 'admin') return null
-  return session
-}
-
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     const db = await connectDB()
@@ -52,10 +43,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     const db = await connectDB()
@@ -144,10 +133,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     const db = await connectDB()

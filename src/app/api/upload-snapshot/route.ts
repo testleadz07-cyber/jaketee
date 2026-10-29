@@ -4,6 +4,7 @@ import { boundedText, RequestBodyTooLarge } from '@/lib/request-body'
 import { JACKET_VIEWS, type JacketView } from '@/types/jacket-customization'
 
 export async function POST(request: NextRequest) {
+  if (request.headers.get('origin') !== request.nextUrl.origin) return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
   try {
     const body = await boundedText(request, 12 * 1024 * 1024)
     if (Buffer.byteLength(body) > 12 * 1024 * 1024) return NextResponse.json({ error: 'Design previews are too large' }, { status: 413 })

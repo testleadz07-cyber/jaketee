@@ -1,6 +1,5 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import LoginSession from '@/models/LoginSession'
@@ -14,10 +13,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -30,7 +27,7 @@ export async function GET(
     }
 
     const user = await User.findById(id)
-      .select('-password -resetPasswordToken -resetPasswordExpires')
+      .select('_id name username email role isActive phone avatar addresses createdAt')
       .lean()
 
     if (!user) {
@@ -101,17 +98,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
     }
 
-    const currentAdminId = (session.user as any).id
+    const currentAdminId = auth.user.id
     const body = await request.json()
     const { name, username, email, phone, role, isActive, password, addresses } = body
 
@@ -203,7 +198,7 @@ export async function PATCH(
     }
 
     const user = await User.findByIdAndUpdate(id, update, { returnDocument: 'after', runValidators: true })
-      .select('-password -resetPasswordToken -resetPasswordExpires')
+      .select('_id name username email role isActive phone avatar addresses createdAt')
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -237,17 +232,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
     }
 
-    const currentAdminId = (session.user as any).id
+    const currentAdminId = auth.user.id
     if (String(currentAdminId) === String(id)) {
       return NextResponse.json({ error: 'You cannot delete your own account.' }, { status: 400 })
     }
@@ -257,7 +250,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const user = await User.findByIdAndDelete(id)
+    const user = await User.findByIdAndDelete(id).select('_id role')
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }

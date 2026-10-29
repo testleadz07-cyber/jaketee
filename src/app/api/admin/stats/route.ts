@@ -1,6 +1,5 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
 import Order from '@/models/Order'
@@ -9,10 +8,8 @@ import { getStaticProducts } from '@/lib/static-data'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (db) {
@@ -21,7 +18,7 @@ export async function GET(request: NextRequest) {
       const totalOrders = await Order.countDocuments()
       const customerCount = await User.countDocuments({ role: 'customer' })
 
-      const orders = await Order.find({}).lean()
+      const orders = await Order.find({}).select('status total createdAt items.productId items.name items.quantity items.price items.image').lean()
       const totalRevenue = orders
         .filter(o => o.status !== 'cancelled')
         .reduce((sum, o) => sum + o.total, 0)
@@ -127,6 +124,7 @@ export async function GET(request: NextRequest) {
 
       // 5. Recent 5 Orders
       const recentOrders = await Order.find({})
+        .select('_id orderNumber createdAt status total userEmail userName')
         .sort({ createdAt: -1 })
         .limit(5)
         .lean()

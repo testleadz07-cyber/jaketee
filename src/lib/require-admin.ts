@@ -1,10 +1,10 @@
 import 'server-only'
-import { getServerSession } from 'next-auth'
+import { getServerSession, type Session } from 'next-auth'
 import { NextResponse } from 'next/server'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth-options'
 
-type AdminUser = NonNullable<Awaited<ReturnType<typeof getServerSession>>>['user'] & { id: string; role: 'admin' }
+type AdminUser = NonNullable<Session['user']> & { id: string; role: 'admin' }
 type AdminAuthorization = { user: AdminUser; response?: never } | { user?: never; response: NextResponse }
 
 // authOptions.session checks the current account and unrevoked login in MongoDB.

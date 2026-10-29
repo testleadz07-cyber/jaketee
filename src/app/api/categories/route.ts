@@ -1,3 +1,4 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { publicRead } from '@/lib/public-cache'
 import { getPublicCategories } from '@/lib/public-catalog'
 import { invalidateHomeCache } from '@/lib/home-cache'
@@ -7,8 +8,6 @@ import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { getStaticCategoriesWithCount, getStaticCategories } from '@/lib/static-data'
 import { resolveDescendantIds, type CategoryNode } from '@/lib/categories'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 
 export async function GET() {
   try {
@@ -54,10 +53,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {

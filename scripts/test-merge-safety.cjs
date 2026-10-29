@@ -27,6 +27,7 @@ async function main() {
   }
   const response = { NextResponse: { json: (data, options = {}) => ({ data, status: options.status || 200 }) } }
   const { GET } = load('src/app/api/products/route.ts', {
+    '@/lib/require-admin': { requireAdminApi: async () => session?.user?.role === 'admin' ? { user: session.user } : { response: { data: { error: 'Unauthorized' }, status: 401 } } },
     'next/server': response, 'next-auth': { getServerSession: async () => session },
     '@/lib/auth-options': { authOptions: {} },
     '@/lib/mongodb': { connectDB: async () => { dbCalls++; return true } },

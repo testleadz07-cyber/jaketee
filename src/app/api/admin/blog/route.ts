@@ -1,7 +1,6 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 import BlogCategory from '@/models/BlogCategory'
@@ -18,18 +17,10 @@ function escapeRegex(input: string) {
   return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-async function isAdmin() {
-  const session = await getServerSession(authOptions)
-  if (!session || (session.user as any).role !== 'admin') return null
-  return session
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -105,10 +96,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -165,7 +154,7 @@ export async function POST(request: NextRequest) {
       tags: tags || [],
       status: finalStatus,
       publishedAt: finalPublishedAt,
-      author: { name: 'Jacketee Team', userId: (session.user as any).id },
+      author: { name: 'Jacketee Team', userId: auth.user.id },
       seoTitle,
       seoDescription,
       ogImage,
