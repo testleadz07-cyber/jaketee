@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 
 export interface RequestGeo {
   country?: string
@@ -7,52 +7,33 @@ export interface RequestGeo {
   postalCode?: string
 }
 
-function decodeHeader(value: string | null): string | undefined {
-  if (!value) return undefined
-  try {
-    return decodeURIComponent(value.replace(/\+/g, ' '))
-  } catch {
-    return value
-  }
-}
-
 /**
  * Resolves the visitor's country from platform-injected request headers -
  * no outbound network call needed (unlike a third-party IP-geolocation API).
- * Netlify: x-nf-geo carries base64-encoded JSON with a `country` object.
- * Vercel: x-vercel-ip-country carries a plain ISO country code.
+ * OpenNext preserves trusted request.cf metadata in the invocation context.
+ * No Vercel fallback or caller-supplied city/region headers are used.
+ * These hints must never be used as an authorization or fraud boundary.
  */
-export function getGeoFromRequest(request: NextRequest): RequestGeo {
-  // Only trust headers when deployment explicitly selects an overwriting edge.
-  const provider = process.env.ACTIVITY_GEO_PROVIDER ||
-    (process.env.VERCEL === '1' ? 'vercel' : process.env.NETLIFY === 'true' ? 'netlify' : '')
-  const netlifyGeo = provider === 'netlify' ? request.headers.get('x-nf-geo') : null
-  if (netlifyGeo) {
-    try {
-      const parsed = JSON.parse(Buffer.from(netlifyGeo, 'base64').toString('utf-8'))
-      return {
-        country: boundedGeo(parsed?.country?.code || parsed?.country?.name),
-        region: boundedGeo(parsed?.subdivision?.name || parsed?.subdivision?.code),
-        city: boundedGeo(parsed?.city),
-      }
-    } catch {
-      // malformed header - fall through to other sources
-    }
-  }
-
-  if (provider !== 'vercel') return {}
+export function getGeoFromRequest(request: Pick<Request, 'headers'>): RequestGeo {
+  let cf: Record<string, unknown> | undefined
+  try { cf = getCloudflareContext<Record<string, unknown>>().cf } catch { /* Local development has no visitor metadata. */ }
   return {
-    country: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country'))),
-    region: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-country-region'))),
-    city: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-city'))),
-    postalCode: boundedGeo(decodeHeader(request.headers.get('x-vercel-ip-postal-code'))),
+    country: countryCode(cf?.country) || countryCode(request.headers.get('cf-ipcountry')),
+    region: boundedGeo(cf?.regionCode) || boundedGeo(cf?.region),
+    city: boundedGeo(cf?.city),
+    postalCode: boundedGeo(cf?.postalCode),
   }
+}
+
+function countryCode(value: unknown): string | undefined {
+  const code = typeof value === 'string' ? value.trim().toUpperCase() : undefined
+  return code && /^[A-Z]{2}$/.test(code) && code !== 'XX' ? code : undefined
 }
 
 function boundedGeo(value: unknown): string | undefined {
   return typeof value === 'string' && value.length <= 200 && !/[\x00-\x1f]/.test(value) ? value : undefined
 }
 
-export function getCountryFromRequest(request: NextRequest): string | undefined {
+export function getCountryFromRequest(request: Pick<Request, 'headers'>): string | undefined {
   return getGeoFromRequest(request).country
 }

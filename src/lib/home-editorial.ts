@@ -1,5 +1,5 @@
+import { publicRead } from '@/lib/public-cache'
 import 'server-only'
-import { unstable_cache } from 'next/cache'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Product from '@/models/Product'
@@ -9,7 +9,7 @@ import BlogCategory from '@/models/BlogCategory'
 import { buildProductUrl, resolveAncestorChain } from '@/lib/categories'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 
-export const getHomeReviews = unstable_cache(async () => {
+export const getHomeReviews = () => publicRead('home-reviews-v1', [], 300, ['homepage-reviews'], async () => {
   if (!await connectDB()) throw new Error('Homepage reviews unavailable')
     const reviews = await Review.find({ status: 'approved', rating: { $gte: 4 }, comment: { $ne: '' } })
       .select('productId userName rating comment images')
@@ -52,14 +52,14 @@ export const getHomeReviews = unstable_cache(async () => {
 
     highlights.sort((a, b) => Number(Boolean(b.image)) - Number(Boolean(a.image)))
     return highlights.slice(0, 3)
-}, ['home-reviews-v1'], { revalidate: 300, tags: ['homepage-reviews'] })
+})
 
 const preferredArticles = [
   'hooded-varsity-jackets-guide',
   'corporate-away-day-uniforms-custom-jacket-vs-polo',
   'sports-teams-custom-jackets-award-nights-banquets',
 ]
-export const getHomeArticles = unstable_cache(async () => {
+export const getHomeArticles = () => publicRead('home-articles-v1', [], 300, ['homepage-articles'], async () => {
   if (!await connectDB()) throw new Error('Homepage articles unavailable')
   // Keep the existing 24-post selection window and preferred-slug ordering.
   // Only the final three compact cards cross the rendering boundary.
@@ -76,4 +76,4 @@ export const getHomeArticles = unstable_cache(async () => {
   })).filter(post => /^https:\/\//.test(post.featuredImage || ''))
   const preferred = preferredArticles.flatMap(slug => usable.find(post => post.slug === slug) || [])
   return [...preferred, ...usable.filter(post => !preferred.some(item => item.id === post.id))].slice(0, 3)
-}, ['home-articles-v1'], { revalidate: 300, tags: ['homepage-articles'] })
+})

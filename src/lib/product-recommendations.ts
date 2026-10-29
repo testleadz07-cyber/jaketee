@@ -9,6 +9,7 @@ import { resolveAncestorChain } from '@/lib/categories'
 async function loadRecommendations(id: string, initialProduct?: any) {
   try {
     const db = await connectDB()
+    if (!db && process.env.NODE_ENV === 'production' && process.env.MIGRATION_TEST_MODE !== 'true') return { frequentlyBoughtTogether: [], youMayAlsoLike: [] }
     let baseProduct: any = initialProduct ? { ...initialProduct, categoryId: initialProduct.categoryId?._id || initialProduct.categoryId } : null
 
     if (db && !baseProduct) {
@@ -20,7 +21,7 @@ async function loadRecommendations(id: string, initialProduct?: any) {
       }
     }
 
-    if (!baseProduct) {
+    if (!baseProduct && (process.env.NODE_ENV !== 'production' || process.env.MIGRATION_TEST_MODE === 'true')) {
       baseProduct = findStaticProduct(id)
     }
 
@@ -120,6 +121,7 @@ export async function getProductRecommendations(id: string, initialProduct?: any
       return loadRecommendations(id, initialProduct)
     })
   } catch {
+    if (process.env.NODE_ENV === 'production' && process.env.MIGRATION_TEST_MODE !== 'true') return { frequentlyBoughtTogether: [], youMayAlsoLike: [] }
     try { return await loadRecommendations(id, initialProduct) }
     catch { return { frequentlyBoughtTogether: [], youMayAlsoLike: [] } }
   }

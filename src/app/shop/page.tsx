@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getPublicCategories, getPublicCategoryCounts } from '@/lib/public-catalog'
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
@@ -7,7 +9,6 @@ import { catalogSortValue } from '@/lib/product-search'
 import { readCatalogFilters, catalogFilterQuery, getCatalogFacetData } from '@/lib/catalog-filters'
 import { collectionDesignImages } from '@/lib/collection-design-images'
 import { getCustomDesignImages } from '@/components/custom-design-section'
-import { connectDB } from '@/lib/mongodb'
 import { resolveAncestorChain, resolveDescendantIds, type CategoryNode } from '@/lib/categories'
 import ShopClient, { type Category, type Product } from './shop-client'
 

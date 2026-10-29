@@ -1,7 +1,7 @@
+import { publicRead } from '@/lib/public-cache'
 import { BlogCard } from '@/components/blog-card'
 import Link from 'next/link'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
 import BlogPost from '@/models/BlogPost'
 import { returnPolicyText, faultReportFaqAnswer } from '@/config/fulfillment'
@@ -63,15 +63,14 @@ export async function PolicyResources({ topic }: { topic: Topic }) {
   let articles: Array<{ slug: string; title: string; excerpt: string }> = []
 
   try {
-    const db = await connectDB()
-    if (db) {
-      const [faqRows, posts] = await Promise.all([
+    {
+      const [faqRows, posts] = await publicRead('policy-resources', topic, 300, ['public-support', 'public-blog'], async () => Promise.all([
         Faq.find({ status: { $ne: 'draft' }, question: { $in: [...config.faqQuestions] } }).select('question answer').lean(),
         BlogPost.find({
           slug: { $in: [...config.articleSlugs] },
           $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: new Date() } }],
         }).select('slug title excerpt').lean(),
-      ])
+      ]))
       faqs = faqRows
         .map((faq) => ({ id: String(faq._id), question: faq.question, answer: faultReportFaqAnswer(faq.question, faq.answer || []) }))
         .sort((a, b) => faqOrder.indexOf(a.question) - faqOrder.indexOf(b.question))

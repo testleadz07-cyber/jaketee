@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
 
 const GuestOrderClaimSchema = new Schema({
@@ -10,4 +11,4 @@ const GuestOrderClaimSchema = new Schema({
 GuestOrderClaimSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 GuestOrderClaimSchema.index({ userId: 1, email: 1 })
 
-export default mongoose.models.GuestOrderClaim || mongoose.model('GuestOrderClaim', GuestOrderClaimSchema)
+export default requestScopedModel(mongoose.models.GuestOrderClaim || mongoose.model('GuestOrderClaim', GuestOrderClaimSchema))

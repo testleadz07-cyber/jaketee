@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { getPatchSectionImages } from '@/lib/patch-section-images'

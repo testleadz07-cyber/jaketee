@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
         metadata: { name, email, subject, message },
       })),
       Promise.resolve().then(() => sendEmail({
-        to: process.env.SMTP_USER || 'info@jacketee.com',
+        to: process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SUPPORT_EMAIL ||
+          (process.env.SMTP_USER?.includes('@') ? process.env.SMTP_USER : 'info@jacketee.com'),
         subject: 'New Contact Form Submission: ' + subject,
         html: contactFormTemplate({ name, email, subject, message }),
       })),

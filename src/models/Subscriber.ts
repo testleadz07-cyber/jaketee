@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface ISubscriber extends Document {
@@ -22,4 +23,4 @@ const SubscriberSchema = new Schema<ISubscriber>(
   { timestamps: true }
 )
 
-export default mongoose.models.Subscriber || mongoose.model<ISubscriber>('Subscriber', SubscriberSchema)
+export default requestScopedModel(mongoose.models.Subscriber || mongoose.model<ISubscriber>('Subscriber', SubscriberSchema))

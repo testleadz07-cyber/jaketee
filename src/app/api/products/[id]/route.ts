@@ -1,3 +1,4 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { getPublicCategories, getPublicProduct } from '@/lib/public-catalog'
 import { invalidateHomeCache } from '@/lib/home-cache'
 import { validateVideoUrls } from '@/lib/video-media'
@@ -16,13 +17,9 @@ export async function GET(
   try {
     const { id } = await params
 
-    const db = await connectDB()
-    if (!db) {
-      return NextResponse.json({ error: 'Database not connected' }, { status: 503 })
-    }
-
     const session = await getServerSession(authOptions)
     const canViewDrafts = session?.user && (session.user as any).role === 'admin'
+    if (canViewDrafts && !await connectDB()) return NextResponse.json({ error: 'Database not connected' }, { status: 503 })
     const visibilityFilter = canViewDrafts ? {} : { isDraft: { $ne: true }, status: 'active' }
 
     let product = !canViewDrafts ? await getPublicProduct(id) : null
@@ -69,10 +66,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     const db = await connectDB()
@@ -112,7 +107,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    invalidateHomeCache('catalog')
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ ...product, id: String(product._id) })
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
@@ -124,10 +119,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     const db = await connectDB()
@@ -140,7 +133,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    invalidateHomeCache('catalog')
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ message: 'Product deleted' })
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })

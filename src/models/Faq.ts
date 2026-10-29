@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IFaq extends Document {
@@ -41,4 +42,4 @@ const FaqSchema = new Schema<IFaq>(
 FaqSchema.index({ category: 1, order: 1 })
 FaqSchema.index({ displayPages: 1 })
 
-export default mongoose.models.Faq || mongoose.model<IFaq>('Faq', FaqSchema)
+export default requestScopedModel(mongoose.models.Faq || mongoose.model<IFaq>('Faq', FaqSchema))

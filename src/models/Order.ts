@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 import type { JacketCustomization } from '@/types/jacket-customization'
 
@@ -186,4 +187,4 @@ if (mongoose.models.Order && !mongoose.models.Order.schema.path('archivedAt')) {
   mongoose.models.Order.schema.add({ archivedAt: { type: Date, default: null } })
 }
 
-export default mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema)
+export default requestScopedModel(mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema))

@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { GoogleSignIn } from '@/components/google-sign-in'
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'

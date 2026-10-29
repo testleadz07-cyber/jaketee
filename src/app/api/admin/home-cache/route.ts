@@ -18,6 +18,6 @@ export async function POST(request: NextRequest) {
   if (!await User.exists({ _id: user.id, role: 'admin', isActive: { $ne: false } })) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
-  invalidateHomeCache('images')
+  await invalidateHomeCache('images')
   return NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'no-store' } })
 }

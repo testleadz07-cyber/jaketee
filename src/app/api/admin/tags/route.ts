@@ -1,8 +1,7 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { invalidateHomeCache } from '@/lib/home-cache'
 // src/app/api/admin/tags/route.ts
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Product from '@/models/Product'
 import Tag from '@/models/Tag'
@@ -17,10 +16,8 @@ async function ensureDB() {
 
 // GET: list distinct tags
 export async function GET(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   try {
     const categoryId = new URL(request.url).searchParams.get('categoryId')
     if (categoryId !== null && !/^[a-f0-9]{24}$/i.test(categoryId)) {
@@ -47,10 +44,8 @@ export async function GET(request: Request) {
 
 // POST: add a new tag (no duplicate)
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   try {
     await ensureDB()
     const body = await request.json()
@@ -73,10 +68,8 @@ export async function POST(request: Request) {
 
 // PUT: rename a tag (replace oldTag with newTag on all products)
 export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   try {
     await ensureDB()
     const body = await request.json()
@@ -94,7 +87,7 @@ export async function PUT(request: Request) {
     await Tag.updateOne({ name: newTag }, { $setOnInsert: { name: newTag } }, { upsert: true })
     await Product.updateMany({ tags: oldTag }, [{ $set: { tags: { $setUnion: [{ $filter: { input: '$tags', as: 'tag', cond: { $ne: ['$$tag', { $literal: oldTag }] } } }, { $literal: [newTag] }] } } }])
     await Tag.deleteOne({ name: oldTag })
-    invalidateHomeCache()
+    await invalidateHomeCache()
     return NextResponse.json({ oldTag, newTag })
   } catch (error) {
     console.error('PUT /api/admin/tags error:', error)
@@ -104,10 +97,8 @@ export async function PUT(request: Request) {
 
 // DELETE: remove a tag from all products
 export async function DELETE(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   try {
     await ensureDB()
     const body = await request.json()
@@ -117,7 +108,7 @@ export async function DELETE(request: Request) {
     }
     await Product.updateMany({ tags: tag }, { $pull: { tags: tag } })
     await Tag.deleteOne({ name: tag })
-    invalidateHomeCache()
+    await invalidateHomeCache()
     return NextResponse.json({ deletedTag: tag })
   } catch (error) {
     console.error('DELETE /api/admin/tags error:', error)

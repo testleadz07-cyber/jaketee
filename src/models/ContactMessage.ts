@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IContactMessage extends Document {
@@ -25,5 +26,5 @@ const ContactMessageSchema = new Schema<IContactMessage>(
 
 ContactMessageSchema.index({ createdAt: -1 })
 
-export default mongoose.models.ContactMessage ||
-  mongoose.model<IContactMessage>('ContactMessage', ContactMessageSchema)
+export default requestScopedModel(mongoose.models.ContactMessage ||
+  mongoose.model<IContactMessage>('ContactMessage', ContactMessageSchema))

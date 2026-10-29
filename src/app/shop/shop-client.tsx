@@ -1,5 +1,8 @@
 'use client'
 
+import { readPublicResponse } from '@/lib/public-json'
+
+
 import { startTransition, useState, useEffect, useRef } from 'react'
 import { catalogSortValue, broaderSearches, type SearchMatch } from '@/lib/product-search'
 import { useSearchParams } from 'next/navigation'
@@ -128,7 +131,7 @@ export default function ShopClient({ initialProducts, initialCategories, initial
     const params = new URLSearchParams({ facets: 'true' })
     if (filters.search) params.set('search', filters.search)
     if (category !== 'all') params.set('category', category)
-    fetch(`/api/products?${params}`, { signal: controller.signal }).then(response => {
+    readPublicResponse(`/api/products?${params}`, { signal: controller.signal }).then(response => {
       if (!response.ok) throw new Error('Filters unavailable')
       return response.json()
     }).then(setFacets).catch(() => {})
@@ -146,7 +149,7 @@ export default function ShopClient({ initialProducts, initialCategories, initial
         params.set('sort', sort.startsWith('price-') ? 'price' : sort)
         if (sort.startsWith('price-')) params.set('order', sort === 'price-asc' ? 'asc' : 'desc')
         if (sort === 'name') params.set('order', 'asc')
-        const response = await fetch(`/api/products?${params}`, { signal: controller.signal })
+        const response = await readPublicResponse(`/api/products?${params}`, { signal: controller.signal })
         if (!response.ok) throw new Error('Products unavailable')
         const data = await response.json()
         if (!Array.isArray(data)) throw new Error('Invalid response')

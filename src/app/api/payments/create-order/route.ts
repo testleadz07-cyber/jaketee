@@ -23,6 +23,7 @@ async function getPayPalAccessToken() {
 
   try {
     const res = await fetch(`${base}/v1/oauth2/token`, {
+      signal: AbortSignal.timeout(15000),
       method: 'POST',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
       const base = mode === 'live' ? 'https://api.paypal.com' : 'https://api-m.sandbox.paypal.com'
 
       const res = await fetch(`${base}/v2/checkout/orders`, {
+        signal: AbortSignal.timeout(15000),
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

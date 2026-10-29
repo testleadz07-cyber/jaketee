@@ -27,9 +27,16 @@ async function main() {
   }
   const response = { NextResponse: { json: (data, options = {}) => ({ data, status: options.status || 200 }) } }
   const { GET } = load('src/app/api/products/route.ts', {
+    '@/lib/require-admin': { requireAdminApi: async () => session?.user?.role === 'admin' ? { user: session.user } : { response: { data: { error: 'Unauthorized' }, status: 401 } } },
     'next/server': response, 'next-auth': { getServerSession: async () => session },
     '@/lib/auth-options': { authOptions: {} },
     '@/lib/mongodb': { connectDB: async () => { dbCalls++; return true } },
+    '@/lib/public-catalog': { getPublicCategories: async () => [], getPublicCategoryCounts: async () => [] },
+    '@/lib/home-cache': { invalidateHomeCache() {} },
+    '@/lib/catalog-products': {
+      getCatalogProducts: async ({ filter, limit, page }) => { seenFilter = filter; seenLimit = limit; seenSkip = (page - 1) * limit; return { products: [], total: 0 } },
+      getSearchFacetProducts: async () => [],
+    },
     '@/models/Product': { __esModule: true, default: { find: filter => { seenFilter = filter; return query }, countDocuments: async () => 0 } },
     '@/models/Category': { __esModule: true, default: { find: () => query } },
     '@/lib/categories': { resolveDescendantIds: () => [], resolveAncestorChain: () => [] },
@@ -63,6 +70,7 @@ async function main() {
     } },
     '@/lib/notifications': { createNotification: async () => { throw Error('Notification failed') } },
     '@/lib/email': { newsletterSubscriptionTemplate: () => '', sendEmail: async () => { emailCalls++; throw Error('SMTP failed') } },
+    '@/lib/turnstile': { requireTurnstile: async () => null },
   })
   const subscribe = () => POST({ json: async () => ({ email: ' Alex@example.com ' }) })
   assert.equal((await subscribe()).status, 503)

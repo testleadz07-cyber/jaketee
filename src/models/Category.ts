@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface ICategory extends Document {
@@ -33,4 +34,4 @@ const CategorySchema = new Schema<ICategory>(
 
 CategorySchema.index({ parentId: 1 })
 
-export default mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema)
+export default requestScopedModel(mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema))

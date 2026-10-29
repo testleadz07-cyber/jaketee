@@ -38,7 +38,7 @@ async function authorize(request: NextRequest) {
   ]))
   if (!user) return { response: NextResponse.json({ error: 'Admin access required' }, { status: 403 }) }
   if (!login) return { response: NextResponse.json({ error: 'Your login session is unavailable. Please sign in again.' }, { status: 401 }) }
-  const limit = checkRateLimit(`push:${identity.id}`, request.method === 'PATCH' ? 5 : 60, 60_000)
+  const limit = await checkRateLimit(`push:${identity.id}`, request.method === 'PATCH' ? 5 : 60, 60_000)
   if (!limit.success) return { response: NextResponse.json({ error: 'Please wait before trying again' }, { status: 429 }) }
   return { identity, expiresAt }
 }

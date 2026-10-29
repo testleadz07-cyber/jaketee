@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
 
 const SectionImageSchema = new Schema({
@@ -14,4 +15,4 @@ const SectionImageSchema = new Schema({
 
 SectionImageSchema.index({ section: 1, key: 1 }, { unique: true })
 
-export default mongoose.models.SectionImage || mongoose.model('SectionImage', SectionImageSchema)
+export default requestScopedModel(mongoose.models.SectionImage || mongoose.model('SectionImage', SectionImageSchema))

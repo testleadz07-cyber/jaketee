@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { PushNotificationSettings } from '@/components/admin/push-notification-settings'
 
 import { useUrlFilter } from '@/hooks/use-url-filter'

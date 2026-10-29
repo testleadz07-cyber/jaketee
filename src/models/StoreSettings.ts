@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IStoreSettings extends Document {
@@ -15,4 +16,4 @@ const StoreSettingsSchema = new Schema<IStoreSettings>(
   { timestamps: true }
 );
 
-export default mongoose.models.StoreSettings || mongoose.model<IStoreSettings>('StoreSettings', StoreSettingsSchema);
+export default requestScopedModel(mongoose.models.StoreSettings || mongoose.model<IStoreSettings>('StoreSettings', StoreSettingsSchema))

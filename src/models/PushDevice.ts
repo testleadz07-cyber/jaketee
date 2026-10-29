@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
 
 const PushDeviceSchema = new Schema({
@@ -8,4 +9,4 @@ const PushDeviceSchema = new Schema({
   expiresAt: { type: Date, required: true, index: { expires: 0 } },
 }, { timestamps: true })
 
-export default mongoose.models.PushDevice || mongoose.model('PushDevice', PushDeviceSchema)
+export default requestScopedModel(mongoose.models.PushDevice || mongoose.model('PushDevice', PushDeviceSchema))

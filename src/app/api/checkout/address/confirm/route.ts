@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
     if (!hasValidActivityOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
     const body = await request.json()
     if (body?.confirmed !== true) throw new CheckoutError('Please confirm your delivery address')
-    if (!await connectDB()) return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     const session = await getServerSession(authOptions)
+    // Guest address validation/signing needs no database connection.
+    if (session?.user && !await connectDB()) return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     const { userId, userEmail } = await resolveCheckoutCustomer(session?.user as any, body.email, body.shippingAddress)
     const address = body.shippingAddress
     const shippingAddress = {

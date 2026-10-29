@@ -21,6 +21,7 @@ const DISCOUNT_CODE = process.env.ABANDONED_CART_DISCOUNT_CODE || undefined
 
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
+  if (process.env.CRON_ENABLED === 'false' || process.env.MIGRATION_TEST_MODE === 'true') return false
   if (!secret) {
     // No secret configured — refuse to run rather than exposing an
     // unauthenticated endpoint that can spam customers with emails.
@@ -50,15 +51,20 @@ async function runAbandonedCartSweep(request: NextRequest) {
   }
 
   const now = Date.now()
-  const oldestThresholdHours = REMINDER_STAGES[0].hours
 
   try {
     // Only pull carts that are at least eligible for the earliest stage and
     // haven't already been fully recovered/opted out of the sequence.
     const candidates = await AbandonedCart.find({
       recovered: false,
-      lastActivityAt: { $lte: new Date(now - oldestThresholdHours * 60 * 60 * 1000) },
-    })
+      $and: [
+        { $or: REMINDER_STAGES.map(stage => ({
+          lastActivityAt: { $lte: new Date(now - stage.hours * 60 * 60 * 1000) },
+          remindersSent: { $ne: stage.hours },
+        })) },
+        { $or: [{ lastReminderAt: { $exists: false } }, { lastReminderAt: { $lte: new Date(now - 10 * 60_000) } }] },
+      ],
+    }).sort({ lastActivityAt: 1, _id: 1 }).limit(5)
 
     let emailsSent = 0
     let skipped = 0
@@ -79,6 +85,18 @@ async function runAbandonedCartSweep(request: NextRequest) {
         skipped++
         continue
       }
+
+      // Use the existing timestamp as a short delivery lease; no schema change.
+      // Failed sends restore it. Ambiguous upstream delivery can still repeat
+      // after a crash: exact-once email needs provider idempotency support.
+      const leaseAt = new Date()
+      const previousReminderAt = cart.lastReminderAt
+      const claimed = await AbandonedCart.findOneAndUpdate({
+        _id: cart._id, recovered: false, lastActivityAt: cart.lastActivityAt,
+        remindersSent: { $ne: stageToSend.hours },
+        $or: [{ lastReminderAt: { $exists: false } }, { lastReminderAt: { $lte: new Date(now - 10 * 60_000) } }],
+      }, { $set: { lastReminderAt: leaseAt } }, { returnDocument: 'after' })
+      if (!claimed) { skipped++; continue }
 
       const { subject, html } = abandonedCartTemplate({
         userName: cart.userName || 'there',
@@ -101,17 +119,14 @@ async function runAbandonedCartSweep(request: NextRequest) {
       })
 
       if (result.success) {
-        cart.remindersSent = [...cart.remindersSent, stageToSend.hours]
-        cart.lastReminderAt = new Date()
-        // Once the final stage has been sent, stop tracking this cart —
-        // further nudges add no value and the cron shouldn't keep scanning it.
-        if (stageToSend.stage === 'final') {
-          cart.recovered = true
-          cart.recoveredAt = new Date()
-        }
-        await cart.save()
+        await AbandonedCart.updateOne({ _id: cart._id, lastReminderAt: leaseAt }, {
+          $addToSet: { remindersSent: stageToSend.hours },
+          ...(stageToSend.stage === 'final' ? { $set: { recovered: true, recoveredAt: new Date() } } : {}),
+        })
         emailsSent++
       } else {
+        await AbandonedCart.updateOne({ _id: cart._id, lastReminderAt: leaseAt }, previousReminderAt
+          ? { $set: { lastReminderAt: previousReminderAt } } : { $unset: { lastReminderAt: 1 } })
         skipped++
       }
     }

@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { SectionLoadingSkeleton } from '@/components/page-content-skeleton'
 
 import { startTransition, useState, useEffect, Suspense  } from 'react'

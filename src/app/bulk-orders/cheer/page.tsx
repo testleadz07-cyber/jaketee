@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { customLandingMetadata } from '@/components/custom-jacket-landing-page'
 import type { Metadata } from 'next'
 import { BulkProgramPage } from '@/components/bulk-program-page'

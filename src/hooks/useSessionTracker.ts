@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 

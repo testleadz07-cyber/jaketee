@@ -10,7 +10,7 @@ import { requireTurnstile } from '@/lib/turnstile'
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
-  const limit = checkRateLimit(`bulk-quote:${getClientIp(request)}`, 5, 60 * 60 * 1000)
+  const limit = await checkRateLimit(`bulk-quote:${getClientIp(request)}`, 5, 60 * 60 * 1000)
   if (!limit.success) return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429, headers: rateLimitHeaders(limit) })
   if (Number(request.headers.get('content-length')) > 6 * 1024 * 1024) return NextResponse.json({ error: 'Your request is too large.' }, { status: 413 })
   try {
@@ -56,10 +56,10 @@ export async function POST(request: NextRequest) {
     }).catch(() => console.error('Bulk quote saved, but admin notification failed'))
     // The saved inquiry is the source of truth; email failure must not prompt duplicate submissions.
     try {
-      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-        const result = await sendEmail({ to: process.env.SMTP_USER, subject, html: contactFormTemplate({ name: data.name, email: data.email, subject, message }), attachments })
-        if (!result.success) console.error('Bulk quote saved, but notification email delivery failed')
-      } else console.error('Bulk quote saved, but notification email is not configured')
+      const to = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SUPPORT_EMAIL ||
+        (process.env.SMTP_USER?.includes('@') ? process.env.SMTP_USER : 'info@jacketee.com')
+      const result = await sendEmail({ to, subject, html: contactFormTemplate({ name: data.name, email: data.email, subject, message }), attachments })
+      if (!result.success) console.error('Bulk quote saved, but notification email delivery failed')
     } catch {
       console.error('Bulk quote saved, but notification email delivery failed')
     }

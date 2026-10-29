@@ -9,10 +9,12 @@ function load(file, mocks = {}, globals = {}) {
   const source = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true } }).outputText
   const module = { exports: {} }
   const localRequire = name => {
+    if (name === '@/lib/mongodb' && file.startsWith('src/models/')) return { requestScopedModel: model => model }
     if (Object.hasOwn(mocks, name)) return mocks[name]
     if (name === '@/lib/notifications' && file !== 'src/lib/notifications.ts') return { createNotification: async () => {} }
     if (name === '@/models/User' && mocks[name] === undefined) return load('src/models/User.ts', mocks)
     if (name.startsWith('@/')) return load(`src/${name.slice(2)}.ts`, mocks, globals)
+    if (name.startsWith('.')) return load(path.resolve(path.dirname(file), `${name}.ts`), mocks, globals)
     return require(name)
   }
   vm.runInNewContext(`(function(require,module,exports){${source}\n})`, { process, console, Date, URL, setTimeout, clearTimeout, AbortController, Buffer, ...globals })(localRequire, module, module.exports)
@@ -214,7 +216,7 @@ async function main() {
     const { createNotification, notifyOrder } = load('src/lib/notifications.ts', {
       '@/lib/mongodb': { connectDB: async () => true },
       '@/models/Notification': { init: async () => {}, create: async () => { if (count++) throw { code: 11000 }; return { _id: 'n-1' } } },
-      '@/lib/push-notifications': { sendAdminPush: async () => { sends++ } },
+      '@/lib/notification-delivery': { scheduleNotificationPush: () => { sends++ } },
     })
     await notifyOrder({ _id: 'order-1', orderNumber: 'LX-1' }, true)
     await notifyOrder({ _id: 'order-1', orderNumber: 'LX-1' }, true)
@@ -223,7 +225,7 @@ async function main() {
     const failingPush = load('src/lib/notifications.ts', {
       '@/lib/mongodb': { connectDB: async () => true },
       '@/models/Notification': { init: async () => {}, create: async () => ({ _id: 'saved' }) },
-      '@/lib/push-notifications': { sendAdminPush: async () => { throw new Error('Simulated FCM outage') } },
+      '@/lib/notification-delivery': { scheduleNotificationPush: () => { throw new Error('Simulated scheduling outage') } },
     })
     const originalError = console.error
     try {

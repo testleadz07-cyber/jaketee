@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -11,17 +13,17 @@ export function BotpressChat() {
   const { data: session, status } = useSession()
   const role = (session?.user as { role?: string } | undefined)?.role || 'guest'
   const [permission, setPermission] = useState<{ role: string; enabled: boolean } | null>(null)
+  const isPrivatePage = /^\/(admin|checkout|profile|login|register|forgot-password|reset-password|order-confirmation)(\/|$)/.test(pathname)
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading' || isPrivatePage) return
     const controller = new AbortController()
     fetch('/api/chat-visibility', { cache: 'no-store', signal: controller.signal })
       .then(response => response.ok ? response.json() : null)
       .then(data => setPermission({ role, enabled: data?.enabled === true }))
       .catch(() => { if (!controller.signal.aborted) setPermission({ role, enabled: false }) })
     return () => controller.abort()
-  }, [role, status])
+  }, [role, status, isPrivatePage])
   const allowed = status !== 'loading' && permission?.role === role && permission.enabled
-  const isPrivatePage = /^\/(admin|checkout|profile|login|register|forgot-password|reset-password|order-confirmation)(\/|$)/.test(pathname)
 
   // Webchat injects its UI outside React, so hide it on private routes even
   // when the visitor navigates there after loading a public page.

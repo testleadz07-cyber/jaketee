@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IWishlist extends Document {
@@ -16,4 +17,4 @@ const WishlistSchema = new Schema<IWishlist>(
 
 WishlistSchema.index({ userId: 1, productId: 1 }, { unique: true })
 
-export default mongoose.models.Wishlist || mongoose.model<IWishlist>('Wishlist', WishlistSchema)
+export default requestScopedModel(mongoose.models.Wishlist || mongoose.model<IWishlist>('Wishlist', WishlistSchema))

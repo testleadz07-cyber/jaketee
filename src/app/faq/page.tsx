@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { connection } from 'next/server'
 import { getPublicFaqPage } from '@/lib/public-faq-page'
 import FaqPage from './faq-client'

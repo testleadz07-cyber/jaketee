@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export type BlogPostStatus = 'draft' | 'scheduled' | 'published'
@@ -52,4 +53,4 @@ const BlogPostSchema = new Schema<IBlogPost>(
 BlogPostSchema.index({ title: 'text', excerpt: 'text', content: 'text' })
 BlogPostSchema.index({ status: 1, publishedAt: -1 })
 
-export default mongoose.models.BlogPost || mongoose.model<IBlogPost>('BlogPost', BlogPostSchema)
+export default requestScopedModel(mongoose.models.BlogPost || mongoose.model<IBlogPost>('BlogPost', BlogPostSchema))

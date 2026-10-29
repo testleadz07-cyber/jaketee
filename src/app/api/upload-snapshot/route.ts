@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadImage } from '@/lib/cloudinary'
+import { boundedText, RequestBodyTooLarge } from '@/lib/request-body'
 import { JACKET_VIEWS, type JacketView } from '@/types/jacket-customization'
 
 export async function POST(request: NextRequest) {
+  if (request.headers.get('origin') !== request.nextUrl.origin) return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
   try {
-    const body = await request.text()
+    const body = await boundedText(request, 12 * 1024 * 1024)
     if (Buffer.byteLength(body) > 12 * 1024 * 1024) return NextResponse.json({ error: 'Design previews are too large' }, { status: 413 })
     let data
     try { data = JSON.parse(body) } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }) }
@@ -30,6 +32,7 @@ export async function POST(request: NextRequest) {
     const snapshots = Object.fromEntries(results.map(({ view, result }) => [view, result!.url]))
     return NextResponse.json(batch ? { snapshots } : { url: snapshots.front })
   } catch (error: any) {
+    if (error instanceof RequestBodyTooLarge) return NextResponse.json({ error: 'Design previews are too large' }, { status: 413 })
     console.error('Upload Snapshot API error:', error)
     return NextResponse.json({ error: 'Failed to upload snapshot' }, { status: 500 })
   }

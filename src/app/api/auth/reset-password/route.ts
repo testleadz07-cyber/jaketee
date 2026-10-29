@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     user.resetPasswordExpires = undefined
     await user.save()
 
-    sendEmail({
+    await sendEmail({
       to: user.email,
       subject: 'Your Jacketee password was changed',
       html: passwordChangedTemplate({ userName: user.name }),

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { publicRead } from '@/lib/public-cache'
 import { getPublicCategories, getPublicCategoryCounts } from '@/lib/public-catalog'
 import { withSocialMetadata } from '@/lib/seo-metadata'
@@ -20,7 +22,6 @@ import { collectionDesignImages } from '@/lib/collection-design-images'
 import { getCustomDesignImages } from '@/components/custom-design-section'
 import { CategoryDetailView } from '@/components/category-detail-view'
 import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters, type CatalogFacetData } from '@/lib/catalog-filters'
-import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Faq from '@/models/Faq'
 import Category from '@/models/Category'
@@ -166,8 +167,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
     let approvedAverageRating = 0
     let approvedReviews: any[] = []
     try {
-      const db = await connectDB()
-      if (db) {
+      {
         const productId = product._id || product.id
         const reviewMatch = { productId, status: 'approved' }
         const [matched, reviewSummary, recentReviews] = await publicRead('product-support', [String(productId), faqTargets], 300, ['public-support'], async () => Promise.all([
@@ -369,8 +369,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
     faqs: [],
   }
   try {
-    const db = await connectDB()
-    if (db) {
+    {
       const rawCategories = await getPublicCategories()
       const nodes = rawCategories.map((item: any) => ({
         _id: String(item._id),
@@ -509,11 +508,6 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
       const faqPriority = (question: string) => /baby|toddler|child|kids|parent/i.test(question) && !/baby|toddler|child|kids/i.test(category.name) ? 10 : /siz|fit/i.test(question) ? 0 : /material|color/i.test(question) ? 1 : /customiz|names|numbers/i.test(question) ? 2 : /shipping|deliver/i.test(question) ? 3 : /return/i.test(question) ? 4 : 5
       const purchaseQuestions = [...new Map([...faqs, ...buyingFaqs].map(faq => [faq.question.toLowerCase(), faq])).values()].sort((a, b) => faqPriority(a.question) - faqPriority(b.question)).slice(0, 5)
       initialInsights = { faqs: purchaseQuestions, reviewCount, averageRating, reviews }
-    } else {
-      initialCategories = getStaticCategoriesWithCount().map((item: any) => ({
-        id: String(item.id), name: item.name, slug: item.slug, description: item.description || '', heading: item.heading || '', introShort: item.introShort || '', introLong: item.introLong || '', image: item.image || '',
-        parentId: item.parentId ? String(item.parentId) : null, _count: item._count,
-      }))
     }
   } catch (error) {
     console.error('Error loading category data:', error)

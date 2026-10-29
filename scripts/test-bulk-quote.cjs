@@ -12,6 +12,7 @@ async function scenario({ database = true, saveFails = false, emailFails = false
     '@/config/fulfillment': { shippingCountryError: () => null },
     '@/lib/rate-limit': { checkRateLimit: () => ({ success: true }), getClientIp: () => 'test', rateLimitHeaders: () => ({}) },
     '@/lib/mongodb': { connectDB: async () => database },
+    '@/lib/turnstile': { requireTurnstile: async () => null },
     '@/models/ContactMessage': { default: { create: async data => { if (saveFails) throw Error('write failed'); saved.push(data); events.push('save') } } },
     '@/lib/notifications': { createNotification: async data => notifications.push(data) },
     '@/lib/email': { contactFormTemplate: data => data.message, sendEmail: async data => { emails.push(data); events.push('email'); if (emailFails) throw Error('smtp failed'); return { success: true } } },

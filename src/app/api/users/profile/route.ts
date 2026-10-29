@@ -71,7 +71,7 @@ export async function PUT(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Your account is no longer available' }, { status: 401 })
 
     if (newPassword) {
-      sendEmail({
+      await sendEmail({
         to: (user as any).email,
         subject: 'Your Jacketee password was changed',
         html: passwordChangedTemplate({ userName: (user as any).name }),

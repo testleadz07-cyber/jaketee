@@ -1,7 +1,6 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { NextResponse } from 'next/server'
 import StoreSettings from '@/models/StoreSettings'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 
 // Helper to ensure DB is connected
@@ -12,10 +11,8 @@ async function ensureDB() {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   try {
     await ensureDB()
     let settings = await StoreSettings.findOne()
@@ -33,10 +30,8 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   try {
     await ensureDB()
     const { lowStockThreshold, reviewRequestDelayDays } = await request.json()

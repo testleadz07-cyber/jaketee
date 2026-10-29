@@ -1,5 +1,5 @@
+import { publicRead } from '@/lib/public-cache'
 import 'server-only'
-import { unstable_cache } from 'next/cache'
 import { Types } from 'mongoose'
 import { connectDB } from '@/lib/mongodb'
 import ProductModel from '@/models/Product'
@@ -108,4 +108,4 @@ async function loadHomeCatalog() {
   return { categories, featuredProducts, newArrivals, categoryImages }
 }
 
-export const getHomeCatalog = unstable_cache(loadHomeCatalog, ['home-catalog-v1'], { revalidate: 60, tags: ['homepage'] })
+export const getHomeCatalog = () => publicRead('home-catalog-v1', [], 60, ['homepage'], loadHomeCatalog)

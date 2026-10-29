@@ -20,7 +20,9 @@ const mocks = {
   '@/components/header': { Header: () => null },
   '@/components/footer': { Footer: () => null },
   '@/lib/activity': { logUserActivity: async () => false },
+  '@/hooks/use-guest-form-activity': { useGuestFormActivity: () => ({ bindings: {}, notice: null, submitted: async () => {} }) },
   '@/lib/mongodb': { connectDB: async () => dbAvailable },
+  '@/lib/turnstile': { requireTurnstile: async () => null },
   '@/models/ContactMessage': { __esModule: true, default: { create: async data => { if (saveFails) throw Error('Save failed'); saved.push(data) } } },
   '@/lib/notifications': { createNotification: async data => notifications.push(data) },
   '@/lib/email': {

@@ -1,7 +1,7 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
 
-export type TurnstileAction = 'login' | 'register' | 'forgot_password' | 'contact' | 'bulk_quote' | 'newsletter'
+export type TurnstileAction = 'login' | 'register' | 'forgot_password' | 'contact' | 'bulk_quote' | 'newsletter' | 'returns'
 
 /** Tokens are single-use: verify before any database write, login or email. */
 export async function verifyTurnstile(token: unknown, action: TurnstileAction): Promise<boolean> {

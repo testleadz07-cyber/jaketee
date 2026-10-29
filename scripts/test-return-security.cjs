@@ -1,0 +1,126 @@
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const vm = require('node:vm')
+const ts = require('typescript')
+const { webcrypto } = require('node:crypto')
+
+function load(file, mocks, globals = {}) {
+  const module = { exports: {} }
+  const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
+  vm.runInNewContext('(function(require,module,exports){' + source + '\n})', { Response, Request, crypto: webcrypto, console, ...globals })(id => {
+    if (!(id in mocks)) throw Error('Unexpected import ' + id)
+    return mocks[id]
+  }, module, module.exports)
+  return module.exports
+}
+async function main() {
+  let now = Date.now()
+  class Clock extends Date { static now() { return now } }
+  const stores = new Map()
+  const { SecurityRateLimiter } = load('src/cloudflare/security-rate-limiter.ts', {}, { Date: Clock })
+  const gate = async (key, action, details = {}) => {
+    if (!stores.has(key)) {
+      const map = new Map(); let pending = Promise.resolve()
+      const storage = {
+        get: async key => structuredClone(map.get(key)), put: async (key, value) => map.set(key, structuredClone(value)),
+        delete: async key => map.delete(key), deleteAll: async () => map.clear(), setAlarm: async () => {},
+        transaction: fn => { const result = pending.then(() => fn(storage)); pending = result.catch(() => {}); return result },
+      }
+      stores.set(key, new SecurityRateLimiter({ storage }))
+    }
+    return (await stores.get(key).fetch(new Request('https://internal/', { method: 'POST', body: JSON.stringify({ action, ...details }) }))).json()
+  }
+  const records = new Map()
+  const order = { _id: '123456789012345678901234', orderNumber: 'JT-123', userId: 'owner', userEmail: 'Owner@Example.com' }
+  let queryCount = 0
+  const matches = (row, query) => query.orderId.$in.includes(row.orderId) && (!query.status || row.status === query.status) &&
+    (!query.createdAt || row.createdAt > query.createdAt.$gt)
+  const query = value => ({ select() { return this }, limit() { return this }, lean: async () => value })
+  const api = load('src/lib/return-request.ts', {
+    'server-only': {}, '@/lib/mongodb': { connectDB: async () => true },
+    '@/models/Order': { default: { findOne: filter => { queryCount++; return query(filter.orderNumber === order.orderNumber ? order : null) } } },
+    '@/models/RefundRequest': { default: {
+      exists: async filter => [...records.values()].some(row => matches(row, filter)),
+      find: filter => query([...records.values()].filter(row => matches(row, filter)).slice(0, 3)),
+      updateOne: async (filter, update) => {
+        if (records.has(filter._id)) return { upsertedCount: 0 }
+        records.set(filter._id, { _id: filter._id, ...update.$setOnInsert }); return { upsertedCount: 1 }
+      },
+    } }, './return-submission-gate': { returnSubmissionGate: gate },
+  }, { Date: Clock })
+  const input = { orderId: 'JT-123', userEmail: 'owner@example.com', userName: '', reason: 'The jacket does not fit correctly.', turnstileToken: 'token' }
+  assert.equal(api.parseReturnInput({ ...input, userEmail: ' OWNER@EXAMPLE.COM ' }).userEmail, input.userEmail)
+  for (const invalid of [{ ...input, role: 'admin' }, { ...input, reason: 'short' }, { ...input, orderId: { $ne: null } }, { ...input, userName: 'x'.repeat(101) }]) {
+    assert.throws(() => api.parseReturnInput(invalid))
+  }
+  const wrongEmail = await api.submitReturn({ ...input, userEmail: 'wrong@example.com' })
+  const missingOrder = await api.submitReturn({ ...input, orderId: 'missing' })
+  assert.equal(wrongEmail.error, missingOrder.error)
+  assert.equal(records.size, 0)
+  const parallel = await Promise.all(Array.from({ length: 20 }, () => api.submitReturn(input)))
+  assert.equal(parallel.filter(result => result.inserted).length, 1)
+  assert.equal(records.size, 1, 'Parallel submissions create only one record')
+  assert.equal((await api.submitReturn(input)).status, 409)
+  for (const row of records.values()) row.status = 'rejected'
+  assert.equal((await api.submitReturn({ ...input, userEmail: '' }, { id: 'owner' })).status, 201, 'Signed-in owner may omit email')
+  for (const row of records.values()) row.status = 'rejected'
+  assert.equal((await api.submitReturn(input)).status, 201)
+  for (const row of records.values()) row.status = 'rejected'
+  assert.equal((await api.submitReturn(input)).status, 429, 'At most three DB records per order in 24 hours')
+  const abandoned = await gate('recovery', 'returns-reserve')
+  assert.equal((await gate('recovery', 'returns-reserve')).status, 'busy')
+  now += 60_001
+  assert.equal((await gate('recovery', 'returns-reserve')).id, abandoned.id, 'Ambiguous retry reuses the MongoDB insert identity')
+  const limits = await Promise.all(Array.from({ length: 12 }, () => gate('returns-ip', 'limit', { limit: 3, windowMs: 3600000 })))
+  assert.equal(limits.filter(row => row.success).length, 3, 'Exact hourly IP budget is serialized')
+  now += 3600001
+  assert.equal((await gate('returns-ip', 'limit', { limit: 3, windowMs: 3600000 })).success, true)
+  now += 86400001
+  const nextDay = await gate('recovery', 'returns-reserve')
+  assert.equal(nextDay.status, 'reserved')
+  assert.notEqual(nextDay.id, abandoned.id, 'Expired state recovers even when its cleanup alarm has not fired yet')
+  assert.ok(queryCount > 0)
+  let verified = false, writes = 0, notifications = 0, inserted = true
+  const bodyHelpers = load('src/lib/request-body.ts', {}, { ReadableStream })
+  const endpoint = load('src/app/api/returns/route.ts', {
+    'next/server': { NextResponse: Response }, 'next-auth': { getServerSession: async () => null },
+    '@/lib/auth-options': { authOptions: {} }, '@/lib/request-body': bodyHelpers,
+    '@/lib/turnstile': { requireTurnstile: async (_token, action) => {
+      assert.equal(action, 'returns')
+      return verified ? null : Response.json({ error: 'Verification failed' }, { status: 403 })
+    } },
+    '@/lib/return-request': { parseReturnInput: api.parseReturnInput, submitReturn: async () => { writes++; return { status: 201, id: 'saved', orderNumber: 'JT-123', inserted } } },
+    '@/lib/notifications': { createNotification: async payload => { assert.equal(payload.type, 'refund_request'); notifications++ } },
+  })
+  const post = (data, origin = 'https://example.invalid') => {
+    const request = new Request('https://example.invalid/api/returns', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(data) })
+    request.nextUrl = new URL(request.url)
+    return endpoint.POST(request)
+  }
+  assert.equal((await post(input, 'https://other.invalid')).status, 403)
+  assert.equal((await post({ ...input, unexpected: true })).status, 400)
+  assert.equal((await post({ ...input, reason: 'x'.repeat(11000) })).status, 413)
+  assert.equal((await post(input)).status, 403)
+  assert.equal(writes, 0, 'Origin, validation, byte and Turnstile failures must precede writes')
+  verified = true
+  assert.equal((await post(input)).status, 201)
+  assert.equal(notifications, 1)
+  inserted = false
+  assert.equal((await post(input)).status, 201)
+  assert.equal(notifications, 1, 'Idempotent retry must not notify twice')
+  let providerResult = { success: true, action: 'returns', hostname: 'example.invalid' }
+  const turnstile = load('src/lib/turnstile.ts', { 'server-only': {}, 'next/server': { NextResponse: Response } }, {
+    AbortSignal, process: { env: { NODE_ENV: 'production', TURNSTILE_SECRET_KEY: 'fixture-secret', TURNSTILE_HOSTNAMES: 'example.invalid' } },
+    fetch: async () => Response.json(providerResult),
+  })
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), true)
+  providerResult = { ...providerResult, action: 'newsletter' }
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), false)
+  providerResult = { success: true, action: 'returns', hostname: 'other.invalid' }
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), false)
+  providerResult.success = false
+  assert.equal(await turnstile.verifyTurnstile('fixture-token', 'returns'), false)
+  console.log('PASS: returns validation, generic ownership denial, signed-in ownership, pending duplicates, parallel inserts, exact hourly limits, daily quotas and recoverable idempotent claims')
+  console.log('PASS: returns endpoint checks origin, bounded JSON and Turnstile before writes; duplicate retries do not notify twice')
+}
+main().catch(error => { console.error(error); process.exitCode = 1 })

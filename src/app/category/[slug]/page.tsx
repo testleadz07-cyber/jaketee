@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { permanentRedirect, notFound } from 'next/navigation'
 import { resolveSlugPath } from '@/lib/route-resolver'
 import { buildCategoryUrl } from '@/lib/categories'
