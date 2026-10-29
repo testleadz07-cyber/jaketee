@@ -37,6 +37,20 @@ function harness(env = {}, mocks = {}, fetcher = async () => { throw Error('Unex
 }
 
 async function main() {
+  const wrangler = ts.parseConfigFileTextToJson('wrangler.jsonc', fs.readFileSync('wrangler.jsonc', 'utf8')).config
+  assert.equal(wrangler.main, 'cloudflare-worker.ts')
+  assert.ok(wrangler.durable_objects.bindings.some(binding => binding.name === 'SECURITY_LIMITER' && binding.class_name === 'SecurityRateLimiter'))
+  assert.ok(wrangler.migrations.some(migration => migration.new_sqlite_classes.includes('SecurityRateLimiter')))
+  assert.ok(!wrangler.triggers?.crons?.length)
+  const generatedHandler = { fetch: async () => new Response('generated') }
+  const entryHarness = harness({}, {
+    [path.resolve('.open-next/worker.js')]: { __esModule: true, default: generatedHandler },
+  })
+  const configuredEntry = entryHarness.load(wrangler.main)
+  assert.equal(configuredEntry.default, generatedHandler, 'Do not replace OpenNext request handling')
+  assert.equal(configuredEntry.SecurityRateLimiter, entryHarness.load('src/cloudflare/security-rate-limiter.ts').SecurityRateLimiter)
+  console.log('PASS: configured Worker exposes the SQLite security limiter and preserves generated fetch/no cron')
+
   // Real Mongoose schemas with disconnected, simulated request connections.
   const mongoose = new (require('mongoose').Mongoose)()
   const create = mongoose.createConnection.bind(mongoose)

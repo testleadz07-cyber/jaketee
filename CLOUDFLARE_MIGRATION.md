@@ -7,8 +7,10 @@ the build settings. A subsequent push to this branch triggers a new build;
 changing the branch setting alone does not rebuild an already-pushed commit.
 Check the new build's branch and commit instead of retrying an old `main` build.
 
-The active Worker is **jaketee**, with main **.open-next/worker.js**. No cron
-triggers or scheduled handler are configured. The old worker.ts is unused.
+The active Worker is **jaketee**, with main **cloudflare-worker.ts**. This minimal
+entry re-exports the generated **.open-next/worker.js** default handler and the
+SecurityRateLimiter class. No cron triggers or scheduled handler are configured.
+The old worker.ts is unused.
 Package preview/deploy/upload scripts use the standard OpenNext CLI commands.
 R2, D1 and Durable Object cache bindings are commented examples only.
 `keep_vars: true` preserves runtime variables managed in the Cloudflare dashboard
@@ -29,11 +31,11 @@ requires the adapter's explicit config-validation opt-out because its validator
 only accepts the literal stock wrapper name. Recheck this integration on adapter
 upgrades; offline regression tests exercise the real stock wrapper concurrently.
 
-Runtime follow-up (business logic intentionally unchanged): SECURITY_LIMITER
-enforcement from the old entry is still not wired through this entry. Existing
-strict limiter callers require SECURITY_LIMITER and will fail if invoked with
-that binding missing; LOGIN_LIMITER/API_LIMITER alone do not replace it.
-Build success confirms packaging, not those integrations.
+SECURITY_LIMITER now binds the exported SecurityRateLimiter class, with the
+security-v1 SQLite migration for Free-plan compatibility. Existing account
+lockouts and strict API limiter callers use this binding. Its counters live in
+Cloudflare storage, not MongoDB. Native LOGIN_LIMITER/API_LIMITER bindings remain
+configured separately. The unused old entry's route-wide guard is not restored.
 This build check uses MIGRATION_TEST_MODE=true with local production credentials
 masked. Set MIGRATION_TEST_MODE=true in Workers Builds for the same database-free
 test build; otherwise the existing homepage prerender needs database access.

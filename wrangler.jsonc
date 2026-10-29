@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "jaketee",
-  "main": ".open-next/worker.js",
+  "main": "cloudflare-worker.ts",
   "compatibility_date": "2026-10-23",
   "compatibility_flags": [
     "nodejs_compat",
@@ -26,6 +26,14 @@
   "workers_dev": true,
   "preview_urls": true,
   "keep_vars": true,
+  "durable_objects": {
+    "bindings": [
+      { "name": "SECURITY_LIMITER", "class_name": "SecurityRateLimiter" }
+    ]
+  },
+  "migrations": [
+    { "tag": "security-v1", "new_sqlite_classes": ["SecurityRateLimiter"] }
+  ],
   "ratelimits": [
     {
       "name": "LOGIN_LIMITER",
@@ -47,6 +55,5 @@
   // Optional production cache examples; inactive for free-plan testing.
   // ,"r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "jaketee-cache" }]
   // ,"d1_databases": [{ "binding": "NEXT_TAG_CACHE_D1", "database_name": "jaketee-tags", "database_id": "<database-id>" }]
-  // ,"durable_objects": { "bindings": [{ "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" }] }
-  // ,"migrations": [{ "tag": "cache-v1", "new_sqlite_classes": ["DOQueueHandler"] }]
+  // Optional cache DO bindings/migrations must be appended to the arrays above.
 }
