@@ -1,7 +1,6 @@
 import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
+import { requireAdminApi } from '@/lib/require-admin'
 import { connectDB } from '@/lib/mongodb'
 import BlogCategory from '@/models/BlogCategory'
 
@@ -13,14 +12,10 @@ function slugify(input: string) {
     .replace(/(^-|-$)+/g, '')
 }
 
-async function isAdmin() {
-  const session = await getServerSession(authOptions)
-  if (!session || (session.user as any).role !== 'admin') return null
-  return session
-}
-
 export async function GET() {
   try {
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
     const db = await connectDB()
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
@@ -36,10 +31,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -69,10 +62,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
