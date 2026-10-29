@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Product from '@/models/Product'
 import Category from '@/models/Category'
 import { buildProductUrl, resolveAncestorChain } from '@/lib/categories'
+import { publicRead } from '@/lib/public-cache'
 
 export async function GET() {
   try {
-    const db = await connectDB()
-    if (!db) return NextResponse.json([])
-
+    const highlights = await publicRead('review-highlights', [], 300, ['public-support', 'public-products', 'public-categories'], async () => {
     const reviews = await Review.find({ status: 'approved', rating: { $gte: 4 }, comment: { $ne: '' } })
       .sort({ createdAt: -1 })
       .limit(24)
       .lean()
 
-    if (!reviews.length) return NextResponse.json([])
+    if (!reviews.length) return []
 
     const products = await Product.find({ _id: { $in: reviews.map((review) => review.productId) }, inStock: true, isDraft: { $ne: true }, status: 'active' })
       .select('name slug categoryId')
@@ -49,7 +47,9 @@ export async function GET() {
     })
 
     highlights.sort((a, b) => Number(Boolean(b.image)) - Number(Boolean(a.image)))
-    return NextResponse.json(highlights.slice(0, 3))
+    return highlights.slice(0, 3)
+    })
+    return NextResponse.json(highlights)
   } catch (error) {
     console.error('Homepage review highlights error:', error)
     return NextResponse.json([])

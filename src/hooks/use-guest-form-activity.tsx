@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useSession } from 'next-auth/react'
 import { COOKIE_CONSENT_UPDATED_EVENT, COOKIE_CONSENT_KEY, getStoredConsent, openCookiePreferences } from '@/lib/cookie-consent'

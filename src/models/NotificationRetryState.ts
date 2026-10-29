@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
 
 // One shared marker across admins and server instances; no timer or cron needed.
@@ -7,4 +8,4 @@ const schema = new Schema({
   attemptedAt: { type: Date, required: true },
 }, { versionKey: false })
 
-export default mongoose.models.NotificationRetryState || mongoose.model('NotificationRetryState', schema)
+export default requestScopedModel(mongoose.models.NotificationRetryState || mongoose.model('NotificationRetryState', schema))

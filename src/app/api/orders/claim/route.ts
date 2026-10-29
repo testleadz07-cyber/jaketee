@@ -4,12 +4,12 @@ import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
-import { guestOrderClaimTemplate, sendEmail } from '@/lib/email'
+import { emailConfigurationError, guestOrderClaimTemplate, sendEmail } from '@/lib/email'
 import GuestOrderClaim from '@/models/GuestOrderClaim'
 import Order from '@/models/Order'
 
 const TOKEN_TTL_MS = 30 * 60 * 1000
-const MESSAGE = 'If that email has guest orders, a verification link will be sent to it.'
+const MESSAGE = 'Request processed. If eligible, check your inbox and spam folder for a verification link. If it does not arrive, try again later or contact support.'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,13 +31,12 @@ export async function POST(request: NextRequest) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
         return NextResponse.json({ error: 'Enter a valid checkout email' }, { status: 400 })
       }
-      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        return NextResponse.json({ error: 'Email verification is unavailable right now' }, { status: 503 })
+      if (emailConfigurationError()) {
+        return NextResponse.json({ error: 'Email verification is unavailable right now. Please try again later.' }, { status: 503 })
       }
       const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       const guestOrdersExist = await Order.exists({ userId: null, userEmail: new RegExp(`^${escapedEmail}$`, 'i') })
       if (guestOrdersExist) {
-        await GuestOrderClaim.deleteMany({ userId, email })
         const token = crypto.randomBytes(32).toString('hex')
         const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
         const claim = await GuestOrderClaim.create({
@@ -53,7 +52,11 @@ export async function POST(request: NextRequest) {
           subject: 'Link your Jacketee guest orders',
           html: guestOrderClaimTemplate({ claimUrl }),
         })
-        if (!result.success) await GuestOrderClaim.deleteOne({ _id: claim._id })
+        if (!result.success) {
+          await GuestOrderClaim.deleteOne({ _id: claim._id })
+          console.error('Guest order verification email was not accepted', { code: result.code })
+        }
+        // Keep earlier unexpired links valid: a failed resend must not invalidate them.
       }
       return NextResponse.json({ message: MESSAGE })
     }

@@ -1,3 +1,5 @@
+import { publicRead } from '@/lib/public-cache'
+import { connectDB } from '@/lib/mongodb'
 import { cache } from 'react'
 import Product from '@/models/Product'
 
@@ -46,7 +48,8 @@ function isUsableImage(value: unknown): value is string {
     && !value.includes('/_next/image?')
 }
 
-export const getBlogImageCandidates = cache(async (): Promise<BlogImageCandidate[]> => {
+export const getBlogImageCandidates = cache(async (): Promise<BlogImageCandidate[]> => publicRead('blog-image-candidates', [], 300, ['public-blog', 'public-products'], async () => {
+  if (!await connectDB()) throw new Error('Blog images unavailable')
   const products = await Product.find({
     inStock: true,
     isDraft: { $ne: true },
@@ -67,7 +70,7 @@ export const getBlogImageCandidates = cache(async (): Promise<BlogImageCandidate
       url: product.images?.[0]?.url || '',
     }))
     .filter((product) => isUsableImage(product.url))
-})
+}))
 
 export function resolveBlogImage(post: BlogImageSource, candidates: BlogImageCandidate[]) {
   if (isUsableImage(post.featuredImage)) return post.featuredImage

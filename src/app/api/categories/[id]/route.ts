@@ -1,9 +1,9 @@
+import { requireAdminApi } from '@/lib/require-admin'
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { resolveDescendantIds, type CategoryNode } from '@/lib/categories'
 
 export async function PUT(
@@ -11,10 +11,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     const db = await connectDB()
@@ -65,6 +63,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ ...category, id: String((category as any)._id) })
   } catch (error: any) {
     if (error.code === 11000) {
@@ -79,10 +78,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const { id } = await params
     const db = await connectDB()
@@ -113,6 +110,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ message: 'Category deleted successfully' })
   } catch (error: any) {
     return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 })

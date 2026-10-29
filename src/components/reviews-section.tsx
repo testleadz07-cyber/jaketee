@@ -1,5 +1,9 @@
 'use client'
 
+import { readPublicResponse, invalidatePublicJson } from '@/lib/public-json'
+
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { VideoMedia } from '@/components/video-media'
 import { ProductReviewsSkeleton, ReviewEntriesSkeleton } from '@/components/product-details-skeleton'
 import { VideoLinksEditor } from '@/components/video-links-editor'
@@ -35,7 +39,6 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
   const { data: session } = useSession()
   const { toast } = useToast()
 
-  const [reviews, setReviews] = useState<Review[]>([])
   const [allReviews, setAllReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -44,6 +47,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
 
   // Star-rating filter (0 = show all)
   const [ratingFilter, setRatingFilter] = useState(0)
+  const reviews = ratingFilter > 0 ? allReviews.filter(review => review.rating === ratingFilter) : allReviews
 
   // Form states
   const [rating, setRating] = useState(5)
@@ -59,29 +63,19 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
 
   useEffect(() => {
     fetchReviews()
-  }, [productId, ratingFilter])
+  }, [productId])
 
   async function fetchReviews() {
     setLoading(true)
     try {
-      const qs = ratingFilter > 0 ? `&rating=${ratingFilter}` : ''
-      const res = await fetch(`/api/reviews?productId=${productId}${qs}`)
+      const res = await readPublicResponse(`/api/reviews?productId=${productId}`)
       let data: Review[] = []
       if (res.ok) {
         data = await res.json()
-        setReviews(data)
+        setAllReviews(data)
       }
 
-      // Keep an unfiltered copy around to compute the overall rating summary,
-      // independent of whichever star filter is currently active.
-      if (ratingFilter === 0) {
-        setAllReviews(data)
-      } else {
-        const allRes = await fetch(`/api/reviews?productId=${productId}`)
-        if (allRes.ok) {
-          setAllReviews(await allRes.json())
-        }
-      }
+
     } catch (error) {
       console.error('Error fetching reviews:', error)
     } finally {
@@ -217,6 +211,7 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
         setRating(5)
         setReviewImages([])
         setReviewVideos([])
+        invalidatePublicJson(`/api/reviews?productId=${productId}`)
         fetchReviews()
         if (onReviewSubmitted) {
           onReviewSubmitted()
@@ -323,7 +318,6 @@ export function ReviewsSection({ productId, onReviewSubmitted }: ReviewsSectionP
               {ratingFilter > 0 ? `No ${ratingFilter}-star reviews yet` : 'Be the first to review this product'}
             </h3>
             </div>
-            {ratingFilter === 0 && <Button type="button" size="sm" onClick={() => setReviewFormOpen(true)}>Write a review</Button>}
           </div>
         ) : (
           <div className="divide-y border-y">

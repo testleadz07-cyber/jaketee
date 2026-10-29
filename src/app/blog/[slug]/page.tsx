@@ -1,26 +1,25 @@
+export const dynamic = 'force-dynamic'
+
+import { connection, after } from 'next/server'
+import { getPublicBlogPost, getPublicBlogCategories, getPublicBlogRows } from '@/lib/public-blog'
+import { getPublicCategories } from '@/lib/public-catalog'
+import { publicRead } from '@/lib/public-cache'
 import { notFound } from 'next/navigation'
-import sanitizeHtml from 'sanitize-html'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
-import BlogCategory from '@/models/BlogCategory'
 import Product from '@/models/Product'
-import Category from '@/models/Category'
 import BlogPostPage, { type BlogPostDetail } from './post-client'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import { buildProductUrl, resolveAncestorChain } from '@/lib/categories'
 import { blogDescription, blogHeadline, blogStructuredData } from '@/lib/blog-post-seo'
 
-export const dynamic = 'force-dynamic'
+
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
-  if (!(await connectDB())) throw new Error('Blog content is temporarily unavailable')
+  await connection()
 
   const { slug } = await params
-  const now = new Date()
-  const rawPost = await BlogPost.findOne({
-    slug,
-    $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],
-  }).lean()
+  const rawPost = await getPublicBlogPost(slug)
   if (!rawPost) notFound()
 
   const post = rawPost as any
@@ -28,16 +27,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const productIds = post.taggedProducts ?? []
   const [categories, taggedProducts, productCategories, imageCandidates] = await Promise.all([
     categoryIds.length
-      ? BlogCategory.find({ _id: { $in: categoryIds } }).select('name slug').lean()
+      ? getPublicBlogCategories().then(items => items.filter(item => categoryIds.some((id: unknown) => String(id) === String(item._id))))
       : [],
     productIds.length
-      ? Product.find({ _id: { $in: productIds }, isDraft: { $ne: true }, status: 'active' })
-          .select('name slug categoryId price compareAtPrice compareAtPriceVerified images averageRating')
-          .lean()
+      ? publicRead('blog-tagged-products', productIds, 60, ['public-products'], async () => Product.find({ _id: { $in: productIds }, isDraft: { $ne: true }, status: 'active' }).select('name slug categoryId price compareAtPrice compareAtPriceVerified images averageRating').lean())
       : [],
-    productIds.length ? Category.find({}).select('name slug parentId').lean() : [],
+    productIds.length ? getPublicCategories() : [],
     getBlogImageCandidates(),
-    BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }, { timestamps: false }),
   ])
   const categoriesById = new Map(categories.map((category: any) => [String(category._id), category] as const))
   const productsById = new Map(taggedProducts.map((product: any) => [String(product._id), product] as const))
@@ -53,32 +49,21 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const resolvedProducts = productIds
     .map((id: any) => productsById.get(String(id)))
     .filter(Boolean)
-  const related = categoryIds.length
-    ? await BlogPost.find({
-        _id: { $ne: post._id },
-        categories: { $in: categoryIds },
-        $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],
-      })
-        .select('title slug excerpt featuredImage publishedAt')
-        .sort({ publishedAt: -1 })
-        .limit(3)
-        .lean()
-    : []
+  const related = categoryIds.length ? (await getPublicBlogRows({ categoryId: { $in: categoryIds }, excludeId: post._id, limit: 3 })).posts : []
+  after(async () => {
+    try {
+      if (!await connectDB()) return
+      await BlogPost.updateOne({ _id: post._id }, { $inc: { views: 1 } }, { timestamps: false })
+    }
+    catch { console.error('Blog view count update failed') }
+  })
 
   const detail: BlogPostDetail = {
     id: String(post._id),
     title: blogHeadline(post.title),
     slug: post.slug,
     excerpt: post.excerpt,
-    content: sanitizeHtml(post.content || '', {
-      allowedTags: [...sanitizeHtml.defaults.allowedTags, 'img'],
-      allowedAttributes: {
-        ...sanitizeHtml.defaults.allowedAttributes,
-        a: ['href', 'name', 'target', 'rel'],
-        img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
-      },
-      allowedSchemes: ['http', 'https', 'mailto'],
-    }),
+    content: post.safeContent,
     featuredImage: resolveBlogImage({ ...post, categories: resolvedCategories }, imageCandidates),
     categories: resolvedCategories.map((category: any) => ({
       id: String(category._id), name: category.name, slug: category.slug,

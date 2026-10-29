@@ -37,6 +37,13 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "cloudflare-env.d.ts",
+    "worker.ts",
+    "cloudflare-worker.ts",
+    "src/cloudflare",
+    ".open-next",
+    ".wrangler",
+    "migration-artifacts"
   ]
 }

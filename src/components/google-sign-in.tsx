@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useEffect, useState } from 'react'
 import { getProviders, signIn } from 'next-auth/react'
 import localFont from 'next/font/local'

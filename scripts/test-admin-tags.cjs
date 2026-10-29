@@ -21,9 +21,11 @@ const Product = {
   updateMany: async (...args) => { updates.push(args) },
 }
 const mocks = {
+  '@/lib/require-admin': { requireAdminApi: async () => admin ? { user: { role: 'admin' } } : { response: { body: { error: 'Unauthorized' }, status: 401 } } },
   'next/server': { NextResponse: { json: (body, options = {}) => ({ body, status: options.status || 200 }) } },
   'next-auth': { getServerSession: async () => admin ? { user: { role: 'admin' } } : null },
   '@/lib/auth-options': { authOptions: {} },
+  '@/lib/home-cache': { invalidateHomeCache: async () => {} },
   '@/lib/mongodb': { connectDB: async () => true },
   '@/models/Product': { default: Product, __esModule: true },
   '@/models/Tag': { default: Tag, __esModule: true },
@@ -31,18 +33,18 @@ const mocks = {
 }
 const exportsObject = {}
 const code = ts.transpileModule(fs.readFileSync('src/app/api/admin/tags/route.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true } }).outputText
-vm.runInNewContext(code, { exports: exportsObject, require: name => { assert.ok(mocks[name], name); return mocks[name] }, console })
-const request = body => ({ json: async () => body })
+vm.runInNewContext(code, { exports: exportsObject, require: name => { assert.ok(mocks[name], name); return mocks[name] }, console, URL })
+const request = body => ({ url: 'https://example.invalid/api/admin/tags', json: async () => body })
 ;(async () => {
   admin = false
   for (const method of ['GET', 'POST', 'PUT', 'DELETE']) assert.equal((await exportsObject[method](request({}))).status, 401)
   admin = true
   assert.equal((await exportsObject.POST(request({ tag: '  Summer & Sale  ' }))).status, 200)
-  assert.deepEqual(JSON.parse(JSON.stringify((await exportsObject.GET()).body)), { tags: ['Summer & Sale'], usage: [{ name: 'Summer & Sale', productCount: 0 }] })
+  assert.deepEqual(JSON.parse(JSON.stringify((await exportsObject.GET(request({}))).body)), { tags: ['Summer & Sale'], usage: [{ name: 'Summer & Sale', productCount: 0 }] })
   assert.equal((await exportsObject.POST(request({ tag: 'Summer & Sale' }))).status, 409)
   assert.equal((await exportsObject.POST(request({ tag: '  ' }))).status, 400)
   usage = [{ _id: 'Legacy', count: 12 }]
-  const list = (await exportsObject.GET()).body
+  const list = (await exportsObject.GET(request({}))).body
   assert.equal(list.usage.find(item => item.name === 'Legacy').productCount, 12)
   assert.equal((await exportsObject.PUT(request({ oldTag: 'Legacy', newTag: 'Summer & Sale' }))).status, 409)
   assert.equal((await exportsObject.PUT(request({ oldTag: 'Legacy', newTag: '$New' }))).status, 200)

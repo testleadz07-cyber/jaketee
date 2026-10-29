@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { CalendarDays, PackageCheck, Truck, MapPin, ChevronDown, Pencil, Info } from 'lucide-react'

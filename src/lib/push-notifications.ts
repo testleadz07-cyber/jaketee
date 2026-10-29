@@ -3,7 +3,7 @@ import PushDevice from '@/models/PushDevice'
 import User from '@/models/User'
 import LoginSession from '@/models/LoginSession'
 
-export async function sendAdminPush({ id, type, link, userId, token, excludeTokens = [], onDelivered }: { id: string; type: string; link?: string; userId?: string; token?: string; excludeTokens?: string[]; onDelivered?: (tokens: string[]) => Promise<void> }) {
+export async function sendAdminPush({ id, type, link, userId, token, excludeTokens = [], onDelivered, deadline }: { id: string; type: string; link?: string; userId?: string; token?: string; excludeTokens?: string[]; deadline?: number; onDelivered?: (tokens: string[]) => Promise<void> }) {
   if (!isPushConfigured()) return { configured: false, successCount: 0, failureCount: 0, targetCount: 0 }
   const admins = await User.find({ role: 'admin', isActive: { $ne: false }, ...(userId ? { _id: userId } : {}) }).select('_id').lean()
   // Closing Chrome ends analytics activity, not the authenticated subscription.
@@ -17,6 +17,7 @@ export async function sendAdminPush({ id, type, link, userId, token, excludeToke
     const batch = pending.slice(i, i + 500)
     const result = await adminMessaging().sendEachForMulticast({
       tokens: batch.map(d => d.token),
+      deadline,
       data: { id, type, title: 'Jacketee Admin', body: type === 'test' ? 'Push notifications are working on this device.' : 'You have a new admin notification. Open Jacketee to view details.', url: link?.startsWith('/admin/') ? link : '/admin/notifications' },
       webpush: { headers: { TTL: '3600', Urgency: 'high' } },
     })

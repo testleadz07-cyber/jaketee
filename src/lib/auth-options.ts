@@ -5,10 +5,14 @@ import { resolveGoogleUser } from '@/lib/google-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
+import { getActiveSessionUser } from '@/lib/session-user'
 import { comparePassword } from '@/lib/auth'
 import { isLoginLocked, recordFailedLogin, resetLoginAttempts } from '@/lib/rate-limit'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { scheduleDailyAdminPushRetry } from '@/lib/notification-delivery'
+import { getWorkerRequestScope } from '@/lib/worker-request-scope'
+import { getClientIp } from '@/lib/rate-limit-memory'
+import { getGeoFromRequest } from '@/lib/geo'
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -33,7 +37,7 @@ export const authOptions: NextAuthOptions = {
 
         const identifier = credentials.identifier.trim().toLowerCase()
 
-        const lockStatus = isLoginLocked(identifier)
+        const lockStatus = await isLoginLocked(identifier)
         if (lockStatus.locked) {
           throw new Error('Too many failed login attempts. Please try again later.')
         }
@@ -49,13 +53,13 @@ export const authOptions: NextAuthOptions = {
           })
           const isValid = user ? await comparePassword(credentials.password, user.password) : false
           if (!user || !isValid) {
-            recordFailedLogin(identifier)
+            await recordFailedLogin(identifier)
             throw new Error('Invalid email or username or password')
           }
           if (user.isActive === false) {
             throw new Error('This account has been disabled. Please contact support.')
           }
-          resetLoginAttempts(identifier)
+          await resetLoginAttempts(identifier)
           return { id: String(user._id), email: user.email, name: user.name, username: user.username, role: user.role }
         }
 
@@ -90,22 +94,35 @@ export const authOptions: NextAuthOptions = {
           const LoginSession = (await import('@/models/LoginSession')).default
           const Activity = (await import('@/models/Activity')).default
           await connectDB()
-          const login = await LoginSession.create({ userId: user.id, loginAt: new Date(), lastSeenAt: new Date() })
+          const requestHeaders = getWorkerRequestScope()?.values.get('request-headers') as Headers | undefined
+          const geo = requestHeaders ? getGeoFromRequest({ headers: requestHeaders }) : {}
+          const ip = requestHeaders ? getClientIp({ headers: requestHeaders }) : 'unknown'
+          const userAgent = requestHeaders?.get('user-agent') || undefined
+          const login = await LoginSession.create({ userId: user.id, loginAt: new Date(), lastSeenAt: new Date(), ip, country: geo.country, userAgent })
           token.loginSessionId = String(login._id)
-          await Activity.create({ userId: user.id, action: 'login', details: { method: account?.provider || 'credentials' }, ip: 'server-side', country: 'Unknown (Login Event)' })
+          await Activity.create({ userId: user.id, action: 'login', details: { method: account?.provider || 'credentials' }, ip, country: geo.country || 'Unknown', region: geo.region, city: geo.city, userAgent })
         } catch { console.error('Failed to record login session') }
         if (token.role === 'admin') scheduleDailyAdminPushRetry(user.id)
       }
       return token
     },
     async session({ session, token }) {
-      if (session?.user) {
-        (session.user as any).role = token.role
-        ;(session.user as any).id = token.userId
-        ;(session.user as any).loginSessionId = token.loginSessionId
-        ;(session.user as any).username = token.username
+      try {
+        const user = await getActiveSessionUser(token.userId, token.loginSessionId)
+        if (!user) return null as unknown as typeof session
+        session.user = {
+          ...session.user,
+          name: user.name,
+          email: user.email,
+          ...{ id: String(user._id), role: user.role, username: user.username, loginSessionId: token.loginSessionId },
+        }
+        return session
+      } catch {
+        // Fail closed during an outage, but do not throw: NextAuth deletes the
+        // JWT cookie on callback errors. Returning null lets a later check recover.
+        console.error('Unable to validate login session')
+        return null as unknown as typeof session
       }
-      return session
     },
   },
   events: {

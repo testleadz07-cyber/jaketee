@@ -1,27 +1,12 @@
+import { getPublicBlogPost } from '@/lib/public-blog'
 import { withSocialMetadata } from '@/lib/seo-metadata'
-import { cache } from 'react'
 import { Metadata } from 'next'
-import { connectDB } from '@/lib/mongodb'
-import BlogPost from '@/models/BlogPost'
 import { socialImageUrl } from '@/lib/seo-metadata'
 import { BLOG_SITE_URL, blogDescription } from '@/lib/blog-post-seo'
 
 const SITE_URL = BLOG_SITE_URL
 
-const getPost = cache(async (slug: string) => {
-  try {
-    const db = await connectDB()
-    if (!db) return null
-    const now = new Date()
-    return await BlogPost.findOne({
-      slug,
-      $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],
-    }).lean()
-  } catch (error) {
-    console.error('Error fetching blog post:', error)
-    return null
-  }
-})
+const getPost = getPublicBlogPost
 
 export async function generateMetadata({
   params,

@@ -1,14 +1,18 @@
+export const dynamic = 'force-dynamic'
+
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { BulkProgramPage } from '@/components/bulk-program-page'
+
+export const revalidate = 60
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/bulk-orders/schools`
 
 export const metadata: Metadata = withSocialMetadata({
-  title: 'School Letterman Jackets & Team Orders | Jacketee',
+  title: 'Bulk Varsity & School Letterman Jackets | Jacketee',
   description:
-    'Order school letterman jackets and team varsity jackets for clubs, seniors, alumni and achievement programs. Plan colors, patches, names and sizing.',
+    'Plan bulk varsity and wholesale letterman jackets for schools and teams. Organize school colors, award patches, names and sizes. Request a quote for 10+.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'School Varsity Jacket Bulk Orders | Jacketee',

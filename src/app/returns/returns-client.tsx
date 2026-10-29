@@ -1,4 +1,6 @@
 'use client'
+
+import { apiFetch as fetch } from '@/lib/api-fetch'
 import { deliverySettings, returnPolicyText } from '@/config/fulfillment'
 
 import { useState } from 'react'
@@ -26,8 +28,10 @@ import Link from 'next/link'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { Footer } from '@/components/footer'
 import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
+import { useTurnstile } from '@/components/turnstile-challenge'
 
 export default function ReturnsClient({ resources }: { resources: React.ReactNode }) {
+  const verification = useTurnstile('returns')
   const [form, setForm] = useState({ orderId: '', name: '', email: '', reason: '' })
   const formActivity = useGuestFormActivity('returns', { ...form, orderNumber: form.orderId })
   const [submitting, setSubmitting] = useState(false)
@@ -47,10 +51,11 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
     }
     setSubmitting(true)
     try {
-      const res = await fetch('/api/admin/refunds', {
+      const turnstileToken = await verification.getToken()
+      const res = await fetch('/api/returns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: form.orderId, reason: form.reason, userName: form.name, userEmail: form.email })
+        body: JSON.stringify({ orderId: form.orderId, reason: form.reason, userName: form.name, userEmail: form.email, turnstileToken })
       })
       if (res.ok) {
         await formActivity.submitted({ ...form, orderNumber: form.orderId })
@@ -60,8 +65,8 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
         const data = await res.json()
         setError(data.error || 'Failed to submit. Please try again.')
       }
-    } catch {
-      setError('Network error. Please try again.')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Network error. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -335,6 +340,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                       <Label htmlFor="orderId">Order Number *</Label>
                       <Input
                         id="orderId"
+                        maxLength={100}
                         placeholder="e.g. LX-2024-001"
                         value={form.orderId}
                         onChange={e => setForm(f => ({ ...f, orderId: e.target.value }))}
@@ -346,6 +352,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                       <Label htmlFor="returnName">Your Name</Label>
                       <Input
                         id="returnName"
+                        maxLength={100}
                         placeholder="Full name (optional)"
                         value={form.name}
                         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -358,16 +365,19 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                     <Input
                       id="returnEmail"
                       type="email"
-                      placeholder="your@email.com (optional)"
+                      placeholder="Email used for your order"
+                      maxLength={254}
                       value={form.email}
                       onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                       disabled={submitting}
                     />
+                    <p className="text-xs text-muted-foreground">Use your order email, or sign in to the account that placed the order.</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="returnReason">Reason for Return *</Label>
                     <Textarea
                       id="returnReason"
+                      maxLength={4000}
                       rows={4}
                       placeholder="Please describe why you would like to return or exchange this item..."
                       value={form.reason}
@@ -387,6 +397,7 @@ export default function ReturnsClient({ resources }: { resources: React.ReactNod
                     {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     Submit Request
                   </Button>
+                  {verification.widget}
                 </form>
               )}
             </CardContent>

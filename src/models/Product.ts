@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IProductImage {
@@ -103,4 +104,4 @@ const ProductSchema = new Schema<IProduct>(
 
 ProductSchema.index({ name: 'text', description: 'text' })
 
-export default mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema)
+export default requestScopedModel(mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema))

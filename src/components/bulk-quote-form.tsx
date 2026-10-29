@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useId, useState, type FormEvent } from 'react'
 import { shippingCountryOptions } from '@/config/fulfillment'
 import { Button } from '@/components/ui/button'

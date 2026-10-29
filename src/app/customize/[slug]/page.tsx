@@ -1,12 +1,11 @@
+export const dynamic = 'force-dynamic'
+
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import mongoose from 'mongoose'
 import { CustomizeProductView } from '@/components/customize-product-view'
 import type { ProductDetailData } from '@/components/product-detail-view'
-import { connectDB } from '@/lib/mongodb'
-import Product from '@/models/Product'
-import Category from '@/models/Category'
+import { getPublicCategories, getPublicProduct } from '@/lib/public-catalog'
 import { resolveAncestorChain } from '@/lib/categories'
 import { pageMetaDescription, socialImageUrl } from '@/lib/seo-metadata'
 
@@ -17,21 +16,12 @@ interface Props {
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
 async function getCustomizeProduct(slug: string): Promise<ProductDetailData | null> {
-  const db = await connectDB()
-  if (!db) return null
-
-  let product: any = null
-  if (mongoose.Types.ObjectId.isValid(slug)) {
-    product = await Product.findOne({ _id: slug, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
-  }
-  if (!product) {
-    product = await Product.findOne({ slug, isDraft: { $ne: true }, status: 'active' }).populate('categoryId', 'name slug').lean()
-  }
+  const product = await getPublicProduct(slug)
   if (!product) return null
 
   let categoryPath: { name: string; slug: string }[] = []
   if (product.categoryId) {
-    const allCategories = await Category.find().lean()
+    const allCategories = await getPublicCategories()
     const categoryChainNodes = allCategories.map((category: any) => ({
       _id: String(category._id),
       parentId: category.parentId ? String(category.parentId) : null,

@@ -5,9 +5,13 @@ const ts = require('typescript')
 
 // Run the real TypeScript validators with isolated database records, without writes or payments.
 const cache = new Map()
-let product, coupon, customer
+let product, coupon, customer, cloudflareMetadata, testSession, dbCalls = 0
 const productId = '507f1f77bcf86cd799439011'
 const mocks = {
+  '@opennextjs/cloudflare': { getCloudflareContext: () => ({ cf: cloudflareMetadata }) },
+  'next-auth': { getServerSession: async () => testSession },
+  '@/lib/auth-options': { authOptions: {} },
+  '@/lib/mongodb': { connectDB: async () => { dbCalls++; return true } },
   '@/models/Product': { default: { findById: () => ({ lean: async () => product }) } },
   '@/models/Discount': { default: { findOne: query => ({ lean: async () => coupon?.code === query.code && coupon.isActive ? coupon : null }) } },
   '@/models/User': { default: { findById: () => ({ select: () => ({ lean: async () => customer }) }) } },
@@ -18,9 +22,11 @@ function load(file) {
   const mod = { exports: {} }
   cache.set(file, mod)
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
+    fileName: file,
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText
   new Function('require', 'module', 'exports', source)(id => {
+    if (id === '@/lib/mongodb' && file.includes(`${path.sep}models${path.sep}`)) return { requestScopedModel: model => model }
     if (mocks[id]) return { __esModule: true, ...mocks[id] }
     if (id.startsWith('@/')) return load(`src/${id.slice(2)}.ts`)
     if (id.startsWith('.')) return load(path.resolve(path.dirname(file), `${id}.ts`))
@@ -58,29 +64,39 @@ async function main() {
 
   const geo = load('src/lib/geo.ts')
   const location = load('src/app/api/checkout/location/route.ts')
-  const geoEnvKeys = ['ACTIVITY_GEO_PROVIDER', 'VERCEL', 'NETLIFY']
-  const originalGeoEnv = geoEnvKeys.map(key => process.env[key])
   try {
-    delete process.env.VERCEL; delete process.env.NETLIFY; delete process.env.ACTIVITY_GEO_PROVIDER
-    const request = { headers: new Headers({ 'x-vercel-ip-country': 'US', 'x-vercel-ip-country-region': 'TX',
-      'x-vercel-ip-city': 'San%20Antonio', 'x-vercel-ip-postal-code': '78201' }) }
-    assert.deepEqual(geo.getGeoFromRequest(request), {})
-    assert.equal((await location.GET(request).json()).suggestion, null)
-    process.env.VERCEL = '1'
+    cloudflareMetadata = { country: 'US', regionCode: 'TX', city: 'San Antonio', postalCode: '78201' }
+    const request = { headers: new Headers({ 'x-vercel-ip-country': 'IL', 'x-vercel-ip-city': 'Spoofed' }) }
+    assert.equal(geo.getGeoFromRequest(request).country, 'US')
     assert.deepEqual((await location.GET(request).json()).suggestion, { country: 'US', state: 'TX', city: 'San Antonio', zip: '78201' })
     assert.equal(location.GET(request).headers.get('cache-control'), 'private, no-store')
-    request.headers.set('x-vercel-ip-country', 'IL')
+    cloudflareMetadata.country = 'CA'
+    assert.equal((await location.GET(request).json()).suggestion.country, 'CA')
+    cloudflareMetadata.country = 'IL'
     assert.equal((await location.GET(request).json()).suggestion, null)
+    cloudflareMetadata = undefined
     assert.equal((await location.GET({ headers: new Headers() }).json()).suggestion, null)
-    request.headers.set('x-vercel-ip-country', 'US')
-    request.headers.set('x-vercel-ip-city', '%00bad')
-    request.headers.set('x-vercel-ip-postal-code', 'x'.repeat(201))
+    cloudflareMetadata = { country: 'US', city: '\u0000bad', postalCode: 'x'.repeat(201) }
     const partial = (await location.GET(request).json()).suggestion
     assert.equal(partial.city, '')
     assert.equal(partial.zip, '')
   } finally {
-    geoEnvKeys.forEach((key, i) => { if (originalGeoEnv[i] === undefined) delete process.env[key]; else process.env[key] = originalGeoEnv[i] })
+    cloudflareMetadata = undefined
   }
+
+  const confirmRoute = load('src/app/api/checkout/address/confirm/route.ts')
+  const confirmationRequest = () => ({ headers: new Headers({ host: 'test.invalid', origin: 'https://test.invalid' }),
+    nextUrl: new URL('https://test.invalid/api/checkout/address/confirm'),
+    json: async () => ({ confirmed: true, email: 'buyer@example.com', shippingAddress: address() }) })
+  const guestConfirmed = await confirmRoute.POST(confirmationRequest())
+  assert.equal(guestConfirmed.status, 200)
+  assert.equal(dbCalls, 0, 'Guest address confirmation must not open a MongoDB connection')
+  assert.ok((await guestConfirmed.json()).token)
+  testSession = { user: { id: productId, email: 'buyer@example.com' } }
+  customer = { email: 'buyer@example.com', name: 'Buyer', isActive: true }
+  assert.equal((await confirmRoute.POST(confirmationRequest())).status, 200)
+  assert.equal(dbCalls, 1, 'Authenticated confirmation retains database account validation')
+  testSession = undefined
 
   const proof = confirmation.issueAddressConfirmation(address(), 'buyer@example.com', undefined, draftNow)
   assert.equal(confirmation.verifyAddressConfirmation(proof.token, address(), 'buyer@example.com', undefined, draftNow).getTime(), draftNow)
@@ -172,6 +188,7 @@ async function main() {
   } }
   const stripeHandler = load('src/app/api/payments/stripe/checkout/route.ts').POST
   const paypalHandler = load('src/app/api/payments/create-order/route.ts').POST
+  cache.delete(path.resolve('src/app/api/checkout/address/confirm/route.ts'))
   const confirmHandler = load('src/app/api/checkout/address/confirm/route.ts').POST
   const originalFetch = global.fetch
   const envKeys = ['STRIPE_SECRET_KEY', 'PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET']

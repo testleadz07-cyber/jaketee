@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { getJacketTextSummary } from '@/types/jacket-customization'
 
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'

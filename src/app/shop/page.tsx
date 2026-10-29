@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+
+import { getPublicCategories, getPublicCategoryCounts } from '@/lib/public-catalog'
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { getCatalogProducts, getSearchFacetProducts } from '@/lib/catalog-products'
@@ -6,13 +9,10 @@ import { catalogSortValue } from '@/lib/product-search'
 import { readCatalogFilters, catalogFilterQuery, getCatalogFacetData } from '@/lib/catalog-filters'
 import { collectionDesignImages } from '@/lib/collection-design-images'
 import { getCustomDesignImages } from '@/components/custom-design-section'
-import { connectDB } from '@/lib/mongodb'
-import ProductModel from '@/models/Product'
-import CategoryModel from '@/models/Category'
 import { resolveAncestorChain, resolveDescendantIds, type CategoryNode } from '@/lib/categories'
 import ShopClient, { type Category, type Product } from './shop-client'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const SHOP_TITLE = 'Shop All Custom Jackets | Varsity, Bomber & More | Jacketee'
 const SHOP_DESCRIPTION = 'Browse all custom jackets at Jacketee, including varsity, letterman, bomber, coach, puffer and denim styles. Add patches, embroidery and team colors.'
@@ -38,15 +38,13 @@ export const metadata: Metadata = withSocialMetadata({
 export default async function Page({ searchParams }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  if (!(await connectDB())) throw new Error('Catalog is temporarily unavailable')
-
   const query = await searchParams
   const params = new URLSearchParams(Object.entries(query).flatMap(([key, value]) => (Array.isArray(value) ? value : value === undefined ? [] : [value]).map(item => [key, item])))
   const filters = readCatalogFilters(params)
   const category = params.get('category') || 'all'
   const sort = catalogSortValue(params.get('sort'), Boolean(filters.search))
   const page = Math.max(1, parseInt(params.get('page') || '1') || 1)
-  const rawCategories = await CategoryModel.find().lean()
+  const rawCategories = await getPublicCategories()
   const nodes: CategoryNode[] = rawCategories.map((item) => ({
     _id: String(item._id), parentId: item.parentId ? String(item.parentId) : null,
   }))
@@ -65,11 +63,7 @@ export default async function Page({ searchParams }: {
 
   const [catalog, counts, facetProducts] = await Promise.all([
     getCatalogProducts({ filter, search: filters.search, selectedColors: filters.color, categories: rawCategories, sort, page, limit: 24 }),
-    ProductModel.aggregate([
-      { $match: { inStock: true, isDraft: { $ne: true }, status: 'active' } },
-      { $sort: { isFeatured: -1, createdAt: -1, _id: 1 } },
-      { $group: { _id: '$categoryId', count: { $sum: 1 }, image: { $first: { $arrayElemAt: ['$images.url', 0] } }, name: { $first: '$name' }, productImages: { $push: '$images.url' } } },
-    ]),
+    getPublicCategoryCounts(),
     getSearchFacetProducts(facetFilter, filters.search, rawCategories),
   ])
   const { products: rawProducts, total } = catalog

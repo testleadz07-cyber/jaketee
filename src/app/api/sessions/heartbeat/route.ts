@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import { getCountryFromRequest } from '@/lib/geo'
+import { getClientIp } from '@/lib/rate-limit-memory'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,16 +23,13 @@ export async function POST(request: NextRequest) {
     const LoginSession = (await import('@/models/LoginSession')).default
 
     // Resolve client IP for session metadata enrichment
-    const xForwardedFor = request.headers.get('x-forwarded-for')
-    const ip = xForwardedFor
-      ? xForwardedFor.split(',')[0].trim()
-      : request.headers.get('x-real-ip') || 'Unknown'
+    const ip = getClientIp(request)
     const userAgent = request.headers.get('user-agent') || undefined
 
     const country = getCountryFromRequest(request)
 
     const update: Record<string, any> = { lastSeenAt: new Date() }
-    if (ip && ip !== 'Unknown') update.ip = ip
+    if (ip !== 'unknown') update.ip = ip
     if (userAgent) update.userAgent = userAgent
     if (country) update.country = country
 

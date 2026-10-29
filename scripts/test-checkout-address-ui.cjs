@@ -24,7 +24,8 @@ const nodes = tree => {
 }
 const text = tree => typeof tree === 'string' ? tree : Array.isArray(tree) ? tree.map(text).join('') : tree?.props ? text(tree.props.children) : ''
 
-async function mount({ storage = new Map(), user = null, profile, suggestion = { country: 'US', state: 'TX', city: 'Austin', zip: '78701' }, failLocation = false, locationDelay, storageUnavailable = false } = {}) {
+async function mount({ storage = new Map(), user = null, profile, suggestion = { country: 'US', state: 'TX', city: 'Austin', zip: '78701' }, failLocation = false, locationDelay, storageUnavailable = false, confirmFailure, saveDelay } = {}) {
+  const notices = []
   let cursor = 0, slots = [], effects = [], tree, confirmationCalls = 0, locationCalls = 0
   const hookReact = { ...React,
     useState: initial => {
@@ -42,14 +43,17 @@ async function mount({ storage = new Map(), user = null, profile, suggestion = {
     },
   }
   const mocks = {
+    '@/lib/api-fetch': { apiFetch: (...args) => globalThis.fetch(...args) },
     react: hookReact,
     'next-auth/react': { useSession: () => ({ status: user ? 'authenticated' : 'unauthenticated', data: user ? { user } : null }) },
     'next/navigation': { useRouter: () => ({ push: () => {} }), useSearchParams: () => new URLSearchParams() },
     'framer-motion': { motion: { div: 'div' }, AnimatePresence: 'div' },
     '@/config/fulfillment': fulfillment,
     '@/lib/checkout-address-draft': drafts,
-    '@/hooks/use-toast': { useToast: () => ({ toast: () => {} }) },
+    '@/hooks/use-toast': { useToast: () => ({ toast: value => notices.push(value) }) },
     '@/hooks/use-has-mounted': { useHasMounted: () => true },
+    '@/hooks/use-guest-form-activity': { useGuestFormActivity: () => ({ bindings: {}, notice: null, submitted: async () => {} }) },
+    '@/components/turnstile-challenge': { useTurnstile: () => ({ token: 'offline', reset() {}, widget: null, ready: true }) },
     '@/store/cart': { useCartStore: () => ({ items: [{ id: 'line', productId: 'product', name: 'Jacket', image: '/test.png', quantity: 2, price: 100, variants: [] }], clearCart: () => {}, clearDirectOrderItem: () => {}, clearAppliedPromo: () => {} }) },
     '@/types/jacket-customization': { getCustomizedViews: () => [] },
     '@/lib/activity': { logUserActivity: () => {} },
@@ -68,10 +72,13 @@ async function mount({ storage = new Map(), user = null, profile, suggestion = {
     setItem: (key, value) => { if (storageUnavailable) throw new Error('Storage blocked'); storage.set(key, value) } }
   global.fetch = async (url, options) => {
     if (url === '/api/checkout/location') { locationCalls++; if (locationDelay) await locationDelay(); if (failLocation) throw new Error('Offline'); return { ok: true, json: async () => ({ suggestion }) } }
-    if (url === '/api/users/profile') return { ok: true, json: async () => profile || { ...user, addresses: [] } }
+    if (url === '/api/users/profile') { if (options?.method === 'PUT' && saveDelay) await saveDelay(); return { ok: true, json: async () => profile || { ...user, addresses: [] } } }
     if (url === '/api/payments/config') return { ok: true, json: async () => ({ activeGateway: 'stripe', stripePublishableKey: 'offline' }) }
     assert.equal(url, '/api/checkout/address/confirm')
     confirmationCalls++
+    assert.ok(options.signal, 'Address confirmation must have a deadline')
+    if (confirmFailure === 'timeout') throw new DOMException('test timeout', 'TimeoutError')
+    if (confirmFailure === 'html') return { ok: false, json: async () => { throw new SyntaxError('Unexpected token <') } }
     const body = JSON.parse(options.body)
     assert.equal(body.confirmed, true)
     return { ok: true, json: async () => ({ shippingAddress: body.shippingAddress, email: user?.email || body.email, token: 'offline-proof', expiresAt: Date.now() + 100000 }) }
@@ -89,7 +96,9 @@ async function mount({ storage = new Map(), user = null, profile, suggestion = {
     await settle()
   }
   await settle()
-  return { storage, value, change, click, settle,
+  return { storage, value, change, click, settle, notices,
+    hasText: value => text(tree).includes(value),
+    toggleSaveAddress: async () => { find(node => node.props?.id === 'save-new-address').props.onCheckedChange(true); await settle() },
     autofill: (id, value) => { find(node => node.props?.id === id).props.ref.current = { value } },
     calls: () => ({ confirmationCalls, locationCalls }),
     close: () => { slots.forEach(slot => slot?.cleanup?.()); global.window = savedWindow; global.sessionStorage = savedStorage; global.fetch = savedFetch } }
@@ -160,6 +169,25 @@ async function main() {
     await app.click('Review Order details'); await app.click('Confirm delivery address and continue')
     assert.equal(app.calls().confirmationCalls, 1)
   } finally { app.close() }
-  console.log('Checkout address UI flow checks passed: suggestions, confirmation, edits, reloads, saved addresses and fallback')
+  for (const confirmFailure of ['timeout', 'html']) {
+    app = await mount({ confirmFailure })
+    try {
+      await app.change('shippingName', 'Buyer'); await app.change('shippingEmail', 'buyer@example.com'); await app.change('shippingStreet', '123 Main St')
+      await app.click('Review Order details'); await app.click('Confirm delivery address and continue')
+      assert.ok(!app.hasText('Confirming address...'), 'Failure must release the loader')
+      assert.match(app.notices.at(-1).description, confirmFailure === 'timeout' ? /took too long/ : /temporarily unavailable/)
+    } finally { app.close() }
+  }
+  let releaseSave
+  const pendingSave = new Promise(resolve => { releaseSave = resolve })
+  app = await mount({ user, profile: { ...user, addresses: [saved] }, saveDelay: () => pendingSave })
+  try {
+    await app.click('Use a new address'); await app.change('shippingStreet', '123 Main St'); await app.toggleSaveAddress()
+    await app.click('Review Order details'); await app.click('Confirm delivery address and continue')
+    assert.ok(app.hasText('Back to Review'), 'Payment opens while the optional profile save is still pending')
+    assert.ok(!app.hasText('Confirming address...'))
+    releaseSave(); await app.settle()
+  } finally { releaseSave(); app.close() }
+  console.log('Checkout address UI flow checks passed: Cloudflare suggestions, confirmation, timeouts, HTML errors and non-blocking profile saves')
 }
 main().catch(error => { console.error(error); process.exitCode = 1 })

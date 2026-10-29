@@ -1,3 +1,5 @@
+import { publicRead } from '@/lib/public-cache'
+import { connection } from 'next/server'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import { FaqText } from '@/components/faq-text'
 import { BlogCard, type BlogCardArticle } from '@/components/blog-card'
@@ -19,8 +21,8 @@ export async function SizeGuideResources() {
   let posts: BlogCardArticle[] = []
 
   try {
-    const db = await connectDB()
-    if (db) {
+    const data = await publicRead('size-guide-resources', articleSlugs, 300, ['public-support', 'public-blog', 'public-products'], async () => {
+      if (!await connectDB()) throw new Error('Size guide resources unavailable')
       const now = new Date()
       const [faqRows, postRows, imageCandidates] = await Promise.all([
         Faq.find({ status: { $ne: 'draft' }, mergedInto: null, category: { $in: ['jacket-sizing', 'Jacket Sizing'] } }).sort({ order: 1 }).limit(6).lean(),
@@ -31,18 +33,22 @@ export async function SizeGuideResources() {
         getBlogImageCandidates(),
       ])
 
-      faqs = faqRows.filter(faq => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim())).map((faq) => ({
+      const faqs = faqRows.filter(faq => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim())).map((faq) => ({
         id: String(faq._id),
         question: faq.question,
         answer: faq.answer || [],
         bullets: faq.bullets || [],
         ordered: faq.ordered || [],
       }))
-      posts = postRows
+      const posts = postRows
         .map((post) => ({ slug: post.slug, title: post.title, excerpt: post.excerpt, featuredImage: resolveBlogImage(post, imageCandidates), publishedAt: post.publishedAt ? new Date(post.publishedAt).toISOString() : null }))
         .sort((a, b) => articleSlugs.indexOf(a.slug) - articleSlugs.indexOf(b.slug)).slice(0, 3)
-    }
+      return { faqs, posts }
+    })
+    faqs = data.faqs
+    posts = data.posts
   } catch (error) {
+    await connection()
     console.error('Error loading size guide resources:', error)
   }
 

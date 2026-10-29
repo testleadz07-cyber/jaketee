@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IActivity extends Document {
@@ -28,4 +29,4 @@ const ActivitySchema = new Schema<IActivity>(
 
 ActivitySchema.index({ userId: 1, createdAt: -1 })
 
-export default mongoose.models.Activity || mongoose.model<IActivity>('Activity', ActivitySchema)
+export default requestScopedModel(mongoose.models.Activity || mongoose.model<IActivity>('Activity', ActivitySchema))

@@ -1,18 +1,19 @@
+import { requireAdminApi } from '@/lib/require-admin'
+import { publicRead } from '@/lib/public-cache'
+import { getPublicCategories } from '@/lib/public-catalog'
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { getStaticCategoriesWithCount, getStaticCategories } from '@/lib/static-data'
 import { resolveDescendantIds, type CategoryNode } from '@/lib/categories'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 
 export async function GET() {
   try {
-    const db = await connectDB()
-    if (!db) throw new Error('Database not connected')
-
-    const categories = await Category.find().lean()
+    const categoriesWithCount = await publicRead('categories-with-counts', [], 60, ['public-categories', 'public-catalog'], async () => {
+    if (!await connectDB()) throw new Error('Database not connected')
+    const categories = await getPublicCategories()
     const nodes: CategoryNode[] = categories.map((c: any) => ({
       _id: String(c._id),
       parentId: c.parentId ? String(c.parentId) : null,
@@ -26,7 +27,7 @@ export async function GET() {
       counts.map((c: any) => [String(c._id), c.count as number])
     )
 
-    const categoriesWithCount = categories.map((cat: any) => {
+    const result = categories.map((cat: any) => {
       const descendantIds = resolveDescendantIds(nodes, String(cat._id))
       const count = descendantIds.reduce((sum, id) => sum + (countByCategoryId.get(id) || 0), 0)
       return {
@@ -36,8 +37,15 @@ export async function GET() {
         _count: { products: count },
       }
     })
+
+      return result
+    })
     return NextResponse.json(categoriesWithCount, { headers: { 'Cache-Control': 'no-store' } })
   } catch (dbError: any) {
+    if (process.env.NODE_ENV === 'production' && process.env.MIGRATION_TEST_MODE !== 'true') {
+      console.error('Categories unavailable')
+      return NextResponse.json({ error: 'Categories temporarily unavailable' }, { status: 503 })
+    }
     console.error('Error fetching categories from database, using static fallback:', dbError)
     return NextResponse.json(getStaticCategoriesWithCount())
   }
@@ -45,10 +53,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -83,6 +89,7 @@ export async function POST(request: NextRequest) {
       image,
       parentId: resolvedParentId,
     })
+    await invalidateHomeCache('catalog')
     return NextResponse.json({ ...category.toObject(), id: String(category._id) }, { status: 201 })
   } catch (error: any) {
     if (error.code === 11000) {

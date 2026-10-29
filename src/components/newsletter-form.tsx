@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useState } from 'react'
 import { Loader2, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -32,7 +34,7 @@ export function NewsletterForm() {
       if (res.ok) {
         await formActivity.submitted({ email })
         toast({
-          title: 'Subscription Successful!',
+          title: data.emailStatus === 'failed' ? 'Subscription saved — email unavailable' : 'Subscription saved',
           description: data.message || 'Thank you for subscribing to our newsletter.',
         })
         setEmail('')

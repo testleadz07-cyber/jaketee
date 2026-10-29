@@ -1,21 +1,23 @@
 import type { NextConfig } from "next";
 import urlRedirects from "./src/data/url-redirects.json";
 import contentLinkRepairs from "./src/data/content-link-repairs.json";
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
+
+if (process.env.NODE_ENV === 'development') initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
   distDir: process.env.NEXT_DIST_DIR || '.next',
-  output: "standalone",
-  serverExternalPackages: ['geoip-lite'],
-  outputFileTracingIncludes: {
-    '/api/chat-visibility': ['./node_modules/geoip-lite/data/**/*'],
-  },
+  // OpenNext sets its own build output. Vercel / Node builds remain standalone.
+  ...(process.env.OPEN_NEXT_BUILD === 'true' ? {} : { output: 'standalone' as const }),
   poweredByHeader: false,
   typescript: {
     ignoreBuildErrors: false,
   },
   reactStrictMode: false,
   images: {
+    loader: 'custom',
+    loaderFile: './src/lib/image-loader.ts',
     formats: ["image/avif", "image/webp"],
     qualities: [60, 65, 70, 75, 80],
     minimumCacheTTL: 86400,

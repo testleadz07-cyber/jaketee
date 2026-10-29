@@ -1,15 +1,12 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Notification from '@/models/Notification'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -17,6 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const summaryOnly = searchParams.get('summary') === 'true'
     const type = searchParams.get('type') || 'all'
     const status = searchParams.get('status') || 'all' // 'all' | 'unread' | 'read'
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
@@ -28,9 +26,10 @@ export async function GET(request: NextRequest) {
     else if (status === 'read') query.read = true
 
     const [total, unreadCount, notifications] = await Promise.all([
-      Notification.countDocuments(query),
+      summaryOnly ? Promise.resolve(0) : Notification.countDocuments(query),
       Notification.countDocuments({ read: false }),
       Notification.find(query)
+        .select(summaryOnly ? '-metadata' : '')
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
@@ -52,7 +51,7 @@ export async function GET(request: NextRequest) {
       unreadCount,
       page,
       pages: Math.max(1, Math.ceil(total / limit)),
-    })
+    }, { headers: { 'Cache-Control': 'private, no-store', Vary: 'Cookie' } })
   } catch (error: any) {
     console.error('Admin notifications fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 })
@@ -61,10 +60,8 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {

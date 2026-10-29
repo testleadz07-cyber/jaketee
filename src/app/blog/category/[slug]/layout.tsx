@@ -1,15 +1,11 @@
+import { getPublicBlogCategories, getPublicBlogRows } from '@/lib/public-blog'
 import { cache } from 'react'
-import { connectDB } from '@/lib/mongodb'
-import BlogCategory from '@/models/BlogCategory'
-import BlogPost from '@/models/BlogPost'
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 
 const getCategory = cache(async (slug: string) => {
   try {
-    const db = await connectDB()
-    if (!db) return null
-    return await BlogCategory.findOne({ slug }).lean()
+    return (await getPublicBlogCategories()).find(item => item.slug === slug) || null
   } catch (error) {
     console.error('Error fetching blog category:', error)
     return null
@@ -31,10 +27,7 @@ export default async function BlogCategoryLayout({
   }
 
   const pageUrl = `${SITE_URL}/blog/category/${slug}`
-  const postCount = await BlogPost.countDocuments({
-    categories: category._id,
-    status: 'published',
-  }).catch(() => 0)
+  const postCount = await getPublicBlogRows({ categoryId: category._id, page: 1, limit: 9 }).then(result => result.total).catch(() => 0)
 
   const collectionJsonLd = {
     '@context': 'https://schema.org',

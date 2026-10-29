@@ -1,16 +1,9 @@
+import { getPublicBlogRows, getPublicBlogCategories } from '@/lib/public-blog'
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
-import BlogPost from '@/models/BlogPost'
-import BlogCategory from '@/models/BlogCategory'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 
 export async function GET(request: NextRequest) {
   try {
-    const db = await connectDB()
-    if (!db) {
-      return NextResponse.json({ posts: [], total: 0, page: 1, pages: 0 })
-    }
-
     const { searchParams } = new URL(request.url)
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const limit = Math.min(24, Math.max(1, parseInt(searchParams.get('limit') || '9', 10)))
@@ -26,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (categorySlug) {
-      const category = await BlogCategory.findOne({ slug: categorySlug }).lean()
+      const category = (await getPublicBlogCategories()).find(item => item.slug === categorySlug)
       if (!category) {
         return NextResponse.json({ posts: [], total: 0, page, pages: 0 })
       }
@@ -37,15 +30,8 @@ export async function GET(request: NextRequest) {
       query.title = { $regex: search, $options: 'i' }
     }
 
-    const [total, posts, imageCandidates] = await Promise.all([
-      BlogPost.countDocuments(query),
-      BlogPost.find(query)
-        .populate('categories', 'name slug')
-        .select('-content')
-        .sort({ publishedAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .lean(),
+    const [{ total, posts }, imageCandidates] = await Promise.all([
+      getPublicBlogRows({ categoryId: query.categories, search: search?.trim().slice(0, 200), page, limit }),
       getBlogImageCandidates(),
     ])
 

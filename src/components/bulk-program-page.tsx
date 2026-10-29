@@ -22,7 +22,9 @@ const stages = [
 
 export async function BulkProgramPage({ kind = 'all' }: { kind?: BulkProgramKey }) {
   const program = bulkPrograms[kind]
-  const products = (await getCustomLandingProducts(kind === 'corporate' ? 'bomber-jackets' : 'varsity-jackets')).slice(0, 3)
+  const products = kind === 'corporate'
+    ? (await Promise.all(['coach-jackets', 'bomber-jackets', 'varsity-jackets'].map(getCustomLandingProducts))).flatMap(items => items.slice(0, 1))
+    : (await getCustomLandingProducts('varsity-jackets')).slice(0, 3)
   const hero = designImages.find(image => image.key === program.imageKey) || designImages[0]
   const site = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
   const schema = { '@context': 'https://schema.org', '@graph': [
@@ -44,7 +46,7 @@ export async function BulkProgramPage({ kind = 'all' }: { kind?: BulkProgramKey 
               <p className="mt-5 max-w-xl text-sm leading-7 text-white/80 sm:text-base">{program.intro}</p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link href="#bulk-quote" className="inline-flex min-h-12 items-center justify-center gap-3 rounded-lg bg-white px-5 text-sm font-semibold text-zinc-950 hover:bg-white/90">Request a Free Bulk Quote <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
-                <Link href="/design/varsity" className="inline-flex min-h-12 items-center justify-center px-2 text-sm font-semibold text-white underline underline-offset-4">Build Your Jacket</Link>
+                <Link href={kind === 'corporate' ? '#corporate-styles' : '/design/varsity'} className="inline-flex min-h-12 items-center justify-center px-2 text-sm font-semibold text-white underline underline-offset-4">{kind === 'corporate' ? 'Compare Jacket Styles' : 'Build Your Jacket'}</Link>
               </div>
               <p className="mt-4 text-xs leading-5 text-white/65">Bulk quote requests: 10+ jackets. <Link href="/contact" className="underline underline-offset-4">Fewer than 10? Talk to us.</Link></p>
             </div>
@@ -68,6 +70,16 @@ export async function BulkProgramPage({ kind = 'all' }: { kind?: BulkProgramKey 
 
         {products.length > 0 && <section className="section-shell py-7! md:py-10!" aria-labelledby="bulk-examples-heading"><div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-widest text-primary">Choose a starting style</p><h2 id="bulk-examples-heading" className="mt-2 text-2xl font-semibold tracking-tight">A jacket to build on.</h2><p className="mt-2 text-sm text-muted-foreground">Current catalog styles. Listed prices are individual product prices; your bulk quote is calculated separately.</p></div><Link href="/shop" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline underline-offset-4">Shop all jackets <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link></div><div className="grid grid-cols-1 gap-4 sm:grid-cols-3">{products.map(product => <ProductCard key={product.id} product={product} />)}</div></section>}
 
+        {kind === 'corporate' && <section id="corporate-styles" className="section-shell scroll-mt-24 py-8! md:py-10!" aria-labelledby="corporate-styles-heading">
+          <h2 id="corporate-styles-heading" className="text-2xl font-semibold tracking-tight">Choose a jacket for how your team will wear it</h2>
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
+            {[
+              { title: 'Coach jackets', href: '/coach-jackets', text: 'Compare coach styles for a lightweight outer layer over existing uniform pieces. Review the exact fabric, lining and logo method for your selected product.' },
+              { title: 'Bomber jackets', href: '/bomber-jackets', text: 'Compare bomber styles when the silhouette and trim details suit your company’s look. Material, lining and fit vary, so select the construction around the intended use.' },
+              { title: 'Varsity jackets', href: '/varsity-jackets', text: 'Choose a varsity starting style when contrasting panels, lettering or patches are central to the design. Plan company branding and individual details as one coordinated layout.' },
+            ].map(style => <div key={style.href} className="border-t pt-5"><h3 className="text-lg font-semibold"><Link href={style.href} className="underline underline-offset-4">{style.title}</Link></h3><p className="mt-3 text-sm leading-7 text-muted-foreground">{style.text}</p></div>)}
+          </div>
+        </section>}
         <section className="border-y bg-muted/25"><div className="section-shell py-8! md:py-10!"><h2 className="text-2xl font-semibold tracking-tight">From your first idea to the whole group.</h2><ol className="mt-6 grid gap-6 md:grid-cols-3">{stages.map(({ icon: Icon, title, text }, index) => <li key={title} className="border-l-2 border-primary/25 pl-5"><span className="flex items-center gap-3 text-xs font-semibold text-primary"><Icon aria-hidden="true" className="h-5 w-5" />0{index + 1}</span><h3 className="mt-3 font-semibold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p></li>)}</ol></div></section>
 
         <section id="bulk-quote" className="scroll-mt-24"><div className="section-shell grid gap-7 py-10! lg:grid-cols-[0.7fr_1.3fr] lg:gap-12 md:py-14!"><div><p className="text-xs font-semibold uppercase tracking-widest text-primary">Let’s plan your order</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Your group. Your details.</h2><p className="mt-4 text-sm leading-7 text-muted-foreground">Request a free quote for {kind === 'all' ? 'your bulk custom jackets' : program.label.toLowerCase()}. You can start without finished artwork or a final roster.</p><ul className="mt-5 space-y-3 text-sm">{['An estimate of 10 or more jackets', 'Your preferred style, or ask for advice', 'Delivery country and your target date'].map(text => <li key={text} className="flex gap-3"><Check aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" />{text}</li>)}</ul><div className="mt-6 rounded-xl border bg-muted/30 p-5"><h3 className="text-sm font-semibold">What happens next?</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">The team contacts you by email to discuss specifications and timing. Requesting a quote does not commit you to an order.</p></div></div><div className="min-w-0 rounded-2xl border bg-card p-5 sm:p-7"><h3 className="text-xl font-semibold">Request a Free Bulk Quote</h3><p className="mt-2 text-sm text-muted-foreground">For 10+ jackets. Fields marked * are required.</p><BulkQuoteForm program={kind === 'all' ? '' : program.label} /></div></div></section>

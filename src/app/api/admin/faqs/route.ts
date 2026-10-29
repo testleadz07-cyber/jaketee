@@ -1,15 +1,9 @@
+import { requireAdminApi } from '@/lib/require-admin'
+import { invalidateHomeCache } from '@/lib/home-cache'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import mongoose from 'mongoose'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
-
-async function isAdmin() {
-  const session = await getServerSession(authOptions)
-  if (!session || (session.user as any).role !== 'admin') return null
-  return session
-}
 
 function escapeRegex(input: string) {
   return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -52,10 +46,8 @@ function mapFaq(faq: any) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -119,10 +111,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -164,6 +154,7 @@ export async function POST(request: NextRequest) {
       displayPages: normalizeDisplayPages(body.displayPages),
     })
 
+    await invalidateHomeCache('faqs')
     return NextResponse.json(mapFaq(faq), { status: 201 })
   } catch (error) {
     console.error('Admin FAQ create error:', error)
@@ -173,10 +164,8 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -231,6 +220,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'FAQ not found' }, { status: 404 })
     }
 
+    await invalidateHomeCache('faqs')
     return NextResponse.json(mapFaq(faq))
   } catch (error) {
     console.error('Admin FAQ update error:', error)
@@ -240,10 +230,8 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await isAdmin()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -261,6 +249,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'FAQ not found' }, { status: 404 })
     }
 
+    await invalidateHomeCache('faqs')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Admin FAQ delete error:', error)

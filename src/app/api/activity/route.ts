@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import Activity from '@/models/Activity'
 import GuestActivity from '@/models/GuestActivity'
 import { getGeoFromRequest } from '@/lib/geo'
+import { getClientIp } from '@/lib/rate-limit-memory'
 import { MAX_ACTIVITY_BYTES, parseActivity } from '@/lib/activity-schema'
 import { GUEST_ID_COOKIE, guestCookieOptions, resolveGuestIdentity } from '@/lib/guest-identity'
 import { hasValidActivityOrigin } from '@/lib/activity-origin'
@@ -60,10 +61,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
 
-    const xForwardedFor = request.headers.get('x-forwarded-for')
-    const ip = xForwardedFor
-      ? xForwardedFor.split(',')[0].trim()
-      : request.headers.get('x-real-ip') || '127.0.0.1'
+    const ip = getClientIp(request)
     const userAgent = request.headers.get('user-agent') || undefined
     const geo = getGeoFromRequest(request)
     const country = geo.country || (ip === '127.0.0.1' || ip === '::1' ? 'Localhost' : 'Unknown')

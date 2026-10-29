@@ -1,3 +1,4 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IBlogCategory extends Document {
@@ -19,5 +20,5 @@ const BlogCategorySchema = new Schema<IBlogCategory>(
   { timestamps: true }
 )
 
-export default mongoose.models.BlogCategory ||
-  mongoose.model<IBlogCategory>('BlogCategory', BlogCategorySchema)
+export default requestScopedModel(mongoose.models.BlogCategory ||
+  mongoose.model<IBlogCategory>('BlogCategory', BlogCategorySchema))

@@ -1,6 +1,6 @@
+import { publicRead } from '@/lib/public-cache'
 import { BlogCard } from '@/components/blog-card'
 import Link from 'next/link'
-import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
 import BlogPost from '@/models/BlogPost'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -39,16 +39,15 @@ export async function BulkOrderResources({ kind }: { kind: BulkOrderKind }) {
   let posts: Array<{ slug: string; title: string; excerpt: string }> = []
 
   try {
-    const db = await connectDB()
-    if (db) {
+    {
       const now = new Date()
-      const [faqRows, postRows] = await Promise.all([
+      const [faqRows, postRows] = await publicRead('bulk-order-resources', kind, 300, ['public-support', 'public-blog'], async () => Promise.all([
         Faq.find({ status: { $ne: 'draft' }, displayPages: pagePath }).sort({ order: 1 }).limit(8).lean(),
         BlogPost.find({
           slug: { $in: config.blogSlugs },
           $or: [{ status: 'published' }, { status: 'scheduled', publishedAt: { $lte: now } }],
         }).select('slug title excerpt').lean(),
-      ])
+      ]))
       faqs = faqRows.map((faq: any) => ({
         id: String(faq._id),
         question: faq.question,

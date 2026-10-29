@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from '@/components/optimized-image'
@@ -12,10 +14,12 @@ import { getCustomDesignImages } from '@/components/custom-design-section'
 import { fulfillmentConfig } from '@/config/fulfillment'
 import { withSocialMetadata } from '@/lib/seo-metadata'
 
+export const revalidate = 3600
+
 const PAGE_URL = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'}/how-to-customize`
-const description = 'Learn how to customize a jacket: choose your style, materials and colors, add patches or embroidery, check sizing, and review your design before ordering.'
+const description = 'Customize a jacket online: choose a style, use its design tool, add names or artwork, compare materials, check sizing and review your design before ordering.'
 export const metadata: Metadata = withSocialMetadata({
-  title: 'How to Customize a Jacket | Step-by-Step Customization Guide | Jacketee',
+  title: 'How to Customize a Jacket Online: Design Guide | Jacketee',
   description,
   alternates: { canonical: PAGE_URL },
   openGraph: { title: 'How to Customize Your Jacket | Jacketee Customization Guide', description, url: PAGE_URL, siteName: 'Jacketee', type: 'website' },
@@ -39,6 +43,7 @@ const steps = [
 ]
 const faqs = [
   { question: 'Which styles can I customize online?', answer: 'You can open an online designer for varsity, bomber, coach and puffer jackets, plus fleece hoodies. For denim or a special request, contact our team to discuss your design.' },
+  { question: 'How do I use the jacket customization tool?', answer: 'Choose a style to open its designer, then work through the available material, color, text and artwork options. Review every available view, check your size and selected options, and review the price summary before ordering. Available controls and placements depend on the jacket style.' },
   { question: 'Do I need finished artwork to get started?', answer: 'No. You can start by choosing your style and colors and adding text. If your logo needs preparation or you only have an idea, contact us before ordering so we can discuss the best way to reproduce it.' },
   { question: 'Can I choose any fabric, lining or hardware?', answer: 'Options vary by style. Choose from the controls shown in your selected designer. For a material, closure, lining or other detail that is not listed, ask our team before placing your order.' },
   { question: 'Can I request custom measurements?', answer: 'Use the size guide first, then contact our team before ordering if the listed sizes do not suit you. Confirm custom measurements and availability for your chosen style with us.' },
@@ -86,7 +91,16 @@ export default async function HowToCustomizePage() {
         <section id="choose-your-style" aria-labelledby="style-title" className="container mx-auto scroll-mt-28 px-4 pb-12 md:pb-16">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Start here</p>
           <h2 id="style-title" className="mt-2 text-2xl font-bold sm:text-3xl">Pick your canvas</h2>
-          <p className="mt-3 text-muted-foreground">Open a designer to explore the options available for your style.</p>
+          <ul className="mt-4 max-w-3xl space-y-2 text-muted-foreground">
+            {[
+              'Choose your jacket style below.',
+              'Select materials and colors.',
+              'Add your text or artwork.',
+              'Review your design from every available view.',
+              'Check your size and price before ordering.',
+            ].map(step => <li key={step} className="flex items-start gap-3 leading-7"><Check aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" /><span>{step}</span></li>)}
+          </ul>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">The preview helps you plan your jacket. Final details are confirmed before production.</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {styles.map(style => <Link key={style.href} href={style.href} className="group flex items-center justify-between gap-3 rounded-xl border bg-card p-5 transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"><div><h3 className="font-semibold">{style.name}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{style.detail}</p><span className="mt-3 inline-block text-sm font-medium text-primary">Open designer</span></div><ArrowRight className="h-4 w-4 shrink-0 text-primary" /></Link>)}
           </div>

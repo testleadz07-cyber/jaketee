@@ -1,18 +1,22 @@
+export const dynamic = 'force-dynamic'
+
 import { withSocialMetadata } from '@/lib/seo-metadata'
 import type { Metadata } from 'next'
 import { materialsHeroImage, faqs } from '@/data/materials-colors'
 import { MaterialsGuidePage } from '@/components/materials-guide-page'
 import { getMaterialSectionImages } from '@/lib/material-section-images'
 
+export const revalidate = 3600
+
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.jacketee.com'
 const PAGE_URL = `${SITE_URL}/materials-colors`
 const defaultMetadata: Metadata = withSocialMetadata({
-  title: 'Varsity Jacket Materials & Colors | Jacketee',
+  title: 'Varsity Jacket Materials: Wool, Leather & Fabrics | Jacketee',
   description:
-    'Compare melton wool, leather, satin, fleece, twill, soft-shell, nylon, suede, snaps, zips, and 30+ jacket color swatches before starting a custom order.',
+    'What are varsity jackets made of? Compare wool, leather, faux leather, satin, fleece and twill, then explore color swatches for your custom jacket.',
   alternates: { canonical: PAGE_URL },
   openGraph: {
-    title: 'Varsity Jacket Materials & Colors | Jacketee',
+    title: 'Varsity Jacket Materials: Wool, Leather & Fabrics | Jacketee',
     description:
       'Compare jacket fabrics, finishes, and color swatches for custom varsity jackets, bomber jackets, hoodies, and coach jackets.',
     url: PAGE_URL,
@@ -29,7 +33,7 @@ const defaultMetadata: Metadata = withSocialMetadata({
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Varsity Jacket Materials & Colors | Jacketee',
+    title: 'Varsity Jacket Materials: Wool, Leather & Fabrics | Jacketee',
     description: 'Compare materials and color swatches before you start a custom jacket order.',
   },
 })

@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
 import { getJacketTextSummary } from '@/types/jacket-customization'
@@ -473,6 +475,7 @@ function CheckoutContent() {
       const nextAddresses = [...savedAddresses, newAddress]
       const response = await fetch('/api/users/profile', {
         method: 'PUT',
+        signal: AbortSignal.timeout(10000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ addresses: nextAddresses }),
       })
@@ -603,17 +606,19 @@ function CheckoutContent() {
     try {
       const res = await fetch('/api/checkout/address/confirm', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(20000),
         body: JSON.stringify({ confirmed: true, email: shippingEmail, shippingAddress: {
           name: shippingName, street: shippingStreet, city: shippingCity, state: shippingState,
           zip: shippingZip, country: shippingCountry, phone: shippingPhone,
         } }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => { throw new Error('Address confirmation is temporarily unavailable. Please try again.') })
       if (!res.ok) throw new Error(data.error || 'Please check your delivery address')
       applyDraft({ ...data.shippingAddress, email: data.email })
       setAddressConfirmation({ token: data.token, expiresAt: data.expiresAt })
       if (session?.user && selectedAddressIndex === 'new' && saveNewAddress) {
-        await saveAddressToProfile(data.shippingAddress)
+        // Optional address-book persistence must not delay payment.
+        void saveAddressToProfile(data.shippingAddress)
         setSaveNewAddress(false)
       }
       paypalButtonRendered.current = false
@@ -621,7 +626,8 @@ function CheckoutContent() {
     } catch (error) {
       setAddressConfirmation(null)
       setStep(1)
-      toast({ title: 'Check your delivery address', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' })
+      const timedOut = error instanceof Error && ['AbortError', 'TimeoutError'].includes(error.name)
+      toast({ title: 'Check your delivery address', description: timedOut ? 'Address confirmation took too long. Please try again.' : error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' })
     } finally { setIsConfirmingAddress(false) }
   }
 

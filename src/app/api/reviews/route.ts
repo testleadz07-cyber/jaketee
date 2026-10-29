@@ -1,3 +1,4 @@
+import { publicRead } from '@/lib/public-cache'
 import { validateVideoUrls } from '@/lib/video-media'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -21,11 +22,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid productId' }, { status: 400 })
     }
 
-    const db = await connectDB()
-    if (!db) {
-      return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
-    }
-
     // Public listing only ever shows approved reviews
     const query: Record<string, any> = { productId, status: 'approved' }
 
@@ -36,9 +32,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const reviews = await Review.find(query)
+    const reviews = await publicRead('approved-reviews', query, 60, ['public-support'], async () => {
+      if (!await connectDB()) throw new Error('Database connection failed')
+      return Review.find(query)
       .sort({ createdAt: -1 })
       .lean()
+    })
 
     // Map _id to id
     const mapped = reviews.map((r: any) => ({

@@ -1,6 +1,5 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import Order from '@/models/Order'
@@ -8,10 +7,8 @@ import { hashPassword } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {
@@ -45,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const total = await User.countDocuments(query)
     const users = await User.find(query)
-      .select('-password -resetPasswordToken -resetPasswordExpires')
+      .select('_id name username email role isActive phone avatar addresses createdAt')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -96,10 +93,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const body = await request.json()
     const { name, username, email, password, role } = body

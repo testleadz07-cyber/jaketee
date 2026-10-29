@@ -1,6 +1,5 @@
+import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import Review from '@/models/Review'
 import Product from '@/models/Product'
@@ -9,10 +8,8 @@ import { buildProductUrl, resolveAncestorChain } from '@/lib/categories'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const auth = await requireAdminApi()
+    if (auth.response) return auth.response
 
     const db = await connectDB()
     if (!db) {

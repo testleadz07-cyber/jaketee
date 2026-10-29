@@ -1,8 +1,11 @@
+import { requestScopedModel } from '@/lib/mongodb'
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface ISubscriber extends Document {
   email: string
   subscribedAt: Date
+  welcomeEmailStatus?: 'pending' | 'accepted' | 'failed'
+  welcomeEmailAttemptAt?: Date
 }
 
 const SubscriberSchema = new Schema<ISubscriber>(
@@ -14,6 +17,8 @@ const SubscriberSchema = new Schema<ISubscriber>(
       lowercase: true,
       trim: true,
     },
+    welcomeEmailStatus: { type: String, enum: ['pending', 'accepted', 'failed'] },
+    welcomeEmailAttemptAt: Date,
     subscribedAt: {
       type: Date,
       default: Date.now,
@@ -22,4 +27,4 @@ const SubscriberSchema = new Schema<ISubscriber>(
   { timestamps: true }
 )
 
-export default mongoose.models.Subscriber || mongoose.model<ISubscriber>('Subscriber', SubscriberSchema)
+export default requestScopedModel(mongoose.models.Subscriber || mongoose.model<ISubscriber>('Subscriber', SubscriberSchema))

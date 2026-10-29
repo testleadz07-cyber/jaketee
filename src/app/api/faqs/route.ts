@@ -1,15 +1,10 @@
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/mongodb'
 import Faq from '@/models/Faq'
+import { publicRead } from '@/lib/public-cache'
 
 export async function GET() {
   try {
-    const db = await connectDB()
-    if (!db) {
-      return NextResponse.json([])
-    }
-
-    const faqs = await Faq.find({ status: { $ne: 'draft' } }).sort({ category: 1, order: 1 }).lean()
+    const faqs = await publicRead('public-faq-list', [], 300, ['public-support', 'public-faq-page'], async () => Faq.find({ status: { $ne: 'draft' } }).sort({ category: 1, order: 1 }).lean())
     const data = faqs.map((f: any) => ({
       id: String(f._id),
       question: f.question,

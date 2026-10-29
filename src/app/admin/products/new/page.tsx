@@ -1,5 +1,7 @@
 'use client'
 
+import { apiFetch as fetch } from '@/lib/api-fetch'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -293,7 +295,7 @@ export default function NewProduct() {
                   />
                 </div>
 
-                <ProductTagsEditor value={formData.tags} onChange={tags => setFormData({ ...formData, tags })} disabled={submitting} />
+                <ProductTagsEditor categoryId={formData.categoryId} value={formData.tags} onChange={tags => setFormData({ ...formData, tags })} disabled={submitting} />
                 <div className="space-y-2">
                   <Label htmlFor="description">Description *</Label>
                   <Textarea

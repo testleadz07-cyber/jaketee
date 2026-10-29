@@ -1,10 +1,8 @@
+import { requireAdminApi } from '@/lib/require-admin'
 // src/app/api/admin/refunds/route.ts
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-options'
 import { connectDB } from '@/lib/mongodb'
 import RefundRequest from '@/models/RefundRequest'
-import { createNotification } from '@/lib/notifications'
 
 // Ensure DB connection helper
 async function ensureDB() {
@@ -15,10 +13,8 @@ async function ensureDB() {
 
 // GET: list all refund/return requests (optionally filter by status) — admin only
 export async function GET(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status') as 'pending' | 'approved' | 'rejected' | null
   const search = searchParams.get('search')?.trim()
@@ -48,48 +44,18 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: submit a new refund/return request — public (no auth required)
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { orderId, reason, userName, userEmail } = body
-
-    if (!orderId?.trim()) {
-      return NextResponse.json({ error: 'Order number is required.' }, { status: 400 })
-    }
-    if (!reason?.trim() || (reason as string).trim().length < 10) {
-      return NextResponse.json({ error: 'Please provide a detailed reason (min 10 characters).' }, { status: 400 })
-    }
-
-    await ensureDB()
-    const refund = await RefundRequest.create({
-      orderId: (orderId as string).trim(),
-      reason: (reason as string).trim(),
-      status: 'pending',
-      ...(userName?.trim() ? { userName: (userName as string).trim() } : {}),
-      ...(userEmail?.trim() ? { userEmail: (userEmail as string).trim() } : {}),
-    })
-
-    await createNotification({
-      type: 'refund_request',
-      title: 'New refund/return request',
-      message: `Order ${refund.orderId}${refund.userName ? ` from ${refund.userName}` : ''}`,
-      link: '/admin/refunds',
-    }).catch(() => console.error('Return request saved, but admin notification failed'))
-
-    return NextResponse.json({ success: true, id: refund._id }, { status: 201 })
-  } catch (error) {
-    console.error('POST /api/admin/refunds error:', error)
-    return NextResponse.json({ error: 'Failed to submit request. Please try again.' }, { status: 500 })
-  }
+// Public submissions moved to /api/returns. Keep the old URL admin-protected,
+// but do not preserve a second, unverified creation path.
+export async function POST() {
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
+  return NextResponse.json({ error: 'Submit return requests through /api/returns' }, { status: 405, headers: { Allow: 'GET, PATCH', 'Cache-Control': 'private, no-store' } })
 }
 
 // PATCH: update status of a request (approve or reject) — admin only
 export async function PATCH(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || (session.user as any).role !== 'admin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminApi()
+  if (auth.response) return auth.response
   try {
     await ensureDB()
     const { id, status: newStatus } = await request.json()
