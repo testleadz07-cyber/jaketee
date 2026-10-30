@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { contactFormTemplate, sendEmail } from '@/lib/email'
+import { contactCustomerReplyTemplate, contactFormTemplate, sendEmail } from '@/lib/email'
 import { shippingCountryError } from '@/config/fulfillment'
 import { checkRateLimit, getClientIp, rateLimitHeaders } from '@/lib/rate-limit'
 import { connectDB } from '@/lib/mongodb'
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const subject = 'Bulk jacket quote request'
     const message = [
       ...fields.map(key => `${key}: ${data[key] || (key === 'deadline' ? 'Not sure yet' : 'Not provided')}`),
-      ...(attachments.length ? [`Logo attachment: ${attachments[0].filename} (saved with the inquiry and included in the notification email)`] : []),
+      ...(attachments.length ? [`Logo attachment: ${attachments[0].filename} (saved with the inquiry and attached to notification and acknowledgement emails)`] : []),
     ].join('\n')
     const db = await connectDB()
     if (!db) return NextResponse.json({ error: 'We could not save your quote request. Please try again or email info@jacketee.com.' }, { status: 503 })
@@ -54,16 +54,22 @@ export async function POST(request: NextRequest) {
       link: '/admin/contact-messages',
       metadata: { name: data.name, email: data.email, subject },
     }).catch(() => console.error('Bulk quote saved, but admin notification failed'))
-    // The saved inquiry is the source of truth; email failure must not prompt duplicate submissions.
-    try {
-      const to = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SUPPORT_EMAIL ||
-        (process.env.SMTP_USER?.includes('@') ? process.env.SMTP_USER : 'info@jacketee.com')
-      const result = await sendEmail({ to, subject, html: contactFormTemplate({ name: data.name, email: data.email, subject, message }), attachments })
-      if (!result.success) console.error('Bulk quote saved, but notification email delivery failed')
-    } catch {
-      console.error('Bulk quote saved, but notification email delivery failed')
+    const to = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SUPPORT_EMAIL ||
+      (process.env.SMTP_USER?.includes('@') ? process.env.SMTP_USER : 'info@jacketee.com')
+    const details = { name: data.name, email: data.email, subject, message }
+    const deliveries = await Promise.allSettled([
+      Promise.resolve().then(() => sendEmail({ to, subject, html: contactFormTemplate(details), attachments })),
+      Promise.resolve().then(() => sendEmail({ to: data.email, subject: 'Jacketee - Bulk Quote Request Received', html: contactCustomerReplyTemplate(details), attachments })),
+    ])
+    const emailStatus = {
+      admin: deliveries[0].status === 'fulfilled' && deliveries[0].value.success === true ? 'accepted' : 'failed',
+      customer: deliveries[1].status === 'fulfilled' && deliveries[1].value.success === true ? 'accepted' : 'failed',
     }
-    return NextResponse.json({ success: true })
+    const emailFailed = Object.values(emailStatus).includes('failed')
+    if (emailFailed) console.error('Bulk quote saved, but email delivery failed')
+    return NextResponse.json({ success: true, saved: true, emailStatus, message: emailFailed
+      ? 'Your quote request and any logo are saved, but one or more notification emails could not be sent. Please do not resubmit. Contact info@jacketee.com if you need help.'
+      : 'Your quote request and any logo are saved. Notification and acknowledgement emails were accepted for sending; please check your inbox and spam folder.' })
   } catch {
     return NextResponse.json({ error: 'We could not save your quote request. Please try again or email info@jacketee.com.' }, { status: 500 })
   }

@@ -1,5 +1,6 @@
 'use client'
 
+import { useCustomerJson } from '@/hooks/use-customer-json'
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { GoogleSignIn } from '@/components/google-sign-in'
@@ -7,7 +8,7 @@ import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
 import { getSession, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { startTransition, useEffect, useState  } from 'react'
+import { startTransition, useEffect, useRef, useState  } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
@@ -33,8 +34,11 @@ import Link from 'next/link'
 import { useWishlistStore } from '@/store/wishlist'
 import { useCartStore } from '@/store/cart'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { OrderCustomizationDetails } from '@/components/order-customization-details'
+import type { JacketCustomization } from '@/types/jacket-customization'
 
 interface OrderItem {
+  customization?: JacketCustomization
   productId: string
   name: string
   image: string
@@ -101,7 +105,6 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  const [orders, setOrders] = useState<Order[]>([])
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
   const [claimEmail, setClaimEmail] = useState('')
@@ -116,16 +119,25 @@ export default function ProfilePage() {
 
   const [isProfileLoading, setIsProfileLoading] = useState(false)
   const [isPasswordLoading, setIsPasswordLoading] = useState(false)
-  const [isOrdersLoading, setIsOrdersLoading] = useState(true)
 
   const wishlistItems = useWishlistStore((state) => state.items)
-  const loadWishlist = useWishlistStore((state) => state.loadFromServer)
+  const customerId = (session?.user as { id?: string } | undefined)?.id
+  const ordersRead = useCustomerJson<Order[]>(status === 'authenticated' ? customerId : undefined,
+    customerId ? `/api/orders?userId=${encodeURIComponent(customerId)}` : null, 'array')
+  const orders = ordersRead.data || []
+  const ordersError = ordersRead.error
+  const isOrdersLoading = ordersRead.loading
+  const profileLoaded = useRef<string | undefined>(undefined)
+  const activeCustomer = useRef(customerId)
+  activeCustomer.current = customerId
   const removeFromWishlist = useWishlistStore((state) => state.removeItem)
   const addToCart = useCartStore((state) => state.addItem)
 
   async function fetchProfile() {
+    const owner = customerId
     try {
       const res = await fetch('/api/users/profile')
+      if (activeCustomer.current !== owner) return
       if (res.status === 401) {
         await getSession()
         router.replace('/login')
@@ -142,23 +154,6 @@ export default function ProfilePage() {
     }
   }
 
-  async function fetchOrders() {
-    setIsOrdersLoading(true)
-    try {
-      const userId = (session?.user as any)?.id
-      if (!userId) return
-
-      const res = await fetch(`/api/orders?userId=${userId}`)
-      if (res.ok) {
-        const data = await res.json()
-        setOrders(data)
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-    } finally {
-      setIsOrdersLoading(false)
-    }
-  }
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -177,15 +172,17 @@ export default function ProfilePage() {
     }
   }, [status])
 
-  // Fetch profile, orders, and wishlist if logged in
+  // Load account data once per stable session identity. Wishlist sync is global.
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      startTransition(() => { setName(session.user?.name || '') })
+    if (status === 'unauthenticated') profileLoaded.current = undefined
+    if (status === 'authenticated' && customerId && profileLoaded.current !== customerId) {
+      profileLoaded.current = customerId
+      setName('')
+      setPhone('')
+      setAddresses([])
       startTransition(() => { fetchProfile() })
-      startTransition(() => { fetchOrders() })
-      loadWishlist((session.user as any).id)
     }
-  }, [status, session, loadWishlist])
+  }, [status, customerId])
 
 
 
@@ -296,6 +293,7 @@ export default function ProfilePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'request', email: claimEmail.trim() || session?.user?.email }),
+        signal: AbortSignal.timeout(30000),
       })
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || 'Could not request verification')
@@ -735,6 +733,12 @@ export default function ProfilePage() {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
                   <p className="text-muted-foreground">Loading order history...</p>
                 </div>
+              ) : ordersError ? (
+                <Card className="border-2 text-center py-10">
+                  <CardContent><p role="alert" className="mb-4 text-muted-foreground">{ordersError}</p>
+                    <Button onClick={ordersRead.retry}>Retry order history</Button>
+                  </CardContent>
+                </Card>
               ) : orders.length === 0 ? (
                 <Card className="border-2 text-center py-16">
                   <CardContent className="flex flex-col items-center justify-center">
@@ -820,7 +824,7 @@ export default function ProfilePage() {
                                   </h4>
                                   <div className="space-y-3">
                                     {order.items.map((item, idx) => (
-                                      <div key={idx} className="flex gap-4 items-center bg-card p-3 rounded-lg border">
+                                      <div key={idx} className="flex flex-wrap gap-4 items-start bg-card p-3 rounded-lg border">
                                         <div className="relative h-16 w-16 overflow-hidden rounded bg-muted flex-shrink-0">
                                           <img
                                             src={item.image}
@@ -842,6 +846,7 @@ export default function ProfilePage() {
                                         <div className="text-right font-bold text-primary">
                                           ${(item.price * item.quantity).toFixed(2)}
                                         </div>
+                                        <OrderCustomizationDetails customization={item.customization} name={item.name} />
                                       </div>
                                     ))}
                                   </div>

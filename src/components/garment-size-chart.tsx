@@ -4,7 +4,7 @@ import { InternationalSizeChart } from '@/components/international-size-chart'
 export function GarmentSizeChart({ kind, unit }: { kind: 'jacket' | 'vest'; unit: Unit }) {
   const isVest = kind === 'vest'
   return <div className="space-y-4">
-    <InternationalSizeChart unit={unit} />
+    <p className="text-sm leading-6 text-muted-foreground">General references, not separate men’s and women’s product charts. Confirm your selected style’s fit.</p>
     <p className="text-sm leading-6 text-muted-foreground">{isVest
       ? 'Reference body measurements for vest sizing. These are the same chest and waist ranges used on our full size-guide page. Confirm the finished dimensions for your chosen vest before ordering.'
       : 'The same reference measurements shown on our full size-guide page. Body chest and waist are circumferences; finished jacket chest is a flat width. Confirm the fit for your chosen style before ordering.'}</p>
@@ -27,5 +27,6 @@ export function GarmentSizeChart({ kind, unit }: { kind: 'jacket' | 'vest'; unit
       </table>
       <p className="mt-3 text-xs leading-5 text-muted-foreground">Double the flat chest width for garment circumference. Half shoulder is a separate reference measurement; confirm its measuring points with our team. Tall sizes are available only where specified for a product.</p>
     </div>}
+    <details className="rounded-lg border p-4"><summary className="cursor-pointer text-sm font-semibold">Optional: US, UK &amp; European references</summary><div className="mt-4"><InternationalSizeChart unit={unit} /></div></details>
   </div>
 }

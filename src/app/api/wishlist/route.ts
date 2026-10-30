@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         }
       })
 
-    return NextResponse.json(mapped)
+    return NextResponse.json(mapped, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error: any) {
     console.error('Wishlist fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch wishlist' }, { status: 500 })
@@ -65,7 +65,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
+    const text = await request.text()
+    if (text.length > 16384) return NextResponse.json({ error: 'Request too large' }, { status: 413 })
+    let body: any
+    try { body = JSON.parse(text) } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }) }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    if (body.action === 'merge') {
+      // Owner is server-derived. The client marker only rejects stale requests
+      // created before an account switch (including admin-to-customer switches).
+      if (body.expectedOwner !== (session.user as any).id) return NextResponse.json({ error: 'Account changed. Retry wishlist sync.' }, { status: 409 })
+      const origin = request.headers.get('origin')
+      if (origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+      const adds = body.productIds
+      const removes = body.removeProductIds || []
+      if (!Array.isArray(adds) || !Array.isArray(removes) || adds.length > 100 || removes.length > 100 ||
+          [...adds, ...removes].some(id => typeof id !== 'string' || !/^[a-f0-9]{24}$/i.test(id))) {
+        return NextResponse.json({ error: 'Invalid wishlist batch' }, { status: 400 })
+      }
+      if (!await connectDB()) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 })
+      const owner = (session.user as any).id
+      const removeIds = [...new Set(removes)] as string[]
+      const addIds = [...new Set(adds)].filter(id => !removeIds.includes(id))
+      const products = await Product.find({ _id: { $in: addIds } }).select('_id').lean()
+      await Wishlist.init()
+      // Each write is idempotent. A partial failure can safely retry the batch.
+      if (removeIds.length) await Wishlist.deleteMany({ userId: owner, productId: { $in: removeIds } })
+      if (products.length) {
+        try {
+          await Wishlist.bulkWrite(products.map(product => ({ updateOne: {
+            filter: { userId: owner, productId: product._id },
+            update: { $setOnInsert: { userId: owner, productId: product._id } }, upsert: true,
+          } })), { ordered: false })
+        } catch (cause: any) {
+          if (!cause.writeErrors?.length || cause.writeErrors.some((entry: any) => entry.code !== 11000)) throw cause
+        }
+      }
+      return NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'private, no-store' } })
+    }
     const { userId, productId } = body
 
     if (!userId || !productId) {

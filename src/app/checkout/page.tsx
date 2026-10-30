@@ -5,6 +5,7 @@ import { apiFetch as fetch } from '@/lib/api-fetch'
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
 import { getJacketTextSummary } from '@/types/jacket-customization'
+import { CheckoutDesignPreviews } from '@/components/checkout-design-previews'
 
 import { calculateShipping, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
@@ -1015,6 +1016,7 @@ function CheckoutContent() {
                                   </div>
                                 </div>
                               )}
+                              <CheckoutDesignPreviews customization={item.customization} name={item.name} />
                               <p className="text-xs font-medium mt-1">
                                 Qty: {item.quantity} • ${item.price.toFixed(2)}
                               </p>
@@ -1215,6 +1217,7 @@ function CheckoutContent() {
                             <span className="shrink-0 font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">Qty {item.quantity} at ${item.price.toFixed(2)}</p>
+                          <CheckoutDesignPreviews customization={item.customization} name={item.name} />
                           {customizationSummary.length > 0 && (
                             <div className="mt-2 space-y-1 border-t pt-2 text-xs text-muted-foreground">
                               <p className="font-semibold text-foreground">Customization</p>

@@ -34,6 +34,7 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [sentTo, setSentTo] = useState('')
+  const [deliveryMessage, setDeliveryMessage] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
   const submissionLock = useRef(false)
 
@@ -69,7 +70,8 @@ export default function ContactPage() {
         setSubmitError(typeof data?.error === 'string' ? data.error : 'Your message could not be sent. Please try again or contact us by email or WhatsApp.')
         return
       }
-      await formActivity.submitted(result.values)
+      setDeliveryMessage(data.message || 'Your message is saved.')
+      await formActivity.submitted(result.values).catch(() => {})
       setSentTo(result.values.email)
       setFormData(emptyForm)
     } catch (error) {
@@ -110,7 +112,7 @@ export default function ContactPage() {
             <div id="send-message" className="scroll-mt-28 rounded-2xl border bg-card p-5 sm:p-8">
               <h2 id="message-title" className="text-2xl font-bold">Send us a message</h2>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">Tell us what you need and we’ll reply by email. All fields are required except delivery country.</p>
-              {sentTo ? <div role="status" className="mt-6 rounded-xl border bg-primary/5 p-6"><CheckCircle2 className="h-8 w-8 text-primary" /><h3 className="mt-4 text-lg font-semibold">Thanks. Your message has been sent.</h3><p className="mt-2 break-words text-sm leading-6 text-muted-foreground">We’ll reply to <strong className="font-medium text-foreground">{sentTo}</strong>. Check your inbox and spam folder for our response.</p><Button variant="outline" className="mt-5 min-h-11" onClick={() => setSentTo('')}>Send another message</Button></div> :
+              {sentTo ? <div role="status" className="mt-6 rounded-xl border bg-primary/5 p-6"><CheckCircle2 className="h-8 w-8 text-primary" /><h3 className="mt-4 text-lg font-semibold">Thanks. Your message has been saved.</h3><p className="mt-2 break-words text-sm leading-6 text-muted-foreground">We’ll reply to <strong className="font-medium text-foreground">{sentTo}</strong>. {deliveryMessage}</p><Button variant="outline" className="mt-5 min-h-11" onClick={() => setSentTo('')}>Send another message</Button></div> :
                 <form ref={formRef} id="contact-form" onSubmit={handleSubmit} {...formActivity.bindings} noValidate aria-busy={isSubmitting} className="mt-6 space-y-5" data-mcp-action="contact" data-mcp-description="Send Jacketee a support, custom jacket, or bulk order inquiry">
                   <fieldset disabled={isSubmitting} className="space-y-5 disabled:opacity-70"><legend className="sr-only">Your contact details and enquiry</legend>
                     <div className="grid gap-5 sm:grid-cols-2">
