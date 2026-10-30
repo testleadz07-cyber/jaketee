@@ -9,6 +9,10 @@ export function getClientIp(request: Request) {
 }
 
 function cloudflareEnv(): SecurityEnv | undefined {
+  // next dev exposes Wrangler bindings through OpenNext's dev bridge, but
+  // same-worker Durable Objects are not exported by that bridge. Use the
+  // existing in-memory limiter only for Next development outside a Worker.
+  if (process.env.NODE_ENV === 'development' && !getWorkerRequestScope()) return undefined
   try { return getCloudflareContext().env as SecurityEnv } catch {
     if (getWorkerRequestScope()) throw new Error('Cloudflare request context is unavailable')
     return undefined

@@ -53,6 +53,7 @@ import {
 } from 'lucide-react'
 
 interface UserOrderRow {
+  guestEmailMatch?: boolean
   id: string
   orderNumber: string
   total: number
@@ -96,6 +97,7 @@ interface UserDetail {
   avatar: string | null
   addresses: AddressForm[]
   createdAt: string
+  guestOrderCount?: number
   orderCount: number
   totalSpent: number
   orders: UserOrderRow[]
@@ -460,6 +462,7 @@ export default function AdminUserDetailPage() {
               <div>
                 <p className="text-xs text-muted-foreground">Total Spent</p>
                 <p className="font-semibold text-sm">${user.totalSpent.toFixed(2)}</p>
+                {!!user.guestOrderCount && <p className="text-xs text-muted-foreground">Includes {user.guestOrderCount} unverified guest match(es)</p>}
               </div>
             </CardContent>
           </Card>
@@ -607,7 +610,7 @@ export default function AdminUserDetailPage() {
           <Card className="border-2">
             <CardHeader>
               <CardTitle>Order History</CardTitle>
-              <CardDescription>All orders placed by this customer.</CardDescription>
+              <CardDescription>Linked orders and guest orders matching this email. Email matches do not verify account ownership.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {user.orders.length === 0 ? (
@@ -626,7 +629,9 @@ export default function AdminUserDetailPage() {
                   <TableBody>
                     {user.orders.map((order) => (
                       <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                        <TableCell className="font-medium">{order.orderNumber}
+                          {order.guestEmailMatch && <span className="block mt-1 text-xs text-muted-foreground">Guest — email matched, ownership unverified</span>}
+                        </TableCell>
                         <TableCell className="text-muted-foreground text-xs">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </TableCell>

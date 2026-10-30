@@ -1,3 +1,4 @@
+import { adminCustomerOrderQuery } from '@/lib/admin-customer-orders'
 import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
@@ -34,9 +35,9 @@ export async function GET(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const orders = await Order.find({ userId: id })
+    const orders = await Order.find(adminCustomerOrderQuery(id, user.email))
       .sort({ createdAt: -1 })
-      .select('orderNumber total status createdAt items')
+      .select('orderNumber total status createdAt items userId')
       .lean()
 
     const orderCount = orders.length
@@ -64,10 +65,12 @@ export async function GET(
       avatar: (user as any).avatar || null,
       addresses: (user as any).addresses || [],
       createdAt: (user as any).createdAt,
+      guestOrderCount: orders.filter((o: any) => o.userId == null).length,
       orderCount,
       totalSpent,
       orders: orders.map((o: any) => ({
         id: String(o._id),
+        guestEmailMatch: o.userId == null,
         orderNumber: o.orderNumber,
         total: o.total,
         status: o.status,

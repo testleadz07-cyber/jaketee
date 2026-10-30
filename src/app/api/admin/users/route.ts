@@ -1,3 +1,4 @@
+import { guestOrderEmail, adminCustomerOrderStats } from '@/lib/admin-customer-orders'
 import { requireAdminApi } from '@/lib/require-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
@@ -49,17 +50,18 @@ export async function GET(request: NextRequest) {
       .lean()
 
     const userIds = users.map((u: any) => u._id)
+    const guestEmails = users.map((u: any) => guestOrderEmail(u.email)).filter((email): email is RegExp => email !== null)
     const orderStats = await Order.aggregate([
-      { $match: { userId: { $in: userIds } } },
+      { $match: { $or: [{ userId: { $in: userIds } }, { userId: null, userEmail: { $in: guestEmails } }] } },
       {
         $group: {
-          _id: '$userId',
+          _id: { userId: { $ifNull: ['$userId', null] }, email: { $toLower: { $trim: { input: { $ifNull: ['$userEmail', ''] } } } } },
           orderCount: { $sum: 1 },
           totalSpent: { $sum: '$total' },
         },
       },
     ])
-    const statsMap = new Map(orderStats.map((s: any) => [String(s._id), s]))
+    const statsMap = adminCustomerOrderStats(users, orderStats)
 
     const mapped = users.map((u: any) => {
       const stats = statsMap.get(String(u._id))
@@ -74,6 +76,7 @@ export async function GET(request: NextRequest) {
         avatar: u.avatar || null,
         addresses: Array.isArray(u.addresses) ? u.addresses : [],
         createdAt: u.createdAt,
+        guestOrderCount: stats?.guestOrderCount || 0,
         orderCount: stats?.orderCount || 0,
         totalSpent: stats?.totalSpent || 0,
       }
@@ -84,7 +87,7 @@ export async function GET(request: NextRequest) {
       total,
       page,
       pages: Math.max(1, Math.ceil(total / limit)),
-    })
+    }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (error: any) {
     console.error('Admin users fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
