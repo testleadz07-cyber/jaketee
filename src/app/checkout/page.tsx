@@ -5,6 +5,7 @@ import { apiFetch as fetch } from '@/lib/api-fetch'
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
 import { getJacketTextSummary } from '@/types/jacket-customization'
+import { CheckoutDesignPreviews } from '@/components/checkout-design-previews'
 
 import { calculateShipping, shippingCountryOptions, normalizeShippingCountry, shippingCountryError } from '@/config/fulfillment'
 
@@ -119,6 +120,8 @@ function CheckoutContent() {
   const [paypalClientId, setPaypalClientId] = useState('')
   const [isPaypalLoading, setIsPaypalLoading] = useState(true)
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
+  const stripeRequestActive = useRef(false)
+  const stripeAttempt = useRef<{ fingerprint: string; id: string } | null>(null)
   const paypalButtonRendered = useRef(false)
   // Mongo _id of the pending Order created alongside the PayPal order, so
   // the capture step and confirmation redirect can reference the same record.
@@ -518,6 +521,8 @@ function CheckoutContent() {
 
 
   const handleStripeCheckout = async () => {
+    if (stripeRequestActive.current) return
+    stripeRequestActive.current = true
     setIsSubmittingOrder(true)
     
     if (!shippingName || !shippingEmail || !shippingStreet || !shippingCity || !shippingState || !shippingZip) {
@@ -528,6 +533,7 @@ function CheckoutContent() {
         variant: 'destructive'
       })
       setIsSubmittingOrder(false)
+      stripeRequestActive.current = false
       return
     }
 
@@ -558,22 +564,38 @@ function CheckoutContent() {
 
     try {
       try { sessionStorage.setItem('jacketee-checkout-email', shippingEmail.trim().toLowerCase()) } catch { /* Optional receipt lookup hint. */ }
+      // Persist only a digest and random ID, never the address or payment details.
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify({ ...payload, addressConfirmationToken: undefined })))
+      const fingerprint = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+      const storageKey = 'jacketee-stripe-checkout-attempt'
+      let attempt = stripeAttempt.current
+      try { attempt = JSON.parse(sessionStorage.getItem(storageKey) || 'null') || attempt } catch { /* Storage is optional. */ }
+      if (attempt?.fingerprint !== fingerprint || !/^[0-9a-f-]{36}$/i.test(attempt?.id || '')) {
+        attempt = { fingerprint, id: crypto.randomUUID() }
+        try { sessionStorage.setItem(storageKey, JSON.stringify(attempt)) } catch { /* In-memory request remains bounded. */ }
+      }
+      stripeAttempt.current = attempt
       const res = await fetch('/api/payments/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, checkoutAttemptId: attempt!.id }),
+        signal: AbortSignal.timeout(45000),
       })
 
       if (res.ok) {
         const data = await res.json()
-        if (data.url) {
-          await formActivity.submitted({ ...payload.shippingAddress, email: payload.email, paymentMethod: 'stripe', promoCode: payload.promoCode, step: 3 })
+        if (typeof data.url === 'string' && new URL(data.url).origin === 'https://checkout.stripe.com') {
+          void formActivity.submitted({ ...payload.shippingAddress, email: payload.email, paymentMethod: 'stripe', promoCode: payload.promoCode, step: 3 })
           window.location.href = data.url
         } else {
           throw new Error('Failed to retrieve checkout URL')
         }
       } else {
-        const err = await res.json()
+        const err = await res.json().catch(() => ({ error: 'Payment service is temporarily unavailable. Retry the same checkout.' }))
+        if (res.status === 409 && err.code === 'CHECKOUT_SESSION_EXPIRED') {
+          stripeAttempt.current = null
+          try { sessionStorage.removeItem(storageKey) } catch { /* Optional browser storage. */ }
+        }
         if (res.status === 409 && /confirm your delivery address/.test(err.error || '')) {
           setAddressConfirmation(null); setStep(2); paypalButtonRendered.current = false
         }
@@ -589,9 +611,11 @@ function CheckoutContent() {
       logUserActivity('checkout_error', { checkoutStep: 'payment', errorCode: 'stripe_redirect_failed' })
       toast({
         title: 'Error',
-        description: error.message || 'An unexpected error occurred.',
+        description: ['AbortError', 'TimeoutError'].includes(error?.name) ? 'Payment setup took too long. Retry this checkout to recover the same payment session.' : error.message || 'An unexpected error occurred.',
         variant: 'destructive'
       })
+    } finally {
+      stripeRequestActive.current = false
       setIsSubmittingOrder(false)
     }
   }
@@ -992,6 +1016,7 @@ function CheckoutContent() {
                                   </div>
                                 </div>
                               )}
+                              <CheckoutDesignPreviews customization={item.customization} name={item.name} />
                               <p className="text-xs font-medium mt-1">
                                 Qty: {item.quantity} • ${item.price.toFixed(2)}
                               </p>
@@ -1192,6 +1217,7 @@ function CheckoutContent() {
                             <span className="shrink-0 font-semibold">${(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">Qty {item.quantity} at ${item.price.toFixed(2)}</p>
+                          <CheckoutDesignPreviews customization={item.customization} name={item.name} />
                           {customizationSummary.length > 0 && (
                             <div className="mt-2 space-y-1 border-t pt-2 text-xs text-muted-foreground">
                               <p className="font-semibold text-foreground">Customization</p>

@@ -7,7 +7,7 @@ import { Footer } from '@/components/footer'
 import { SectionLoadingSkeleton } from '@/components/page-content-skeleton'
 import { getJacketTextSummary } from '@/types/jacket-customization'
 
-import { startTransition, useEffect, useState, Suspense  } from 'react'
+import { startTransition, useEffect, useRef, useState, Suspense  } from 'react'
 import Image from '@/components/optimized-image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -36,6 +36,7 @@ interface OrderItem {
 interface Order {
   _id: string
   orderNumber: string
+  stripeConfirmationEmailStatus?: string
   userEmail: string
   createdAt: string
   status: string
@@ -63,6 +64,7 @@ function ConfirmationContent() {
   const orderId = searchParams.get('id') || searchParams.get('orderId')
   const sessionId = searchParams.get('session_id')
   
+  const verificationRequest = useRef<AbortController | null>(null)
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [verifyingPayment, setVerifyingPayment] = useState(false)
@@ -93,32 +95,44 @@ function ConfirmationContent() {
       return
     }
     if (sessionId) {
-      startTransition(() => { verifyStripePayment() })
+      void verifyStripePayment()
     } else {
       startTransition(() => { fetchOrderDetails() })
     }
+    return () => { verificationRequest.current?.abort(); verificationRequest.current = null }
   }, [orderId, sessionId, session?.user?.email])
 
   async function verifyStripePayment() {
+    if (verificationRequest.current) return
+    const controller = new AbortController()
+    verificationRequest.current = controller
+    setVerificationError(null)
     setVerifyingPayment(true)
     try {
       const res = await fetch('/api/payments/stripe/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, orderId }),
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(45000)]),
       })
+      if (controller.signal.aborted) return
       if (res.ok) {
         const data = await res.json()
+        if (controller.signal.aborted) return
+        if (data.status !== 'paid' || !data.order) throw new Error('Invalid verification response')
         setOrder(data.order)
       } else {
-        const err = await res.json()
+        const err = await res.json().catch(() => ({}))
         setVerificationError(err.error || 'Failed to verify credit card payment.')
       }
     } catch (error) {
-      setVerificationError('An unexpected error occurred during payment verification.')
+      if (!controller.signal.aborted) setVerificationError('Payment verification could not finish. Retry verification below. Do not make another payment.')
     } finally {
-      setVerifyingPayment(false)
-      setLoading(false)
+      if (verificationRequest.current === controller) {
+        verificationRequest.current = null
+        setVerifyingPayment(false)
+        setLoading(false)
+      }
     }
   }
 
@@ -175,7 +189,7 @@ function ConfirmationContent() {
       <div className="flex flex-col items-center justify-center py-24 bg-card border rounded-2xl">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground font-semibold">Verifying your credit card payment...</p>
-        <p className="text-xs text-muted-foreground mt-2">Please do not close or refresh this page</p>
+        <p className="text-xs text-muted-foreground mt-2">Checking your payment status. This may take a few seconds.</p>
       </div>
     )
   }
@@ -185,13 +199,13 @@ function ConfirmationContent() {
       <Card className="border-2 text-center py-16">
         <CardContent className="flex flex-col items-center justify-center">
           <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Payment Verification Failed</h3>
+          <h3 className="text-xl font-semibold mb-2">Payment verification incomplete</h3>
           <p className="text-muted-foreground mb-6 max-w-sm">
             {verificationError}
           </p>
-          <Link href="/">
-            <Button>Return to catalog</Button>
-          </Link>
+          <Button onClick={() => void verifyStripePayment()}>Retry verification</Button>
+          <p className="mt-3 text-sm text-muted-foreground">Retrying checks the existing payment; it does not charge you again.</p>
+          <Link href="/track-order" className="mt-4 underline">Track your order</Link>
         </CardContent>
       </Card>
     )
@@ -225,7 +239,7 @@ function ConfirmationContent() {
     <div className="space-y-8">
       {/* Success Banner */}
       <div className="text-center space-y-4">
-        <div className="flex justify-center">
+        <div className="flex justify-center pt-2">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: [0, 1.2, 1] }}
@@ -236,8 +250,12 @@ function ConfirmationContent() {
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Order Confirmed!</h1>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Thank you for shopping at Jacketee. We have sent a confirmation email to{' '}
-          <span className="font-semibold text-primary">{order.userEmail}</span>.
+          Thank you for shopping at Jacketee. Your order details are below.
+          {order.stripeConfirmationEmailStatus === 'accepted' ? (
+            <> A confirmation email has been accepted for delivery to <span className="font-semibold text-primary break-words">{order.userEmail}</span>.</>
+          ) : (
+            <> Keep your order number below. You can track your order even if the confirmation email has not arrived.</>
+          )}
         </p>
         <div className="inline-block px-4 py-2 bg-muted/60 border rounded-full text-sm font-semibold">
           Order Number: <span className="text-primary font-bold">{order.orderNumber}</span>
@@ -262,7 +280,7 @@ function ConfirmationContent() {
                       <Image src={item.image || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{item.name}</p>
+                      <p className="font-semibold break-words">{item.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.variants.map((v) => `${v.name}: ${v.value}`).join(', ')}
                       </p>
@@ -283,7 +301,7 @@ function ConfirmationContent() {
                         Qty: {item.quantity} • ${item.price.toFixed(2)}
                       </p>
                     </div>
-                    <div className="text-right font-bold text-primary">
+                    <div className="text-right shrink-0 font-bold text-primary">
                       ${(item.price * item.quantity).toFixed(2)}
                     </div>
                   </div>
@@ -320,16 +338,16 @@ function ConfirmationContent() {
           {/* Delivery schedule */}
           <Card className="border-2 bg-emerald-500/5 border-emerald-500/20">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2 text-emerald-800">
-                <Calendar className="h-5 w-5 text-emerald-600" />
+              <CardTitle className="text-base flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+                <Calendar className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 Delivery Schedule
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="font-bold text-sm text-emerald-950">
+              <p className="font-bold text-sm text-emerald-950 dark:text-emerald-100">
                 To be confirmed
               </p>
-              <p className="text-xs text-emerald-700/80 mt-1">
+              <p className="text-xs text-emerald-700 dark:text-emerald-200 mt-1">
                 We will confirm the production and delivery timeline by email.
               </p>
             </CardContent>

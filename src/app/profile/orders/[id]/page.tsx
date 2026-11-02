@@ -1,12 +1,13 @@
 'use client'
 
+import { useCustomerJson } from '@/hooks/use-customer-json'
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { Footer } from '@/components/footer'
 import { PageLoading } from '@/components/page-loading'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
-import { startTransition, useEffect, useState  } from 'react'
+import { useEffect, useState  } from 'react'
 import Image from '@/components/optimized-image'
 import { motion } from 'framer-motion'
 import { Header } from '@/components/header'
@@ -15,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { OrderCustomizationDetails } from '@/components/order-customization-details'
+import type { JacketCustomization } from '@/types/jacket-customization'
 import {
   Loader2,
   Package,
@@ -31,6 +34,7 @@ import {
 import Link from 'next/link'
 
 interface OrderItem {
+  customization?: JacketCustomization
   productId: string
   name: string
   image: string
@@ -141,42 +145,16 @@ export default function OrderTrackingPage() {
   const params = useParams()
   const orderId = params?.id as string
 
-  const [order, setOrder] = useState<OrderDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const ownerId = status === 'authenticated' ? (session?.user as { id?: string } | undefined)?.id : undefined
+  const { data: order, loading, error, retry } = useCustomerJson<OrderDetail>(ownerId,
+    orderId ? `/api/orders/${encodeURIComponent(orderId)}` : null, 'object')
   const [downloadingInvoice, setDownloadingInvoice] = useState(false)
-
-  async function fetchOrder() {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/orders/${orderId}`)
-      if (res.ok) {
-        const data = await res.json()
-        setOrder(data)
-      } else {
-        const data = await res.json()
-        setError(data.error || 'Failed to load order')
-      }
-    } catch (err) {
-      setError('An unexpected error occurred while loading this order.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
     }
   }, [status, router])
-
-  useEffect(() => {
-    if (status === 'authenticated' && orderId) {
-      startTransition(() => { fetchOrder() })
-    }
-  }, [status, orderId])
-
-
 
   const handleDownloadInvoice = async () => {
     if (!order || downloadingInvoice) return
@@ -216,8 +194,9 @@ export default function OrderTrackingPage() {
         <Header />
         <main className="flex-1 container mx-auto px-4 py-20 text-center">
           <XCircle className="h-14 w-14 text-destructive mx-auto mb-4" />
-          <h1 className="text-xl font-semibold mb-2">Order Not Found</h1>
+          <h1 className="text-xl font-semibold mb-2">{error ? 'Unable to load order' : 'Order Not Found'}</h1>
           <p className="text-muted-foreground mb-6">{error || 'We could not find this order.'}</p>
+          {error && <Button onClick={retry} className="mb-4 mr-3">Retry order</Button>}
           <Link href="/profile?tab=orders">
             <Button>Back to My Orders</Button>
           </Link>
@@ -452,7 +431,7 @@ export default function OrderTrackingPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {order.items.map((item, idx) => (
-                  <div key={idx} className="flex gap-4 items-center bg-card p-3 rounded-lg border">
+                  <div key={idx} className="flex flex-wrap gap-4 items-start bg-card p-3 rounded-lg border">
                     <div className="relative h-16 w-16 overflow-hidden rounded bg-muted flex-shrink-0">
                       <Image src={item.image || '/placeholder.png'} alt={item.name} fill sizes="64px" className="object-cover" />
                     </div>
@@ -470,6 +449,7 @@ export default function OrderTrackingPage() {
                     <div className="text-right font-bold text-primary">
                       ${(item.price * item.quantity).toFixed(2)}
                     </div>
+                    <OrderCustomizationDetails customization={item.customization} name={item.name} />
                   </div>
                 ))}
               </CardContent>

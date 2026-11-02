@@ -28,6 +28,10 @@ export interface IOrder extends Document {
   paymentMethod: 'paypal' | 'stripe' | 'cash' | 'bank_transfer' | 'other'
   paymentStatus?: 'unpaid' | 'paid' | 'partially_paid'
   paymentId?: string
+  stripeAttemptKey?: string
+  stripeAttemptFingerprint?: string
+  stripeConfirmationEmailStatus?: 'pending' | 'sending' | 'accepted' | 'failed'
+  stripeReturnOrigin?: string
   isCustomOrder?: boolean
   shippingAddress: {
     name: string
@@ -159,6 +163,10 @@ const OrderSchema = new Schema<IOrder>(
     paymentMethod: { type: String, enum: ['paypal', 'stripe', 'cash', 'bank_transfer', 'other'], default: 'paypal' },
     paymentStatus: { type: String, enum: ['unpaid', 'paid', 'partially_paid'], default: 'unpaid' },
     paymentId: { type: String },
+    stripeAttemptKey: { type: String, unique: true, sparse: true },
+    stripeAttemptFingerprint: String,
+    stripeReturnOrigin: String,
+    stripeConfirmationEmailStatus: { type: String, enum: ['pending', 'sending', 'accepted', 'failed'] },
     isCustomOrder: { type: Boolean, default: false },
     shippingAddress: ShippingAddressSchema,
     shippingAddressConfirmedAt: { type: Date },
@@ -185,6 +193,10 @@ if (mongoose.models.Order && !mongoose.models.Order.schema.path('shippingAddress
 // cached schemas too, otherwise strict updates silently drop archivedAt.
 if (mongoose.models.Order && !mongoose.models.Order.schema.path('archivedAt')) {
   mongoose.models.Order.schema.add({ archivedAt: { type: Date, default: null } })
+}
+
+if (mongoose.models.Order && !mongoose.models.Order.schema.path('stripeConfirmationEmailStatus')) {
+  mongoose.models.Order.schema.add({ stripeConfirmationEmailStatus: { type: String, enum: ['pending', 'sending', 'accepted', 'failed'] } })
 }
 
 export default requestScopedModel(mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema))

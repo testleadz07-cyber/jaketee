@@ -4,6 +4,7 @@ import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useSession } from 'next-auth/react'
+import { useHasMounted } from '@/hooks/use-has-mounted'
 import { COOKIE_CONSENT_UPDATED_EVENT, COOKIE_CONSENT_KEY, getStoredConsent, openCookiePreferences } from '@/lib/cookie-consent'
 import { enqueueActivityRequest } from '@/lib/activity-transport'
 import { GUEST_FORM_FIELDS, sanitizeGuestForm, type GuestFormName } from '@/lib/guest-form-schema'
@@ -27,6 +28,7 @@ function consentSnapshot() {
 /** Guest-only, opt-in, debounced snapshots of explicitly allowed fields. */
 export function useGuestFormActivity(form: GuestFormName, values: Record<string, unknown>) {
   const { status } = useSession()
+  const mounted = useHasMounted()
   const consent = useSyncExternalStore(subscribe, consentSnapshot, () => '')
   const enabled = status === 'unauthenticated' && Boolean(consent)
   const snapshot = sanitizeGuestForm(form, values)
@@ -113,7 +115,9 @@ export function useGuestFormActivity(form: GuestFormName, values: Record<string,
     bindings: { onInputCapture: touched, onChangeCapture: touched, onBlurCapture: flush, onSubmitCapture: () => { touched(); void save() } },
     // Give keepalive telemetry a bounded opportunity to start; never hold up a form/redirect.
     submitted: (submittedValues?: Record<string, unknown>) => Promise.race([save(true, submittedValues), new Promise<boolean>(resolve => setTimeout(() => resolve(false), 1000))]),
-    notice: status === 'unauthenticated' ? <p className="text-xs leading-5 text-muted-foreground">
+    // SessionProvider can know the browser session before SSR does. Keep the
+    // server and first hydration markup identical; show the notice after mount.
+    notice: mounted && status === 'unauthenticated' ? <p className="text-xs leading-5 text-muted-foreground">
       {enabled ? 'Analytics is on: allowed details entered here, such as your email, message or delivery address, are saved with your guest activity even if this form is unfinished. ' : 'Optional guest form activity is off until you opt in through Analytics preferences. '}
       Password and payment credential fields are excluded. <button type="button" onClick={openCookiePreferences} className="underline underline-offset-4">Manage preferences</button>
     </p> : null,

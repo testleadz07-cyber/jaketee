@@ -60,6 +60,7 @@ interface AdminUserRow {
   phone: string | null
   createdAt: string
   orderCount: number
+  guestOrderCount?: number
   totalSpent: number
 }
 
@@ -99,7 +100,7 @@ export default function AdminUsersPage() {
       if (roleFilter !== 'all') params.set('role', roleFilter)
       if (statusFilter !== 'all') params.set('status', statusFilter)
 
-      const res = await fetch(`/api/admin/users?${params.toString()}`)
+      const res = await fetch(`/api/admin/users?${params.toString()}`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setUsers(data.users || [])
@@ -117,6 +118,14 @@ export default function AdminUsersPage() {
     if (status === 'authenticated') {
       void Promise.resolve().then(fetchUsers)
     }
+  }, [status, fetchUsers])
+
+  // Refresh reporting after returning from checkout or a customer detail tab.
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    const refresh = () => { if (document.visibilityState === 'visible') void fetchUsers() }
+    window.addEventListener('focus', refresh)
+    return () => window.removeEventListener('focus', refresh)
   }, [status, fetchUsers])
 
   const handleToggleActive = async (user: AdminUserRow) => {
@@ -349,8 +358,8 @@ export default function AdminUsersPage() {
                         {user.isActive ? 'Active' : 'Disabled'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{user.orderCount}</TableCell>
-                    <TableCell className="text-right">${user.totalSpent.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{user.orderCount}{!!user.guestOrderCount && <span className="block text-xs text-muted-foreground">{user.guestOrderCount} guest email match(es)</span>}</TableCell>
+                    <TableCell className="text-right">${user.totalSpent.toFixed(2)}{!!user.guestOrderCount && <span className="block text-xs text-muted-foreground">Includes {user.guestOrderCount} unverified guest match(es)</span>}</TableCell>
                     <TableCell className="text-muted-foreground text-xs">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>

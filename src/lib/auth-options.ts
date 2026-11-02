@@ -72,12 +72,21 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider !== 'google') return true
+      let stage = 'existing-session'
       try {
         const existingSession = await getServerSession(authOptions)
+        stage = 'resolve-google-user'
         const dbUser = await resolveGoogleUser(profile as Parameters<typeof resolveGoogleUser>[0], (existingSession?.user as any)?.id)
         Object.assign(user, { id: String(dbUser._id), email: dbUser.email, name: dbUser.name, role: dbUser.role, username: dbUser.username })
         return true
       } catch (error) {
+        const failure = error as { name?: unknown; code?: unknown }
+        console.error('Google sign-in failed', {
+          stage,
+          type: typeof failure?.name === 'string' && /^[A-Za-z]+$/.test(failure.name) ? failure.name : 'Error',
+          code: typeof failure?.code === 'number' ? failure.code : undefined,
+          reason: error instanceof Error && /^Google[A-Za-z]+$/.test(error.message) ? error.message : 'GoogleUnavailable',
+        })
         const code = error instanceof Error && /^Google[A-Za-z]+$/.test(error.message) ? error.message : 'GoogleUnavailable'
         return `/login?error=${code}`
       }

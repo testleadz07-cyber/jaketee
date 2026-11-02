@@ -20,7 +20,7 @@ export function SizeGuide({ categorySlug, sizeValues = [], trigger, productId }:
     <DialogTrigger asChild>{trigger || <Button type="button" variant="link" className="min-h-11 px-0 text-sm font-semibold"><Ruler className="mr-1.5 size-4" />Size Guide</Button>}</DialogTrigger>
     <DialogContent className="max-h-[85dvh] min-w-0 overflow-y-auto sm:max-w-3xl [&>*]:min-w-0">
       <DialogHeader><DialogTitle className="flex items-center gap-2"><Ruler className="size-5" />Jacket &amp; Vest Size Guide</DialogTitle>
-        <DialogDescription>Compare male and female US, UK and European references, plus body and garment measurements from our full size-guide page.</DialogDescription>
+        <DialogDescription>Choose jackets or vests. Compare your body measurements or a garment you own, using inches or centimeters.</DialogDescription>
       </DialogHeader>
       {sizeValues.length > 0 && <p className="text-sm text-muted-foreground">Product sizes: {sizeValues.join(', ')}.</p>}
       <div role="group" aria-label="Measurement units" className="flex justify-end gap-1">

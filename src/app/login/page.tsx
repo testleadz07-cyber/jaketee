@@ -133,6 +133,7 @@ function LoginContent() {
             </div>
             <PasswordInput
               id="password"
+                autoComplete="current-password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

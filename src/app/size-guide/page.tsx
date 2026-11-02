@@ -37,18 +37,33 @@ export default function SizeGuidePage() {
         <section className="section-shell py-6! md:py-8!">
           <SizeGuideReturnLink />
           <Breadcrumbs items={[{ label: 'Size Guide' }]} className="mb-5" />
-          <div className="rounded-2xl bg-[#242623] px-6 py-7 text-white sm:px-9"><p className="text-xs font-semibold uppercase tracking-widest text-white/65">A little measuring. A better starting point.</p><h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Jacket &amp; Vest Size Guide</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">Measure your body or compare a garment you already own. Use the reference charts below, then confirm the dimensions of the exact style you plan to order.</p><div className="mt-5 flex flex-wrap gap-x-5 gap-y-2"><a href="#size-charts" className="inline-flex min-h-11 items-center rounded-lg bg-white px-4 text-sm font-semibold text-zinc-950">View size charts</a><a href="#how-to-measure" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4">How to measure</a></div></div>
+          <div className="rounded-2xl bg-[#242623] px-6 py-7 text-white sm:px-9"><p className="text-xs font-semibold uppercase tracking-widest text-white/65">Measure. Compare. Check your fit.</p><h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Jacket &amp; Vest Size Guide</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">Not sure which size to order? Measure your chest and waist below, find a chart match, then check the fit of the jacket you want.</p><div className="mt-5 flex flex-wrap gap-x-5 gap-y-2"><a href="#size-charts" className="inline-flex min-h-11 items-center rounded-lg bg-white px-4 text-sm font-semibold text-zinc-950">Find my size</a><a href="#how-to-measure" className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4">How to measure</a></div></div>
         </section>
         <nav aria-label="Size guide sections" className="border-y bg-background"><div className="section-shell flex gap-5 overflow-x-auto py-0! text-sm font-medium sm:gap-8">{[{ href: '#size-charts', label: 'Size charts' }, { href: '#how-to-measure', label: 'Measuring' }, { href: '#fit-advice', label: 'Fit advice' }, { href: '#size-guide-faq-heading', label: 'FAQs' }].map(item => <a key={item.href} href={item.href} className="inline-flex min-h-12 shrink-0 items-center hover:text-primary focus-visible:outline-2 focus-visible:outline-primary">{item.label}</a>)}</div></nav>
 
         <JacketSizeReference />
 
         <section className="section-shell py-8! md:py-10!" aria-labelledby="product-measurements-heading">
-          <h2 id="product-measurements-heading" className="text-2xl font-semibold">Check the measurements for your chosen style</h2>
-          <div className="mt-4 max-w-3xl space-y-3 text-sm leading-7 text-muted-foreground">
-            <p>Use this guide to prepare your measurements, then compare them with the exact jacket you intend to order. A size label alone does not establish the same fit across varsity, bomber, coach and puffer styles.</p>
-            <p>Body chest circumference and flat jacket chest width are different measurements. Follow the measuring method shown for the relevant chart, and include the layers you expect to wear.</p>
-            <p>If a product does not show its finished measurements, <Link href="/contact" className="font-medium underline underline-offset-4">contact the team</Link> with the product name and your measurements before confirming the size.</p>
+          <div className="rounded-2xl border bg-card p-5 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">Before you order</p>
+            <h2 id="product-measurements-heading" className="mt-2 scroll-mt-24 text-2xl font-semibold">2. Check how your chosen jacket will fit</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Use a jacket or vest that already fits you well. Close it, lay it flat, and compare these measurements with the style you want to buy.</p>
+            <ol className="mt-6 grid min-w-0 gap-4 md:grid-cols-3">
+              {[
+                { title: 'Chest width', text: 'Measure straight across from armpit to armpit. Compare flat width with flat width, using the same unit.', href: '#jacket-size-chart', label: 'View garment chart' },
+                { title: 'Back length', text: 'Measure from the base of the collar to the bottom hem. Check whether the new style will sit where you like.', href: '#measure-back', label: 'See measuring steps' },
+                { title: 'Sleeve length', text: 'For jackets, measure from the shoulder seam to the end of the cuff. Skip this step for vests.', href: '#measure-sleeve', label: 'See measuring steps' },
+              ].map((item, index) => <li key={item.title} className="flex min-w-0 flex-col rounded-xl border bg-background p-4 sm:p-5">
+                <div className="flex items-center gap-3"><span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold">{index + 1}</span><h3 className="font-semibold">{item.title}</h3></div>
+                <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                <a href={item.href} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline underline-offset-4">{item.label}<ArrowRight aria-hidden="true" className="size-4 shrink-0" /></a>
+              </li>)}
+            </ol>
+            <p className="mt-5 text-sm leading-6 text-muted-foreground"><strong className="text-foreground">Wearing layers?</strong> Compare a garment that fits comfortably over the layers you plan to wear.</p>
+            <div className="mt-6 flex min-w-0 flex-col gap-4 border-t pt-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0"><h3 className="font-semibold">Ready to compare your chosen style?</h3><SizeGuideReturnLink /></div>
+              <div className="min-w-0 lg:max-w-md"><p className="text-sm leading-6 text-muted-foreground">Missing product measurements? Send us the product name, your chest and waist measurements, and preferred fit.</p><Button asChild className="mt-3 min-h-11 w-full sm:w-auto"><Link href="/contact">Ask us to check the fit<ArrowRight aria-hidden="true" className="ml-2 size-4" /></Link></Button></div>
+            </div>
           </div>
         </section>
 

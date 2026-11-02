@@ -14,6 +14,7 @@ export function BulkQuoteForm({ program = '' }: { program?: string }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
+  const [deliveryMessage, setDeliveryMessage] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [filename, setFilename] = useState('')
   const [activityFields, setActivityFields] = useState<Record<string, unknown>>({})
@@ -34,7 +35,7 @@ export function BulkQuoteForm({ program = '' }: { program?: string }) {
       payload.set('turnstileToken', await verification.getToken())
       const response = await fetch('/api/bulk-quote', { method: 'POST', body: payload })
       const result = await response.json()
-      if (!response.ok) {
+      if (!response.ok || result.success !== true) {
         if (result.fieldErrors) {
           setFieldErrors(result.fieldErrors)
           const first = form.elements.namedItem(Object.keys(result.fieldErrors)[0])
@@ -42,7 +43,8 @@ export function BulkQuoteForm({ program = '' }: { program?: string }) {
         }
         throw new Error(result.error || 'Unable to send your request.')
       }
-      await formActivity.submitted(Object.fromEntries(payload))
+      setDeliveryMessage(result.message || 'Your quote request is saved.')
+      await formActivity.submitted(Object.fromEntries(payload)).catch(() => {})
       setActivityFields({})
       setSent(true)
       form.reset()
@@ -54,7 +56,7 @@ export function BulkQuoteForm({ program = '' }: { program?: string }) {
   const inputClass = 'mt-2 min-h-12 w-full rounded-lg border bg-background px-3 py-2 text-base font-normal text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-invalid:border-red-500'
   const invalidProps = (field: string) => ({ 'aria-invalid': Boolean(fieldErrors[field]), 'aria-describedby': fieldErrors[field] ? `${id}-${field}` : undefined })
   const errorText = (field: string) => fieldErrors[field] ? <span id={`${id}-${field}`} className="mt-1 block text-sm text-red-600">{fieldErrors[field]}</span> : null
-  if (sent) return <div role="status" className="mt-6 rounded-xl border border-primary/25 bg-primary/5 p-6"><h4 className="text-lg font-semibold">Your request is with the team.</h4><p className="mt-2 text-sm leading-7 text-muted-foreground">We’ll contact you by email to discuss your jacket details, quote and schedule. No production begins without approval.</p><Button type="button" variant="outline" className="mt-5 min-h-11" onClick={() => setSent(false)}>Send another request</Button></div>
+  if (sent) return <div role="status" className="mt-6 rounded-xl border border-primary/25 bg-primary/5 p-6"><h4 className="text-lg font-semibold">Your request has been saved.</h4><p className="mt-2 text-sm leading-7 text-muted-foreground">{deliveryMessage} No production begins without approval.</p><Button type="button" variant="outline" className="mt-5 min-h-11" onClick={() => setSent(false)}>Send another request</Button></div>
   return (
     <form onSubmit={submit} {...formActivity.bindings} onInputCapture={captureFields} onChangeCapture={captureFields} className="mt-6 space-y-6" aria-label="Bulk quote request" aria-busy={pending}>
       {verification.widget}

@@ -79,5 +79,5 @@ export function ReturnToCollectionLink({ fallbackHref, fallbackLabel }: { fallba
 
 export function SizeGuideReturnLink() {
   const context = useContext(guideKey) || { href: '/shop', label: 'Back to shop' }
-  return <Link href={context.href} className="mb-2 inline-flex min-h-11 items-center gap-2 text-sm font-medium underline underline-offset-4"><ArrowLeft aria-hidden="true" className="size-4 shrink-0" />{context.label}</Link>
+  return <Link href={context.href} className="mb-2 inline-flex min-h-11 max-w-full items-center gap-2 text-sm font-medium underline underline-offset-4"><ArrowLeft aria-hidden="true" className="size-4 shrink-0" /><span className="min-w-0 [overflow-wrap:anywhere]">{context.label}</span></Link>
 }

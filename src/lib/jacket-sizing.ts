@@ -79,6 +79,8 @@ export function estimateSize(chestIn: number, waistIn: number) {
     || waistIn < bodyRows[0].waist[0] - tolerance) return null
 
   return bodyRows.find((row) => !row.size.includes('Tall')
+    && chestIn >= row.chest[0] - tolerance
+    && waistIn >= row.waist[0] - tolerance
     && chestIn <= row.chest[1] + tolerance
     && waistIn <= row.waist[1] + tolerance) ?? null
 }

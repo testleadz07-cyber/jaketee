@@ -492,7 +492,7 @@ export function contactFormTemplate(data: { name: string; email: string; subject
   })
 }
 
-export function contactCustomerReplyTemplate(data: { name: string; subject: string }) {
+export function contactCustomerReplyTemplate(data: { name: string; email: string; subject: string; message: string }) {
   return emailLayout({
     eyebrow: 'Inquiry received',
     title: `Thanks, ${data.name}. We got your message.`,
@@ -502,8 +502,8 @@ export function contactCustomerReplyTemplate(data: { name: string; subject: stri
         Thanks for contacting Jacketee. We received your message and our support team will review it shortly.
       </p>
       ${detailBox(
-        'Inquiry topic',
-        `<p style="margin: 0; color: #18181b; font-size: 14px; font-weight: 700;">${escapeHtml(data.subject)}</p>`
+        'Your submitted details',
+        `<p style="margin: 0; white-space: pre-wrap;">Name: ${escapeHtml(data.name)}<br />Email: ${escapeHtml(data.email)}<br />Subject: ${escapeHtml(data.subject)}<br /><br />${escapeHtml(data.message)}</p>`
       )}
       <p style="margin: 0 0 16px; color: #3f3f46; font-size: 15px; line-height: 1.7;">
         Most inquiries are answered within 24 hours.
