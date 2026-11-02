@@ -20,9 +20,9 @@ export function isGuestStatsData(value: unknown): value is {
 
 export function isGuestActivityList(value: unknown): value is {
   activities: { id: string; guestId: string; action: string; createdAt: string }[];
-  pages: number; total: number; actions: string[]; countries: string[];
+  page: number; pages: number; total: number; actions: string[]; countries: string[];
 } {
   return record(value) && Array.isArray(value.activities) && value.activities.every(item =>
     record(item) && ['id', 'guestId', 'action', 'createdAt'].every(key => typeof item[key] === 'string') && date(item.createdAt)) &&
-    count(value.total) && count(value.pages) && value.pages >= 1 && strings(value.actions) && strings(value.countries)
+    count(value.total) && count(value.page) && value.page >= 1 && count(value.pages) && value.pages >= 1 && strings(value.actions) && strings(value.countries)
 }
