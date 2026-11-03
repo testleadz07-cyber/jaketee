@@ -56,7 +56,7 @@ export function ProductCard({ product, listingPosition, home = false, collection
 
   const logListingClick = () => {
     logUserActivity('product_listing_click', {
-      productId: product.id,
+      productId: product.id, productName: product.name,
       category: product.category?.slug || 'uncategorized',
       listingPosition: listingPosition ?? null,
     })
@@ -88,7 +88,7 @@ export function ProductCard({ product, listingPosition, home = false, collection
                 e.stopPropagation()
                 if (isInWishlist) {
                   await removeFromWishlist(product.id, (session?.user as any)?.id)
-                  logUserActivity('wishlist_changed', { productId: product.id, action: 'removed' })
+                  logUserActivity('wishlist_changed', { productId: product.id, productName: product.name, action: 'removed' })
                 } else {
                   await addToWishlist({
                     productId: product.id,
@@ -97,7 +97,7 @@ export function ProductCard({ product, listingPosition, home = false, collection
                     image: product.images[0]?.url || '',
                     slug: product.slug,
                   }, (session?.user as any)?.id)
-                  logUserActivity('wishlist_changed', { productId: product.id, action: 'added' })
+                  logUserActivity('wishlist_changed', { productId: product.id, productName: product.name, action: 'added' })
                 }
               }}
             >

@@ -220,7 +220,7 @@ export function CartDrawer() {
                         className="h-11 w-11 text-destructive hover:text-destructive"
                         aria-label={`Remove ${item.name} from cart`}
                         onClick={() => {
-                          logUserActivity('cart_item_removed', { productId: item.productId, quantity: item.quantity })
+                          logUserActivity('cart_item_removed', { productId: item.productId, productName: item.name, quantity: item.quantity })
                           removeItem(item.id)
                         }}
                       >
