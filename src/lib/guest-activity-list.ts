@@ -4,11 +4,13 @@ export interface GuestActivityFilters {
   action: string; country: string; excludedCountries: string[]; guestId: string; from: string; to: string; page: number; limit: number
 }
 export interface GuestActivityListData {
+  loadedColumns?: string[]
   activities: { id: string; guestId: string; action: string; createdAt: string; details?: Record<string, unknown>; ip?: string; userAgent?: string; country?: string; region?: string; city?: string }[]
   total: number; page: number; pages: number; actions: string[]; countries: string[]
 }
 export function parseGuestActivityFilters(params: URLSearchParams, pageDefaults = false): GuestActivityFilters {
   const normalized = new URLSearchParams(params)
+  // Default view hides test/local traffic; an explicit empty exclusion shows everyone.
   if (pageDefaults && !normalized.has('excludeCountry')) ['PK', 'Localhost'].forEach(country => normalized.append('excludeCountry', country))
   activityDateRange(normalized)
   activityExcludedCountries(normalized)

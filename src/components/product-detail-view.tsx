@@ -189,7 +189,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
     })
   }, [product?.id])
 
-  useActivityView('view_product', { productId: product.id })
+  useActivityView('view_product', { productName: product.name, productId: product.id })
 
   const getSelectedVariantPriceAdjust = () => {
     return Object.entries(selectedVariants).reduce((total, [name, value]) =>
@@ -248,7 +248,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
     })
 
     logUserActivity('add_to_cart', {
-      productId: product.id,
+      productId: product.id, productName: product.name,
       price,
       quantity,
     })
@@ -281,7 +281,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
 
     logUserActivity('begin_checkout', {
       source: 'buy_now',
-      productId: product.id,
+      productId: product.id, productName: product.name,
       price,
       quantity,
     })
@@ -312,7 +312,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
       onClick={async () => {
         if (isInWishlist) {
           await removeFromWishlist(product.id, (session?.user as any)?.id)
-          logUserActivity('wishlist_changed', { productId: product.id, action: 'removed' })
+          logUserActivity('wishlist_changed', { productId: product.id, productName: product.name, action: 'removed' })
         } else {
           await addToWishlist({
             productId: product.id,
@@ -321,7 +321,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
             image: product.images?.[0]?.url || '',
             slug: product.slug,
           }, (session?.user as any)?.id)
-          logUserActivity('wishlist_changed', { productId: product.id, action: 'added' })
+          logUserActivity('wishlist_changed', { productId: product.id, productName: product.name, action: 'added' })
         }
       }}
     >
@@ -504,7 +504,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                             <SizeGuide
                               categorySlug={`${product.category?.slug || ''} ${product.slug}`}
                               sizeValues={variants.map((v) => v.value)}
-                              productId={product.id}
+                              productId={product.id} productName={product.name}
                             />
                           )}
                         </div>
@@ -529,7 +529,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
                                       [variantName]: variant.value,
                                     }))
                                     logUserActivity('product_option_selected', {
-                                      productId: product.id,
+                                      productId: product.id, productName: product.name,
                                       optionName: variantName,
                                       optionValue: variant.value,
                                     })

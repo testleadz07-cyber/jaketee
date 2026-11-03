@@ -1,3 +1,4 @@
+import { DEFAULT_ACTIVITY_COLUMNS } from '@/lib/guest-activity-columns'
 import { requireAdminPage } from '@/lib/require-admin'
 import { readGuestActivity } from '@/lib/guest-activity-data'
 import { parseGuestActivityFilters, type GuestActivityListData } from '@/lib/guest-activity-list'
@@ -23,7 +24,7 @@ export default async function AdminGuestActivityPage({ searchParams }: {
   }
   let initialData: GuestActivityListData = { activities: [], total: 0, page: 1, pages: 1, actions: [], countries: [] }
   if (!initialError) {
-    try { initialData = await readGuestActivity(filters); filters = { ...filters, page: initialData.page } }
+    try { initialData = await readGuestActivity(filters, true, DEFAULT_ACTIVITY_COLUMNS); filters = { ...filters, page: initialData.page } }
     catch (cause) {
       console.error('Initial guest activity read failed', { type: cause instanceof Error ? cause.name : 'Error' })
       initialError = 'Guest activity could not load. Use Refresh to try again.'

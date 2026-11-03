@@ -75,7 +75,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   const [customizationFee, setCustomizationFee] = useState(0)
   const [sizeError, setSizeError] = useState(false)
   const hasSelectedSize = effectiveVariants.some(variant => variant.name.trim().toLowerCase() === 'size' && variant.inStock && selectedVariants[variant.name] === variant.value)
-  const insights = useCustomizationInsights(product.id)
+  const insights = useCustomizationInsights(product.id, product.name)
 
   const addItem = useCartStore((state) => state.addItem)
   const setDirectOrderItem = useCartStore((state) => state.setDirectOrderItem)
@@ -87,7 +87,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   const categoryHref = categoryPath.length > 0 ? buildCategoryUrl(categoryPath) : '/'
   const isJacket = isJacketCategoryPath(categoryPath)
 
-  useActivityView('view_product', { source: 'customize_page', productId: product.id })
+  useActivityView('view_product', { productName: product.name, source: 'customize_page', productId: product.id })
 
   useEffect(() => {
     void import('@/components/jacket-customizer')
@@ -135,7 +135,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
     insights.complete('add_to_cart')
     logUserActivity('add_to_cart', {
       source: 'customize_page',
-      productId: product.id,
+      productId: product.id, productName: product.name,
       price: item.price,
       quantity,
     })
@@ -155,7 +155,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
     insights.complete('buy_now')
     logUserActivity('begin_checkout', {
       source: 'customize_buy_now',
-      productId: product.id,
+      productId: product.id, productName: product.name,
       price: item.price,
       quantity,
     })
@@ -165,7 +165,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   const handleSelectVariant = (groupName: string, value: string, image?: string | null) => {
     setSelectedVariants((prev) => ({ ...prev, [groupName]: value }))
     logUserActivity('product_option_selected', {
-      productId: product.id,
+      productId: product.id, productName: product.name,
       optionName: groupName,
       optionValue: value,
     })
@@ -182,7 +182,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
       onClick={async () => {
         if (isInWishlist) {
           await removeFromWishlist(product.id, (session?.user as any)?.id)
-          logUserActivity('wishlist_changed', { productId: product.id, action: 'removed' })
+          logUserActivity('wishlist_changed', { productId: product.id, productName: product.name, action: 'removed' })
         } else {
           await addToWishlist({
             productId: product.id,
@@ -191,7 +191,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
             image: product.images?.[0]?.url || '',
             slug: product.slug,
           }, (session?.user as any)?.id)
-          logUserActivity('wishlist_changed', { productId: product.id, action: 'added' })
+          logUserActivity('wishlist_changed', { productId: product.id, productName: product.name, action: 'added' })
         }
       }}
     >
@@ -245,7 +245,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
               <h1 className="mt-1 break-words text-2xl font-bold sm:text-3xl">{product.name}</h1>
               {sizeVariants.length > 0 && (
                 <div className="mt-4">
-                  <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} />
+                  <JacketSizeGuide sizes={sizeVariants.map((variant) => variant.value)} productId={product.id} productName={product.name} />
                 </div>
               )}
             </div>

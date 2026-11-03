@@ -1,7 +1,7 @@
 import { sanitizeGuestForm, isGuestFormAction } from '@/lib/guest-form-schema'
 
 /** Shared browser/server contract. Unknown detail fields are deliberately discarded. */
-const customization = ['productId', 'customizationSessionId', 'step', 'activeSeconds'] as const
+const customization = ['productId', 'productName', 'customizationSessionId', 'step', 'activeSeconds'] as const
 export const EVENT_FIELDS = {
   page_view: [],
   customization_started: customization,
@@ -12,18 +12,18 @@ export const EVENT_FIELDS = {
   customization_help_dismissed: customization,
   customization_completed: [...customization, 'method'],
   customization_abandoned: customization,
-  view_product: ['productId'],
+  view_product: ['productId', 'productName'],
   view_category: ['categoryId', 'slug'],
-  add_to_cart: ['productId', 'price', 'quantity'],
-  begin_checkout: ['productId', 'price', 'quantity', 'itemCount', 'total', 'currency'],
-  product_listing_click: ['productId', 'category', 'listingPosition'],
+  add_to_cart: ['productId', 'productName', 'price', 'quantity'],
+  begin_checkout: ['productId', 'productName', 'price', 'quantity', 'itemCount', 'total', 'currency'],
+  product_listing_click: ['productId', 'productName', 'category', 'listingPosition'],
   filter_changed: ['filterName', 'filterValue'],
   sort_changed: ['sortOption', 'category'],
-  size_guide_opened: ['productId'],
-  product_option_selected: ['productId', 'optionName', 'optionValue'],
-  wishlist_changed: ['productId', 'action'],
+  size_guide_opened: ['productId', 'productName'],
+  product_option_selected: ['productId', 'productName', 'optionName', 'optionValue'],
+  wishlist_changed: ['productId', 'productName', 'action'],
   cart_viewed: ['itemCount', 'total', 'currency'],
-  cart_item_removed: ['productId', 'quantity'],
+  cart_item_removed: ['productId', 'productName', 'quantity'],
   search_no_results: ['resultCount'],
   checkout_error: ['checkoutStep', 'errorCode'],
   contact_button_clicked: ['channel'],
@@ -71,6 +71,9 @@ export function parseActivity(value: unknown): { action: AnalyticsEventName; det
       const path = normalizeActivityPath(item)
       if (!path) throw new Error('Invalid path')
       result.path = path
+    } else if (key === 'productName') {
+      // Optional display snapshot; malformed names must not discard the event.
+      if (typeof item === 'string') result[key] = item.replace(/[\x00-\x1f]/g, '').trim().slice(0, 200)
     } else if (numbers.has(key)) {
       if (typeof item !== 'number' || !Number.isFinite(item) || item < 0 || item > 1e9 || (integers.has(key) && !Number.isInteger(item))) throw new Error(`Invalid ${key}`)
       result[key] = item

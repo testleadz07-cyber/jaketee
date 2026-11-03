@@ -10,13 +10,13 @@ import { GarmentSizeChart } from '@/components/garment-size-chart'
 import { measurementGuides, type Unit } from '@/lib/jacket-sizing'
 import { logUserActivity } from '@/lib/activity'
 
-export function SizeGuide({ categorySlug, sizeValues = [], trigger, productId }: {
-  categorySlug?: string; sizeValues?: string[]; trigger?: React.ReactNode; productId?: string
+export function SizeGuide({ categorySlug, sizeValues = [], trigger, productId, productName }: {
+  categorySlug?: string; sizeValues?: string[]; trigger?: React.ReactNode; productId?: string; productName?: string
 }) {
   const [unit, setUnit] = useState<Unit>('in')
   const defaultTab = /\bvests?\b/i.test(categorySlug?.replace(/-/g, ' ') || '') ? 'vest' : 'jacket'
   const oversized = (categorySlug || '').split(/\s+/).includes('oversized-black-cream-varsity-jacket-women')
-  return <Dialog onOpenChange={open => { if (open) logUserActivity('size_guide_opened', { productId: productId || null }) }}>
+  return <Dialog onOpenChange={open => { if (open) logUserActivity('size_guide_opened', { productId: productId || null, productName }) }}>
     <DialogTrigger asChild>{trigger || <Button type="button" variant="link" className="min-h-11 px-0 text-sm font-semibold"><Ruler className="mr-1.5 size-4" />Size Guide</Button>}</DialogTrigger>
     <DialogContent className="max-h-[85dvh] min-w-0 overflow-y-auto sm:max-w-3xl [&>*]:min-w-0">
       <DialogHeader><DialogTitle className="flex items-center gap-2"><Ruler className="size-5" />Jacket &amp; Vest Size Guide</DialogTitle>

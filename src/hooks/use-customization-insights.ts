@@ -6,7 +6,7 @@ import { COOKIE_CONSENT_KEY, COOKIE_CONSENT_UPDATED_EVENT, getStoredConsent } fr
 
 const newSession = () => ({ sessionId: '', started: false, step: '', index: -1, seconds: 0, backtracks: 0, completed: false, exited: false, prompted: false, reasons: new Set<string>() })
 
-export function useCustomizationInsights(productId: string) {
+export function useCustomizationInsights(productId: string, productName?: string) {
   const [needsHelp, setNeedsHelp] = useState(false)
   const pendingExits = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   const sessions = useRef(new Map<string, ReturnType<typeof newSession>>())
@@ -19,7 +19,7 @@ export function useCustomizationInsights(productId: string) {
     if (!getStoredConsent()?.analytics) return
     const current = getCurrent()
     const emit = (event: AnalyticsEventName, values: Record<string, string | number> = {}) => {
-      void logUserActivity(event, { source: 'customize_page', productId, customizationSessionId: current.sessionId, step: current.step, activeSeconds: current.seconds, ...values })
+      void logUserActivity(event, { source: 'customize_page', productId, productName, customizationSessionId: current.sessionId, step: current.step, activeSeconds: current.seconds, ...values })
       window.gtag?.('event', event, { product_id: productId, step: current.step, ...values })
     }
     if (!current.started) {
@@ -29,7 +29,7 @@ export function useCustomizationInsights(productId: string) {
       if (action !== 'customization_step_viewed' && current.index >= 0) emit('customization_step_viewed', { stepIndex: current.index })
     }
     if (action !== 'customization_started') emit(action, extra)
-  }, [getCurrent, productId])
+  }, [getCurrent, productId, productName])
 
   const difficulty = useCallback((reason: string) => {
     const current = getCurrent()
@@ -63,7 +63,7 @@ export function useCustomizationInsights(productId: string) {
     const exit = () => {
       if (current.completed || current.exited || !current.started || current.index < 0 || !getStoredConsent()?.analytics) return
       current.exited = true
-      void logUserActivity('customization_abandoned', { source: 'customize_page', productId, customizationSessionId: current.sessionId, step: current.step, activeSeconds: current.seconds })
+      void logUserActivity('customization_abandoned', { source: 'customize_page', productId, productName, customizationSessionId: current.sessionId, step: current.step, activeSeconds: current.seconds })
     }
     const consentChanged = () => {
       if (!getStoredConsent()?.analytics) {
@@ -94,7 +94,7 @@ export function useCustomizationInsights(productId: string) {
       // Defer reporting so Strict Mode effect replay can cancel a synthetic exit.
       pending.set(productId, setTimeout(exit, 0))
     }
-  }, [difficulty, getCurrent, productId, track])
+  }, [difficulty, getCurrent, productId, productName, track])
 
   const complete = useCallback((method: string) => {
     const current = getCurrent()

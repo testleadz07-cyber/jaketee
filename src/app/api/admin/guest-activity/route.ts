@@ -1,3 +1,4 @@
+import { parseActivityColumns } from '@/lib/guest-activity-columns'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireGuestActivityAdmin } from '@/lib/guest-activity-admin'
 import { parseGuestActivityFilters } from '@/lib/guest-activity-list'
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
     let filters
     try { filters = parseGuestActivityFilters(request.nextUrl.searchParams) }
     catch (cause) { return NextResponse.json({ error: cause instanceof Error ? cause.message : 'Invalid filters' }, { status: 400 }) }
-    const data = await readGuestActivity(filters, request.nextUrl.searchParams.get('options') !== '0')
+    const data = await readGuestActivity(filters, request.nextUrl.searchParams.get('options') !== '0', parseActivityColumns(request.nextUrl.searchParams.get('columns')?.split(',')))
     return NextResponse.json(data, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (cause) {
     console.error('Admin guest activity read failed', { type: cause instanceof Error ? cause.name : 'Error' })

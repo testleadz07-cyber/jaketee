@@ -1,6 +1,7 @@
 'use client'
 
 import { apiFetch as fetch } from '@/lib/api-fetch'
+import { ACTIVITY_COLUMNS, DEFAULT_ACTIVITY_COLUMNS, ACTIVITY_COLUMNS_KEY, parseActivityColumns, type ActivityColumn } from '@/lib/guest-activity-columns'
 
 import { guestActivityParams, parseGuestActivityFilters, type GuestActivityFilters, type GuestActivityListData } from '@/lib/guest-activity-list'
 import { ActivityDevice } from '@/components/admin/activity-device'
@@ -32,8 +33,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Loader2,
-  Users as UsersIcon,
+  Columns3,
   Search,
+  Users as UsersIcon,
   BarChart as BarChartIcon,
   Activity,
   MousePointerClick,
@@ -90,6 +92,16 @@ const renderActivityDetails = (activity: GuestActivityRow) => {
         {details.truncated === true && <p className="mt-2 text-muted-foreground">Long entries were shortened for the activity snapshot.</p>}
       </details>
       <p className="text-muted-foreground">Guest analytics snapshot; a reported submission does not confirm payment or server acceptance.</p>
+    </div>
+  }
+  if (typeof details.productId === 'string') {
+    const name = typeof details.productName === 'string' && details.productName.trim() ? details.productName : `Product ${details.productId}`
+    const href = typeof details.productHref === 'string' && /^\/(?!\/)[^\\\s?#\x00-\x1f]+$/.test(details.productHref) ? details.productHref : undefined
+    const remaining = Object.entries(details).filter(([key]) => !['productName', 'productHref', 'productId'].includes(key))
+    return <div className="w-64 space-y-2 whitespace-normal text-xs [overflow-wrap:anywhere] sm:w-80">
+      {href ? <a href={href} target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-4">{name}</a> : <p className="font-semibold">{name}</p>}
+      <p className="text-muted-foreground">ID: {details.productId}</p>
+      <dl className="space-y-1">{remaining.map(([key, value]) => <div key={key}><dt className="inline font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}: </dt><dd className="inline text-muted-foreground">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</dd></div>)}</dl>
     </div>
   }
   return (
@@ -410,6 +422,19 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
 }) {
   // Session updates only hide revoked access; they never trigger list reads.
   const { data: session, status } = useSession()
+  const [visibleColumns, setVisibleColumns] = useState<ActivityColumn[]>(DEFAULT_ACTIVITY_COLUMNS)
+  const columnsRef = useRef(visibleColumns)
+  columnsRef.current = visibleColumns
+  useEffect(() => {
+    try { setVisibleColumns(parseActivityColumns(JSON.parse(window.localStorage.getItem(ACTIVITY_COLUMNS_KEY) || 'null'))) } catch { /* Keep defaults if storage is unavailable. */ }
+  }, [])
+  const changeColumns = (columns: ActivityColumn[]) => {
+    const next = parseActivityColumns(columns)
+    setVisibleColumns(next)
+    columnsRef.current = next
+    try { window.localStorage.setItem(ACTIVITY_COLUMNS_KEY, JSON.stringify(next)) } catch { /* Selection still works without persistence. */ }
+    if (!next.includes('graphs')) setSelectedGuestId(null)
+  }
   const [result, setResult] = useState(initialData)
   const [draft, setDraft] = useState(initialFilters)
   const [applied, setApplied] = useState(initialFilters)
@@ -420,17 +445,35 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
   const lastRequest = useRef({ filters: initialFilters, options: true, history: 'replace' as 'push' | 'replace' | 'none', updateDraft: false })
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null)
   const { activities, actions, countries, pages, total } = result
+  const unloadedColumns = visibleColumns.filter(column => result.loadedColumns && !result.loadedColumns.includes(column))
   const { page, limit } = applied
   const { action: actionFilter, country: countryFilter, excludedCountries, guestId: guestIdFilter, from, to } = draft
-  const setActionFilter = (action: string) => setDraft(current => ({ ...current, action }))
-  const setCountryFilter = (country: string) => setDraft(current => ({ ...current, country }))
-  const setGuestIdFilter = (guestId: string) => setDraft(current => ({ ...current, guestId }))
-  const setFrom = (from: string) => setDraft(current => ({ ...current, from }))
-  const setTo = (to: string) => setDraft(current => ({ ...current, to }))
-  const setLimit = (limit: number) => setDraft(current => ({ ...current, limit }))
-  const setExcludedCountries = (value: string[] | ((current: string[]) => string[])) => setDraft(current => ({
-    ...current, excludedCountries: typeof value === 'function' ? value(current.excludedCountries) : value,
-  }))
+  const filterTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const draftRef = useRef(draft)
+  draftRef.current = draft
+
+  // Only explicit filter edits schedule a request. Never fetch on mount/session/focus.
+  const changeFilters = (update: Partial<GuestActivityFilters>) => {
+    const next = { ...draftRef.current, ...update, page: 1 }
+    draftRef.current = next
+    setDraft(next)
+    if (filterTimer.current) clearTimeout(filterTimer.current)
+    pending.current?.abort(); pending.current = null; requestNumber.current++
+    setLoading(true)
+    filterTimer.current = setTimeout(() => {
+      filterTimer.current = null
+      void fetchActivity(next, false, 'push', true)
+    }, 350)
+  }
+  const setActionFilter = (action: string) => changeFilters({ action })
+  const setCountryFilter = (country: string) => changeFilters({ country })
+  const setGuestIdFilter = (guestId: string) => changeFilters({ guestId })
+  const setFrom = (from: string) => changeFilters({ from })
+  const setTo = (to: string) => changeFilters({ to })
+  const setLimit = (limit: number) => changeFilters({ limit })
+  const setExcludedCountries = (value: string[] | ((current: string[]) => string[])) => changeFilters({
+    excludedCountries: typeof value === 'function' ? value(draftRef.current.excludedCountries) : value,
+  })
 
   const fetchActivity = useCallback(async (target: GuestActivityFilters, options = true, history: 'push' | 'replace' | 'none' = 'replace', updateDraft = false) => {
     if (pending.current) return
@@ -444,6 +487,7 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
       const normalized = parseGuestActivityFilters(guestActivityParams(target))
       const params = guestActivityParams(normalized)
       if (!options) params.set('options', '0')
+      params.set('columns', columnsRef.current.join(','))
       const res = await fetch(`/api/admin/guest-activity?${params}`, {
         cache: 'no-store', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]),
       })
@@ -477,19 +521,21 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
       try {
         const filters = parseGuestActivityFilters(new URLSearchParams(window.location.search), true)
         pending.current?.abort(); pending.current = null; requestNumber.current++
+        if (filterTimer.current) clearTimeout(filterTimer.current)
+        filterTimer.current = null
+        draftRef.current = filters
         setDraft(filters)
         void fetchActivity(filters, false, 'none')
       } catch (cause) { setError(cause instanceof Error ? cause.message : 'Invalid filters') }
     }
     window.addEventListener('popstate', navigate)
-    return () => { window.removeEventListener('popstate', navigate); pending.current?.abort(); pending.current = null; requestNumber.current++ }
+    return () => { if (filterTimer.current) clearTimeout(filterTimer.current); window.removeEventListener('popstate', navigate); pending.current?.abort(); pending.current = null; requestNumber.current++ }
   }, [fetchActivity])
 
   const setPage = (value: number | ((page: number) => number)) => {
     const next = typeof value === 'function' ? value(page) : value
     if (next !== page) void fetchActivity({ ...applied, page: next }, false, 'push')
   }
-  const unapplied = JSON.stringify({ ...draft, page: 1 }) !== JSON.stringify({ ...applied, page: 1 })
 
   const pageNumbers = Array.from(new Set([1, page - 1, page, page + 1, pages]))
     .filter((value) => value >= 1 && value <= pages)
@@ -507,14 +553,21 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
         <div className="flex flex-wrap items-center gap-3">
           <Button disabled={loading} onClick={() => void fetchActivity(applied, true)}>Refresh</Button>
           {loading && <span role="status" className="text-sm text-muted-foreground">Updating… Previous results remain visible.</span>}
-          <span className="text-xs text-muted-foreground">Manual updates only.</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild><Button variant="outline" size="icon" aria-label="Choose columns" title="Choose columns"><Columns3 className="h-4 w-4" /></Button></DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="max-h-96 overflow-y-auto">
+              <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
+              {ACTIVITY_COLUMNS.map(column => <DropdownMenuCheckboxItem key={column.id}
+                checked={visibleColumns.includes(column.id)} disabled={visibleColumns.length === 1 && visibleColumns.includes(column.id)}
+                onSelect={event => event.preventDefault()}
+                onCheckedChange={checked => changeColumns(checked ? [...visibleColumns, column.id] : visibleColumns.filter(id => id !== column.id))}
+              >{column.label}</DropdownMenuCheckboxItem>)}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => changeColumns([...DEFAULT_ACTIVITY_COLUMNS])}>Reset columns</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <span className="text-xs text-muted-foreground">Filters update automatically. Use Refresh for the latest activity.</span>
         </div>
-        <p className="text-xs text-muted-foreground break-words">Applied: {applied.action === 'all' ? 'all actions' : applied.action}
-          {applied.country ? ` · Country: ${applied.country}` : ''}
-          {applied.excludedCountries.length ? ` · Excluding: ${applied.excludedCountries.join(', ')}` : ' · No country exclusions'}
-          {applied.guestId ? ` · Guest: ${applied.guestId}` : ''}
-          {applied.from ? ` · From: ${applied.from}` : ''}{applied.to ? ` · To: ${applied.to}` : ''}
-        </p>
         <div>
           <h2 className="text-xl font-bold tracking-tight">Guest Activity</h2>
           <p className="text-sm text-muted-foreground">
@@ -523,7 +576,7 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
         </div>
 
         {/* Filters */}
-        <fieldset disabled={loading} className="flex flex-col sm:flex-row flex-wrap gap-3">
+        <fieldset className="flex flex-col sm:flex-row flex-wrap gap-3">
           <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value) }}>
             <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Action" />
@@ -589,8 +642,6 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
             onChange={(e) => { setTo(e.target.value) }}
             className="w-full sm:w-40"
           />
-          <Button disabled={loading} onClick={() => void fetchActivity({ ...draft, page: 1 }, false, 'push', true)}>Apply filters</Button>
-          {unapplied && <span className="self-center text-xs text-muted-foreground">Unapplied filter changes</span>}
         </fieldset>
 
         {error && (
@@ -600,70 +651,71 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
             <Button disabled={loading} variant="outline" onClick={() => void fetchActivity(lastRequest.current.filters, lastRequest.current.options, lastRequest.current.history, lastRequest.current.updateDraft)}>Retry</Button>
           </div>
         )}
+        {unloadedColumns.length > 0 && <p role="status" className="text-xs text-muted-foreground">Select Refresh to load newly shown columns. Column changes do not send requests.</p>}
         {activities.length === 0 ? (
           <div className="text-center py-16 border-2 rounded-xl">
             <UsersIcon className="h-12 w-12 text-muted-foreground opacity-50 mx-auto mb-3" />
             <h3 className="font-semibold text-lg">{error ? 'Guest activity unavailable' : 'No guest activity found'}</h3>
-            <p className="text-sm text-muted-foreground">Change filters and select Apply filters, or use Refresh.</p>
+            <p className="text-sm text-muted-foreground">Change filters to update results, or use Refresh.</p>
           </div>
         ) : (
           <div className="border-2 rounded-xl overflow-hidden bg-background">
             <Table className="[&_td]:align-top">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Activity ID</TableHead>
-                  <TableHead>Guest ID</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Country</TableHead>
-                  <TableHead>Region</TableHead>
-                  <TableHead>City</TableHead>
-                  <TableHead>Device</TableHead>
-                  <TableHead>IP</TableHead>
-                  <TableHead>User Agent</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  {visibleColumns.includes('time') && <TableHead>Time</TableHead>}
+                  {visibleColumns.includes('id') && <TableHead>Activity ID</TableHead>}
+                  {visibleColumns.includes('guestId') && <TableHead>Guest ID</TableHead>}
+                  {visibleColumns.includes('action') && <TableHead>Action</TableHead>}
+                  {visibleColumns.includes('details') && <TableHead>Details</TableHead>}
+                  {visibleColumns.includes('country') && <TableHead>Country</TableHead>}
+                  {visibleColumns.includes('region') && <TableHead>Region</TableHead>}
+                  {visibleColumns.includes('city') && <TableHead>City</TableHead>}
+                  {visibleColumns.includes('device') && <TableHead>Device</TableHead>}
+                  {visibleColumns.includes('ip') && <TableHead>IP</TableHead>}
+                  {visibleColumns.includes('userAgent') && <TableHead>User Agent</TableHead>}
+                  {visibleColumns.includes('graphs') && <TableHead className="w-[50px]"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {activities.map((activity) => (
                   <TableRow key={activity.id}>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    {visibleColumns.includes('time') && <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{unloadedColumns.includes('time') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {new Date(activity.createdAt).toLocaleString('en-US', { timeZone: ACTIVITY_REPORTING_TIMEZONE }) + ' PKT'}
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('id') && <TableCell className="text-xs font-mono text-muted-foreground">{unloadedColumns.includes('id') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {activity.id}
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('guestId') && <TableCell className="text-xs font-mono text-muted-foreground">{unloadedColumns.includes('guestId') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {activity.guestId}
-                    </TableCell>
-                    <TableCell className="text-sm font-medium">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('action') && <TableCell className="text-sm font-medium">{unloadedColumns.includes('action') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {formatActionName(activity.action)}
-                    </TableCell>
-                    <TableCell>{renderActivityDetails(activity)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('details') && <TableCell>{unloadedColumns.includes('details') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>{renderActivityDetails(activity)}</>}</TableCell>}
+                    {visibleColumns.includes('country') && <TableCell className="text-sm text-muted-foreground">{unloadedColumns.includes('country') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {activity.country || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('region') && <TableCell className="text-sm text-muted-foreground">{unloadedColumns.includes('region') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {activity.region || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('city') && <TableCell className="text-sm text-muted-foreground">{unloadedColumns.includes('city') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {activity.city || 'N/A'}
-                    </TableCell>
-                    <TableCell><ActivityDevice userAgent={activity.userAgent} /></TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('device') && <TableCell>{unloadedColumns.includes('device') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <><ActivityDevice userAgent={activity.userAgent} /></>}</TableCell>}
+                    {visibleColumns.includes('ip') && <TableCell className="text-xs text-muted-foreground">{unloadedColumns.includes('ip') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       {activity.ip || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    </>}</TableCell>}
+                    {visibleColumns.includes('userAgent') && <TableCell className="text-xs text-muted-foreground">{unloadedColumns.includes('userAgent') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       <div className="w-72 whitespace-normal break-words">
                         {activity.userAgent || 'N/A'}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </>}</TableCell>}
+                    {visibleColumns.includes('graphs') && <TableCell>{unloadedColumns.includes('graphs') ? <span className="text-xs text-muted-foreground">Refresh to load</span> : <>
                       <Button variant="ghost" size="icon" onClick={() => setSelectedGuestId(activity.guestId)} title="View Graphs">
                         <BarChartIcon className="h-4 w-4 text-primary" />
                       </Button>
-                    </TableCell>
+                    </>}</TableCell>}
                   </TableRow>
                 ))}
               </TableBody>
