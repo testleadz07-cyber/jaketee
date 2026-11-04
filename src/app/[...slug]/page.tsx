@@ -506,7 +506,8 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
       }
       const buyingFaqs = fallbackFaqs.filter(([question]) => /size|customize|materials|shipping|return/i.test(question)).map(([question, answer, href], index) => ({ id: `buying-${index}`, question, answer: [answer], bullets: [], ordered: [], href }))
       const faqPriority = (question: string) => /baby|toddler|child|kids|parent/i.test(question) && !/baby|toddler|child|kids/i.test(category.name) ? 10 : /siz|fit/i.test(question) ? 0 : /material|color/i.test(question) ? 1 : /customiz|names|numbers/i.test(question) ? 2 : /shipping|deliver/i.test(question) ? 3 : /return/i.test(question) ? 4 : 5
-      const purchaseQuestions = [...new Map([...faqs, ...buyingFaqs].map(faq => [faq.question.toLowerCase(), faq])).values()].sort((a, b) => faqPriority(a.question) - faqPriority(b.question)).slice(0, 5)
+      // Saved FAQ answers must take precedence over generic buying fallbacks.
+      const purchaseQuestions = [...new Map([...buyingFaqs, ...faqs].map(faq => [faq.question.toLowerCase(), faq])).values()].sort((a, b) => faqPriority(a.question) - faqPriority(b.question)).slice(0, 5)
       initialInsights = { faqs: purchaseQuestions, reviewCount, averageRating, reviews }
     }
   } catch (error) {
