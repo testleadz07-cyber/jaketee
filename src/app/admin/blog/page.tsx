@@ -2,7 +2,7 @@
 
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
-import { useUrlFilter } from '@/hooks/use-url-filter'
+import { useFilterSearch, useUrlFilter } from '@/hooks/use-url-filter'
 import { AppliedUrlFilters } from '@/components/applied-url-filters'
 
 import { useSession } from 'next-auth/react'
@@ -83,6 +83,7 @@ function StatusBadge({ status }: { status: string }) {
 export default function AdminBlog() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
   const { toast } = useToast()
 
   const [posts, setPosts] = useState<BlogPostListItem[]>([])
@@ -296,7 +297,7 @@ export default function AdminBlog() {
             <h2 className="text-2xl font-bold">Blog Posts</h2>
             <p className="text-muted-foreground text-sm">Create and manage blog content</p>
           </div>
-          <Link href="/admin/blog/new">
+          <Link href={`/admin/blog/new${filterSearch}`}>
             <Button className="gap-1">
               <Plus className="h-4 w-4" /> Create New Post
             </Button>
@@ -500,7 +501,7 @@ export default function AdminBlog() {
                           <ExternalLink className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Link href={`/admin/blog/${post.id}`}>
+                      <Link href={`/admin/blog/${post.id}${filterSearch}`}>
                         <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="Edit Post">
                           <Edit className="h-4 w-4" />
                         </Button>

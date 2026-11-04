@@ -1,6 +1,7 @@
 'use client'
 
 import { apiFetch as fetch } from '@/lib/api-fetch'
+import { useFilterSearch } from '@/hooks/use-url-filter'
 
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
@@ -111,6 +112,8 @@ export default function EditProduct() {
   const productId = params.id as string
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
+  const productsHref = `/admin/products${filterSearch}`
   const { toast } = useToast()
   const [product, setProduct] = useState<any>(null)
   const [categories, setCategories] = useState<Category[]>([])
@@ -165,7 +168,7 @@ export default function EditProduct() {
         body: JSON.stringify(payload),
       })
       if (res.ok) {
-        router.push('/admin/products')
+        router.push(productsHref)
       } else {
         const errorData = await res.json().catch(() => ({}))
         toast({
@@ -196,7 +199,7 @@ export default function EditProduct() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-          <Link href="/admin/products"><Button>Back to Products</Button></Link>
+          <Link href={productsHref}><Button>Back to Products</Button></Link>
         </div>
       </div>
     )
@@ -222,7 +225,7 @@ export default function EditProduct() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/admin/products"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
+              <Link href={productsHref}><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
               <h1 className="text-2xl font-bold">Edit Product</h1>
             </div>
             <div className="flex items-center gap-4">
@@ -646,7 +649,7 @@ export default function EditProduct() {
                   {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                   {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
-                <Link href="/admin/products" className="flex-1"><Button variant="outline" className="w-full" disabled={saving}>Cancel</Button></Link>
+                <Link href={productsHref} className="flex-1"><Button variant="outline" className="w-full" disabled={saving}>Cancel</Button></Link>
               </div>
             </CardContent>
           </Card>

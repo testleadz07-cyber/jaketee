@@ -1,5 +1,7 @@
 'use client'
 
+import { useFilterSearch } from '@/hooks/use-url-filter'
+
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { useSession } from 'next-auth/react'
@@ -188,6 +190,8 @@ const emptyAddress: AddressForm = {
 export default function AdminUserDetailPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
+  const returnHref = `/admin/users${filterSearch}`
   const params = useParams()
   const userId = params?.id as string
   const { toast } = useToast()
@@ -247,7 +251,7 @@ export default function AdminUserDetailPage() {
         )
       } else if (res.status === 404) {
         toast({ title: 'Not found', description: 'This user does not exist.', variant: 'destructive' })
-        router.push('/admin/users')
+        router.push(returnHref)
       }
     } catch (error) {
       console.error('Error fetching user:', error)
@@ -360,7 +364,7 @@ export default function AdminUserDetailPage() {
       const data = await res.json()
       if (res.ok) {
         toast({ title: 'User deleted' })
-        router.push('/admin/users')
+        router.push(returnHref)
       } else {
         toast({ title: 'Error', description: data.error || 'Failed to delete user', variant: 'destructive' })
       }
@@ -408,7 +412,7 @@ export default function AdminUserDetailPage() {
     <div className="min-h-screen bg-muted/10 flex flex-col">
       <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link href="/admin/users">
+          <Link href={returnHref}>
             <Button variant="ghost" size="icon">
               <ChevronLeft className="h-5 w-5" />
             </Button>

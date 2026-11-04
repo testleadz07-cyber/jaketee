@@ -1,5 +1,7 @@
 'use client'
 
+import { useFilterSearch } from '@/hooks/use-url-filter'
+
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { useSession } from 'next-auth/react'
@@ -110,6 +112,8 @@ const VARIANT_SUGGESTIONS: Record<string, Array<{ name: string; label: string; v
 export default function NewProduct() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
+  const returnHref = `/admin/products${filterSearch}`
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
@@ -216,7 +220,7 @@ export default function NewProduct() {
           title: saveAsDraft ? 'Draft saved' : 'Product created',
           description: saveAsDraft ? 'The product was saved as a draft and will stay hidden from the storefront.' : 'The product is now available in the catalog.',
         })
-        router.push('/admin/products')
+        router.push(returnHref)
       } else {
         const errorData = await res.json()
         toast({
@@ -252,7 +256,7 @@ export default function NewProduct() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/admin/products">
+              <Link href={returnHref}>
                 <Button variant="ghost" size="icon">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -747,7 +751,7 @@ export default function NewProduct() {
                     )}
                     {submitting && submitMode === 'draft' ? 'Saving...' : 'Save as Draft'}
                   </Button>
-                  <Link href="/admin/products" className="flex-1">
+                  <Link href={returnHref} className="flex-1">
                     <Button variant="outline" className="w-full" type="button" disabled={submitting}>
                       Cancel
                     </Button>
