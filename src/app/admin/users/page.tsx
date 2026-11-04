@@ -2,7 +2,7 @@
 
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
-import { useUrlFilter } from '@/hooks/use-url-filter'
+import { useFilterSearch, useUrlFilter } from '@/hooks/use-url-filter'
 import { AppliedUrlFilters } from '@/components/applied-url-filters'
 
 import { useSession } from 'next-auth/react'
@@ -67,6 +67,7 @@ interface AdminUserRow {
 export default function AdminUsersPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
   const { toast } = useToast()
 
   const [users, setUsers] = useState<AdminUserRow[]>([])
@@ -335,7 +336,7 @@ export default function AdminUsersPage() {
                   <TableRow
                     key={user.id}
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => router.push(`/admin/users/${user.id}`)}
+                    onClick={() => router.push(`/admin/users/${user.id}${filterSearch}`)}
                   >
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -365,7 +366,7 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
-                        <Link href={`/admin/users/${user.id}`}>
+                        <Link href={`/admin/users/${user.id}${filterSearch}`}>
                           <Button variant="ghost" size="icon" title="View details">
                             <Eye className="h-4 w-4" />
                           </Button>

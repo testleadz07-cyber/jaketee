@@ -1,5 +1,7 @@
 'use client'
 
+import { useFilterSearch } from '@/hooks/use-url-filter'
+
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -11,6 +13,8 @@ import { BlogPostForm } from '@/components/admin/blog-post-form'
 export default function NewBlogPost() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
+  const returnHref = `/admin/blog${filterSearch}`
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -37,7 +41,7 @@ export default function NewBlogPost() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/admin/blog">
+              <Link href={returnHref}>
                 <Button variant="ghost" size="icon">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>

@@ -2,7 +2,7 @@
 
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
-import { useUrlFilter } from '@/hooks/use-url-filter'
+import { useFilterSearch, useUrlFilter } from '@/hooks/use-url-filter'
 import { AppliedUrlFilters } from '@/components/applied-url-filters'
 
 import { useSession } from 'next-auth/react'
@@ -80,6 +80,7 @@ interface Product {
 export default function AdminProducts() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
   const { toast } = useToast()
 
   const [products, setProducts] = useState<Product[]>([])
@@ -359,7 +360,7 @@ export default function AdminProducts() {
             <h2 className="text-2xl font-bold">Products</h2>
             <p className="text-muted-foreground text-sm">Manage, edit, or delete items in the store</p>
           </div>
-          <Link href="/admin/products/new">
+          <Link href={`/admin/products/new${filterSearch}`}>
             <Button disabled={isDemoMode} className="gap-1">
               <Plus className="h-4 w-4" /> Add Product
             </Button>
@@ -555,7 +556,7 @@ export default function AdminProducts() {
                             </Button>
                           </Link>
                         )}
-                        <Link href={`/admin/products/${prodId}`}>
+                        <Link href={`/admin/products/${prodId}${filterSearch}`}>
                           <Button variant="outline" size="sm" className="h-9 w-9 p-0" title="Edit Product">
                             <Edit className="h-4 w-4" />
                           </Button>

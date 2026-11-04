@@ -1,5 +1,7 @@
 'use client'
 
+import { useUrlFilter } from '@/hooks/use-url-filter'
+
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { useSession } from 'next-auth/react'
@@ -81,7 +83,9 @@ export default function AdminCategories() {
 
   // Drill-down navigation: null = viewing top-level categories. Set to a
   // category id to browse its direct subcategories only.
-  const [currentParentId, setCurrentParentId] = useState<string | null>(null)
+  const [parentFilter, setParentFilter] = useUrlFilter<string>('parent', '')
+  const currentParentId = parentFilter || null
+  const setCurrentParentId = (id: string | null) => setParentFilter(id || '')
 
   // Dialog states
   const [isAddOpen, setIsAddOpen] = useState(false)

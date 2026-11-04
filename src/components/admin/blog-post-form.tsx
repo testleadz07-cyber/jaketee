@@ -1,5 +1,7 @@
 'use client'
 
+import { useFilterSearch } from '@/hooks/use-url-filter'
+
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { startTransition, useEffect, useState  } from 'react'
@@ -89,6 +91,8 @@ export function BlogPostForm({
   initialTaggedProductOptions?: ProductOption[]
 }) {
   const router = useRouter()
+  const filterSearch = useFilterSearch()
+  const returnHref = `/admin/blog${filterSearch}`
   const { toast } = useToast()
 
   const [values, setValues] = useState<BlogPostFormValues>({ ...emptyValues, ...initialValues })
@@ -221,7 +225,7 @@ export function BlogPostForm({
           title: mode === 'create' ? 'Post Created' : 'Post Updated',
           description: `The blog post was successfully ${mode === 'create' ? 'created' : 'updated'}.`,
         })
-        router.push('/admin/blog')
+        router.push(returnHref)
       } else {
         const err = await res.json()
         if (res.status === 409) {
@@ -245,7 +249,7 @@ export function BlogPostForm({
       const res = await fetch(`/api/admin/blog/${postId}`, { method: 'DELETE' })
       if (res.ok) {
         toast({ title: 'Post Deleted', description: 'The blog post was successfully deleted.' })
-        router.push('/admin/blog')
+        router.push(returnHref)
       } else {
         const err = await res.json()
         toast({
@@ -489,7 +493,7 @@ export function BlogPostForm({
               {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               {submitting ? 'Saving...' : mode === 'create' ? 'Create Post' : 'Save Changes'}
             </Button>
-            <Link href="/admin/blog" className="flex-1">
+            <Link href={returnHref} className="flex-1">
               <Button variant="outline" className="w-full" type="button" disabled={submitting}>
                 Cancel
               </Button>

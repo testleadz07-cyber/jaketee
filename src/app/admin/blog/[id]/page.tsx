@@ -1,5 +1,7 @@
 'use client'
 
+import { useFilterSearch } from '@/hooks/use-url-filter'
+
 import { apiFetch as fetch } from '@/lib/api-fetch'
 
 import { useSession } from 'next-auth/react'
@@ -14,6 +16,8 @@ import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
 export default function EditBlogPost() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const filterSearch = useFilterSearch()
+  const returnHref = `/admin/blog${filterSearch}`
   const params = useParams()
   const id = params?.id as string
 
@@ -98,7 +102,7 @@ export default function EditBlogPost() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-destructive font-semibold">Blog post not found.</p>
-          <Link href="/admin/blog">
+          <Link href={returnHref}>
             <Button className="mt-4">Back to Blog</Button>
           </Link>
         </div>
@@ -113,7 +117,7 @@ export default function EditBlogPost() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/admin/blog">
+              <Link href={returnHref}>
                 <Button variant="ghost" size="icon">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
