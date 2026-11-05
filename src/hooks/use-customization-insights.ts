@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { logUserActivity, type AnalyticsEventName } from '@/lib/activity'
 import { COOKIE_CONSENT_KEY, COOKIE_CONSENT_UPDATED_EVENT, getStoredConsent } from '@/lib/cookie-consent'
+import type { CustomizationChange } from '@/lib/customization-changes'
 
 const newSession = () => ({ sessionId: '', started: false, step: '', index: -1, seconds: 0, backtracks: 0, completed: false, exited: false, prompted: false, reasons: new Set<string>() })
 
@@ -20,7 +21,7 @@ export function useCustomizationInsights(productId: string, productName?: string
     const current = getCurrent()
     const emit = (event: AnalyticsEventName, values: Record<string, string | number> = {}) => {
       void logUserActivity(event, { source: 'customize_page', productId, productName, customizationSessionId: current.sessionId, step: current.step, activeSeconds: current.seconds, ...values })
-      window.gtag?.('event', event, { product_id: productId, step: current.step, ...values })
+      if (event !== 'customization_design_changed') window.gtag?.('event', event, { product_id: productId, step: current.step, ...values })
     }
     if (!current.started) {
       current.sessionId = crypto.randomUUID()
@@ -104,5 +105,6 @@ export function useCustomizationInsights(productId: string, productName?: string
     track('customization_completed', { method })
   }, [getCurrent, track])
   const dismissHelp = () => { setNeedsHelp(false); track('customization_help_dismissed') }
-  return { needsHelp, stepChanged, difficulty, complete, dismissHelp }
+  const designChanged = useCallback((change: CustomizationChange) => track('customization_design_changed', { ...change }), [track])
+  return { needsHelp, stepChanged, difficulty, complete, dismissHelp, designChanged }
 }

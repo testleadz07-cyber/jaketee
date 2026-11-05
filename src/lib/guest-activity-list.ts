@@ -1,7 +1,8 @@
 import { activityDateRange, activityFilterText, activityExcludedCountries, activityCountryExclusions } from './guest-activity-query'
+import { ACTIVITY_DEVICE_TYPES, activityDeviceExpression, type ActivityDeviceType } from './activity-device'
 
 export interface GuestActivityFilters {
-  action: string; country: string; excludedCountries: string[]; guestId: string; from: string; to: string; page: number; limit: number
+  action: string; country: string; excludedCountries: string[]; excludedDevices: ActivityDeviceType[]; guestId: string; from: string; to: string; page: number; limit: number
 }
 export interface GuestActivityListData {
   loadedColumns?: string[]
@@ -12,9 +13,13 @@ export function parseGuestActivityFilters(params: URLSearchParams, pageDefaults 
   const normalized = new URLSearchParams(params)
   // Default view hides test/local traffic; an explicit empty exclusion shows everyone.
   if (pageDefaults && !normalized.has('excludeCountry')) ['PK', 'Localhost'].forEach(country => normalized.append('excludeCountry', country))
+  if (!normalized.has('excludeDevice')) normalized.append('excludeDevice', 'Bot')
+  const excludedDevices = [...new Set(normalized.getAll('excludeDevice').map(value => value.trim()).filter(Boolean))]
+  if (excludedDevices.some(value => !ACTIVITY_DEVICE_TYPES.includes(value as ActivityDeviceType))) throw new Error('Invalid excluded device')
   activityDateRange(normalized)
   activityExcludedCountries(normalized)
   return {
+    excludedDevices: excludedDevices as ActivityDeviceType[],
     action: activityFilterText(normalized, 'action') || 'all', country: activityFilterText(normalized, 'country'),
     excludedCountries: [...new Set(normalized.getAll('excludeCountry').map(value => value.trim()).filter(Boolean))], guestId: activityFilterText(normalized, 'guestId'),
     from: normalized.get('from') || '', to: normalized.get('to') || '',
@@ -31,10 +36,13 @@ export function guestActivityParams(filters: GuestActivityFilters) {
   if (filters.to) params.set('to', filters.to)
   if (filters.excludedCountries.length) filters.excludedCountries.forEach(country => params.append('excludeCountry', country))
   else params.set('excludeCountry', '')
+  if (filters.excludedDevices.length) filters.excludedDevices.forEach(device => params.append('excludeDevice', device))
+  else params.set('excludeDevice', '')
   return params
 }
 export function guestActivityQuery(filters: GuestActivityFilters): Record<string, any> {
   const query: Record<string, any> = {}
+  if (filters.excludedDevices.length) query.$expr = { $not: [{ $in: [activityDeviceExpression(), filters.excludedDevices] }] }
   if (filters.action !== 'all') query.action = filters.action
   if (filters.country) query.country = { $regex: filters.country.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
   if (filters.excludedCountries.length) query.country = { ...query.country, $nin: activityCountryExclusions(filters.excludedCountries) }
