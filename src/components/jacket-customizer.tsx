@@ -1,6 +1,8 @@
 'use client'
 
 import { apiFetch as fetch } from '@/lib/api-fetch'
+import { useDesignActivity } from '@/hooks/use-design-activity'
+import type { CustomizationChange } from '@/lib/customization-changes'
 
 import { getJacketTextSummary } from '@/types/jacket-customization'
 
@@ -53,6 +55,7 @@ interface JacketCustomizerProps {
   onCustomizationFeeChange?: (fee: number) => void
   onStepChange?: (step: string, index: number) => void
   onDifficulty?: (reason: string) => void
+  onDesignChange?: (change: CustomizationChange) => void
 }
 
 export function JacketCustomizer({
@@ -72,9 +75,15 @@ export function JacketCustomizer({
   onCustomizationFeeChange,
   onStepChange,
   onDifficulty,
+  onDesignChange,
 }: JacketCustomizerProps) {
 
   const [customization, setCustomization] = useState<JacketCustomization>({})
+  const designActivity = useDesignActivity(change => onDesignChange?.(change))
+  const changeCustomization = (next: JacketCustomization) => {
+    designActivity.record(customization, next)
+    setCustomization(next)
+  }
   const [activeView, setActiveView] = useState<JacketView>('front')
   const [sizingMode, setSizingMode] = useState<'standard' | 'measure'>('standard')
   const [measurements, setMeasurements] = useState<Record<string, string>>({})
@@ -151,6 +160,7 @@ export function JacketCustomizer({
 
   const handlePurchase = async (buyNow: boolean) => {
     if (processingRef.current) return
+    designActivity.flush()
     processingRef.current = true
     setIsProcessing(true)
     setCaptureError(null)
@@ -409,7 +419,9 @@ export function JacketCustomizer({
         maxTextLength={product.embroidery?.maxChars || 24}
         selectedSize={selectedVariants.Size}
         value={customization}
-        onChange={setCustomization}
+        onChange={changeCustomization}
+        onInteractionStart={designActivity.begin}
+        onInteractionEnd={designActivity.end}
         onDifficulty={onDifficulty}
         leftContentTop={<div className="space-y-6">{optionBlocks}</div>}
         leftContentBottom={

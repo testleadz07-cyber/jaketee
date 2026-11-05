@@ -5,6 +5,7 @@ import { ACTIVITY_COLUMNS, DEFAULT_ACTIVITY_COLUMNS, ACTIVITY_COLUMNS_KEY, parse
 
 import { guestActivityParams, parseGuestActivityFilters, type GuestActivityFilters, type GuestActivityListData } from '@/lib/guest-activity-list'
 import { ActivityDevice } from '@/components/admin/activity-device'
+import { ACTIVITY_DEVICE_TYPES } from '@/lib/activity-device'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
@@ -80,6 +81,18 @@ interface GuestStatsData {
 const renderActivityDetails = (activity: GuestActivityRow) => {
   const details = activity.details
   if (!details) return <span className="text-xs text-muted-foreground">N/A</span>
+  if (activity.action === 'customization_design_changed') {
+    const labels: Record<string, string> = { front: 'Front', back: 'Back', leftSleeve: 'Left sleeve', rightSleeve: 'Right sleeve', jacket: 'Jacket', value: 'Text', fontStyle: 'Font', widthInches: 'Width (inches)', x: 'Horizontal position', y: 'Vertical position' }
+    const label = (value: unknown) => labels[String(value)] || String(value ?? '')
+    return <div className="w-64 space-y-2 whitespace-normal text-xs [overflow-wrap:anywhere] sm:w-80">
+      {typeof details.productName === 'string' && <p className="font-semibold">{details.productName}</p>}
+      <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-muted px-2 py-1 capitalize">{String(details.changeType)}</span><strong>{label(details.view)} · {label(details.elementType)}</strong></div>
+      <p className="font-medium">{label(details.field)}</p>
+      {typeof details.elementName === 'string' && details.elementName && <p className="text-muted-foreground">{details.elementName}</p>}
+      <dl className="space-y-1"><div><dt className="inline font-medium">Before: </dt><dd className="inline text-muted-foreground">{String(details.before || '(none)')}</dd></div><div><dt className="inline font-medium">After: </dt><dd className="inline text-muted-foreground">{String(details.after || '(none)')}</dd></div></dl>
+      <details><summary className="cursor-pointer text-muted-foreground">Session details</summary><p className="mt-1">Session: {String(details.customizationSessionId || '')}</p><p>Element: {String(details.elementId || '')}</p><p>Path: {String(details.path || '')}</p></details>
+    </div>
+  }
   if (isGuestFormAction(activity.action)) {
     const form = typeof details.form === 'string' && Object.hasOwn(guestFormLabels, details.form) ? guestFormLabels[details.form as GuestFormName] : 'Guest form'
     const fields = details.fields && typeof details.fields === 'object' && !Array.isArray(details.fields) ? Object.entries(details.fields).filter(([, value]) => typeof value === 'string') : []
@@ -447,7 +460,7 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
   const { activities, actions, countries, pages, total } = result
   const unloadedColumns = visibleColumns.filter(column => result.loadedColumns && !result.loadedColumns.includes(column))
   const { page, limit } = applied
-  const { action: actionFilter, country: countryFilter, excludedCountries, guestId: guestIdFilter, from, to } = draft
+  const { action: actionFilter, country: countryFilter, excludedCountries, excludedDevices, guestId: guestIdFilter, from, to } = draft
   const filterTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftRef = useRef(draft)
   draftRef.current = draft
@@ -621,6 +634,27 @@ export default function GuestActivityClient({ initialFilters, initialData, initi
                 >
                   {country}
                 </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" aria-label="Exclude devices" title={excludedDevices.join(', ')} className="w-full sm:w-56 justify-between">
+                <span className="truncate">{excludedDevices.length ? `Exclude devices: ${excludedDevices.join(', ')}` : 'Exclude devices: None'}</span>
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel>Exclude devices</DropdownMenuLabel>
+              <DropdownMenuItem disabled={!excludedDevices.length} onSelect={() => changeFilters({ excludedDevices: [] })}>Clear all</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {ACTIVITY_DEVICE_TYPES.map(device => (
+                <DropdownMenuCheckboxItem key={device} checked={excludedDevices.includes(device)}
+                  onSelect={event => event.preventDefault()}
+                  onCheckedChange={checked => changeFilters({ excludedDevices: checked
+                    ? [...draftRef.current.excludedDevices, device]
+                    : draftRef.current.excludedDevices.filter(value => value !== device) })}
+                >{device}</DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>

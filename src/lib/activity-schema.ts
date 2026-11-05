@@ -12,6 +12,7 @@ export const EVENT_FIELDS = {
   customization_help_dismissed: customization,
   customization_completed: [...customization, 'method'],
   customization_abandoned: customization,
+  customization_design_changed: [...customization, 'changeType', 'view', 'elementType', 'elementId', 'elementName', 'field', 'before', 'after'],
   view_product: ['productId', 'productName'],
   view_category: ['categoryId', 'slug'],
   add_to_cart: ['productId', 'productName', 'price', 'quantity'],
@@ -83,6 +84,9 @@ export function parseActivity(value: unknown): { action: AnalyticsEventName; det
     }
   }
   if (action === 'page_view' && !result.path) throw new Error('Page path is required')
+  if (action === 'customization_design_changed') {
+    if (!['added', 'removed', 'changed'].includes(String(result.changeType)) || !['text', 'artwork', 'option'].includes(String(result.elementType)) || !['front', 'back', 'leftSleeve', 'rightSleeve', 'jacket'].includes(String(result.view))) throw new Error('Invalid design change')
+  }
   if (action === 'wishlist_changed' && result.action !== 'added' && result.action !== 'removed') throw new Error('Invalid wishlist action')
   return { action: action as AnalyticsEventName, details: result }
 }

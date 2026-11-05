@@ -17,6 +17,7 @@ import { useCartStore } from '@/store/cart'
 import { useWishlistStore } from '@/store/wishlist'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { changeValue } from '@/lib/customization-changes'
 import { useActivityView } from '@/hooks/use-activity-view'
 import { WhatsAppButton } from '@/components/whatsapp-help'
 import { useCustomizationInsights } from '@/hooks/use-customization-insights'
@@ -163,6 +164,10 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
   }
 
   const handleSelectVariant = (groupName: string, value: string, image?: string | null) => {
+    if (selectedVariants[groupName] !== value) insights.designChanged({
+      changeType: 'changed', view: 'jacket', elementType: 'option', elementId: changeValue(groupName),
+      field: changeValue(groupName), before: changeValue(selectedVariants[groupName]), after: changeValue(value),
+    })
     setSelectedVariants((prev) => ({ ...prev, [groupName]: value }))
     logUserActivity('product_option_selected', {
       productId: product.id, productName: product.name,
@@ -289,6 +294,7 @@ export function CustomizeProductView({ product }: { product: ProductDetailData }
 
               {sizeError && !hasSelectedSize && <p role="alert" className="text-sm font-semibold text-red-700 dark:text-red-400">Please select a size to continue</p>}
               <JacketCustomizer
+                onDesignChange={insights.designChanged}
                 onStepChange={insights.stepChanged}
                 onDifficulty={insights.difficulty}
                 product={{ ...product, variants: effectiveVariants }}
