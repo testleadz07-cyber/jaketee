@@ -226,5 +226,21 @@
   {
     "source": "/varsity-jackets/wool-leather/black-athletic-gold-varsity-jacket-with-hood",
     "destination": "/varsity-jackets/hooded/red-wool-white-leather-sleeves-varsity-jacket-with-hood"
+  },
+  {
+    "source": "/varsity-jackets/hooded/baby-pink-wool-and-black-leather-sleeves-varsity-hoodie",
+    "destination": "/varsity-jackets/hooded/baby-pink-letterman-jacket-with-hood"
+  },
+  {
+    "source": "/products/baby-pink-wool-and-black-leather-sleeves-varsity-hoodie",
+    "destination": "/varsity-jackets/hooded/baby-pink-letterman-jacket-with-hood"
+  },
+  {
+    "source": "/product/baby-pink-wool-and-black-leather-sleeves-varsity-hoodie",
+    "destination": "/varsity-jackets/hooded/baby-pink-letterman-jacket-with-hood"
+  },
+  {
+    "source": "/customize/baby-pink-wool-and-black-leather-sleeves-varsity-hoodie",
+    "destination": "/customize/baby-pink-letterman-jacket-with-hood"
   }
 ]
