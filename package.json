@@ -12,6 +12,7 @@
     "test:merge-safety": "node scripts/test-merge-safety.cjs && node scripts/test-contact-page.cjs && node scripts/test-bulk-quote.cjs",
     "test:reviews": "node scripts/test-reviews-e2e.mjs",
     "test:email": "node scripts/test-email-delivery.cjs",
+    "test:invoices": "node scripts/test-invoice-editor.cjs && node scripts/test-admin-invoices.cjs",
     "test:checkout": "node scripts/test-checkout-shipping.cjs && node scripts/test-checkout-address-ui.cjs",
     "test:varsity": "node scripts/test-varsity-designer.cjs",
     "migrate:product-urls": "node scripts/migrate-product-urls.mjs",

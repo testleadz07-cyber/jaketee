@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { JACKET_VIEWS, type JacketCustomization } from '@/types/jacket-customization'
+import { sendCommerceEvent } from '@/lib/ga-ecommerce'
 
 export interface CartItem {
   id: string
@@ -49,7 +50,7 @@ export const useCartStore = create<CartStore>()(
       directOrderItem: null,
       appliedPromo: null,
 
-      addItem: (item) =>
+      addItem: (item) => {
         set((state) => {
           const variantKey = `${item.variants.map(v => `${v.name}:${v.value}`).sort().join('|')}|${JSON.stringify(item.customization || null)}`
 
@@ -78,7 +79,9 @@ export const useCartStore = create<CartStore>()(
               { ...item, id: crypto.randomUUID(), quantity: qty },
             ],
           }
-        }),
+        })
+        sendCommerceEvent('add_to_cart', [{ productId: item.productId, name: item.name, price: item.price, quantity: item.quantity || 1 }])
+      },
 
       setDirectOrderItem: (item) =>
         set({

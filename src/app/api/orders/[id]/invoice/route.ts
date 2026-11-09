@@ -4,6 +4,7 @@ import Order from '@/models/Order'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { generateInvoicePdf } from '@/lib/invoice-pdf'
+import { getCurrentInvoice } from '@/lib/saved-invoice'
 
 export async function GET(
   request: NextRequest,
@@ -36,22 +37,7 @@ export async function GET(
 
     const o = order as any
 
-    const pdfBytes = await generateInvoicePdf({
-      orderNumber: o.orderNumber,
-      createdAt: o.createdAt,
-      status: o.status,
-      userName: o.userName,
-      userEmail: o.userEmail,
-      items: o.items,
-      subtotal: o.subtotal,
-      shipping: o.shipping,
-      tax: o.tax,
-      discountAmount: o.discountAmount,
-      promoCode: o.promoCode,
-      total: o.total,
-      paymentMethod: o.paymentMethod,
-      shippingAddress: o.shippingAddress,
-    })
+    const pdfBytes = await generateInvoicePdf(await getCurrentInvoice(o))
 
     return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,

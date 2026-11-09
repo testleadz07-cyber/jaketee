@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
+import { InvoiceEditor } from '@/components/admin/invoice-editor'
 import {
   ChevronLeft,
   LogOut,
@@ -55,6 +56,7 @@ import {
   Pencil,
   Archive,
   ArchiveRestore,
+  Download,
 } from 'lucide-react'
 import Link from 'next/link'
 import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
@@ -177,6 +179,8 @@ export default function AdminOrders() {
   
   // Update submission status
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
+  const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null)
 
   // Tracking info form state, keyed by order id
   const [trackingForms, setTrackingForms] = useState<Record<string, { trackingNumber: string; carrier: string; estimatedDelivery: string }>>({})
@@ -281,6 +285,33 @@ export default function AdminOrders() {
       ...prev,
       [orderId]: !prev[orderId]
     }))
+  }
+
+  const handleDownloadInvoice = async (order: Order) => {
+    const orderId = order._id || order.id || ''
+    if (isDemoMode || !orderId || downloadingInvoiceId) return
+    setDownloadingInvoiceId(orderId)
+    try {
+      // Share the customer's invoice endpoint so the PDF stays identical.
+      const res = await fetch(`/api/orders/${orderId}/invoice`)
+      if (!res.ok) throw new Error('Could not download invoice. Please try again.')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      try {
+        link.href = url
+        link.download = `invoice-${order.orderNumber}.pdf`
+        document.body.appendChild(link)
+        link.click()
+      } finally {
+        link.remove()
+        window.URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      toast({ title: 'Invoice download failed', description: error instanceof Error ? error.message : 'Could not download invoice. Please try again.', variant: 'destructive' })
+    } finally {
+      setDownloadingInvoiceId(null)
+    }
   }
 
   const handleArchive = async (order: Order) => {
@@ -877,6 +908,9 @@ export default function AdminOrders() {
                   >
                     <div className="space-y-1.5 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
+                        <Button variant="outline" size="sm" disabled={isDemoMode || !orderId} onClick={event => { event.stopPropagation(); setInvoiceOrder(order) }}>
+                          <FileText className="h-4 w-4 mr-2" /> Edit Invoice
+                        </Button>
                         <span className="font-bold text-lg">{order.orderNumber}</span>
                         {getStatusBadge(order.status)}
                         {order.archivedAt && <Badge variant="secondary">Archived</Badge>}
@@ -899,18 +933,22 @@ export default function AdminOrders() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end border-t md:border-0 pt-4 md:pt-0">
+                    <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-0 pt-4 md:pt-0">
                       <div className="text-left md:text-right">
                         <p className="text-xs text-muted-foreground">Order Total</p>
                         <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button variant="outline" size="sm" disabled={isDemoMode || !orderId || downloadingInvoiceId !== null} onClick={event => { event.stopPropagation(); handleDownloadInvoice(order) }}>
+                          {downloadingInvoiceId === orderId ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                          {downloadingInvoiceId === orderId ? 'Downloading…' : 'Download Invoice'}
+                        </Button>
                         <Button variant="outline" size="sm" disabled={isDemoMode || archivingId !== null || isUpdating} onClick={event => { event.stopPropagation(); handleArchive(order) }}>
                           {archivingId === orderId ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : order.archivedAt ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
                           {order.archivedAt ? 'Restore' : 'Archive'}
                         </Button>
                         <Button variant="outline" size="sm" disabled={isDemoMode} onClick={(event) => { event.stopPropagation(); handleEditOrder(order) }}>
-                          <Pencil className="h-4 w-4 mr-2" /> Edit
+                          <Pencil className="h-4 w-4 mr-2" /> Edit Order
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
@@ -1154,6 +1192,7 @@ export default function AdminOrders() {
       {/* ============================================================ */}
       {/* CREATE CUSTOM ORDER MODAL                                     */}
       {/* ============================================================ */}
+      {invoiceOrder && <InvoiceEditor key={invoiceOrder._id || invoiceOrder.id} orderId={invoiceOrder._id || invoiceOrder.id || ''} orderNumber={invoiceOrder.orderNumber} onClose={() => setInvoiceOrder(null)} />}
       <Dialog open={showCreateModal} onOpenChange={(open) => { if (!open && !creatingOrder) setShowCreateModal(false) }}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden grid-cols-[minmax(0,1fr)] [&_input]:min-w-0 [&_select]:min-w-0 [&>div]:min-w-0" id="create-custom-order-dialog">
           <DialogHeader>

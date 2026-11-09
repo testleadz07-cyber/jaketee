@@ -29,6 +29,7 @@ const RecentlyViewed = dynamic(() => import('@/components/RecentlyViewed').then(
 import { Footer } from '@/components/footer'
 import { buildCategoryUrl, isJacketCategoryPath } from '@/lib/categories'
 import { logUserActivity } from '@/lib/activity'
+import { useCommerceView } from '@/hooks/use-commerce-view'
 import { useActivityView } from '@/hooks/use-activity-view'
 import {
   Star,
@@ -190,6 +191,7 @@ export function ProductDetailView({ slug, initialProduct, faqs = [], relatedProd
   }, [product?.id])
 
   useActivityView('view_product', { productName: product.name, productId: product.id })
+  useCommerceView('view_item', [{ productId: product.id, name: product.name, price: product.price, quantity: 1 }], product.id)
 
   const getSelectedVariantPriceAdjust = () => {
     return Object.entries(selectedVariants).reduce((total, [name, value]) =>

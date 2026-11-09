@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import { usePathname } from 'next/navigation'
+import { GA_READY_EVENT } from '@/lib/ga-ecommerce'
 import {
   COOKIE_CONSENT_UPDATED_EVENT,
   COOKIE_CONSENT_KEY,
@@ -55,6 +56,7 @@ function configureGoogleAnalytics(analyticsAllowed: boolean) {
       send_page_view: false,
     })
   }
+  if (analyticsAllowed) window.dispatchEvent(new Event(GA_READY_EVENT))
 }
 
 export function GoogleAnalytics() {

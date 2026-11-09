@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Order from '@/models/Order'
 import { generateInvoicePdf } from '@/lib/invoice-pdf'
+import { getCurrentInvoice } from '@/lib/saved-invoice'
 
 // Public invoice download for guests (and anyone) who know the order number
 // and the email address used at checkout. Mirrors the security model of
@@ -36,22 +37,7 @@ export async function POST(request: NextRequest) {
 
     const o = order as any
 
-    const pdfBytes = await generateInvoicePdf({
-      orderNumber: o.orderNumber,
-      createdAt: o.createdAt,
-      status: o.status,
-      userName: o.userName,
-      userEmail: o.userEmail,
-      items: o.items,
-      subtotal: o.subtotal,
-      shipping: o.shipping,
-      tax: o.tax,
-      discountAmount: o.discountAmount,
-      promoCode: o.promoCode,
-      total: o.total,
-      paymentMethod: o.paymentMethod,
-      shippingAddress: o.shippingAddress,
-    })
+    const pdfBytes = await generateInvoicePdf(await getCurrentInvoice(o))
 
     return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,
