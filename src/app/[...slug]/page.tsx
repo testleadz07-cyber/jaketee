@@ -24,6 +24,7 @@ import { CategoryDetailView } from '@/components/category-detail-view'
 import { getCatalogFacetData, catalogFilterQuery, readCatalogFilters, type CatalogFacetData } from '@/lib/catalog-filters'
 import Review from '@/models/Review'
 import Faq from '@/models/Faq'
+import { selectScopedFaqs } from '@/lib/faq-scope'
 import Category from '@/models/Category'
 import Product from '@/models/Product'
 import { getStaticCategoriesWithCount } from '@/lib/static-data'
@@ -170,7 +171,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
       {
         const productId = product._id || product.id
         const reviewMatch = { productId, status: 'approved' }
-        const [matched, reviewSummary, recentReviews] = await publicRead('product-support', [String(productId), faqTargets], 300, ['public-support'], async () => Promise.all([
+        const [matched, reviewSummary, recentReviews] = await publicRead('product-support-v2', [String(productId), faqTargets], 300, ['public-support'], async () => Promise.all([
           Faq.find({ status: { $ne: 'draft' }, displayPages: { $in: faqTargets } }).lean(),
           Review.aggregate([
             { $match: reviewMatch },
@@ -181,7 +182,7 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
         approvedReviewCount = Number(reviewSummary[0]?.count || 0)
         approvedAverageRating = Number(reviewSummary[0]?.average || 0)
         approvedReviews = recentReviews
-        productFaqs = matched
+        productFaqs = selectScopedFaqs(matched, { targets: faqTargets })
           .sort((a: any, b: any) => {
             const rank = (faq: any) => Math.min(...(faq.displayPages || []).map((page: string) => {
               const index = faqTargets.indexOf(page)
@@ -443,8 +444,8 @@ async function ResolvedCatalogPage({ slug, query, requestedPage, resolution, can
         const path = chain.slice(0, chain.indexOf(item) + 1).map((part) => part.slug).join('/')
         return [item.slug, `/${item.slug}`, path, `/${path}`]
       })
-      const matchedFaqs = await publicRead('collection-faqs', targets, 300, ['public-support'], async () => Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).limit(40).lean())
-      const faqs: Array<{ id: string; question: string; answer: string[]; bullets: string[]; ordered: string[]; href?: string }> = matchedFaqs
+      const matchedFaqs = await publicRead('collection-faqs-v2', targets, 300, ['public-support'], async () => Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).lean())
+      const faqs: Array<{ id: string; question: string; answer: string[]; bullets: string[]; ordered: string[]; href?: string }> = selectScopedFaqs(matchedFaqs, { targets, fallbackCategories: chain.map(item => item.name) })
         .filter((faq: any) => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim()))
         .sort((a: any, b: any) => Number(a.order || 0) - Number(b.order || 0))
         .slice(0, 10)
