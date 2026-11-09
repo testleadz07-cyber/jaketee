@@ -28,6 +28,7 @@ import { ShoppingBag, CreditCard, Truck, ClipboardList, ShieldAlert, Loader2, X,
 import { Breadcrumbs } from '@/components/breadcrumbs'
 import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
 import { logUserActivity } from '@/lib/activity'
+import { useCommerceView } from '@/hooks/use-commerce-view'
 import { checkoutAddressKey, EMPTY_CHECKOUT_ADDRESS, readCheckoutAddressDraft, suggestCheckoutLocation, type CheckoutAddressDraft, type AddressConfirmation } from '@/lib/checkout-address-draft'
 import { useHasMounted } from '@/hooks/use-has-mounted'
 import { useGuestFormActivity } from '@/hooks/use-guest-form-activity'
@@ -80,6 +81,7 @@ function CheckoutContent() {
   const shippingAmount = jacketCount > 0 ? calculateShipping(jacketCount, Boolean(appliedPromo?.freeShipping)) : 0
 
   const mounted = useHasMounted()
+  useCommerceView('begin_checkout', mounted ? checkoutItems : [], isDirectOrder ? 'buy-now' : 'cart')
 
   // Checkout Steps: 1 = Shipping, 2 = Review, 3 = Payment
   const [step, setStep] = useState(1)

@@ -12,7 +12,6 @@ export interface InvoiceOrderItem {
 export interface InvoiceOrderData {
   orderNumber: string
   createdAt: string | Date
-  status: string
   userName: string
   userEmail: string
   items: InvoiceOrderItem[]
@@ -58,20 +57,17 @@ function formatDate(d: string | Date) {
  * Generates a formal invoice/receipt PDF for a given order.
  * Uses pdf-lib for pure-JS PDF construction (no headless browser dependency).
  */
-export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8Array> {
+export async function generateInvoicePdf(order: InvoiceOrderData, options: { standalone?: boolean } = {}): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   pdfDoc.setTitle(`Invoice ${order.orderNumber}`)
   pdfDoc.setAuthor('Jacketee')
-  pdfDoc.setSubject('Order Invoice / Receipt')
+  pdfDoc.setSubject(options.standalone ? 'Invoice' : 'Order Invoice / Receipt')
 
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
   let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
   let y = PAGE_HEIGHT - MARGIN
-
-  const ROWS_PER_PAGE_FIRST = 9
-  const ROWS_PER_PAGE_NEXT = 14
 
   const newPage = () => {
     page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
@@ -111,7 +107,7 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
     color: rgb(0.85, 0.85, 0.87),
   })
 
-  drawText('INVOICE / RECEIPT', PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 45, {
+  drawText(options.standalone ? 'INVOICE' : 'INVOICE / RECEIPT', PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 45, {
     font: fontBold,
     size: 16,
     color: WHITE,
@@ -131,32 +127,33 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
 
   y = PAGE_HEIGHT - 96 - 30
 
-  // ---------- Status pill ----------
-  const statusLabel = order.status.replace('_', ' ').toUpperCase()
-  const pillTextWidth = fontBold.widthOfTextAtSize(statusLabel, 9)
-  const pillWidth = pillTextWidth + 24
-  page.drawRectangle({
-    x: PAGE_WIDTH - MARGIN - pillWidth,
-    y: y - 14,
-    width: pillWidth,
-    height: 20,
-    color: PANEL,
-    borderColor: LINE,
-    borderWidth: 1,
-  })
-  page.drawText(statusLabel, {
-    x: PAGE_WIDTH - MARGIN - pillWidth / 2 - pillTextWidth / 2,
-    y: y - 8,
-    size: 9,
-    font: fontBold,
-    color: INK,
-  })
-
   // ---------- Bill To / Ship To / Payment ----------
   const colWidth = (PAGE_WIDTH - MARGIN * 2 - 40) / 3
   const col1X = MARGIN
   const col2X = MARGIN + colWidth + 20
   const col3X = MARGIN + (colWidth + 20) * 2
+
+  const wrapText = (text: string, maxWidth: number, font: PDFFont, size: number): string[] => {
+    const lines: string[] = []
+    let line = ''
+    for (const word of text.trim().split(/\s+/)) {
+      if (!word) continue
+      if (line && font.widthOfTextAtSize(`${line} ${word}`, size) > maxWidth) {
+        lines.push(line)
+        line = ''
+      }
+      // Split unusually long words too, keeping every line inside its column.
+      for (const character of (line ? ` ${word}` : word)) {
+        if (line && font.widthOfTextAtSize(line + character, size) > maxWidth) {
+          lines.push(line)
+          line = ''
+        }
+        line += character
+      }
+    }
+    if (line) lines.push(line)
+    return lines
+  }
 
   const drawTextWrapped = (
     text: string,
@@ -167,23 +164,10 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
   ): number => {
     const font = opts.font ?? fontRegular
     const size = opts.size ?? 10
-    const words = text.split(' ')
+    const lines = wrapText(text, maxWidth, font, size)
     let currentY = startY
-    let currentLine = ''
-
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i]
-      const testLine = currentLine ? `${currentLine} ${word}` : word
-      if (font.widthOfTextAtSize(testLine, size) > maxWidth && currentLine) {
-        drawText(currentLine, x, currentY, opts)
-        currentY -= (size + 4)
-        currentLine = word
-      } else {
-        currentLine = testLine
-      }
-    }
-    if (currentLine) {
-      drawText(currentLine, x, currentY, opts)
+    for (const line of lines) {
+      drawText(line, x, currentY, opts)
       currentY -= (size + 4)
     }
     return currentY
@@ -215,13 +199,16 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
   drawText('PAYMENT', col3X, blockTop, { font: fontBold, size: 9, color: MUTED })
   let y3 = blockTop - 16
   y3 = drawTextWrapped(
-    order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A',
+    order.paymentMethod
+      ? ({ bank_transfer: 'Bank Transfer', paypal: 'PayPal', stripe: 'Stripe', cash: 'Cash', other: 'Other' }[order.paymentMethod]
+        || order.paymentMethod.replace(/_/g, ' '))
+      : 'N/A',
     col3X,
     y3,
     colWidth,
     { font: fontBold, size: 10 }
   )
-  y3 = drawTextWrapped(`Order Date: ${formatDate(order.createdAt)}`, col3X, y3, colWidth, { size: 9, color: MUTED })
+  y3 = drawTextWrapped(`${options.standalone ? 'Invoice' : 'Order'} Date: ${formatDate(order.createdAt)}`, col3X, y3, colWidth, { size: 9, color: MUTED })
   if (order.promoCode) {
     y3 = drawTextWrapped(`Promo: ${order.promoCode}`, col3X, y3, colWidth, { size: 9, color: MUTED })
   }
@@ -273,33 +260,30 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
   }
 
   for (const item of order.items) {
-    ensureSpace(40)
     const variantText =
       item.variants && item.variants.length > 0
         ? item.variants.map((v) => `${v.name}: ${v.value}`).join(', ')
         : ''
 
     const nameMaxWidth = colQtyX - colProductX - 20
-    let displayName = item.name
-    while (
-      fontRegular.widthOfTextAtSize(displayName, 10) > nameMaxWidth &&
-      displayName.length > 4
-    ) {
-      displayName = displayName.slice(0, -1)
-    }
-    if (displayName !== item.name) displayName = displayName.slice(0, -1) + '…'
+    const nameLines = wrapText(item.name, nameMaxWidth, fontBold, 10)
+    const variantLines = wrapText(variantText, nameMaxWidth, fontRegular, 8.5)
+    const nameHeight = Math.max(1, nameLines.length) * 14
+    const variantHeight = variantLines.length * 12.5
+    ensureSpace(nameHeight + variantHeight + 20)
 
-    drawText(displayName, colProductX, y, { font: fontBold, size: 10 })
+    nameLines.forEach((line, index) => {
+      drawText(line, colProductX, y - index * 14, { font: fontBold, size: 10 })
+    })
     drawText(String(item.quantity), colQtyX, y, { size: 10 })
     drawText(money(item.price), colPriceX, y, { size: 10, align: 'right' })
     drawText(money(item.price * item.quantity), colTotalX, y, { font: fontBold, size: 10, align: 'right' })
 
-    if (variantText) {
-      y -= 13
-      drawText(variantText, colProductX, y, { size: 8.5, color: MUTED })
-    }
+    variantLines.forEach((line, index) => {
+      drawText(line, colProductX, y - nameHeight - index * 12.5, { size: 8.5, color: MUTED })
+    })
 
-    y -= 20
+    y -= nameHeight + variantHeight + 6
     drawLine(MARGIN, y + 8, PAGE_WIDTH - MARGIN, LINE, 0.75)
   }
 
@@ -311,14 +295,17 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
   const totalsValueX = PAGE_WIDTH - MARGIN
 
   const totalsRow = (label: string, value: string, opts: { bold?: boolean; size?: number; color?: RGB } = {}) => {
-    drawText(label, totalsX, y, { font: opts.bold ? fontBold : fontRegular, size: opts.size ?? 10, color: opts.color ?? MUTED })
+    const font = opts.bold ? fontBold : fontRegular
+    const size = opts.size ?? 10
+    const labelLines = wrapText(label, totalsValueX - totalsX - font.widthOfTextAtSize(value, size) - 12, font, size)
+    labelLines.forEach((line, index) => drawText(line, totalsX, y - index * (size + 4), { font, size, color: opts.color ?? MUTED }))
     drawText(value, totalsValueX, y, {
       font: opts.bold ? fontBold : fontRegular,
       size: opts.size ?? 10,
       color: opts.color ?? INK,
       align: 'right',
     })
-    y -= 18
+    y -= Math.max(18, labelLines.length * (size + 4))
   }
 
   totalsRow('Subtotal', money(order.subtotal))
@@ -333,7 +320,7 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
   drawLine(totalsX, y + 6, totalsValueX, LINE)
   y -= 8
 
-  totalsRow('TOTAL PAID', money(order.total), { bold: true, size: 13, color: INK })
+  totalsRow(options.standalone ? 'TOTAL' : 'TOTAL PAID', money(order.total), { bold: true, size: 13, color: INK })
 
   // ---------- Footer ----------
   const footerY = 70
@@ -345,7 +332,7 @@ export async function generateInvoicePdf(order: InvoiceOrderData): Promise<Uint8
     { size: 8.5, color: MUTED }
   )
   drawText(
-    'Questions about this order? Contact info@jacketee.com',
+    `Questions about this ${options.standalone ? 'invoice' : 'order'}? Contact info@jacketee.com`,
     MARGIN,
     footerY,
     { size: 8.5, color: MUTED }

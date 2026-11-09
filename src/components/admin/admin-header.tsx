@@ -10,6 +10,7 @@ import { NotificationBell } from '@/components/admin/notification-bell'
 const navItems = [
   { label: 'Dashboard', href: '/admin/dashboard' },
   { label: 'Orders', href: '/admin/orders' },
+  { label: 'Invoices', href: '/admin/invoices' },
   { label: 'Products', href: '/admin/products' },
   { label: 'Categories', href: '/admin/categories' },
   { label: 'Users', href: '/admin/users' },

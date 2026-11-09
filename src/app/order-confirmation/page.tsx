@@ -22,6 +22,8 @@ import Link from 'next/link'
 import { getCustomizedViews, getJacketViewLabel, type JacketCustomization } from '@/types/jacket-customization'
 import { useCartStore } from '@/store/cart'
 import { checkoutAddressKey, readCheckoutAddressDraft } from '@/lib/checkout-address-draft'
+import { COOKIE_CONSENT_UPDATED_EVENT } from '@/lib/cookie-consent'
+import { GA_READY_EVENT, sendCommerceEvent } from '@/lib/ga-ecommerce'
 
 interface OrderItem {
   productId: string
@@ -72,6 +74,29 @@ function ConfirmationContent() {
   const [downloadingInvoice, setDownloadingInvoice] = useState(false)
   const [lookupEmail, setLookupEmail] = useState('')
   const formActivity = useGuestFormActivity('order_confirmation', { email: lookupEmail })
+
+  useEffect(() => {
+    // Both confirmation endpoints return authenticated, server-confirmed paid orders.
+    if (!order || order.status !== 'paid') return
+    const send = () => {
+      const value = Math.round((order.total - order.shipping - order.tax) * 100) / 100
+      const gross = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      const items = order.items.map(item => ({
+        productId: item.productId, name: item.name, quantity: item.quantity,
+        price: gross > 0 ? Math.round(item.price * value / gross * 1e6) / 1e6 : item.price,
+      }))
+      sendCommerceEvent('purchase', items, {
+        transactionId: order._id, value, shipping: order.shipping, tax: order.tax,
+      })
+    }
+    send()
+    window.addEventListener(GA_READY_EVENT, send)
+    window.addEventListener(COOKIE_CONSENT_UPDATED_EVENT, send)
+    return () => {
+      window.removeEventListener(GA_READY_EVENT, send)
+      window.removeEventListener(COOKIE_CONSENT_UPDATED_EVENT, send)
+    }
+  }, [order])
 
   useEffect(() => {
     if (!order) return
