@@ -8,6 +8,8 @@ import { notFound } from 'next/navigation'
 import { connectDB } from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 import Product from '@/models/Product'
+import Faq from '@/models/Faq'
+import { selectScopedFaqs } from '@/lib/faq-scope'
 import BlogPostPage, { type BlogPostDetail } from './post-client'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import { buildProductUrl, resolveAncestorChain } from '@/lib/categories'
@@ -25,7 +27,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const post = rawPost as any
   const categoryIds = post.categories ?? []
   const productIds = post.taggedProducts ?? []
-  const [categories, taggedProducts, productCategories, imageCandidates] = await Promise.all([
+  const faqTargets = [`/blog/${slug}`, `blog/${slug}`, `/${slug}`, slug]
+  const [categories, taggedProducts, productCategories, imageCandidates, articleFaqs] = await Promise.all([
     categoryIds.length
       ? getPublicBlogCategories().then(items => items.filter(item => categoryIds.some((id: unknown) => String(id) === String(item._id))))
       : [],
@@ -34,6 +37,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       : [],
     productIds.length ? getPublicCategories() : [],
     getBlogImageCandidates(),
+    publicRead('blog-article-faqs-v1', slug, 300, ['public-support'], async () => {
+      if (!await connectDB()) throw new Error('Article FAQs unavailable')
+      const rows = await Faq.find({ status: { $ne: 'draft' }, displayPages: { $in: faqTargets } }).lean()
+      return selectScopedFaqs(rows, { targets: faqTargets }).slice(0, 6).map((faq: any) => ({
+        id: String(faq._id), question: faq.question, answer: faq.answer || [],
+        bullets: faq.bullets || [], ordered: faq.ordered || [],
+      }))
+    }).catch(() => []),
   ])
   const categoriesById = new Map(categories.map((category: any) => [String(category._id), category] as const))
   const productsById = new Map(taggedProducts.map((product: any) => [String(product._id), product] as const))
@@ -73,6 +84,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     publishedAt: post.publishedAt?.toISOString() ?? '',
     updatedAt: post.updatedAt?.toISOString() ?? post.publishedAt?.toISOString() ?? '',
     views: (post.views ?? 0) + 1,
+    faqs: articleFaqs,
     taggedProducts: resolvedProducts.map((product: any) => ({
       id: String(product._id),
       name: product.name,

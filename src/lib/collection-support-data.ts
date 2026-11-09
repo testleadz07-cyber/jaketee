@@ -9,11 +9,12 @@ import BlogPost from '@/models/BlogPost'
 import '@/models/BlogCategory'
 import { getBlogImageCandidates, resolveBlogImage } from '@/lib/blog-images'
 import { buildProductUrl, resolveAncestorChain, resolveDescendantIds } from '@/lib/categories'
+import { selectScopedFaqs } from '@/lib/faq-scope'
 
 
 export class MissingCollection extends Error {}
 export async function getCollectionSupport(slug: string, articlesOnly = false) {
-  return publicRead('collection-support', [slug, articlesOnly], 300, ['public-support', 'public-blog'], async () => {
+  return publicRead('collection-support-v2', [slug, articlesOnly], 300, ['public-support', 'public-blog'], async () => {
     const db = await connectDB()
     if (!db) throw new Error('Collection support unavailable')
 
@@ -40,8 +41,8 @@ export async function getCollectionSupport(slug: string, articlesOnly = false) {
       }),
     ]
 
-    const matchedFaqs = articlesOnly ? [] : await Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).limit(40).lean()
-    const faqs = matchedFaqs
+    const candidates = articlesOnly ? [] : await Faq.find({ status: { $ne: 'draft' }, $or: [{ displayPages: { $in: targets } }, { category: { $in: chain.map(item => item.name) } }] }).lean()
+    const faqs = selectScopedFaqs(candidates, { targets, fallbackCategories: chain.map(item => item.name) })
       .filter((faq: any) => faq.question?.trim() && [...(faq.answer || []), ...(faq.bullets || []), ...(faq.ordered || [])].some(text => text.trim()))
       .sort((a: any, b: any) => {
         const rank = (faq: any) => Math.min(...faq.displayPages.map((page: string) => {

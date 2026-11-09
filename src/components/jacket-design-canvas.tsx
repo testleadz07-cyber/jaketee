@@ -264,7 +264,7 @@ export function JacketDesignCanvas({ activeView, onViewChange, historyMessage, i
       {/* Left side: Customization Options */}
       <div className="order-2 min-w-0 space-y-6 lg:order-1 lg:space-y-8">
         {leftContentTop && <div>{leftContentTop}</div>}
-        <CustomizationSection title="Text & artwork" collapsible={Boolean(onPartSelect)}>
+        <CustomizationSection title="Text and your logo" headingClassName="text-[#ff0000]" collapsible={Boolean(onPartSelect)}>
 
         <div className="space-y-6">
           <div className="space-y-3">
@@ -294,7 +294,7 @@ export function JacketDesignCanvas({ activeView, onViewChange, historyMessage, i
         </div>
 
         <div className="space-y-3 border-t pt-4">
-          <div className="flex flex-wrap items-center justify-between gap-2"><Label className="flex items-center gap-2"><ImagePlus className="h-4 w-4" /> Artwork library</Label>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Label className="flex items-center gap-2"><ImagePlus className="h-4 w-4" /> <span className="text-[#ff0000]">Text and your logo</span></Label>
             {selectedArtwork && <Button type="button" size="sm" variant="ghost" title="Remove selected artwork" onClick={removeSelectedArtwork}><X className="mr-2 h-4 w-4" /> Remove</Button>}
           </div>
           <div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search artwork" className="pl-9" /></div>

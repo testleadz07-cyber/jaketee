@@ -9,6 +9,8 @@ export function productImageAlt(productName, url, index) {
     : /(?:^|-)back(?:-|$)/.test(token) ? 'back view'
     : /(?:^|-)(?:right-sleeve|sleeve-right)(?:-|$)/.test(token) ? 'right sleeve view'
     : /(?:^|-)(?:left-sleeve|sleeve-left)(?:-|$)/.test(token) ? 'left sleeve view'
+    : /(?:^|-)right(?:-|$)/.test(token) ? 'right side view'
+    : /(?:^|-)left(?:-|$)/.test(token) ? 'left side view'
     : /(?:^|-)(?:front|main)(?:-|$)/.test(token) ? 'front view'
     : (['front view', 'back view', 'right sleeve view', 'left sleeve view'][index] || 'detail view')
   return `${productName}, ${view}`

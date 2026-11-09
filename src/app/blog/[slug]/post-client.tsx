@@ -12,6 +12,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ArrowRight, Calendar, User, Eye, Star, Tag } from 'lucide-react'
+import { FaqText } from '@/components/faq-text'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 interface TaggedProduct {
   id: string
@@ -50,6 +52,7 @@ export interface BlogPostDetail {
   taggedProducts: TaggedProduct[]
   relatedPosts: RelatedPost[]
   recommendedShop: { href: string; label: string }
+  faqs?: Array<{ id: string; question: string; answer: string[]; bullets: string[]; ordered: string[] }>
 }
 
 function formatDate(dateString: string) {
@@ -133,6 +136,24 @@ export default function BlogPostPage({ post }: { post: BlogPostDetail }) {
             className="blog-content"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+
+          {!!post.faqs?.length && (
+            <section className="mt-10 rounded-lg border p-5 md:p-7" aria-labelledby="article-faq-heading">
+              <h2 id="article-faq-heading" className="text-2xl font-semibold">Questions about this guide</h2>
+              <Accordion type="single" collapsible className="mt-4">
+                {post.faqs.map(faq => (
+                  <AccordionItem key={faq.id} value={faq.id}>
+                    <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
+                    <AccordionContent className="space-y-3">
+                      {faq.answer.map((paragraph, index) => <p key={index}><FaqText text={paragraph} /></p>)}
+                      {!!faq.bullets.length && <ul className="list-disc pl-5">{faq.bullets.map((text, index) => <li key={index}><FaqText text={text} /></li>)}</ul>}
+                      {!!faq.ordered.length && <ol className="list-decimal pl-5">{faq.ordered.map((text, index) => <li key={index}><FaqText text={text} /></li>)}</ol>}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </section>
+          )}
 
           <section className="mt-10 border-y py-7" aria-labelledby="blog-resources-heading">
             <div className="flex flex-wrap items-end justify-between gap-3">
