@@ -17,7 +17,14 @@ const PAGE_SIZE = 9
 export async function generateMetadata({ searchParams }: { searchParams: Promise<{ page?: string; category?: string; tag?: string }> }): Promise<Metadata> {
   const { page, category, tag } = await searchParams
   const url = `https://www.jacketee.com${blogArchivePath(blogPageNumber(page), category, '/blog', tag)}`
-  return withSocialMetadata({ ...archiveMetadata, alternates: { canonical: url }, openGraph: { ...archiveMetadata.openGraph, url } })
+  return withSocialMetadata({
+    ...archiveMetadata,
+    // Tag filters repeat article listings; keep the articles and curated
+    // category archives discoverable without indexing every tag combination.
+    ...(tag ? { robots: { index: false, follow: true } } : {}),
+    alternates: { canonical: url },
+    openGraph: { ...archiveMetadata.openGraph, url },
+  })
 }
 
 export default async function Page({ searchParams }: {

@@ -17,7 +17,7 @@ export const revalidate = 60
 const SHOP_TITLE = 'Shop All Custom Jackets | Varsity, Bomber & More | Jacketee'
 const SHOP_DESCRIPTION = 'Browse all custom jackets at Jacketee, including varsity, letterman, bomber, coach, puffer and denim styles. Add patches, embroidery and team colors.'
 
-export const metadata: Metadata = withSocialMetadata({
+const shopMetadata: Metadata = withSocialMetadata({
   title: SHOP_TITLE,
   description: SHOP_DESCRIPTION,
   alternates: { canonical: 'https://www.jacketee.com/shop' },
@@ -34,6 +34,22 @@ export const metadata: Metadata = withSocialMetadata({
     description: SHOP_DESCRIPTION,
   },
 })
+
+export async function generateMetadata({ searchParams }: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}): Promise<Metadata> {
+  const query = await searchParams
+  const value = Array.isArray(query.page) ? query.page[0] : query.page
+  const page = Math.max(1, parseInt(value || '1') || 1)
+  const url = `https://www.jacketee.com/shop${page > 1 ? `?page=${page}` : ''}`
+  const title = page > 1 ? `Shop Custom Jackets - Page ${page} | Jacketee` : SHOP_TITLE
+  return withSocialMetadata({
+    ...shopMetadata,
+    title,
+    alternates: { canonical: url },
+    openGraph: { ...shopMetadata.openGraph, title, url },
+  })
+}
 
 export default async function Page({ searchParams }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>

@@ -7,6 +7,8 @@ import BlogCategory from '@/models/BlogCategory'
 import Faq from '@/models/Faq'
 import { resolveAncestorChain, buildCategoryUrl, buildProductUrl } from '@/lib/categories'
 import { publicRead } from '@/lib/public-cache'
+import urlRedirects from '@/data/url-redirects.json'
+import contentLinkRepairs from '@/data/content-link-repairs.json'
 
 export const dynamic = 'force-dynamic'
 
@@ -139,6 +141,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const routes = [...staticRoutes, ...productRoutes, ...categoryRoutes, ...blogRoutes, ...blogCategoryRoutes]
-  return [...new Map(routes.map(route => [route.url, route])).values()]
+  // Advertise final canonical destinations, including retained product aliases.
+  const redirects = new Map([...urlRedirects, ...contentLinkRepairs].map(({ source, destination }) => [source, destination]))
+  const canonicalRoutes = routes.map(route => {
+    let path = new URL(route.url).pathname
+    const seen = new Set<string>()
+    while (redirects.has(path)) {
+      if (seen.has(path)) throw new Error(`Sitemap redirect cycle: ${path}`)
+      seen.add(path)
+      path = redirects.get(path)!
+    }
+    return { ...route, url: new URL(path, baseUrl).href }
+  })
+  return [...new Map(canonicalRoutes.map(route => [route.url, route])).values()]
   })
 }
