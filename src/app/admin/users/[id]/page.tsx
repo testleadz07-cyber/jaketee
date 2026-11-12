@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
 import { AdminLoadingShell } from '@/components/admin/admin-loading-shell'
+import { UserActivityHistory } from '@/components/admin/user-activity-history'
 import { ActivityDevice } from '@/components/admin/activity-device'
 import {
   ChevronLeft,
@@ -126,18 +127,6 @@ interface SessionSummary {
   lastLogin: string | null
 }
 
-const formatActionName = (action: string) => {
-  switch (action) {
-    case 'login': return 'Logged In'
-    case 'view_product': return 'Viewed Product'
-    case 'view_category': return 'Viewed Category'
-    case 'add_to_cart': return 'Added to Cart'
-    case 'search': return 'Searched'
-    case 'place_order': return 'Placed Order'
-    default: return action.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
-  }
-}
-
 function formatDuration(seconds: number | null | undefined): string {
   if (!seconds || seconds <= 0) return '—'
   if (seconds < 60) return `${seconds}s`
@@ -150,29 +139,6 @@ function formatDuration(seconds: number | null | undefined): string {
 function parseDevice(ua: string | null): 'mobile' | 'desktop' {
   if (!ua) return 'desktop'
   return /iphone|ipad|android|mobile/i.test(ua) ? 'mobile' : 'desktop'
-}
-
-const renderActivityDetails = (activity: UserActivityRow) => {
-  const details = activity.details
-  if (!details) return null
-  switch (activity.action) {
-    case 'view_product':
-      return <span className="text-xs text-muted-foreground">Product: <span className="font-semibold">{details.name || details.productId}</span></span>
-    case 'view_category':
-      return <span className="text-xs text-muted-foreground">Category: <span className="font-semibold">{details.name || details.slug}</span></span>
-    case 'add_to_cart':
-      return (
-        <span className="text-xs text-muted-foreground">
-          {details.name} (Qty: {details.quantity || 1}) - ${details.price?.toFixed(2)}
-        </span>
-      )
-    case 'search':
-      return <span className="text-xs text-muted-foreground">Query: &ldquo;<span className="italic">{details.query}</span>&rdquo;</span>
-    case 'place_order':
-      return <span className="text-xs text-muted-foreground">Order #<span className="font-semibold">{details.orderNumber}</span> - ${details.total?.toFixed(2)}</span>
-    default:
-      return <span className="text-xs text-muted-foreground">{JSON.stringify(details)}</span>
-  }
 }
 
 const emptyAddress: AddressForm = {
@@ -741,62 +707,7 @@ export default function AdminUserDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-1.5">
-                <Globe className="h-4 w-4" /> Activity History
-              </CardTitle>
-              <CardDescription>Recent actions performed by this user.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              {!user.activities || user.activities.length === 0 ? (
-                <p className="text-sm text-muted-foreground px-6 pb-6 pt-2">No recorded activity yet.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Details</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead className="whitespace-nowrap">State / Region</TableHead>
-                        <TableHead>City</TableHead>
-                        <TableHead>Device</TableHead>
-                        <TableHead>IP Address</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {user.activities.map((activity) => (
-                        <TableRow key={activity.id}>
-                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                            {new Date(activity.createdAt).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="font-medium text-sm whitespace-nowrap">
-                            <Badge variant="secondary" className="capitalize">
-                              {formatActionName(activity.action)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="max-w-[200px] truncate">
-                            {renderActivityDetails(activity)}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                            {activity.country}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{activity.region || '—'}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{activity.city || '—'}</TableCell>
-                          <TableCell><ActivityDevice userAgent={activity.userAgent} /></TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-mono whitespace-nowrap">
-                            {activity.ip || 'N/A'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <UserActivityHistory key={userId} userId={userId} />
 
           {/* Login Sessions */}
           <Card className="border-2">
